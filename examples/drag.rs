@@ -48,7 +48,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let sessions = HashMap::new();
     let sources = FrameSources {
         sessions: &sessions,
-        selected: &|_, _, _| false,
     };
     for (name, appearance, pointer) in pointers(&frame) {
         let theme = Theme::new(appearance);
