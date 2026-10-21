@@ -1,4 +1,4 @@
-target/
+/target/
 .claude/
 
 # ---- Working notes, never published ----

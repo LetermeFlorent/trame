@@ -1,0 +1,76 @@
+use crate::render::gpu::Gpu;
+
+pub struct WindowSurface {
+    surface: wgpu::Surface<'static>,
+    config: wgpu::SurfaceConfiguration,
+}
+
+pub enum Frame {
+    Ready(wgpu::SurfaceTexture),
+    Skip,
+}
+
+impl WindowSurface {
+    pub fn new(
+        gpu: &Gpu,
+        surface: wgpu::Surface<'static>,
+        width: u32,
+        height: u32,
+    ) -> Option<Self> {
+        let capabilities = surface.get_capabilities(&gpu.adapter);
+        let mut config = surface.get_default_config(&gpu.adapter, width.max(1), height.max(1))?;
+        if let Some(format) = preferred_format(&capabilities.formats) {
+            config.format = format;
+        }
+        config.present_mode = wgpu::PresentMode::AutoVsync;
+        config.alpha_mode = capabilities
+            .alpha_modes
+            .iter()
+            .copied()
+            .find(|mode| *mode == wgpu::CompositeAlphaMode::Opaque)
+            .unwrap_or(config.alpha_mode);
+        config.desired_maximum_frame_latency = 1;
+        surface.configure(&gpu.device, &config);
+        Some(Self { surface, config })
+    }
+
+    pub fn format(&self) -> wgpu::TextureFormat {
+        self.config.format
+    }
+
+    pub fn size(&self) -> (u32, u32) {
+        (self.config.width, self.config.height)
+    }
+
+    pub fn resize(&mut self, gpu: &Gpu, width: u32, height: u32) {
+        if width == 0 || height == 0 || (width, height) == self.size() {
+            return;
+        }
+        self.config.width = width;
+        self.config.height = height;
+        self.surface.configure(&gpu.device, &self.config);
+    }
+
+    pub fn acquire(&mut self, gpu: &Gpu) -> Frame {
+        match self.surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(texture)
+            | wgpu::CurrentSurfaceTexture::Suboptimal(texture) => Frame::Ready(texture),
+            wgpu::CurrentSurfaceTexture::Outdated | wgpu::CurrentSurfaceTexture::Lost => {
+                self.surface.configure(&gpu.device, &self.config);
+                Frame::Skip
+            }
+            _ => Frame::Skip,
+        }
+    }
+}
+
+fn preferred_format(formats: &[wgpu::TextureFormat]) -> Option<wgpu::TextureFormat> {
+    let wanted = [
+        wgpu::TextureFormat::Bgra8Unorm,
+        wgpu::TextureFormat::Rgba8Unorm,
+    ];
+    wanted
+        .into_iter()
+        .find(|format| formats.contains(format))
+        .or_else(|| formats.first().copied())
+}
