@@ -43,6 +43,7 @@ impl Running {
         let hover = self
             .pointer
             .position
+            .filter(|_| !self.drags_tab())
             .and_then(|point| self.frame.hit(point, resizable));
         if hover != self.view.hover {
             self.view.hover = hover;

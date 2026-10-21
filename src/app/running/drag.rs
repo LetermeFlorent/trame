@@ -54,7 +54,6 @@ impl Running {
                 return false;
             }
             Some(Drag::Pending(tab, _) | Drag::Tab(tab, _)) => {
-                self.view.hover = None;
                 self.view.pressed = None;
                 Drag::Tab(tab, point)
             }
@@ -102,6 +101,10 @@ impl Running {
         self.view.pressed = None;
         self.changed();
         true
+    }
+
+    pub(super) fn drags_tab(&self) -> bool {
+        matches!(self.drag, Some(Drag::Tab(..)))
     }
 
     pub(super) fn drag_cursor(&self) -> Option<CursorIcon> {
