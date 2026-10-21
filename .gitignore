@@ -1,0 +1,7 @@
+target/
+.claude/
+
+# ---- Working notes, never published ----
+avancement.md
+PLAN.md
+DEFAUTS-CONNUS.md
