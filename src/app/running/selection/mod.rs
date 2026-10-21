@@ -75,15 +75,17 @@ impl Running {
             return false;
         };
         let cell = self.cell_in_pane(pane, point);
+        let reports = self.reports_mouse(id);
+        if !reports && button != MouseButton::Left {
+            return false;
+        }
         self.focus_pane(pane_id);
         self.selecting.cell = Some(cell);
-        if self.reports_mouse(id) {
+        if reports {
             self.selecting.held = Some((id, button));
             self.send_report(id, MouseAction::Press, Some(button), cell);
-        } else if button == MouseButton::Left {
-            self.begin_selection(id, cell);
         } else {
-            return false;
+            self.begin_selection(id, cell);
         }
         self.changed();
         true
