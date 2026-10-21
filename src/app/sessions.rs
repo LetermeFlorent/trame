@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 
 use winit::event_loop::EventLoopProxy;
@@ -13,6 +13,7 @@ use super::UserEvent;
 
 pub struct Sessions {
     map: HashMap<SessionId, Session>,
+    origins: HashMap<SessionId, PathBuf>,
     next: u64,
     shell: ShellCommand,
     notify: Notifier,
@@ -27,6 +28,7 @@ impl Sessions {
         });
         Self {
             map: HashMap::new(),
+            origins: HashMap::new(),
             next: 0,
             shell: default_shell(),
             notify,
@@ -54,6 +56,9 @@ impl Sessions {
         };
         let session = Session::spawn(id, &options, self.notify.clone())?;
         self.map.insert(id, session);
+        if let Some(path) = cwd {
+            self.origins.insert(id, path.to_path_buf());
+        }
         Ok(())
     }
 
@@ -68,7 +73,13 @@ impl Sessions {
     }
 
     pub fn remove(&mut self, id: SessionId) -> Option<Session> {
+        self.origins.remove(&id);
         self.map.remove(&id)
+    }
+
+    pub fn cwd(&self, id: SessionId) -> Option<PathBuf> {
+        let known = self.map.get(&id).and_then(Session::cwd);
+        known.or_else(|| self.origins.get(&id).cloned())
     }
 
     pub fn map(&self) -> &HashMap<SessionId, Session> {

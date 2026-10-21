@@ -1,0 +1,87 @@
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::time::Instant;
+
+use winit::event_loop::{ActiveEventLoop, ControlFlow};
+
+use trame::session::SessionId;
+use trame::workspace::{Snapshot, Workspace};
+
+use super::Running;
+use super::tabs::FALLBACK_GRID;
+use crate::app::{persist, window};
+
+type SavedCwds = HashMap<SessionId, Option<PathBuf>>;
+
+impl Running {
+    pub fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        self.saver.watch(&self.workspace);
+        let flow = match self.saver.due() {
+            None => ControlFlow::Wait,
+            Some(due) if due > Instant::now() => ControlFlow::WaitUntil(due),
+            Some(_) => {
+                self.save_session();
+                ControlFlow::Wait
+            }
+        };
+        event_loop.set_control_flow(flow);
+    }
+
+    pub fn save_session(&mut self) {
+        let sessions = &self.sessions;
+        let mut snapshot = self
+            .workspace
+            .snapshot(self.font_size, &|id| sessions.cwd(id));
+        snapshot.window = window::snapshot(&self.window);
+        self.saver.save(&snapshot);
+    }
+
+    pub(super) fn restore_session(&mut self, saved: Option<&Snapshot>) -> bool {
+        let Some(saved) = saved else {
+            return false;
+        };
+        let mut cwds = SavedCwds::new();
+        let sessions = &mut self.sessions;
+        let restored = Workspace::restore(saved, &mut |tab| {
+            let id = sessions.reserve();
+            cwds.insert(id, tab.cwd.clone());
+            id
+        });
+        match restored {
+            Ok(workspace) => self.workspace = workspace,
+            Err(error) => {
+                eprintln!("trame: {error}, starting a fresh session");
+                return false;
+            }
+        }
+        self.set_font_size(saved.font_size);
+        self.relayout();
+        self.spawn_restored(cwds);
+        if self.workspace.is_empty() {
+            return false;
+        }
+        self.saver.baseline(&self.workspace);
+        self.changed();
+        true
+    }
+
+    fn spawn_restored(&mut self, mut cwds: SavedCwds) {
+        for id in self.workspace.tabs() {
+            let cwd = existing_or_home(cwds.remove(&id).flatten());
+            let size = self.grid_size_of(id).unwrap_or(FALLBACK_GRID);
+            let colors = self.theme.reported_colors();
+            if let Err(error) = self.sessions.spawn(id, cwd.as_deref(), size, colors) {
+                eprintln!("trame: a saved shell could not start: {error}");
+                self.workspace.close_tab(id);
+            }
+        }
+    }
+}
+
+fn existing_or_home(saved: Option<PathBuf>) -> Option<PathBuf> {
+    match saved {
+        Some(path) if path.is_dir() => Some(path),
+        Some(_) => persist::home_dir(),
+        None => None,
+    }
+}

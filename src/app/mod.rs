@@ -1,6 +1,7 @@
 #[cfg(feature = "capture")]
 mod capture;
 mod graphics;
+mod persist;
 mod running;
 mod sessions;
 mod window;
@@ -64,7 +65,16 @@ impl ApplicationHandler<UserEvent> for App {
         }
     }
 
+    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        if let Some(running) = &mut self.running {
+            running.about_to_wait(event_loop);
+        }
+    }
+
     fn exiting(&mut self, _: &ActiveEventLoop) {
+        if let Some(running) = &mut self.running {
+            running.save_session();
+        }
         self.running = None;
     }
 }

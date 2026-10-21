@@ -1,0 +1,76 @@
+use std::path::PathBuf;
+
+use super::{
+    InstanceSnapshot, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot, TabSnapshot,
+};
+use crate::session::SessionId;
+use crate::workspace::{Instance, Node, Pane, Workspace};
+
+type CwdOf<'a> = &'a dyn Fn(SessionId) -> Option<PathBuf>;
+
+impl Workspace {
+    pub fn snapshot(&self, font_size: f32, cwd: CwdOf) -> Snapshot {
+        Snapshot {
+            version: SNAPSHOT_VERSION,
+            sidebar_open: self.sidebar_open,
+            font_size,
+            active_instance: self.active,
+            window: None,
+            instances: self
+                .instances
+                .iter()
+                .map(|instance| capture_instance(instance, cwd))
+                .collect(),
+        }
+    }
+}
+
+fn capture_instance(instance: &Instance, cwd: CwdOf) -> InstanceSnapshot {
+    let order = instance.root.panes();
+    InstanceSnapshot {
+        name: instance.name.clone(),
+        active_pane: order
+            .iter()
+            .position(|id| *id == instance.active_pane)
+            .unwrap_or(0),
+        root: capture_node(instance, &instance.root, cwd),
+    }
+}
+
+fn capture_node(instance: &Instance, node: &Node, cwd: CwdOf) -> NodeSnapshot {
+    match node {
+        Node::Pane(id) => NodeSnapshot::Pane(
+            instance
+                .panes
+                .get(id)
+                .map(|pane| capture_pane(pane, cwd))
+                .unwrap_or_default(),
+        ),
+        Node::Split {
+            axis,
+            children,
+            flexes,
+        } => NodeSnapshot::Split {
+            axis: *axis,
+            ratios: flexes.clone(),
+            children: children
+                .iter()
+                .map(|child| capture_node(instance, child, cwd))
+                .collect(),
+        },
+    }
+}
+
+fn capture_pane(pane: &Pane, cwd: CwdOf) -> PaneSnapshot {
+    PaneSnapshot {
+        tabs: pane
+            .tabs
+            .iter()
+            .map(|tab| TabSnapshot {
+                cwd: cwd(*tab).filter(|path| path.to_str().is_some()),
+                title: None,
+            })
+            .collect(),
+        active: pane.active,
+    }
+}
