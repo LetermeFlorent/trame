@@ -1,4 +1,5 @@
 mod keys;
+mod mouse;
 mod paste;
 mod shortcuts;
 mod wheel;
