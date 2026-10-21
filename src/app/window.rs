@@ -3,10 +3,12 @@ use winit::window::{CursorIcon, ResizeDirection, Theme, Window, WindowAttributes
 
 use trame::theme::Appearance;
 use trame::ui::ResizeEdge;
+use trame::workspace::WindowSnapshot;
 
 const APP_NAME: &str = "trame";
 const INITIAL_SIZE: LogicalSize<f64> = LogicalSize::new(1180.0, 740.0);
 const MINIMUM_SIZE: LogicalSize<f64> = LogicalSize::new(520.0, 320.0);
+const MAXIMUM_SAVED_EXTENT: f64 = 16384.0;
 
 pub fn attributes() -> WindowAttributes {
     let attributes = Window::default_attributes()
@@ -15,6 +17,30 @@ pub fn attributes() -> WindowAttributes {
         .with_inner_size(INITIAL_SIZE)
         .with_min_inner_size(MINIMUM_SIZE);
     platform_attributes(attributes)
+}
+
+pub fn restored_attributes(saved: Option<WindowSnapshot>) -> WindowAttributes {
+    let attributes = attributes();
+    let Some(saved) = saved else {
+        return attributes;
+    };
+    let width = f64::from(saved.width).clamp(MINIMUM_SIZE.width, MAXIMUM_SAVED_EXTENT);
+    let height = f64::from(saved.height).clamp(MINIMUM_SIZE.height, MAXIMUM_SAVED_EXTENT);
+    attributes
+        .with_inner_size(LogicalSize::new(width, height))
+        .with_maximized(saved.maximized)
+}
+
+pub fn snapshot(window: &Window) -> Option<WindowSnapshot> {
+    let size = window.inner_size().to_logical::<f64>(window.scale_factor());
+    if window.is_minimized() == Some(true) || size.width < 1.0 || size.height < 1.0 {
+        return None;
+    }
+    Some(WindowSnapshot {
+        width: size.width.round() as u32,
+        height: size.height.round() as u32,
+        maximized: window.is_maximized(),
+    })
 }
 
 #[cfg(windows)]

@@ -2,6 +2,7 @@ mod commands;
 mod frame;
 mod keyboard;
 mod mouse;
+mod saved_session;
 mod scroll;
 mod tabs;
 
@@ -24,6 +25,7 @@ use trame::ui::{FrameLayout, FrameView, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
+use super::persist::{self, Saver};
 use super::sessions::Sessions;
 use super::{UserEvent, window};
 use mouse::Pointer;
@@ -39,6 +41,7 @@ pub struct Running {
     font_size: f32,
     workspace: Workspace,
     sessions: Sessions,
+    saver: Saver,
     labels: HashMap<SessionId, String>,
     frame: FrameLayout,
     view: FrameView,
@@ -51,7 +54,9 @@ impl Running {
         event_loop: &ActiveEventLoop,
         proxy: EventLoopProxy<UserEvent>,
     ) -> Result<Self, Box<dyn Error>> {
-        let window = Arc::new(event_loop.create_window(window::attributes())?);
+        let saved = persist::load();
+        let saved_window = saved.as_ref().and_then(|snapshot| snapshot.window);
+        let window = Arc::new(event_loop.create_window(window::restored_attributes(saved_window))?);
         window::round_corners(&window);
         let metrics = UiMetrics::new(window.scale_factor() as f32);
         let mut text = TextSystem::new(TERMINAL_FONT_SIZE * metrics.scale, DEFAULT_LINE_HEIGHT)?;
@@ -69,6 +74,7 @@ impl Running {
             font_size: TERMINAL_FONT_SIZE,
             workspace,
             sessions: Sessions::new(proxy),
+            saver: Saver::new(),
             labels: HashMap::new(),
             frame,
             view: FrameView {
@@ -78,7 +84,9 @@ impl Running {
             pointer: Pointer::default(),
             modifiers: ModifiersState::empty(),
         };
-        running.open(Placement::Instance)?;
+        if !running.restore_session(saved.as_ref()) {
+            running.open(Placement::Instance)?;
+        }
         running.redraw();
         running.window.set_visible(true);
         Ok(running)

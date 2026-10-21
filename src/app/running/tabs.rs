@@ -7,7 +7,7 @@ use trame::workspace::{Edge, InstanceId, PaneId};
 
 use super::Running;
 
-const FALLBACK_GRID: (usize, usize) = (24, 80);
+pub(super) const FALLBACK_GRID: (usize, usize) = (24, 80);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Placement {
@@ -88,7 +88,7 @@ impl Running {
         self.changed();
     }
 
-    fn grid_size_of(&self, id: SessionId) -> Option<(usize, usize)> {
+    pub(super) fn grid_size_of(&self, id: SessionId) -> Option<(usize, usize)> {
         let cell = self.text.cell_metrics();
         self.frame
             .panes
