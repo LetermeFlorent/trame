@@ -16,7 +16,10 @@ fn scrolls_the_history_on_the_main_screen() {
 
 #[test]
 fn hands_the_wheel_to_programs_that_track_the_mouse() {
-    assert_eq!(wheel_action(1, modes(&[Modes::MOUSE_CLICK])), WheelAction::Report);
+    assert_eq!(
+        wheel_action(1, modes(&[Modes::MOUSE_CLICK])),
+        WheelAction::Report
+    );
     let full_screen = modes(&[Modes::ALT_SCREEN, Modes::MOUSE_MOTION]);
     assert_eq!(wheel_action(-1, full_screen), WheelAction::Report);
 }

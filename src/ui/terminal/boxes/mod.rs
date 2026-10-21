@@ -66,7 +66,11 @@ mod tests {
     fn straight_lines_span_the_whole_cell() {
         let mut scene = Scene::new(8.0, 17.0);
         draw(&mut scene, '─', cell(), Rgba::hex(0xffffff), 1.0);
-        let left = scene.quads().iter().map(|quad| quad.rect[0]).fold(f32::MAX, f32::min);
+        let left = scene
+            .quads()
+            .iter()
+            .map(|quad| quad.rect[0])
+            .fold(f32::MAX, f32::min);
         let right = scene
             .quads()
             .iter()

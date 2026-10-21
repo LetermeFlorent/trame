@@ -21,7 +21,11 @@ pub(super) fn draw(painter: &mut Painter, bar: &TitleBarFrame, sidebar_open: boo
         Rect::new(bar.rect.x, bar.rect.bottom() - line, bar.rect.width, line),
         theme.border,
     );
-    painter.button(bar.toggle, Hit::SidebarToggle, Icon::Sidebar { open: sidebar_open });
+    painter.button(
+        bar.toggle,
+        Hit::SidebarToggle,
+        Icon::Sidebar { open: sidebar_open },
+    );
     let title_color = match painter.view.window_focused {
         true => theme.text,
         false => theme.text_muted,

@@ -59,7 +59,9 @@ impl Graphics {
             window.request_redraw();
             return;
         };
-        let view = texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let view = texture
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
         self.renderer.render(&self.gpu, &view, scene, clear);
         #[cfg(feature = "capture")]
         if let Some(capture) = &self.capture {

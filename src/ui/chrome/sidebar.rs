@@ -20,7 +20,12 @@ pub(super) fn draw(painter: &mut Painter, sidebar: &SidebarFrame) {
         theme.text_faint,
     );
     painter.button(sidebar.new_instance, Hit::NewInstance, Icon::Plus);
-    let list = Rect::from_edges(rect.x, sidebar.header.bottom(), rect.right() - line, rect.bottom());
+    let list = Rect::from_edges(
+        rect.x,
+        sidebar.header.bottom(),
+        rect.right() - line,
+        rect.bottom(),
+    );
     painter.scene.push_clip(list);
     for row in &sidebar.rows {
         draw_row(painter, row);

@@ -112,7 +112,11 @@ impl PaneLayout {
                     (*id, distance, drift)
                 })
             })
-            .min_by(|a, b| (a.1, a.2).partial_cmp(&(b.1, b.2)).unwrap_or(std::cmp::Ordering::Equal))
+            .min_by(|a, b| {
+                (a.1, a.2)
+                    .partial_cmp(&(b.1, b.2))
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
             .map(|(id, _, _)| id)
     }
 }

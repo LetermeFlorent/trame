@@ -11,7 +11,12 @@ pub(super) fn draw(painter: &mut Painter, pane: &PaneFrame) {
     let strip = &pane.strip;
     painter.rule(strip.rect, theme.tab_bar);
     painter.rule(
-        Rect::new(strip.rect.x, strip.rect.bottom() - line, strip.rect.width, line),
+        Rect::new(
+            strip.rect.x,
+            strip.rect.bottom() - line,
+            strip.rect.width,
+            line,
+        ),
         theme.border,
     );
     painter.scene.push_clip(strip.tabs_area);

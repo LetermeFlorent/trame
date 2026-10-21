@@ -50,7 +50,11 @@ impl FrameLayout {
         if self.title_bar.rect.contains(point) {
             return Some(hit_title_bar(&self.title_bar, point));
         }
-        if let Some(sidebar) = self.sidebar.as_ref().filter(|side| side.rect.contains(point)) {
+        if let Some(sidebar) = self
+            .sidebar
+            .as_ref()
+            .filter(|side| side.rect.contains(point))
+        {
             return Some(hit_sidebar(sidebar, point));
         }
         if let Some(index) = self.divider_at(point) {

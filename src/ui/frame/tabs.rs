@@ -52,7 +52,12 @@ pub fn layout_strip(
     let margin = metrics.px(BUTTON_MARGIN);
     let button_y = (rect.y + (rect.height - button) / 2.0).round();
     let split = Rect::new(rect.right() - margin - button, button_y, button, button);
-    let new_tab = Rect::new(split.x - metrics.px(BUTTON_GAP) - button, button_y, button, button);
+    let new_tab = Rect::new(
+        split.x - metrics.px(BUTTON_GAP) - button,
+        button_y,
+        button,
+        button,
+    );
     let tabs_area = Rect::from_edges(rect.x, rect.y, new_tab.x - margin, rect.bottom());
     let tabs = layout_tabs(text, metrics, tabs_area, pane, title);
     TabStrip {
@@ -82,7 +87,11 @@ fn layout_tabs(
     let titles: Vec<String> = pane.tabs.iter().map(|tab| title(*tab)).collect();
     let natural: Vec<f32> = titles
         .iter()
-        .map(|label| (text.layout(label, style).width + fixed).ceil().clamp(minimum, maximum))
+        .map(|label| {
+            (text.layout(label, style).width + fixed)
+                .ceil()
+                .clamp(minimum, maximum)
+        })
         .collect();
     let widths = fit_widths(&natural, area.width, minimum);
     let mut x = area.x - scroll_offset(&widths, pane.active, area.width);

@@ -16,7 +16,11 @@ pub(super) enum Scroll {
 
 impl Running {
     pub(super) fn scroll_active(&mut self, scroll: Scroll) {
-        let Some(session) = self.workspace.active_tab().and_then(|id| self.sessions.get(id)) else {
+        let Some(session) = self
+            .workspace
+            .active_tab()
+            .and_then(|id| self.sessions.get(id))
+        else {
             return;
         };
         let mut terminal = session.terminal();

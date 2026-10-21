@@ -25,7 +25,9 @@ impl Workspace {
             return false;
         };
         let source_id = self.instances[source.instance].id;
-        let source_tabs = self.instances[source.instance].panes[&source.pane].tabs.len();
+        let source_tabs = self.instances[source.instance].panes[&source.pane]
+            .tabs
+            .len();
         match target {
             DropTarget::Tabs {
                 pane,
@@ -63,15 +65,17 @@ impl Workspace {
                 })
             }
             DropTarget::Instance(instance) if instance == source_id => false,
-            DropTarget::Instance(instance) => self.transfer(tab, source, instance, |workspace, at| {
-                match workspace.instances[at].active_mut() {
-                    Some(pane) => {
-                        pane.insert(tab, None);
-                        true
+            DropTarget::Instance(instance) => {
+                self.transfer(tab, source, instance, |workspace, at| {
+                    match workspace.instances[at].active_mut() {
+                        Some(pane) => {
+                            pane.insert(tab, None);
+                            true
+                        }
+                        None => false,
                     }
-                    None => false,
-                }
-            }),
+                })
+            }
             DropTarget::NewInstance if self.instances[source.instance].tab_count() == 1 => false,
             DropTarget::NewInstance => {
                 self.detach(tab, source);

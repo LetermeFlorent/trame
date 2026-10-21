@@ -24,7 +24,12 @@ struct RowPaint<'a> {
     y: f32,
 }
 
-pub fn draw_terminal(scene: &mut Scene, text: &mut TextSystem, theme: &Theme, paint: &TerminalPaint) {
+pub fn draw_terminal(
+    scene: &mut Scene,
+    text: &mut TextSystem,
+    theme: &Theme,
+    paint: &TerminalPaint,
+) {
     let metrics = text.cell_metrics();
     let grid = paint.screen.grid();
     let cols = grid.cols();
@@ -100,7 +105,11 @@ fn draw_glyphs(
         if cell.flags.contains(Flags::WIDE_SPACER) {
             continue;
         }
-        let columns: u8 = if cell.flags.contains(Flags::WIDE) { 2 } else { 1 };
+        let columns: u8 = if cell.flags.contains(Flags::WIDE) {
+            2
+        } else {
+            1
+        };
         let rect = Rect::new(
             paint.origin.x + col as f32 * metrics.width,
             row.y,
@@ -108,7 +117,9 @@ fn draw_glyphs(
             metrics.height,
         );
         let (mut color, _) = style::colors(theme, cell);
-        if cursor.is_some_and(|cursor| cursor.covers(row.row, col) && cursor.fills_cell(paint.focused)) {
+        if cursor
+            .is_some_and(|cursor| cursor.covers(row.row, col) && cursor.fills_cell(paint.focused))
+        {
             color = theme.terminal;
         }
         if cell.flags.intersects(Flags::ANY_UNDERLINE) || cell.flags.contains(Flags::STRIKE) {

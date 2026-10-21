@@ -44,13 +44,21 @@ impl Running {
     }
 
     fn cycle_tab(&mut self, step: isize) {
-        if let Some(pane) = self.workspace.active_instance_mut().and_then(Instance::active_mut) {
+        if let Some(pane) = self
+            .workspace
+            .active_instance_mut()
+            .and_then(Instance::active_mut)
+        {
             pane.cycle(step);
         }
     }
 
     fn select_tab(&mut self, index: Option<usize>) {
-        let Some(pane) = self.workspace.active_instance_mut().and_then(Instance::active_mut) else {
+        let Some(pane) = self
+            .workspace
+            .active_instance_mut()
+            .and_then(Instance::active_mut)
+        else {
             return;
         };
         let index = index.unwrap_or(pane.tabs.len().saturating_sub(1));
@@ -69,7 +77,12 @@ impl Running {
 
     fn focus_neighbor(&mut self, edge: Edge) {
         let layout = PaneLayout {
-            panes: self.frame.panes.iter().map(|pane| (pane.id, pane.rect)).collect(),
+            panes: self
+                .frame
+                .panes
+                .iter()
+                .map(|pane| (pane.id, pane.rect))
+                .collect(),
             dividers: Vec::new(),
         };
         let Some(instance) = self.workspace.active_instance_mut() else {

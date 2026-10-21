@@ -47,7 +47,8 @@ impl Scenario {
             colors: self.colors,
         };
         let notify: Notifier = Arc::new(|_| {});
-        self.sessions.insert(id, Session::spawn(id, &options, notify)?);
+        self.sessions
+            .insert(id, Session::spawn(id, &options, notify)?);
         Ok(id)
     }
 
@@ -61,7 +62,10 @@ impl Scenario {
 fn main() -> Result<(), Box<dyn Error>> {
     let mut args = env::args().skip(1);
     let output = PathBuf::from(args.next().ok_or("usage: scenario <dir> [scale]")?);
-    let scale: f32 = args.next().and_then(|value| value.parse().ok()).unwrap_or(1.0);
+    let scale: f32 = args
+        .next()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(1.0);
     let metrics = UiMetrics::new(scale);
     let size = ((WIDTH * scale).round(), (HEIGHT * scale).round());
     let mut text = TextSystem::new(TERMINAL_FONT_SIZE * scale, DEFAULT_LINE_HEIGHT)?;
@@ -89,7 +93,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     for (name, appearance) in [("dark", Appearance::Dark), ("light", Appearance::Light)] {
         let theme = Theme::new(appearance);
         let frame = layout(&mut text, &scenario, metrics, size);
-        let hover = frame.panes[0].strip.tabs.last().map(|tab| Hit::Tab(frame.panes[0].id, tab.id));
+        let hover = frame.panes[0]
+            .strip
+            .tabs
+            .last()
+            .map(|tab| Hit::Tab(frame.panes[0].id, tab.id));
         let view = FrameView {
             hover,
             pressed: None,
@@ -124,7 +132,9 @@ fn build(colors: ReportedColors) -> Result<Scenario, Box<dyn Error>> {
     let third = scenario.spawn()?;
     scenario.workspace.split_active(third, Edge::Right);
     let fourth = scenario.spawn()?;
-    scenario.workspace.add_instance(Some("serveur de dev".into()), fourth);
+    scenario
+        .workspace
+        .add_instance(Some("serveur de dev".into()), fourth);
     scenario.workspace.active = 0;
     Ok(scenario)
 }

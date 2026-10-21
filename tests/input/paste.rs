@@ -24,5 +24,8 @@ fn wraps_the_text_when_the_program_asks_for_it() {
 fn strips_escapes_so_a_paste_cannot_close_its_own_wrapper() {
     let bracketed = modes(&[Modes::BRACKETED_PASTE]);
     let hostile = "x\x1b[201~rm -rf ~\n";
-    assert_eq!(paste(hostile, bracketed), "\x1b[200~x[201~rm -rf ~\r\x1b[201~");
+    assert_eq!(
+        paste(hostile, bracketed),
+        "\x1b[200~x[201~rm -rf ~\r\x1b[201~"
+    );
 }

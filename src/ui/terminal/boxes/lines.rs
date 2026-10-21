@@ -104,7 +104,10 @@ impl Arm {
                 start: along.centered(3.0 * light),
             };
         }
-        let thickness = self.before.thickness(light).max(self.after.thickness(light));
+        let thickness = self
+            .before
+            .thickness(light)
+            .max(self.after.thickness(light));
         if thickness == 0.0 {
             return Band::None;
         }

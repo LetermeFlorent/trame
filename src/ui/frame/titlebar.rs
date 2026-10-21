@@ -65,14 +65,21 @@ pub fn layout_title_bar(
         .workspace
         .active_instance()
         .map(|instance| fit_label(text, &instance.name, metrics.strong(), limit - title_x));
-    let subtitle_x = name
-        .as_ref()
-        .map_or(title_x, |name| title_x + name.width + metrics.px(SUBTITLE_GAP));
+    let subtitle_x = name.as_ref().map_or(title_x, |name| {
+        title_x + name.width + metrics.px(SUBTITLE_GAP)
+    });
     let subtitle = input
         .workspace
         .active_tab()
         .filter(|_| limit - subtitle_x > metrics.px(UiMetrics::TAB_MIN))
-        .map(|tab| fit_label(text, &(input.title)(tab), metrics.label(), limit - subtitle_x));
+        .map(|tab| {
+            fit_label(
+                text,
+                &(input.title)(tab),
+                metrics.label(),
+                limit - subtitle_x,
+            )
+        });
     TitleBarFrame {
         rect,
         toggle,

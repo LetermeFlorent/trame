@@ -29,8 +29,14 @@ fn bytes(value: &str) -> Option<Vec<u8>> {
 
 #[test]
 fn sends_typed_text() {
-    assert_eq!(send(character("a"), Some("a"), NONE, Modes::default()), bytes("a"));
-    assert_eq!(send(character("é"), Some("é"), NONE, Modes::default()), bytes("é"));
+    assert_eq!(
+        send(character("a"), Some("a"), NONE, Modes::default()),
+        bytes("a")
+    );
+    assert_eq!(
+        send(character("é"), Some("é"), NONE, Modes::default()),
+        bytes("é")
+    );
     assert_eq!(send(character(""), Some(""), NONE, Modes::default()), None);
 }
 
@@ -43,7 +49,12 @@ fn sends_nothing_for_a_lone_modifier() {
 #[test]
 fn sends_enter_as_carriage_return_unless_new_line_mode() {
     assert_eq!(named(NamedKey::Enter, NONE), bytes("\r"));
-    let new_line = send(Key::Named(NamedKey::Enter), None, NONE, modes(&[Modes::NEW_LINE]));
+    let new_line = send(
+        Key::Named(NamedKey::Enter),
+        None,
+        NONE,
+        modes(&[Modes::NEW_LINE]),
+    );
     assert_eq!(new_line, bytes("\r\n"));
 }
 
@@ -62,7 +73,12 @@ fn sends_editing_keys() {
 #[test]
 fn sends_arrows_in_normal_and_application_mode() {
     assert_eq!(named(NamedKey::ArrowUp, NONE), bytes("\x1b[A"));
-    let application = send(Key::Named(NamedKey::ArrowUp), None, NONE, modes(&[Modes::APP_CURSOR]));
+    let application = send(
+        Key::Named(NamedKey::ArrowUp),
+        None,
+        NONE,
+        modes(&[Modes::APP_CURSOR]),
+    );
     assert_eq!(application, bytes("\x1bOA"));
     assert_eq!(named(NamedKey::ArrowLeft, SHIFT), bytes("\x1b[1;2D"));
     assert_eq!(named(NamedKey::ArrowRight, CONTROL), bytes("\x1b[1;5C"));
@@ -71,7 +87,12 @@ fn sends_arrows_in_normal_and_application_mode() {
 
 #[test]
 fn keeps_modifiers_on_arrows_in_application_mode() {
-    let input = send(Key::Named(NamedKey::ArrowDown), None, CONTROL, modes(&[Modes::APP_CURSOR]));
+    let input = send(
+        Key::Named(NamedKey::ArrowDown),
+        None,
+        CONTROL,
+        modes(&[Modes::APP_CURSOR]),
+    );
     assert_eq!(input, bytes("\x1b[1;5B"));
 }
 
@@ -86,17 +107,32 @@ fn sends_function_keys() {
 
 #[test]
 fn sends_control_characters_from_the_base_letter() {
-    assert_eq!(send(character("c"), Some("\u{3}"), CONTROL, Modes::default()), bytes("\x03"));
-    assert_eq!(send(character("A"), None, CONTROL | SHIFT, Modes::default()), bytes("\x01"));
-    assert_eq!(send(character("["), None, CONTROL, Modes::default()), bytes("\x1b"));
-    assert_eq!(send(character("é"), Some("é"), CONTROL, Modes::default()), bytes("é"));
+    assert_eq!(
+        send(character("c"), Some("\u{3}"), CONTROL, Modes::default()),
+        bytes("\x03")
+    );
+    assert_eq!(
+        send(character("A"), None, CONTROL | SHIFT, Modes::default()),
+        bytes("\x01")
+    );
+    assert_eq!(
+        send(character("["), None, CONTROL, Modes::default()),
+        bytes("\x1b")
+    );
+    assert_eq!(
+        send(character("é"), Some("é"), CONTROL, Modes::default()),
+        bytes("é")
+    );
 }
 
 #[cfg(not(target_os = "macos"))]
 #[test]
 fn prefixes_alt_with_escape() {
     let alt = ModifiersState::ALT;
-    assert_eq!(send(character("x"), Some("x"), alt, Modes::default()), bytes("\x1bx"));
+    assert_eq!(
+        send(character("x"), Some("x"), alt, Modes::default()),
+        bytes("\x1bx")
+    );
     assert_eq!(named(NamedKey::Backspace, alt), bytes("\x1b\x7f"));
 }
 
@@ -104,6 +140,12 @@ fn prefixes_alt_with_escape() {
 #[test]
 fn types_alt_graph_characters_as_text() {
     let alt_graph = CONTROL | ModifiersState::ALT;
-    assert_eq!(send(character("@"), Some("@"), alt_graph, Modes::default()), bytes("@"));
-    assert_eq!(send(character("€"), Some("€"), alt_graph, Modes::default()), bytes("€"));
+    assert_eq!(
+        send(character("@"), Some("@"), alt_graph, Modes::default()),
+        bytes("@")
+    );
+    assert_eq!(
+        send(character("€"), Some("€"), alt_graph, Modes::default()),
+        bytes("€")
+    );
 }

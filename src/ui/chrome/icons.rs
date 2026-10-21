@@ -80,11 +80,17 @@ fn sidebar(pen: &mut Pen, rect: Rect, size: f32, open: bool) {
     if open {
         let panel = Rect::from_edges(frame.x, frame.y, split, frame.bottom());
         let radius = size * FRAME_RADIUS;
-        pen.scene
-            .fill(panel, pen.color.with_alpha(pen.color.a * PANEL_ALPHA), radius);
+        pen.scene.fill(
+            panel,
+            pen.color.with_alpha(pen.color.a * PANEL_ALPHA),
+            radius,
+        );
     }
     pen.frame(frame, size * FRAME_RADIUS);
-    pen.line(Point::new(split, frame.y), Point::new(split, frame.bottom()));
+    pen.line(
+        Point::new(split, frame.y),
+        Point::new(split, frame.bottom()),
+    );
 }
 
 fn cross(pen: &mut Pen, center: Point, reach: f32, diagonal: bool) {
@@ -113,7 +119,12 @@ fn split(pen: &mut Pen, rect: Rect, size: f32, vertical: bool) {
 
 fn restore(pen: &mut Pen, rect: Rect, size: f32) {
     let offset = (size * RESTORE_OFFSET).round().max(2.0);
-    let front = Rect::from_edges(rect.x, rect.y + offset, rect.right() - offset, rect.bottom());
+    let front = Rect::from_edges(
+        rect.x,
+        rect.y + offset,
+        rect.right() - offset,
+        rect.bottom(),
+    );
     pen.frame(front, 0.0);
     let half = pen.stroke / 2.0;
     let left = rect.x + offset + half;
@@ -123,7 +134,10 @@ fn restore(pen: &mut Pen, rect: Rect, size: f32) {
     pen.line(Point::new(left, rect.y + offset), Point::new(left, top));
     pen.line(Point::new(left, top), Point::new(right, top));
     pen.line(Point::new(right, top), Point::new(right, bottom));
-    pen.line(Point::new(right, bottom), Point::new(rect.right() - offset, bottom));
+    pen.line(
+        Point::new(right, bottom),
+        Point::new(rect.right() - offset, bottom),
+    );
 }
 
 fn terminal(pen: &mut Pen, rect: Rect, size: f32) {

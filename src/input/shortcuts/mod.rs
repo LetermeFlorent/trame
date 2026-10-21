@@ -2,10 +2,10 @@ mod bindings;
 
 use winit::keyboard::{Key, KeyCode, ModifiersState, NamedKey, PhysicalKey};
 
-use bindings::{Bindings, CONTROL, CONTROL_SHIFT, Chord, DIGITS, LETTERS, SHIFT};
 use crate::input::Command;
 use crate::ui::Platform;
 use crate::workspace::Edge;
+use bindings::{Bindings, CONTROL, CONTROL_SHIFT, Chord, DIGITS, LETTERS, SHIFT};
 
 #[derive(Clone, Copy, Debug)]
 pub struct ShortcutInput<'a> {

@@ -95,7 +95,9 @@ impl Node {
                     flexes.insert(at, half);
                     return true;
                 }
-                children.iter_mut().any(|child| child.split(target, new, edge))
+                children
+                    .iter_mut()
+                    .any(|child| child.split(target, new, edge))
             }
         }
     }

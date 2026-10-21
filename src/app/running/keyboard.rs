@@ -68,7 +68,11 @@ impl Running {
             self.view.pressed = None;
         }
         if let Some(session) = self.active_session() {
-            let reports = session.terminal().screen().modes().contains(Modes::FOCUS_EVENTS);
+            let reports = session
+                .terminal()
+                .screen()
+                .modes()
+                .contains(Modes::FOCUS_EVENTS);
             if reports {
                 session.write(if focused { FOCUS_IN } else { FOCUS_OUT });
             }
