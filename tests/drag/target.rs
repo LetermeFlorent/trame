@@ -122,3 +122,20 @@ fn the_title_bar_is_not_a_drop_spot() {
     let point = frame.title_bar.rect.center();
     assert_eq!(frame.drop_at(point, instance(&workspace)), None);
 }
+
+#[test]
+fn a_closed_sidebar_leaves_a_rail_with_a_button_that_reopens_it() {
+    let mut workspace = workspace();
+    workspace.sidebar_open = false;
+    let frame = frame(&workspace);
+    let rail = frame.rail.expect("the rail is shown");
+    assert!(frame.sidebar.is_none());
+    assert_eq!(rail.rect.width, UiMetrics::RAIL_WIDTH);
+    assert_eq!(frame.content.x, rail.rect.right());
+    let hit = frame.hit(rail.expand.center(), false);
+    assert_eq!(hit, Some(trame::ui::Hit::SidebarExpand));
+    let below = Point::new(rail.rect.center().x, rail.rect.bottom() - 4.0);
+    assert_eq!(frame.hit(below, false), Some(trame::ui::Hit::Sidebar));
+    let open = self::frame(&self::workspace());
+    assert!(open.rail.is_none());
+}

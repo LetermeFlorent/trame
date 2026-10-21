@@ -1,8 +1,24 @@
 use super::{Icon, Painter, Press};
 use crate::geometry::Rect;
-use crate::ui::frame::{SidebarFrame, SidebarItem, SidebarRow};
+use crate::ui::frame::{RailFrame, SidebarFrame, SidebarItem, SidebarRow};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
+
+pub(super) fn draw_rail(painter: &mut Painter, rail: &RailFrame) {
+    let theme = painter.theme;
+    let line = painter.metrics.line();
+    let rect = rail.rect;
+    painter.rule(rect, theme.chrome);
+    painter.rule(
+        Rect::new(rect.right() - line, rect.y, line, rect.height),
+        theme.border,
+    );
+    painter.button(
+        rail.expand,
+        Hit::SidebarExpand,
+        Icon::Sidebar { open: false },
+    );
+}
 
 pub(super) fn draw(painter: &mut Painter, sidebar: &SidebarFrame) {
     let theme = painter.theme;

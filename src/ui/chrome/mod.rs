@@ -120,6 +120,9 @@ pub fn draw_chrome(
     if let Some(sidebar) = &frame.sidebar {
         sidebar::draw(&mut painter, sidebar);
     }
+    if let Some(rail) = &frame.rail {
+        sidebar::draw_rail(&mut painter, rail);
+    }
     for pane in &frame.panes {
         tabbar::draw(&mut painter, pane);
     }

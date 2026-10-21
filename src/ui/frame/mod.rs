@@ -4,7 +4,7 @@ mod tabs;
 mod titlebar;
 
 pub use label::fit_label;
-pub use sidebar::{SidebarFrame, SidebarItem, SidebarRow};
+pub use sidebar::{RailFrame, SidebarFrame, SidebarItem, SidebarRow};
 pub use tabs::{TabFrame, TabStrip};
 pub use titlebar::{TitleBarFrame, WindowControls};
 
@@ -49,6 +49,7 @@ pub struct FrameLayout {
     pub metrics: UiMetrics,
     pub title_bar: TitleBarFrame,
     pub sidebar: Option<SidebarFrame>,
+    pub rail: Option<RailFrame>,
     pub content: Rect,
     pub panes: Vec<PaneFrame>,
     pub dividers: Vec<Divider>,
@@ -65,14 +66,17 @@ impl FrameLayout {
             title: input.title,
         };
         let title_bar = titlebar::layout_title_bar(text, &metrics, bar, title_input);
-        let (sidebar, content) = match input.workspace.sidebar_open {
+        let (sidebar, rail, content) = match input.workspace.sidebar_open {
             true => {
                 let (side, content) = rest.split_left(metrics.px(UiMetrics::SIDEBAR_WIDTH));
                 let frame =
                     sidebar::layout_sidebar(text, &metrics, side, input.workspace, input.title);
-                (Some(frame), content)
+                (Some(frame), None, content)
             }
-            false => (None, rest),
+            false => {
+                let (strip, content) = rest.split_left(metrics.px(UiMetrics::RAIL_WIDTH));
+                (None, Some(sidebar::layout_rail(&metrics, strip)), content)
+            }
         };
         let (panes, dividers) = match input.workspace.active_instance() {
             Some(instance) => layout_panes(text, &metrics, content, instance, input.title),
@@ -83,6 +87,7 @@ impl FrameLayout {
             metrics,
             title_bar,
             sidebar,
+            rail,
             content,
             panes,
             dividers,

@@ -23,6 +23,7 @@ pub enum Hit {
     Resize(ResizeEdge),
     TitleBar,
     SidebarToggle,
+    SidebarExpand,
     Minimize,
     Maximize,
     Close,
@@ -56,6 +57,12 @@ impl FrameLayout {
             .filter(|side| side.rect.contains(point))
         {
             return Some(hit_sidebar(sidebar, point));
+        }
+        if let Some(rail) = self.rail.filter(|rail| rail.rect.contains(point)) {
+            return Some(match rail.expand.contains(point) {
+                true => Hit::SidebarExpand,
+                false => Hit::Sidebar,
+            });
         }
         if let Some(index) = self.divider_at(point) {
             return Some(Hit::Divider(index));

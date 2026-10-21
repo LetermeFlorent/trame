@@ -163,3 +163,22 @@ fn layout_row(
         active: spec.active,
     }
 }
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct RailFrame {
+    pub rect: Rect,
+    pub expand: Rect,
+}
+
+pub(super) fn layout_rail(metrics: &UiMetrics, rect: Rect) -> RailFrame {
+    let size = metrics.px(UiMetrics::BUTTON);
+    let header = metrics.px(UiMetrics::SIDEBAR_HEADER);
+    let expand = Rect::new(
+        rect.x + (rect.width - size) / 2.0,
+        rect.y + (header - size) / 2.0,
+        size,
+        size,
+    )
+    .snapped();
+    RailFrame { rect, expand }
+}
