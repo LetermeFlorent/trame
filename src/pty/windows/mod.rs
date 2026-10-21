@@ -88,11 +88,7 @@ pub(super) fn spawn(options: &PtyOptions) -> io::Result<Spawned> {
     })
 }
 
-fn create_console(
-    size: PtySize,
-    input: &OwnedHandle,
-    output: &OwnedHandle,
-) -> io::Result<Console> {
+fn create_console(size: PtySize, input: &OwnedHandle, output: &OwnedHandle) -> io::Result<Console> {
     let mut console: HPCON = 0;
     let result = unsafe {
         CreatePseudoConsole(

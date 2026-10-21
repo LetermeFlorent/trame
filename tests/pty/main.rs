@@ -81,13 +81,18 @@ fn shell_runs_a_command_and_exits() {
     let printed = pump_until(&mut terminal, &chunks, &mut writer, |terminal| {
         screen_text(terminal).contains("trame-42")
     });
-    assert!(printed, "command output missing:\n{}", screen_text(&terminal));
+    assert!(
+        printed,
+        "command output missing:\n{}",
+        screen_text(&terminal)
+    );
 
-    let reported = terminal
-        .screen()
-        .cwd()
-        .map(str::to_owned)
-        .or_else(|| spawned.pty.cwd().map(|path| path.to_string_lossy().into_owned()));
+    let reported = terminal.screen().cwd().map(str::to_owned).or_else(|| {
+        spawned
+            .pty
+            .cwd()
+            .map(|path| path.to_string_lossy().into_owned())
+    });
     assert!(
         reported.as_deref().is_some_and(|path| same_path(path, cwd)),
         "cwd not reported: {reported:?}"

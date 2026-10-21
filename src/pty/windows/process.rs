@@ -9,8 +9,8 @@ use windows_sys::Win32::System::Console::HPCON;
 use windows_sys::Win32::System::Threading::{
     CREATE_UNICODE_ENVIRONMENT, CreateProcessW, DeleteProcThreadAttributeList,
     EXTENDED_STARTUPINFO_PRESENT, InitializeProcThreadAttributeList, LPPROC_THREAD_ATTRIBUTE_LIST,
-    PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE, PROCESS_INFORMATION, STARTF_USESTDHANDLES,
-    STARTUPINFOEXW, UpdateProcThreadAttribute,
+    PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE, PROCESS_INFORMATION, STARTF_USESTDHANDLES, STARTUPINFOEXW,
+    UpdateProcThreadAttribute,
 };
 
 pub(super) struct Process {

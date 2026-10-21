@@ -13,11 +13,7 @@ impl Screen {
                 self.clear_rows(0, row, cols);
             }
             2 => self.clear_rows(0, rows, cols),
-            3 => {
-                if !self.alt_active() {
-                    self.primary.clear_history();
-                }
-            }
+            3 if !self.alt_active() => self.primary.clear_history(),
             _ => {}
         }
     }

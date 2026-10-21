@@ -25,8 +25,10 @@ pub(super) fn command_line(program: &OsStr, args: &[OsString]) -> Vec<u16> {
 
 fn append_argument(line: &mut Vec<u16>, arg: &OsStr) {
     let units: Vec<u16> = arg.encode_wide().collect();
-    let needs_quotes =
-        units.is_empty() || units.iter().any(|&unit| matches!(unit, SPACE | TAB | QUOTE));
+    let needs_quotes = units.is_empty()
+        || units
+            .iter()
+            .any(|&unit| matches!(unit, SPACE | TAB | QUOTE));
     if !needs_quotes {
         line.extend_from_slice(&units);
         return;
