@@ -98,7 +98,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut scene = Scene::new(size.0, size.1);
         let sources = FrameSources {
             sessions: &scenario.sessions,
-            selected: &|_, _, _| false,
         };
         draw_frame(&mut scene, &mut text, &theme, &frame, &view, &sources);
         text.end_frame();

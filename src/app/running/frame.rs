@@ -78,7 +78,6 @@ impl Running {
             self.scene.reset(size.width as f32, size.height as f32);
             let sources = FrameSources {
                 sessions: self.sessions.map(),
-                selected: &|_, _, _| false,
             };
             draw_frame(
                 &mut self.scene,
