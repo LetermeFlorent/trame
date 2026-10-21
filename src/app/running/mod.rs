@@ -3,6 +3,7 @@ mod frame;
 mod keyboard;
 mod mouse;
 mod scroll;
+mod selection;
 mod tabs;
 
 use std::collections::HashMap;
@@ -27,6 +28,7 @@ use super::graphics::Graphics;
 use super::sessions::Sessions;
 use super::{UserEvent, window};
 use mouse::Pointer;
+use selection::Selecting;
 use tabs::Placement;
 
 pub struct Running {
@@ -43,6 +45,7 @@ pub struct Running {
     frame: FrameLayout,
     view: FrameView,
     pointer: Pointer,
+    selecting: Selecting,
     modifiers: ModifiersState,
 }
 
@@ -76,6 +79,7 @@ impl Running {
                 ..FrameView::default()
             },
             pointer: Pointer::default(),
+            selecting: Selecting::default(),
             modifiers: ModifiersState::empty(),
         };
         running.open(Placement::Instance)?;

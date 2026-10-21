@@ -73,7 +73,12 @@ impl Running {
                 drop(terminal);
                 session.write(arrow_keys(count, up, modes));
             }
-            WheelAction::Report | WheelAction::Ignore => {}
+            WheelAction::Report => {
+                let bytes = self.wheel_report(id, lines, modes);
+                drop(terminal);
+                session.write(bytes);
+            }
+            WheelAction::Ignore => {}
         }
     }
 }

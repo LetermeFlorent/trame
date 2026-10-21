@@ -1,0 +1,140 @@
+mod cells;
+mod clicks;
+mod clipboard;
+mod report;
+
+use std::time::Instant;
+
+use winit::event::{ElementState, MouseButton as Button};
+
+use trame::geometry::Point;
+use trame::input::{MouseAction, MouseButton};
+use trame::session::SessionId;
+use trame::ui::Hit;
+
+use super::Running;
+use clicks::CLICK_KINDS;
+
+type Cell = (usize, usize);
+
+#[derive(Default)]
+pub(super) struct Selecting {
+    drag: Option<SessionId>,
+    held: Option<(SessionId, MouseButton)>,
+    cell: Option<Cell>,
+    clicks: Option<(Instant, Cell, usize)>,
+}
+
+impl Running {
+    pub(super) fn terminal_button(&mut self, state: ElementState, button: Button) -> bool {
+        let button = match button {
+            Button::Left => MouseButton::Left,
+            Button::Middle => MouseButton::Middle,
+            Button::Right => MouseButton::Right,
+            _ => return false,
+        };
+        match state {
+            ElementState::Pressed => self.terminal_press(button),
+            ElementState::Released => self.terminal_release(button),
+        }
+    }
+
+    pub(super) fn terminal_motion(&mut self, point: Point) {
+        if let Some(id) = self.selecting.drag {
+            self.drag_selection(id, point);
+            return;
+        }
+        if let Some((id, button)) = self.selecting.held {
+            self.report_motion(id, Some(button), point);
+            return;
+        }
+        if let Some(Hit::Terminal(pane)) = self.view.hover
+            && let Some(id) = self
+                .frame
+                .panes
+                .iter()
+                .find(|found| found.id == pane)
+                .and_then(|found| found.active)
+            && self.reports_mouse(id)
+        {
+            self.report_motion(id, None, point);
+        }
+    }
+
+    fn terminal_press(&mut self, button: MouseButton) -> bool {
+        let Some(point) = self.pointer.position else {
+            return false;
+        };
+        let Some(Hit::Terminal(pane_id)) = self.frame.hit(point, self.resizable()) else {
+            return false;
+        };
+        let Some(pane) = self.frame.panes.iter().find(|pane| pane.id == pane_id) else {
+            return false;
+        };
+        let Some(id) = pane.active else {
+            return false;
+        };
+        let cell = self.cell_in_pane(pane, point);
+        self.focus_pane(pane_id);
+        self.selecting.cell = Some(cell);
+        if self.reports_mouse(id) {
+            self.selecting.held = Some((id, button));
+            self.send_report(id, MouseAction::Press, Some(button), cell);
+        } else if button == MouseButton::Left {
+            self.begin_selection(id, cell);
+        } else {
+            return false;
+        }
+        self.changed();
+        true
+    }
+
+    fn terminal_release(&mut self, button: MouseButton) -> bool {
+        if button == MouseButton::Left && self.selecting.drag.take().is_some() {
+            return true;
+        }
+        let Some((id, _)) = self.selecting.held.filter(|(_, held)| *held == button) else {
+            return false;
+        };
+        self.selecting.held = None;
+        if let Some(cell) = self
+            .pointer
+            .position
+            .and_then(|point| self.cell_in_session(id, point))
+        {
+            self.send_report(id, MouseAction::Release, Some(button), cell);
+        }
+        true
+    }
+
+    fn begin_selection(&mut self, id: SessionId, cell: Cell) {
+        let count = self.selecting.count_click(cell);
+        let extend = self.modifiers.shift_key() && count == 1;
+        if let Some(session) = self.sessions.get(id) {
+            let mut terminal = session.terminal();
+            let screen = terminal.screen_mut();
+            if extend && screen.selection().is_some() {
+                screen.extend_selection(cell.0, cell.1);
+            } else {
+                screen.start_selection(CLICK_KINDS[count - 1], cell.0, cell.1);
+            }
+        }
+        self.selecting.drag = Some(id);
+    }
+
+    fn drag_selection(&mut self, id: SessionId, point: Point) {
+        let Some(cell) = self.cell_in_session(id, point) else {
+            return;
+        };
+        if self.selecting.cell.replace(cell) == Some(cell) {
+            return;
+        }
+        if let Some(session) = self.sessions.get(id) {
+            session
+                .terminal()
+                .screen_mut()
+                .extend_selection(cell.0, cell.1);
+        }
+        self.window.request_redraw();
+    }
+}

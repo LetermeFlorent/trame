@@ -28,6 +28,7 @@ impl Running {
     pub(super) fn pointer_moved(&mut self, point: Point) {
         self.pointer.position = Some(point);
         self.refresh_hover();
+        self.terminal_motion(point);
     }
 
     pub(super) fn pointer_left(&mut self) {
@@ -58,6 +59,9 @@ impl Running {
         state: ElementState,
         button: MouseButton,
     ) {
+        if self.terminal_button(state, button) {
+            return;
+        }
         let hit = self
             .pointer
             .position
@@ -147,7 +151,7 @@ impl Running {
         self.window.set_maximized(!self.window.is_maximized());
     }
 
-    fn resizable(&self) -> bool {
+    pub(super) fn resizable(&self) -> bool {
         self.metrics.platform.draws_window_controls() && !self.window.is_maximized()
     }
 }

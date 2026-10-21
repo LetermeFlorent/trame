@@ -97,6 +97,7 @@ impl Running {
     }
 
     pub(super) fn output(&mut self, id: SessionId) {
+        self.forward_clipboard(id);
         if self.frame.panes.iter().any(|pane| pane.active == Some(id)) {
             self.window.request_redraw();
             return;
