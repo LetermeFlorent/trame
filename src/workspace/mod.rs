@@ -5,7 +5,7 @@ mod pane;
 mod tree;
 
 pub use instance::{Instance, InstanceId};
-pub use layout::{Divider, MIN_PANE, PaneLayout, resize_split};
+pub use layout::{Divider, MIN_PANE, PaneLayout, resize_split, resized};
 pub use moves::DropTarget;
 pub use pane::Pane;
 pub use tree::{Axis, Edge, Node, PaneId};
