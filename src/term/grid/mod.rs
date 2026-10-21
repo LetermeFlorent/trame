@@ -1,10 +1,15 @@
 mod resize;
 mod row;
 mod scroll;
+mod select;
+mod selection;
+mod text;
+mod words;
 
 use std::collections::VecDeque;
 
 pub use row::Row;
+pub use selection::{GridPoint, Selection, SelectionKind, Span};
 
 #[derive(Debug, Clone)]
 pub struct Grid {
@@ -14,6 +19,7 @@ pub struct Grid {
     max_history: usize,
     dropped: u64,
     display_offset: usize,
+    selection: Option<Selection>,
 }
 
 impl Grid {
@@ -28,6 +34,7 @@ impl Grid {
             max_history,
             dropped: 0,
             display_offset: 0,
+            selection: None,
         }
     }
 
@@ -61,6 +68,8 @@ impl Grid {
     }
 
     pub fn row_mut(&mut self, row: usize) -> &mut Row {
+        let line = self.screen_line(row);
+        self.drop_selection_touching(line, line);
         let start = self.screen_start();
         &mut self.lines[start + row]
     }
@@ -91,6 +100,7 @@ impl Grid {
     }
 
     pub fn clear_history(&mut self) {
+        self.selection = None;
         let history = self.history_len();
         self.lines.drain(..history);
         self.dropped += history as u64;

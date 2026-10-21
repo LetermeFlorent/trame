@@ -10,6 +10,7 @@ use crate::vt::Parser;
 
 pub use cell::{Cell, Color, Flags};
 pub use cursor::CursorShape;
+pub use grid::{GridPoint, Selection, SelectionKind};
 pub use modes::Modes;
 pub use screen::{CursorView, ReportedColors, Screen};
 

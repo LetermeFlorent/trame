@@ -3,6 +3,7 @@ mod cursor_ops;
 mod perform;
 mod print;
 mod resize;
+mod select;
 mod view;
 
 use super::charset::CharsetState;

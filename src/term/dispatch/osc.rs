@@ -27,8 +27,10 @@ impl Screen {
             b"52" => {
                 let data = params.get(2).copied().unwrap_or_default();
                 if data != b"?" {
-                    self.clipboard =
-                        decode_base64(data).and_then(|bytes| String::from_utf8(bytes).ok());
+                    let decoded = decode_base64(data)
+                        .and_then(|bytes| String::from_utf8(bytes).ok())
+                        .filter(|text| !text.is_empty());
+                    self.clipboard = decoded.or(self.clipboard.take());
                 }
             }
             _ => {}

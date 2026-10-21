@@ -18,6 +18,7 @@ impl Grid {
         if top > bottom || bottom >= self.rows {
             return;
         }
+        self.drop_selection_touching(self.screen_line(top), self.screen_line(bottom));
         let count = count.min(bottom - top + 1);
         let start = self.screen_start();
         for _ in 0..count {
@@ -31,6 +32,7 @@ impl Grid {
         if top > bottom || bottom >= self.rows {
             return;
         }
+        self.drop_selection_touching(self.screen_line(top), self.screen_line(bottom));
         let count = count.min(bottom - top + 1);
         let start = self.screen_start();
         for _ in 0..count {
