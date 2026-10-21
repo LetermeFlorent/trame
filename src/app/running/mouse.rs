@@ -27,6 +27,9 @@ pub(super) struct Pointer {
 impl Running {
     pub(super) fn pointer_moved(&mut self, point: Point) {
         self.pointer.position = Some(point);
+        if self.drag_moved(point) {
+            return;
+        }
         self.refresh_hover();
     }
 
@@ -45,7 +48,9 @@ impl Running {
             self.view.hover = hover;
             self.window.request_redraw();
         }
-        let cursor = cursor_for(hover, &self.frame);
+        let cursor = self
+            .drag_cursor()
+            .unwrap_or_else(|| cursor_for(hover, &self.frame));
         if cursor != self.pointer.cursor {
             self.pointer.cursor = cursor;
             self.window.set_cursor(cursor);
@@ -96,6 +101,7 @@ impl Running {
             Hit::Terminal(pane) | Hit::TabBar(pane) => self.focus_pane(pane),
             _ => {}
         }
+        self.drag_pressed(hit);
         self.pointer.pressed = Some(hit);
         self.view.pressed = Some(hit);
         self.changed();
@@ -104,6 +110,10 @@ impl Running {
     fn release(&mut self, event_loop: &ActiveEventLoop, hit: Option<Hit>) {
         self.view.pressed = None;
         let pressed = self.pointer.pressed.take();
+        if self.drag_released() {
+            self.changed();
+            return;
+        }
         if let Some(pressed) = pressed.filter(|pressed| hit == Some(*pressed)) {
             self.click(event_loop, pressed);
         }

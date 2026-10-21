@@ -3,6 +3,7 @@ use winit::window::Window;
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
 use trame::theme::{Appearance, Theme};
+use trame::ui::drop::draw_drag;
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE};
 use trame::ui::{FrameInput, FrameLayout, FrameSources, UiMetrics, draw_frame};
 use trame::workspace::{Instance, Workspace};
@@ -74,6 +75,7 @@ impl Running {
         if size.width == 0 || size.height == 0 {
             return;
         }
+        let drag = self.drag_view();
         for _ in 0..ATLAS_ATTEMPTS {
             self.scene.reset(size.width as f32, size.height as f32);
             let sources = FrameSources {
@@ -88,6 +90,15 @@ impl Running {
                 &self.view,
                 &sources,
             );
+            if let Some(drag) = &drag {
+                draw_drag(
+                    &mut self.scene,
+                    &mut self.text,
+                    &self.theme,
+                    &self.frame,
+                    drag,
+                );
+            }
             if !self.text.end_frame() {
                 break;
             }
