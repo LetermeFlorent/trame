@@ -104,8 +104,15 @@ fn open_pty(size: PtySize) -> io::Result<(OwnedFd, OwnedFd)> {
     let mut master: RawFd = -1;
     let mut slave: RawFd = -1;
     let mut size = window_size(size);
-    let opened =
-        unsafe { libc::openpty(&mut master, &mut slave, null_mut(), null_mut(), &mut size) };
+    let opened = unsafe {
+        libc::openpty(
+            &mut master,
+            &mut slave,
+            null_mut(),
+            null_mut(),
+            &raw mut size,
+        )
+    };
     if opened == -1 {
         return Err(io::Error::last_os_error());
     }

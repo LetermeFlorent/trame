@@ -1,5 +1,6 @@
 mod ansi;
 mod palettes;
+pub mod system;
 
 use crate::color::Rgba;
 use crate::term::{Color, ReportedColors};
