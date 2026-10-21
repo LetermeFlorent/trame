@@ -23,7 +23,7 @@ impl Running {
                 }
             }
             Command::ToggleSidebar => self.workspace.sidebar_open = !self.workspace.sidebar_open,
-            Command::Copy => {}
+            Command::Copy => self.copy_selection(),
             Command::Paste => self.paste(),
             Command::NextTab => self.cycle_tab(1),
             Command::PreviousTab => self.cycle_tab(-1),

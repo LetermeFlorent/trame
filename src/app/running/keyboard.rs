@@ -45,7 +45,9 @@ impl Running {
             let mut terminal = session.terminal();
             let bytes = bytes_for(terminal.screen().modes());
             if !bytes.is_empty() {
-                terminal.screen_mut().reset_display();
+                let screen = terminal.screen_mut();
+                screen.reset_display();
+                screen.clear_selection();
             }
             bytes
         };

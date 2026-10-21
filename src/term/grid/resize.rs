@@ -2,6 +2,7 @@ use super::{Grid, Row};
 
 impl Grid {
     pub fn resize(&mut self, rows: usize, cols: usize, cursor_row: &mut usize) {
+        self.selection = None;
         let rows = rows.max(1);
         let cols = cols.max(1);
         if cols < self.cols {

@@ -19,7 +19,6 @@ pub struct FrameView {
 
 pub struct FrameSources<'a> {
     pub sessions: &'a HashMap<SessionId, Session>,
-    pub selected: &'a dyn Fn(SessionId, usize, usize) -> bool,
 }
 
 pub fn draw_frame(
@@ -49,9 +48,9 @@ fn draw_body(
     let Some(session) = pane.active.and_then(|id| sources.sessions.get(&id)) else {
         return;
     };
-    let id = session.id();
-    let selected = |row: usize, col: usize| (sources.selected)(id, row, col);
     let terminal = session.terminal();
+    let grid = terminal.screen().grid();
+    let selected = |row: usize, col: usize| grid.is_selected(row, col);
     let paint = TerminalPaint {
         screen: terminal.screen(),
         origin: Point::new(pane.terminal.x, pane.terminal.y),

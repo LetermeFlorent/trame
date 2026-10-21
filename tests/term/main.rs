@@ -1,7 +1,9 @@
+mod clipboard;
 mod editing;
 mod modes;
 mod reports;
 mod scrolling;
+mod selection;
 mod style;
 
 use trame::term::Terminal;

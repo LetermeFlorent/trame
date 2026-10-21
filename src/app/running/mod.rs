@@ -5,6 +5,7 @@ mod keyboard;
 mod mouse;
 mod saved_session;
 mod scroll;
+mod selection;
 mod tabs;
 
 use std::collections::HashMap;
@@ -31,6 +32,7 @@ use super::sessions::Sessions;
 use super::{UserEvent, window};
 use drag::Drag;
 use mouse::Pointer;
+use selection::Selecting;
 use tabs::Placement;
 
 pub struct Running {
@@ -49,6 +51,7 @@ pub struct Running {
     view: FrameView,
     pointer: Pointer,
     drag: Option<Drag>,
+    selecting: Selecting,
     modifiers: ModifiersState,
 }
 
@@ -86,6 +89,7 @@ impl Running {
             },
             pointer: Pointer::default(),
             drag: None,
+            selecting: Selecting::default(),
             modifiers: ModifiersState::empty(),
         };
         if !running.restore_session(saved.as_ref()) {

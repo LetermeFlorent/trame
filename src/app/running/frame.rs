@@ -80,7 +80,6 @@ impl Running {
             self.scene.reset(size.width as f32, size.height as f32);
             let sources = FrameSources {
                 sessions: self.sessions.map(),
-                selected: &|_, _, _| false,
             };
             draw_frame(
                 &mut self.scene,
@@ -109,6 +108,7 @@ impl Running {
     }
 
     pub(super) fn output(&mut self, id: SessionId) {
+        self.forward_clipboard(id);
         if self.frame.panes.iter().any(|pane| pane.active == Some(id)) {
             self.window.request_redraw();
             return;
