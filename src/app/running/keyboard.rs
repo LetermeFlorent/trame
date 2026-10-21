@@ -14,7 +14,7 @@ const FOCUS_OUT: &[u8] = b"\x1b[O";
 
 impl Running {
     pub(super) fn key(&mut self, event_loop: &ActiveEventLoop, event: &KeyEvent) {
-        if event.state != ElementState::Pressed {
+        if event.state != ElementState::Pressed || self.drag_key(&event.logical_key) {
             return;
         }
         let base = event.key_without_modifiers();
@@ -58,6 +58,7 @@ impl Running {
     pub(super) fn focus_changed(&mut self, focused: bool) {
         self.view.window_focused = focused;
         if !focused {
+            self.cancel_drag();
             self.modifiers = ModifiersState::empty();
             self.pointer.pressed = None;
             self.view.pressed = None;

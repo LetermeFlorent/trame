@@ -12,6 +12,15 @@ pub struct Divider {
     pub extent: f32,
 }
 
+impl Divider {
+    pub fn delta(&self, from: Point, to: Point) -> f32 {
+        match self.axis {
+            Axis::Row => to.x - from.x,
+            Axis::Column => to.y - from.y,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct PaneLayout {
     pub panes: Vec<(PaneId, Rect)>,
@@ -123,6 +132,12 @@ pub fn resize_split(root: &mut Node, divider: &Divider, delta: f32) {
     let first = (flexes[index] + delta * per_pixel).clamp(minimum, pair - minimum);
     flexes[index] = first;
     flexes[index + 1] = pair - first;
+}
+
+pub fn resized(origin: &Node, divider: &Divider, delta: f32) -> Node {
+    let mut root = origin.clone();
+    resize_split(&mut root, divider, delta);
+    root
 }
 
 fn overlap_x(a: Rect, b: Rect) -> f32 {

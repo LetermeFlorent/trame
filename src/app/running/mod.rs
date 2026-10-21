@@ -1,4 +1,5 @@
 mod commands;
+mod drag;
 mod frame;
 mod keyboard;
 mod mouse;
@@ -28,6 +29,7 @@ use super::graphics::Graphics;
 use super::persist::{self, Saver};
 use super::sessions::Sessions;
 use super::{UserEvent, window};
+use drag::Drag;
 use mouse::Pointer;
 use tabs::Placement;
 
@@ -46,6 +48,7 @@ pub struct Running {
     frame: FrameLayout,
     view: FrameView,
     pointer: Pointer,
+    drag: Option<Drag>,
     modifiers: ModifiersState,
 }
 
@@ -82,6 +85,7 @@ impl Running {
                 ..FrameView::default()
             },
             pointer: Pointer::default(),
+            drag: None,
             modifiers: ModifiersState::empty(),
         };
         if !running.restore_session(saved.as_ref()) {

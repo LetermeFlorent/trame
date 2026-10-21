@@ -1,4 +1,5 @@
 pub mod chrome;
+pub mod drop;
 pub mod frame;
 pub mod hit;
 pub mod metrics;
