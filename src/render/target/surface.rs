@@ -51,6 +51,15 @@ impl WindowSurface {
         self.surface.configure(&gpu.device, &self.config);
     }
 
+    #[cfg(feature = "capture")]
+    pub fn allow_copy(&mut self, gpu: &Gpu) {
+        let usages = self.surface.get_capabilities(&gpu.adapter).usages;
+        if usages.contains(wgpu::TextureUsages::COPY_SRC) {
+            self.config.usage |= wgpu::TextureUsages::COPY_SRC;
+            self.surface.configure(&gpu.device, &self.config);
+        }
+    }
+
     pub fn acquire(&mut self, gpu: &Gpu) -> Frame {
         match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(texture)

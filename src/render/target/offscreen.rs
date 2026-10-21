@@ -27,10 +27,10 @@ pub fn render_to_rgba(gpu: &Gpu, renderer: &mut Renderer, scene: &Scene, clear: 
     });
     let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
     renderer.render(gpu, &view, scene, clear);
-    read_back(gpu, &texture, width, height)
+    read_texture(gpu, &texture, width, height)
 }
 
-fn read_back(gpu: &Gpu, texture: &wgpu::Texture, width: u32, height: u32) -> Vec<u8> {
+pub fn read_texture(gpu: &Gpu, texture: &wgpu::Texture, width: u32, height: u32) -> Vec<u8> {
     let row = width * BYTES_PER_PIXEL;
     let padded = row.next_multiple_of(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT);
     let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
