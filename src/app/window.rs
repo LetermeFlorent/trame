@@ -1,7 +1,7 @@
 use winit::dpi::LogicalSize;
 use winit::window::{CursorIcon, ResizeDirection, Theme, Window, WindowAttributes};
 
-use trame::theme::Appearance;
+use trame::theme::{Appearance, system};
 use trame::ui::ResizeEdge;
 
 const APP_NAME: &str = "trame";
@@ -69,7 +69,11 @@ pub fn round_corners(window: &Window) {
 pub fn round_corners(_window: &Window) {}
 
 pub fn appearance(window: &Window) -> Appearance {
-    window.theme().map_or(Appearance::Dark, appearance_of)
+    window
+        .theme()
+        .map(appearance_of)
+        .or_else(system::detect)
+        .unwrap_or_default()
 }
 
 pub fn appearance_of(theme: Theme) -> Appearance {

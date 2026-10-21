@@ -7,7 +7,7 @@ use trame::input::{KeyInput, ShortcutInput, encode, shortcut};
 use trame::session::Session;
 use trame::term::Modes;
 
-use super::Running;
+use super::{Running, window};
 
 const FOCUS_IN: &[u8] = b"\x1b[I";
 const FOCUS_OUT: &[u8] = b"\x1b[O";
@@ -57,7 +57,9 @@ impl Running {
 
     pub(super) fn focus_changed(&mut self, focused: bool) {
         self.view.window_focused = focused;
-        if !focused {
+        if focused {
+            self.set_appearance(window::appearance(&self.window));
+        } else {
             self.modifiers = ModifiersState::empty();
             self.pointer.pressed = None;
             self.view.pressed = None;
