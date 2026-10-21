@@ -2,12 +2,17 @@ mod instance;
 mod layout;
 mod moves;
 mod pane;
+mod snapshot;
 mod tree;
 
 pub use instance::{Instance, InstanceId};
 pub use layout::{Divider, MIN_PANE, PaneLayout, resize_split};
 pub use moves::DropTarget;
 pub use pane::Pane;
+pub use snapshot::{
+    InstanceSnapshot, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot, SnapshotError,
+    TabSnapshot, WindowSnapshot,
+};
 pub use tree::{Axis, Edge, Node, PaneId};
 
 use crate::session::SessionId;
