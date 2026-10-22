@@ -4,6 +4,7 @@ use super::label::fit_label;
 use crate::geometry::Rect;
 use crate::session::SessionId;
 use crate::text::{TextLayout, TextSystem};
+use crate::theme::Swatch;
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::Pane;
 
@@ -21,6 +22,7 @@ pub struct TabFrame {
     pub label: Arc<TextLayout>,
     pub label_x: f32,
     pub active: bool,
+    pub color: Option<Swatch>,
 }
 
 #[derive(Clone, Debug)]
@@ -114,6 +116,7 @@ fn layout_tabs(
             label: fit_label(text, &titles[index], style, label_width),
             label_x,
             active: index == pane.active,
+            color: None,
         });
         x += width;
     }

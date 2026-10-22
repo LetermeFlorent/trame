@@ -1,5 +1,6 @@
 mod layouts;
 mod lifecycle;
+mod marks;
 mod moving;
 mod panes;
 mod tree;

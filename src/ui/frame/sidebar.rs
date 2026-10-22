@@ -4,6 +4,7 @@ use super::label::fit_label;
 use crate::geometry::Rect;
 use crate::session::SessionId;
 use crate::text::{TextLayout, TextSystem};
+use crate::theme::Swatch;
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{Instance, InstanceId, Workspace};
 
@@ -33,6 +34,7 @@ pub struct SidebarRow {
     pub label_x: f32,
     pub count: Option<Arc<TextLayout>>,
     pub active: bool,
+    pub color: Option<Swatch>,
 }
 
 #[derive(Clone, Debug)]
@@ -161,6 +163,7 @@ fn layout_row(
             .count
             .map(|count| text.layout(&count.to_string(), metrics.caption())),
         active: spec.active,
+        color: None,
     }
 }
 

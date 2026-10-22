@@ -14,7 +14,10 @@ const FOCUS_OUT: &[u8] = b"\x1b[O";
 
 impl Running {
     pub(super) fn key(&mut self, event_loop: &ActiveEventLoop, event: &KeyEvent) {
-        if event.state != ElementState::Pressed || self.drag_key(&event.logical_key) {
+        if event.state != ElementState::Pressed
+            || self.drag_key(&event.logical_key)
+            || self.editing_key(event)
+        {
             return;
         }
         let base = event.key_without_modifiers();

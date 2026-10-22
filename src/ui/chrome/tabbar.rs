@@ -47,7 +47,10 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame) {
     }
     if tab.active && pane.focused {
         let height = painter.metrics.px(ACCENT_HEIGHT);
-        painter.rule(Rect::new(rect.x, rect.y, rect.width, height), theme.accent);
+        let color = tab
+            .color
+            .map_or(theme.accent, |swatch| theme.swatch(swatch));
+        painter.rule(Rect::new(rect.x, rect.y, rect.width, height), color);
     }
     painter.rule(
         Rect::new(rect.right() - line, rect.y, line, rect.height - open_bottom),

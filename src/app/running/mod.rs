@@ -1,5 +1,6 @@
 mod commands;
 mod drag;
+mod editing;
 mod frame;
 mod keyboard;
 mod mouse;
@@ -31,6 +32,7 @@ use super::persist::{self, Saver};
 use super::sessions::Sessions;
 use super::{UserEvent, window};
 use drag::Drag;
+use editing::Editing;
 use mouse::Pointer;
 use selection::Selecting;
 use tabs::Placement;
@@ -51,6 +53,7 @@ pub struct Running {
     view: FrameView,
     pointer: Pointer,
     drag: Option<Drag>,
+    editing: Option<Editing>,
     selecting: Selecting,
     modifiers: ModifiersState,
 }
@@ -89,6 +92,7 @@ impl Running {
             },
             pointer: Pointer::default(),
             drag: None,
+            editing: None,
             selecting: Selecting::default(),
             modifiers: ModifiersState::empty(),
         };

@@ -1,0 +1,78 @@
+use super::{Instance, InstanceId, Workspace};
+use crate::session::SessionId;
+use crate::theme::Swatch;
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct TabMark {
+    pub name: Option<String>,
+    pub color: Option<Swatch>,
+}
+
+impl TabMark {
+    fn is_blank(&self) -> bool {
+        self.name.is_none() && self.color.is_none()
+    }
+}
+
+pub fn clean_name(name: &str) -> Option<String> {
+    let trimmed = name.trim();
+    (!trimmed.is_empty()).then(|| trimmed.to_owned())
+}
+
+impl Workspace {
+    pub fn tab_name(&self, tab: SessionId) -> Option<&str> {
+        self.marks.get(&tab)?.name.as_deref()
+    }
+
+    pub fn tab_color(&self, tab: SessionId) -> Option<Swatch> {
+        self.marks.get(&tab)?.color
+    }
+
+    pub fn rename_tab(&mut self, tab: SessionId, name: &str) {
+        let name = clean_name(name);
+        self.edit_mark(tab, |mark| mark.name = name);
+    }
+
+    pub fn set_tab_color(&mut self, tab: SessionId, color: Option<Swatch>) {
+        self.edit_mark(tab, |mark| mark.color = color);
+    }
+
+    pub fn rename_instance(&mut self, id: InstanceId, name: &str) {
+        if let Some(instance) = self.instance_mut(id) {
+            instance.name = clean_name(name).unwrap_or_else(|| Instance::automatic_name(id));
+        }
+    }
+
+    pub fn set_instance_color(&mut self, id: InstanceId, color: Option<Swatch>) {
+        if let Some(instance) = self.instance_mut(id) {
+            instance.color = color;
+        }
+    }
+
+    pub(super) fn restore_mark(&mut self, tab: SessionId, mark: TabMark) {
+        if !mark.is_blank() {
+            self.marks.insert(tab, mark);
+        }
+    }
+
+    pub(super) fn forget_marks(&mut self, tabs: &[SessionId]) {
+        for tab in tabs {
+            self.marks.remove(tab);
+        }
+    }
+
+    fn instance_mut(&mut self, id: InstanceId) -> Option<&mut Instance> {
+        self.instances.iter_mut().find(|instance| instance.id == id)
+    }
+
+    fn edit_mark(&mut self, tab: SessionId, change: impl FnOnce(&mut TabMark)) {
+        if self.locate(tab).is_none() {
+            return;
+        }
+        let mark = self.marks.entry(tab).or_default();
+        change(mark);
+        if mark.is_blank() {
+            self.marks.remove(&tab);
+        }
+    }
+}

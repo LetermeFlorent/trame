@@ -65,7 +65,7 @@ impl Running {
         state: ElementState,
         button: MouseButton,
     ) {
-        if self.terminal_button(state, button) {
+        if self.editing_button(state) || self.terminal_button(state, button) {
             return;
         }
         let hit = self
@@ -86,6 +86,10 @@ impl Running {
         };
         let previous = self.pointer.last_click.replace((Instant::now(), hit));
         let double = previous.is_some_and(|(at, last)| last == hit && at.elapsed() < DOUBLE_CLICK);
+        if double && self.open_editor(hit) {
+            self.pointer.last_click = None;
+            return;
+        }
         match hit {
             Hit::Resize(edge) => {
                 let direction = window::resize_direction(edge);
@@ -177,7 +181,7 @@ fn cursor_for(hit: Option<Hit>, frame: &FrameLayout) -> CursorIcon {
             Some(Axis::Column) => CursorIcon::RowResize,
             None => CursorIcon::Default,
         },
-        Some(Hit::Terminal(_)) => CursorIcon::Text,
+        Some(Hit::Terminal(_) | Hit::EditField) => CursorIcon::Text,
         _ => CursorIcon::Default,
     }
 }

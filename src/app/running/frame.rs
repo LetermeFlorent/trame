@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use winit::window::Window;
 
 use trame::session::SessionId;
@@ -9,6 +11,7 @@ use trame::ui::{FrameInput, FrameLayout, FrameSources, UiMetrics, draw_frame};
 use trame::workspace::{Instance, Workspace};
 
 use super::Running;
+use crate::app::sessions::Sessions;
 
 const ATLAS_ATTEMPTS: usize = 2;
 
@@ -31,6 +34,21 @@ pub(super) fn compute(
     FrameLayout::compute(text, &input)
 }
 
+fn title_of(
+    workspace: &Workspace,
+    labels: &HashMap<SessionId, String>,
+    sessions: &Sessions,
+    id: SessionId,
+) -> String {
+    match workspace.tab_name(id) {
+        Some(name) => name.to_owned(),
+        None => labels
+            .get(&id)
+            .cloned()
+            .unwrap_or_else(|| sessions.label(id)),
+    }
+}
+
 impl Running {
     pub(super) fn relayout(&mut self) {
         let visible = self.workspace.active_instance().map(Instance::tabs);
@@ -39,14 +57,7 @@ impl Running {
             .into_iter()
             .map(|id| (id, self.sessions.label(id)))
             .collect();
-        let labels = &self.labels;
-        let sessions = &self.sessions;
-        let title = |id: SessionId| {
-            labels
-                .get(&id)
-                .cloned()
-                .unwrap_or_else(|| sessions.label(id))
-        };
+        let title = |id: SessionId| title_of(&self.workspace, &self.labels, &self.sessions, id);
         self.frame = compute(
             &mut self.text,
             &self.workspace,
@@ -54,8 +65,13 @@ impl Running {
             self.metrics,
             &title,
         );
+        self.place_editor();
         self.sync_sizes();
         self.refresh_hover();
+    }
+
+    pub(super) fn tab_title(&self, id: SessionId) -> String {
+        title_of(&self.workspace, &self.labels, &self.sessions, id)
     }
 
     fn sync_sizes(&mut self) {

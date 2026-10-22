@@ -1,5 +1,6 @@
 mod instance;
 mod layout;
+mod marks;
 mod moves;
 mod pane;
 mod snapshot;
@@ -8,6 +9,7 @@ mod tree;
 
 pub use instance::{Instance, InstanceId};
 pub use layout::{Divider, MIN_PANE, PaneLayout, resize_split, resized};
+pub use marks::{TabMark, clean_name};
 pub use moves::DropTarget;
 pub use pane::Pane;
 pub use snapshot::{
@@ -15,6 +17,8 @@ pub use snapshot::{
     TabSnapshot, WindowSnapshot,
 };
 pub use tree::{Axis, Edge, Node, PaneId};
+
+use std::collections::HashMap;
 
 use crate::session::SessionId;
 
@@ -30,6 +34,7 @@ pub struct Workspace {
     pub instances: Vec<Instance>,
     pub active: usize,
     pub sidebar_open: bool,
+    marks: HashMap<SessionId, TabMark>,
     next_pane: u32,
     next_instance: u32,
 }
@@ -46,6 +51,7 @@ impl Workspace {
             instances: Vec::new(),
             active: 0,
             sidebar_open: true,
+            marks: HashMap::new(),
             next_pane: 0,
             next_instance: 0,
         }
@@ -74,7 +80,7 @@ impl Workspace {
     pub fn add_instance(&mut self, name: Option<String>, tab: SessionId) -> InstanceId {
         self.next_instance += 1;
         let id = InstanceId(self.next_instance);
-        let name = name.unwrap_or_else(|| format!("Instance {}", self.next_instance));
+        let name = name.unwrap_or_else(|| Instance::automatic_name(id));
         let pane = self.new_pane_id();
         self.instances.push(Instance::new(id, name, pane, tab));
         self.active = self.instances.len() - 1;
@@ -131,6 +137,7 @@ impl Workspace {
         let Some(location) = self.locate(tab) else {
             return false;
         };
+        self.marks.remove(&tab);
         let instance = &mut self.instances[location.instance];
         instance.remove_tab(tab);
         if instance.is_empty() {
@@ -144,6 +151,7 @@ impl Workspace {
             return Vec::new();
         }
         let removed = self.instances.remove(index);
+        self.forget_marks(&removed.tabs());
         if self.active > index || self.active >= self.instances.len() {
             self.active = self.active.saturating_sub(1);
         }

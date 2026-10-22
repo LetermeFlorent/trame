@@ -1,6 +1,9 @@
 use crate::geometry::{Point, Rect};
 use crate::session::SessionId;
-use crate::ui::frame::{FrameLayout, PaneFrame, SidebarFrame, SidebarItem, TitleBarFrame};
+use crate::theme::Swatch;
+use crate::ui::frame::{
+    EditorFrame, FrameLayout, PaneFrame, SidebarFrame, SidebarItem, TitleBarFrame,
+};
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{Axis, PaneId};
 
@@ -38,6 +41,8 @@ pub enum Hit {
     Split(PaneId),
     Divider(usize),
     Terminal(PaneId),
+    EditField,
+    EditSwatch(Option<Swatch>),
 }
 
 impl FrameLayout {
@@ -47,6 +52,13 @@ impl FrameLayout {
         }
         if let Some(edge) = resizable.then(|| self.resize_edge(point)).flatten() {
             return Some(Hit::Resize(edge));
+        }
+        if let Some(hit) = self
+            .editor
+            .as_ref()
+            .and_then(|editor| hit_editor(editor, point))
+        {
+            return Some(hit);
         }
         if self.title_bar.rect.contains(point) {
             return Some(hit_title_bar(&self.title_bar, point));
@@ -137,6 +149,13 @@ fn hit_sidebar(sidebar: &SidebarFrame, point: Point) -> Hit {
         true => Hit::RowClose(row.item),
         false => Hit::Row(row.item),
     }
+}
+
+fn hit_editor(editor: &EditorFrame, point: Point) -> Option<Hit> {
+    if let Some(slot) = editor.slot_at(point) {
+        return Some(Hit::EditSwatch(slot.color));
+    }
+    editor.contains(point).then_some(Hit::EditField)
 }
 
 fn hit_pane(pane: &PaneFrame, point: Point) -> Hit {
