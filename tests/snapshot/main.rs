@@ -1,4 +1,5 @@
 mod invalid;
+mod marks;
 mod nesting;
 mod round_trip;
 mod sanitize;
@@ -77,6 +78,7 @@ pub fn single(root: NodeSnapshot) -> Snapshot {
 pub fn instance_of(root: NodeSnapshot) -> InstanceSnapshot {
     InstanceSnapshot {
         name: "work".to_owned(),
+        color: None,
         active_pane: 0,
         root,
     }

@@ -19,31 +19,37 @@ impl Workspace {
             instances: self
                 .instances
                 .iter()
-                .map(|instance| capture_instance(instance, cwd))
+                .map(|instance| capture_instance(self, instance, cwd))
                 .collect(),
         }
     }
 }
 
-fn capture_instance(instance: &Instance, cwd: CwdOf) -> InstanceSnapshot {
+fn capture_instance(workspace: &Workspace, instance: &Instance, cwd: CwdOf) -> InstanceSnapshot {
     let order = instance.root.panes();
     InstanceSnapshot {
         name: instance.name.clone(),
+        color: instance.color,
         active_pane: order
             .iter()
             .position(|id| *id == instance.active_pane)
             .unwrap_or(0),
-        root: capture_node(instance, &instance.root, cwd),
+        root: capture_node(workspace, instance, &instance.root, cwd),
     }
 }
 
-fn capture_node(instance: &Instance, node: &Node, cwd: CwdOf) -> NodeSnapshot {
+fn capture_node(
+    workspace: &Workspace,
+    instance: &Instance,
+    node: &Node,
+    cwd: CwdOf,
+) -> NodeSnapshot {
     match node {
         Node::Pane(id) => NodeSnapshot::Pane(
             instance
                 .panes
                 .get(id)
-                .map(|pane| capture_pane(pane, cwd))
+                .map(|pane| capture_pane(workspace, pane, cwd))
                 .unwrap_or_default(),
         ),
         Node::Split {
@@ -55,20 +61,21 @@ fn capture_node(instance: &Instance, node: &Node, cwd: CwdOf) -> NodeSnapshot {
             ratios: flexes.clone(),
             children: children
                 .iter()
-                .map(|child| capture_node(instance, child, cwd))
+                .map(|child| capture_node(workspace, instance, child, cwd))
                 .collect(),
         },
     }
 }
 
-fn capture_pane(pane: &Pane, cwd: CwdOf) -> PaneSnapshot {
+fn capture_pane(workspace: &Workspace, pane: &Pane, cwd: CwdOf) -> PaneSnapshot {
     PaneSnapshot {
         tabs: pane
             .tabs
             .iter()
             .map(|tab| TabSnapshot {
                 cwd: cwd(*tab).filter(|path| path.to_str().is_some()),
-                title: None,
+                title: workspace.tab_name(*tab).map(str::to_owned),
+                color: workspace.tab_color(*tab),
             })
             .collect(),
         active: pane.active,

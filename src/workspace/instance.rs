@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use super::pane::Pane;
 use super::tree::{Edge, Node, PaneId};
 use crate::session::SessionId;
+use crate::theme::Swatch;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct InstanceId(pub u32);
@@ -11,16 +12,22 @@ pub struct InstanceId(pub u32);
 pub struct Instance {
     pub id: InstanceId,
     pub name: String,
+    pub color: Option<Swatch>,
     pub root: Node,
     pub panes: BTreeMap<PaneId, Pane>,
     pub active_pane: PaneId,
 }
 
 impl Instance {
+    pub fn automatic_name(id: InstanceId) -> String {
+        format!("Instance {}", id.0)
+    }
+
     pub fn new(id: InstanceId, name: String, pane: PaneId, tab: SessionId) -> Self {
         Self {
             id,
             name,
+            color: None,
             root: Node::Pane(pane),
             panes: BTreeMap::from([(pane, Pane::new(tab))]),
             active_pane: pane,

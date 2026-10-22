@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use super::{InstanceSnapshot, NodeSnapshot, PaneSnapshot, Snapshot, SnapshotError, TabSnapshot};
 use crate::session::SessionId;
-use crate::workspace::{Instance, InstanceId, Node, Pane, PaneId, Workspace};
+use crate::workspace::{Instance, InstanceId, Node, Pane, PaneId, TabMark, Workspace, clean_name};
 
 type Reserve<'a> = &'a mut dyn FnMut(&TabSnapshot) -> SessionId;
 
@@ -42,13 +42,12 @@ impl Restorer<'_> {
         let active_pane = *order.get(item.active_pane).or(order.first())?;
         self.workspace.next_instance += 1;
         let number = self.workspace.next_instance;
-        let name = match item.name.trim() {
-            "" => format!("Instance {number}"),
-            name => name.to_owned(),
-        };
+        let id = InstanceId(number);
+        let name = clean_name(&item.name).unwrap_or_else(|| Instance::automatic_name(id));
         Some(Instance {
-            id: InstanceId(number),
+            id,
             name,
+            color: item.color,
             root,
             panes,
             active_pane,
@@ -93,7 +92,16 @@ impl Restorer<'_> {
         if item.tabs.is_empty() {
             return None;
         }
-        let tabs: Vec<SessionId> = item.tabs.iter().map(|tab| (self.reserve)(tab)).collect();
+        let mut tabs = Vec::with_capacity(item.tabs.len());
+        for tab in &item.tabs {
+            let id = (self.reserve)(tab);
+            let mark = TabMark {
+                name: tab.title.as_deref().and_then(clean_name),
+                color: tab.color,
+            };
+            self.workspace.restore_mark(id, mark);
+            tabs.push(id);
+        }
         let active = item.active.min(tabs.len() - 1);
         Some(Pane { tabs, active })
     }
