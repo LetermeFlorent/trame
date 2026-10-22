@@ -13,7 +13,7 @@ use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
 use trame::theme::Theme;
 use trame::ui::metrics::TERMINAL_FONT_SIZE;
 use trame::ui::{FrameView, Motion, UiMetrics};
-use trame::workspace::{WindowSnapshot, Workspace};
+use trame::workspace::{Snapshot, WindowSnapshot, Workspace};
 
 use super::tabs::Placement;
 use super::{Pointer, Running, Selecting, frame};
@@ -49,26 +49,34 @@ impl Surface {
     }
 }
 
-impl Running {
-    pub fn start(
-        event_loop: &ActiveEventLoop,
-        proxy: EventLoopProxy<UserEvent>,
-    ) -> Result<Self, Box<dyn Error>> {
-        let saved = persist::load();
-        let surface = Surface::open(
-            event_loop,
-            saved.as_ref().and_then(|snapshot| snapshot.window),
-        )?;
-        let mut running = Self::with_surface(surface, proxy);
-        running
-            .saver
-            .remember_window(saved.as_ref().and_then(|snapshot| snapshot.window));
+pub struct Opened {
+    running: Running,
+    saved: Option<Snapshot>,
+}
+
+impl Opened {
+    pub fn show(self) -> Result<Running, Box<dyn Error>> {
+        let Opened { mut running, saved } = self;
         if !running.restore_session(saved.as_ref()) {
             running.open(Placement::Instance)?;
         }
         running.draw();
         running.window.set_visible(true);
         Ok(running)
+    }
+}
+
+impl Running {
+    pub fn open_window(
+        event_loop: &ActiveEventLoop,
+        proxy: EventLoopProxy<UserEvent>,
+    ) -> Result<Opened, Box<dyn Error>> {
+        let saved = persist::load();
+        let window = saved.as_ref().and_then(|snapshot| snapshot.window);
+        let surface = Surface::open(event_loop, window)?;
+        let mut running = Self::with_surface(surface, proxy);
+        running.saver.remember_window(window);
+        Ok(Opened { running, saved })
     }
 
     pub fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {

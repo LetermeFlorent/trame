@@ -2,6 +2,7 @@ mod graphics;
 mod persist;
 mod running;
 mod sessions;
+mod update;
 mod visibility;
 mod window;
 
@@ -15,6 +16,7 @@ use winit::window::WindowId;
 use trame::session::SessionEvent;
 
 use running::Running;
+use update::Update;
 
 #[derive(Clone, Copy, Debug)]
 pub enum UserEvent {
@@ -22,9 +24,11 @@ pub enum UserEvent {
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
+    let update = Update::start();
     let event_loop = EventLoop::<UserEvent>::with_user_event().build()?;
     let mut app = App {
         proxy: event_loop.create_proxy(),
+        update: Some(update),
         running: None,
         failure: None,
     };
@@ -34,8 +38,19 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
 struct App {
     proxy: EventLoopProxy<UserEvent>,
+    update: Option<Update>,
     running: Option<Running>,
     failure: Option<Box<dyn Error>>,
+}
+
+impl App {
+    fn launch(&mut self, event_loop: &ActiveEventLoop) -> Result<Option<Running>, Box<dyn Error>> {
+        let opened = Running::open_window(event_loop, self.proxy.clone())?;
+        if self.update.take().is_some_and(Update::relaunched) {
+            return Ok(None);
+        }
+        opened.show().map(Some)
+    }
 }
 
 impl ApplicationHandler<UserEvent> for App {
@@ -43,8 +58,9 @@ impl ApplicationHandler<UserEvent> for App {
         if self.running.is_some() {
             return;
         }
-        match Running::start(event_loop, self.proxy.clone()) {
-            Ok(running) => self.running = Some(running),
+        match self.launch(event_loop) {
+            Ok(Some(running)) => self.running = Some(running),
+            Ok(None) => event_loop.exit(),
             Err(error) => {
                 self.failure = Some(error);
                 event_loop.exit();
