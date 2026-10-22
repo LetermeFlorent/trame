@@ -3,6 +3,7 @@ mod layout;
 mod moves;
 mod pane;
 mod snapshot;
+mod split;
 mod tree;
 
 pub use instance::{Instance, InstanceId};

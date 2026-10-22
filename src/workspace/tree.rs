@@ -39,7 +39,17 @@ pub enum Node {
         axis: Axis,
         children: Vec<Node>,
         flexes: Vec<f32>,
+        #[serde(default)]
+        pinned: Vec<bool>,
     },
+}
+
+pub(super) fn sync_pins(pinned: &mut Vec<bool>, len: usize) {
+    if pinned.len() == len {
+        return;
+    }
+    pinned.clear();
+    pinned.resize(len, false);
 }
 
 impl Node {
@@ -63,56 +73,22 @@ impl Node {
         }
     }
 
-    pub fn split(&mut self, target: PaneId, new: PaneId, edge: Edge) -> bool {
-        match self {
-            Node::Pane(id) if *id == target => {
-                let pair = if edge.is_leading() {
-                    vec![Node::Pane(new), Node::Pane(target)]
-                } else {
-                    vec![Node::Pane(target), Node::Pane(new)]
-                };
-                *self = Node::Split {
-                    axis: edge.axis(),
-                    children: pair,
-                    flexes: vec![1.0, 1.0],
-                };
-                true
-            }
-            Node::Pane(_) => false,
-            Node::Split {
-                axis,
-                children,
-                flexes,
-            } => {
-                let direct = children
-                    .iter()
-                    .position(|child| *child == Node::Pane(target));
-                if let Some(index) = direct.filter(|_| *axis == edge.axis()) {
-                    let half = flexes[index] / 2.0;
-                    flexes[index] = half;
-                    let at = if edge.is_leading() { index } else { index + 1 };
-                    children.insert(at, Node::Pane(new));
-                    flexes.insert(at, half);
-                    return true;
-                }
-                children
-                    .iter_mut()
-                    .any(|child| child.split(target, new, edge))
-            }
-        }
-    }
-
     pub fn remove(&mut self, pane: PaneId) -> bool {
         let Node::Split {
-            children, flexes, ..
+            children,
+            flexes,
+            pinned,
+            ..
         } = self
         else {
             return false;
         };
         let removed = match children.iter().position(|child| *child == Node::Pane(pane)) {
             Some(index) => {
+                sync_pins(pinned, flexes.len());
                 children.remove(index);
                 flexes.remove(index);
+                pinned.remove(index);
                 true
             }
             None => children.iter_mut().any(|child| child.remove(pane)),
@@ -121,42 +97,6 @@ impl Node {
             self.normalize();
         }
         removed
-    }
-
-    fn normalize(&mut self) {
-        let Node::Split {
-            axis,
-            children,
-            flexes,
-        } = self
-        else {
-            return;
-        };
-        if children.len() == 1 {
-            *self = children.remove(0);
-            return;
-        }
-        let mut merged_children = Vec::with_capacity(children.len());
-        let mut merged_flexes = Vec::with_capacity(flexes.len());
-        for (child, flex) in children.drain(..).zip(flexes.drain(..)) {
-            match child {
-                Node::Split {
-                    axis: inner,
-                    children: inner_children,
-                    flexes: inner_flexes,
-                } if inner == *axis => {
-                    let total: f32 = inner_flexes.iter().sum();
-                    merged_flexes.extend(inner_flexes.iter().map(|value| value / total * flex));
-                    merged_children.extend(inner_children);
-                }
-                other => {
-                    merged_children.push(other);
-                    merged_flexes.push(flex);
-                }
-            }
-        }
-        *children = merged_children;
-        *flexes = merged_flexes;
     }
 
     pub fn node_mut(&mut self, path: &[usize]) -> Option<&mut Node> {

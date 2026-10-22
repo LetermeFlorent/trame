@@ -1,4 +1,4 @@
-use super::tree::{Axis, Edge, Node, PaneId, split_extent};
+use super::tree::{Axis, Edge, Node, PaneId, split_extent, sync_pins};
 use crate::geometry::{Point, Rect};
 
 pub const MIN_PANE: f32 = 80.0;
@@ -44,6 +44,7 @@ impl PaneLayout {
                 axis,
                 children,
                 flexes,
+                ..
             } => (*axis, children, flexes),
         };
         let total: f32 = flexes.iter().sum::<f32>().max(f32::EPSILON);
@@ -122,7 +123,7 @@ impl PaneLayout {
 }
 
 pub fn resize_split(root: &mut Node, divider: &Divider, delta: f32) {
-    let Some(Node::Split { flexes, .. }) = root.node_mut(&divider.path) else {
+    let Some(Node::Split { flexes, pinned, .. }) = root.node_mut(&divider.path) else {
         return;
     };
     let index = divider.index;
@@ -134,8 +135,14 @@ pub fn resize_split(root: &mut Node, divider: &Divider, delta: f32) {
     let pair = flexes[index] + flexes[index + 1];
     let minimum = (MIN_PANE * per_pixel).min(pair / 2.0);
     let first = (flexes[index] + delta * per_pixel).clamp(minimum, pair - minimum);
+    if first == flexes[index] {
+        return;
+    }
     flexes[index] = first;
     flexes[index + 1] = pair - first;
+    sync_pins(pinned, flexes.len());
+    pinned[index] = true;
+    pinned[index + 1] = true;
 }
 
 pub fn resized(origin: &Node, divider: &Divider, delta: f32) -> Node {

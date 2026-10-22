@@ -50,9 +50,11 @@ fn capture_node(instance: &Instance, node: &Node, cwd: CwdOf) -> NodeSnapshot {
             axis,
             children,
             flexes,
+            pinned,
         } => NodeSnapshot::Split {
             axis: *axis,
             ratios: flexes.clone(),
+            pinned: pinned.clone(),
             children: children
                 .iter()
                 .map(|child| capture_node(instance, child, cwd))

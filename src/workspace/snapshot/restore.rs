@@ -66,14 +66,18 @@ impl Restorer<'_> {
             NodeSnapshot::Split {
                 axis,
                 ratios,
+                pinned,
                 children,
             } => {
+                let aligned = pinned.len() == children.len();
                 let mut kept = Vec::new();
                 let mut flexes = Vec::new();
+                let mut kept_pins = Vec::new();
                 for (index, child) in children.iter().enumerate() {
                     if let Some(node) = self.node(child, panes) {
                         kept.push(node);
                         flexes.push(usable_ratio(ratios.get(index).copied()));
+                        kept_pins.push(aligned && pinned[index]);
                     }
                 }
                 match kept.len() {
@@ -83,6 +87,7 @@ impl Restorer<'_> {
                         axis: *axis,
                         children: kept,
                         flexes,
+                        pinned: kept_pins,
                     }),
                 }
             }

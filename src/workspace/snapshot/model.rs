@@ -39,6 +39,8 @@ pub enum NodeSnapshot {
     Split {
         axis: Axis,
         ratios: Vec<f32>,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pinned: Vec<bool>,
         children: Vec<NodeSnapshot>,
     },
 }

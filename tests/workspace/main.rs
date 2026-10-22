@@ -29,10 +29,16 @@ pub fn leaf(id: u32) -> Node {
 }
 
 pub fn weighted(axis: Axis, children: Vec<Node>, flexes: Vec<f32>) -> Node {
+    let pinned = vec![false; children.len()];
+    pinned_split(axis, children, flexes, pinned)
+}
+
+pub fn pinned_split(axis: Axis, children: Vec<Node>, flexes: Vec<f32>, pinned: Vec<bool>) -> Node {
     Node::Split {
         axis,
         children,
         flexes,
+        pinned,
     }
 }
 

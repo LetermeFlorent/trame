@@ -7,6 +7,7 @@ fn row(ratios: Vec<f32>, children: Vec<NodeSnapshot>) -> NodeSnapshot {
     NodeSnapshot::Split {
         axis: Axis::Row,
         ratios,
+        pinned: Vec::new(),
         children,
     }
 }

@@ -59,13 +59,13 @@ fn splitting_an_unknown_pane_fails_and_keeps_the_tree() {
 }
 
 #[test]
-fn splitting_along_the_same_axis_joins_the_row_and_halves_the_target_share() {
+fn splitting_along_the_same_axis_joins_the_row_and_shares_the_space_equally() {
     let mut root = row(vec![leaf(1), leaf(2)]);
     assert!(root.split(PaneId(2), PaneId(3), Edge::Right));
     let expected = weighted(
         Axis::Row,
         vec![leaf(1), leaf(2), leaf(3)],
-        vec![1.0, 0.5, 0.5],
+        vec![2.0 / 3.0; 3],
     );
     assert_eq!(root, expected);
 }

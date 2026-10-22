@@ -45,6 +45,7 @@ fn describe(instance: &Instance, node: &Node) -> String {
             axis,
             children,
             flexes,
+            ..
         } => {
             let parts: Vec<String> = children
                 .iter()
