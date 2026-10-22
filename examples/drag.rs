@@ -1,14 +1,13 @@
-use std::collections::HashMap;
-use std::env;
-use std::error::Error;
-use std::fs::File;
-use std::io::BufWriter;
-use std::path::{Path, PathBuf};
+mod common;
 
+use std::collections::HashMap;
+use std::error::Error;
+
+use common::{Args, Studio};
 use trame::geometry::Point;
-use trame::render::{Gpu, OFFSCREEN_FORMAT, Renderer, Scene, render_to_rgba};
+use trame::render::Scene;
 use trame::session::SessionId;
-use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
+use trame::text::TextSystem;
 use trame::theme::{Appearance, Theme};
 use trame::ui::drop::DragView;
 use trame::ui::metrics::TERMINAL_FONT_SIZE;
@@ -22,31 +21,12 @@ const BODY_POINT: (f32, f32) = (0.92, 0.5);
 const TAB_SHIFT: f32 = 0.15;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut args = env::args().skip(1);
-    let output = PathBuf::from(args.next().ok_or("usage: drag <dir> [scale]")?);
-    let scale: f32 = args
-        .next()
-        .and_then(|value| value.parse().ok())
-        .unwrap_or(1.0);
-    let metrics = UiMetrics::new(scale);
-    let size = ((WIDTH * scale).round(), (HEIGHT * scale).round());
-    let mut text = TextSystem::new(TERMINAL_FONT_SIZE * scale, DEFAULT_LINE_HEIGHT)?;
+    let args = Args::parse("usage: drag <dir> [scale]")?;
+    let scale = args.scale;
+    let mut studio = Studio::new(TERMINAL_FONT_SIZE * scale)?;
     let workspace = build();
-    let title = |id: SessionId| LABELS[(id.0 as usize - 1) % LABELS.len()].to_string();
-    let input = FrameInput {
-        workspace: &workspace,
-        width: size.0,
-        height: size.1,
-        metrics,
-        maximized: false,
-        title: &title,
-    };
-    let frame = FrameLayout::compute(&mut text, &input);
-    let gpu = Gpu::headless()?;
-    let mut renderer = Renderer::new(&gpu, OFFSCREEN_FORMAT, text.atlas_mut());
+    let frame = layout(&mut studio.text, &workspace, scale);
     let instance = workspace.active_instance().ok_or("no instance")?.id;
-    let sessions = HashMap::new();
-    let motion = Motion::default();
     for (name, appearance, pointer) in pointers(&frame) {
         let theme = Theme::new(appearance);
         let drag = DragView {
@@ -54,27 +34,45 @@ fn main() -> Result<(), Box<dyn Error>> {
             pointer,
             mark: frame.drop_at(pointer, instance).map(|spot| spot.mark),
         };
-        let view = FrameView {
-            window_focused: true,
-            ..FrameView::default()
-        };
-        let mut scene = Scene::new(size.0, size.1);
-        let sources = FrameSources {
-            theme: &theme,
-            frame: &frame,
-            view: &view,
-            sessions: &sessions,
-            motion: &motion,
-            drag: Some(&drag),
-        };
-        draw_frame(&mut scene, &mut text, &sources);
-        text.end_frame();
-        renderer.sync_atlas(&gpu, text.atlas_mut());
-        let pixels = render_to_rgba(&gpu, &mut renderer, &scene, theme.terminal)?;
-        let path = output.join(format!("drag-{name}-{scale}.png"));
-        write_png(&path, size.0 as u32, size.1 as u32, &pixels)?;
+        let scene = paint(&mut studio.text, &frame, &theme, &drag);
+        let path = args.output.join(format!("drag-{name}-{scale}.png"));
+        studio.save(&scene, theme.terminal, &path)?;
     }
     Ok(())
+}
+
+fn title(id: SessionId) -> String {
+    LABELS[(id.0 as usize - 1) % LABELS.len()].to_string()
+}
+
+fn layout(text: &mut TextSystem, workspace: &Workspace, scale: f32) -> FrameLayout {
+    let input = FrameInput {
+        workspace,
+        width: (WIDTH * scale).round(),
+        height: (HEIGHT * scale).round(),
+        metrics: UiMetrics::new(scale),
+        maximized: false,
+        title: &title,
+    };
+    FrameLayout::compute(text, &input)
+}
+
+fn paint(text: &mut TextSystem, frame: &FrameLayout, theme: &Theme, drag: &DragView) -> Scene {
+    let view = FrameView {
+        window_focused: true,
+        ..FrameView::default()
+    };
+    let sources = FrameSources {
+        theme,
+        frame,
+        view: &view,
+        sessions: &HashMap::new(),
+        motion: &Motion::default(),
+        drag: Some(drag),
+    };
+    let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
+    draw_frame(&mut scene, text, &sources);
+    scene
 }
 
 fn build() -> Workspace {
@@ -101,13 +99,4 @@ fn pointers(frame: &FrameLayout) -> Vec<(&'static str, Appearance, Point)> {
         ("tabs", Appearance::Light, insert),
         ("center", Appearance::Dark, frame.panes[1].body.center()),
     ]
-}
-
-fn write_png(path: &Path, width: u32, height: u32, pixels: &[u8]) -> Result<(), Box<dyn Error>> {
-    let file = BufWriter::new(File::create(path)?);
-    let mut encoder = png::Encoder::new(file, width, height);
-    encoder.set_color(png::ColorType::Rgba);
-    encoder.set_depth(png::BitDepth::Eight);
-    encoder.write_header()?.write_image_data(pixels)?;
-    Ok(())
 }
