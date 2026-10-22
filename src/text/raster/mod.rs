@@ -1,3 +1,5 @@
+mod key;
+
 use std::collections::HashMap;
 
 use swash::scale::image::{Content, Image};
@@ -6,55 +8,16 @@ use swash::zeno::{Angle, Format, Transform, Vector};
 
 use super::font::{FontKey, FontLibrary, WEIGHT_AXIS};
 use crate::render::{Atlas, AtlasKind, AtlasRegion};
+pub use key::GlyphKey;
 
 const SOURCES: [Source; 3] = [
     Source::ColorOutline(0),
     Source::ColorBitmap(StrikeWith::BestFit),
     Source::Outline,
 ];
-const SUBPIXEL_BINS: u8 = 3;
-const SIZE_UNITS: f32 = 64.0;
 const EMBOLDEN_RATIO: f32 = 0.035;
 const MIN_EMBOLDEN: f32 = 0.4;
 const SKEW_DEGREES: f32 = 12.0;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct GlyphKey {
-    font: FontKey,
-    glyph: u16,
-    size: u32,
-    subpixel: u8,
-    hinted: bool,
-}
-
-impl GlyphKey {
-    pub fn hinted(font: FontKey, glyph: u16, size: f32) -> Self {
-        Self {
-            font,
-            glyph,
-            size: (size * SIZE_UNITS).round() as u32,
-            subpixel: 0,
-            hinted: true,
-        }
-    }
-
-    pub fn subpixel(font: FontKey, glyph: u16, size: f32, x: f32) -> Self {
-        let bin = (((x - x.floor()) * f32::from(SUBPIXEL_BINS)) as u8).min(SUBPIXEL_BINS - 1);
-        Self {
-            subpixel: bin,
-            hinted: false,
-            ..Self::hinted(font, glyph, size)
-        }
-    }
-
-    fn size(&self) -> f32 {
-        self.size as f32 / SIZE_UNITS
-    }
-
-    fn offset(&self) -> f32 {
-        f32::from(self.subpixel) / f32::from(SUBPIXEL_BINS)
-    }
-}
 
 #[derive(Clone, Copy, Debug)]
 pub struct RasterGlyph {
@@ -167,35 +130,6 @@ fn unpremultiply(mut data: Vec<u8>) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn font() -> FontKey {
-        FontKey {
-            id: crate::text::font::FontId::first(),
-            weight: None,
-            embolden: false,
-            skew: false,
-        }
-    }
-
-    fn key(x: f32) -> GlyphKey {
-        GlyphKey::subpixel(font(), 1, 14.0, x)
-    }
-
-    #[test]
-    fn subpixel_bins_follow_the_fraction() {
-        assert_eq!(key(10.0).subpixel, 0);
-        assert_eq!(key(10.4).subpixel, 1);
-        assert_eq!(key(10.99).subpixel, 2);
-        assert_eq!(key(-0.5).subpixel, 1);
-    }
-
-    #[test]
-    fn hinted_glyphs_sit_on_whole_pixels() {
-        let key = GlyphKey::hinted(font(), 1, 14.0);
-        assert_eq!(key.subpixel, 0);
-        assert_eq!(key.offset(), 0.0);
-        assert_ne!(key, GlyphKey::subpixel(font(), 1, 14.0, 0.0));
-    }
 
     #[test]
     fn premultiplied_colors_are_restored() {
