@@ -5,7 +5,7 @@ mod sidebar;
 
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
-use trame::ui::{FrameInput, FrameLayout, UiMetrics};
+use trame::ui::{FrameInput, FrameLayout, Motion, UiMetrics};
 use trame::workspace::Workspace;
 
 pub const WIDTH: f32 = 1200.0;
@@ -25,8 +25,15 @@ pub fn text_system() -> TextSystem {
     TextSystem::new(FONT_SIZE, DEFAULT_LINE_HEIGHT).expect("a monospace font is installed")
 }
 
-pub fn frame(text: &mut TextSystem, workspace: &Workspace) -> FrameLayout {
-    let title = |id: SessionId| format!("tab {}", id.0);
+fn title(id: SessionId) -> String {
+    format!("tab {}", id.0)
+}
+
+pub fn frame_with(
+    text: &mut TextSystem,
+    workspace: &Workspace,
+    motion: &mut Motion,
+) -> FrameLayout {
     let input = FrameInput {
         workspace,
         width: WIDTH,
@@ -35,5 +42,9 @@ pub fn frame(text: &mut TextSystem, workspace: &Workspace) -> FrameLayout {
         maximized: false,
         title: &title,
     };
-    FrameLayout::compute(text, &input)
+    FrameLayout::compute_with(text, &input, motion)
+}
+
+pub fn frame(text: &mut TextSystem, workspace: &Workspace) -> FrameLayout {
+    frame_with(text, workspace, &mut Motion::default())
 }

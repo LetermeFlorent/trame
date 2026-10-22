@@ -1,14 +1,11 @@
 use trame::geometry::Point;
 use trame::session::SessionId;
-use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
 use trame::ui::drop::DropMark;
 use trame::ui::frame::SidebarItem;
-use trame::ui::{FrameInput, FrameLayout, UiMetrics};
+use trame::ui::{FrameLayout, UiMetrics};
 use trame::workspace::{DropTarget, Edge, InstanceId, Workspace};
 
-const WIDTH: f32 = 1200.0;
-const HEIGHT: f32 = 700.0;
-const FONT_SIZE: f32 = 14.0;
+use crate::text_system;
 
 fn workspace() -> Workspace {
     let mut workspace = Workspace::new();
@@ -21,18 +18,7 @@ fn workspace() -> Workspace {
 }
 
 fn frame(workspace: &Workspace) -> FrameLayout {
-    let mut text =
-        TextSystem::new(FONT_SIZE, DEFAULT_LINE_HEIGHT).expect("a monospace font is installed");
-    let title = |id: SessionId| format!("tab {}", id.0);
-    let input = FrameInput {
-        workspace,
-        width: WIDTH,
-        height: HEIGHT,
-        metrics: UiMetrics::new(1.0),
-        maximized: false,
-        title: &title,
-    };
-    FrameLayout::compute(&mut text, &input)
+    crate::frame(&mut text_system(), workspace)
 }
 
 fn instance(workspace: &Workspace) -> InstanceId {
