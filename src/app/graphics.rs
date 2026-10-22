@@ -12,6 +12,8 @@ use trame::theme::Rgba;
 #[cfg(feature = "capture")]
 use super::capture::Capture;
 
+const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::VULKAN.union(wgpu::Backends::METAL);
+
 pub struct Graphics {
     gpu: Gpu,
     surface: WindowSurface,
@@ -26,12 +28,9 @@ impl Graphics {
         window: Arc<Window>,
         atlas: &Atlas,
     ) -> Result<Self, Box<dyn Error>> {
-        let display = Box::new(event_loop.owned_display_handle());
-        let instance =
-            wgpu::Instance::new(wgpu::InstanceDescriptor::new_with_display_handle(display));
         let size = window.inner_size();
-        let surface = instance.create_surface(window)?;
-        let gpu = Gpu::new(instance, Some(&surface))?;
+        let (gpu, surface) = connect(event_loop, &window, PREFERRED_BACKENDS)
+            .or_else(|_| connect(event_loop, &window, wgpu::Backends::all()))?;
         #[cfg_attr(not(feature = "capture"), expect(unused_mut))]
         let mut surface = WindowSurface::new(&gpu, surface, size.width, size.height)
             .ok_or("the graphics card cannot draw into this window")?;
@@ -89,4 +88,18 @@ impl Graphics {
         self.gpu.queue.present(texture);
         true
     }
+}
+
+fn connect(
+    event_loop: &ActiveEventLoop,
+    window: &Arc<Window>,
+    backends: wgpu::Backends,
+) -> Result<(Gpu, wgpu::Surface<'static>), Box<dyn Error>> {
+    let display = Box::new(event_loop.owned_display_handle());
+    let mut descriptor = wgpu::InstanceDescriptor::new_with_display_handle(display);
+    descriptor.backends = backends.with_env();
+    let instance = wgpu::Instance::new(descriptor);
+    let surface = instance.create_surface(window.clone())?;
+    let gpu = Gpu::new(instance, Some(&surface))?;
+    Ok((gpu, surface))
 }
