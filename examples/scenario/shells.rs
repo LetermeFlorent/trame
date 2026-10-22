@@ -12,10 +12,11 @@ use trame::ui::FrameLayout;
 use trame::workspace::{Edge, Workspace};
 
 const COMMANDS: [&str; 3] = [
-    "ls src\r",
-    "git -c color.ui=always log --oneline --graph -12\r",
+    "git log --format='%C(auto)%h %<(60,trunc)%s' -24\r",
+    "git diff --stat=70 HEAD~6 HEAD\r",
     "git status\r",
 ];
+const SHORT_HOME_PROMPT: &str = "function prompt { 'PS ' + ($PWD.Path -replace [regex]::Escape($HOME), '~') + '> ' }; Clear-Host\r";
 
 pub struct Scenario {
     pub workspace: Workspace,
@@ -62,6 +63,9 @@ impl Scenario {
         for (index, pane) in frame.panes.iter().enumerate() {
             let session = pane.active.and_then(|id| self.sessions.get(&id));
             if let Some(session) = session {
+                if cfg!(windows) {
+                    session.write(SHORT_HOME_PROMPT);
+                }
                 session.write(COMMANDS[index % COMMANDS.len()]);
             }
         }
@@ -85,7 +89,7 @@ pub fn build(colors: ReportedColors) -> Result<Scenario, Box<dyn Error>> {
     let fourth = scenario.spawn()?;
     scenario
         .workspace
-        .add_instance(Some("serveur de dev".into()), fourth);
+        .add_instance(Some("dev server".into()), fourth);
     scenario.workspace.active = 0;
     Ok(scenario)
 }

@@ -19,8 +19,8 @@ use trame::ui::{
     FrameInput, FrameLayout, FrameSources, FrameView, Hit, Motion, UiMetrics, draw_frame,
 };
 
-const WIDTH: f32 = 1280.0;
-const HEIGHT: f32 = 760.0;
+const WIDTH: f32 = 1440.0;
+const HEIGHT: f32 = 810.0;
 const STARTUP: Duration = Duration::from_millis(2500);
 const SETTLE: Duration = Duration::from_millis(3000);
 
