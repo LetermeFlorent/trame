@@ -5,7 +5,7 @@ use trame::ui::metrics::TERMINAL_FONT_SIZE;
 use trame::workspace::{Edge, Instance, PaneLayout};
 
 use super::Running;
-use super::scroll::Scroll;
+use super::pointer::Scroll;
 use super::tabs::Placement;
 
 const FONT_STEP: f32 = 1.0;

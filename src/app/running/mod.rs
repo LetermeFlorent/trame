@@ -1,12 +1,9 @@
 mod commands;
-mod drag;
 mod editing;
 mod frame;
 mod keyboard;
 mod lifecycle;
 mod pointer;
-mod scroll;
-mod selection;
 mod tabs;
 
 use std::collections::HashMap;
@@ -29,10 +26,8 @@ use super::graphics::Graphics;
 use super::persist::Saver;
 use super::sessions::Sessions;
 use super::{UserEvent, window};
-use drag::Drag;
 use editing::Editing;
-use pointer::Pointer;
-use selection::Selecting;
+use pointer::{Drag, Pointer, Selecting};
 
 pub struct Running {
     window: Arc<Window>,

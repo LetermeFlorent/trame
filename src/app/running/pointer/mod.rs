@@ -1,4 +1,7 @@
+mod drag;
 mod press;
+mod scroll;
+mod selection;
 
 use std::time::Instant;
 
@@ -12,6 +15,9 @@ use trame::workspace::Axis;
 
 use super::Running;
 use crate::app::window;
+pub(super) use drag::Drag;
+pub(super) use scroll::Scroll;
+pub(super) use selection::Selecting;
 
 #[derive(Default)]
 pub(super) struct Pointer {

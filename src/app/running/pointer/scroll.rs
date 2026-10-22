@@ -3,19 +3,19 @@ use winit::event::MouseScrollDelta;
 use trame::input::{WheelAction, arrow_keys, wheel_action};
 use trame::session::SessionId;
 
-use super::Running;
+use crate::app::running::Running;
 
 const WHEEL_LINES: f32 = 3.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum Scroll {
+pub(in crate::app::running) enum Scroll {
     Pages(isize),
     Top,
     Bottom,
 }
 
 impl Running {
-    pub(super) fn scroll_active(&mut self, scroll: Scroll) {
+    pub(in crate::app::running) fn scroll_active(&mut self, scroll: Scroll) {
         let Some(session) = self
             .workspace
             .active_tab()
@@ -49,7 +49,7 @@ impl Running {
         }
     }
 
-    pub(super) fn wheel(&mut self, delta: MouseScrollDelta) {
+    pub(in crate::app::running) fn wheel(&mut self, delta: MouseScrollDelta) {
         let lines = match delta {
             MouseScrollDelta::LineDelta(_, y) => y * WHEEL_LINES,
             MouseScrollDelta::PixelDelta(position) => {

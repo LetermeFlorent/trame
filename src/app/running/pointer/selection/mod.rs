@@ -12,13 +12,13 @@ use trame::input::{MouseAction, MouseButton};
 use trame::session::SessionId;
 use trame::ui::Hit;
 
-use super::Running;
+use crate::app::running::Running;
 use clicks::CLICK_KINDS;
 
 type Cell = (usize, usize);
 
 #[derive(Default)]
-pub(super) struct Selecting {
+pub(in crate::app::running) struct Selecting {
     drag: Option<SessionId>,
     held: Option<(SessionId, MouseButton)>,
     cell: Option<Cell>,
@@ -26,7 +26,11 @@ pub(super) struct Selecting {
 }
 
 impl Running {
-    pub(super) fn terminal_button(&mut self, state: ElementState, button: Button) -> bool {
+    pub(in crate::app::running) fn terminal_button(
+        &mut self,
+        state: ElementState,
+        button: Button,
+    ) -> bool {
         let button = match button {
             Button::Left => MouseButton::Left,
             Button::Middle => MouseButton::Middle,
@@ -39,7 +43,7 @@ impl Running {
         }
     }
 
-    pub(super) fn terminal_motion(&mut self, point: Point) {
+    pub(in crate::app::running) fn terminal_motion(&mut self, point: Point) {
         if let Some(id) = self.selecting.drag {
             self.drag_selection(id, point);
             return;

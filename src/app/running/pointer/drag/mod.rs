@@ -1,4 +1,5 @@
 mod sidebar;
+mod tab;
 
 use winit::keyboard::{Key, NamedKey};
 use winit::window::CursorIcon;
@@ -6,21 +7,20 @@ use winit::window::CursorIcon;
 use trame::geometry::Point;
 use trame::session::SessionId;
 use trame::ui::Hit;
-use trame::ui::drop::{DragView, DropSpot};
-use trame::workspace::{Axis, Divider, DropTarget, Node, resized};
+use trame::workspace::{Axis, Divider, Node, resized};
 
-use super::Running;
+use crate::app::running::Running;
 use sidebar::SidebarDrag;
 
 const DRAG_THRESHOLD: f32 = 4.0;
 
-pub(super) struct DividerDrag {
+pub(in crate::app::running) struct DividerDrag {
     divider: Divider,
     origin: Point,
     root: Node,
 }
 
-pub(super) enum Drag {
+pub(in crate::app::running) enum Drag {
     Pending(SessionId, Point),
     Tab(SessionId, Point),
     Divider(DividerDrag),
@@ -28,7 +28,7 @@ pub(super) enum Drag {
 }
 
 impl Running {
-    pub(super) fn drag_pressed(&mut self, hit: Hit) {
+    pub(in crate::app::running) fn drag_pressed(&mut self, hit: Hit) {
         let Some(origin) = self.pointer.position else {
             return;
         };
@@ -50,7 +50,7 @@ impl Running {
         })
     }
 
-    pub(super) fn drag_moved(&mut self, point: Point) -> bool {
+    pub(in crate::app::running) fn drag_moved(&mut self, point: Point) -> bool {
         let threshold = self.metrics.px(DRAG_THRESHOLD);
         let next = match self.drag.take() {
             None => return false,
@@ -79,25 +79,11 @@ impl Running {
         true
     }
 
-    pub(super) fn drag_released(&mut self) -> bool {
-        match self.drag.take() {
-            Some(Drag::Tab(tab, pointer)) => {
-                if let Some(spot) = self.drop_spot(tab, pointer) {
-                    self.workspace.move_tab(tab, spot.target);
-                    self.motion.animate_next();
-                }
-                true
-            }
-            Some(Drag::Divider(_) | Drag::Sidebar(_)) => true,
-            _ => false,
-        }
-    }
-
-    pub(super) fn drag_key(&mut self, key: &Key) -> bool {
+    pub(in crate::app::running) fn drag_key(&mut self, key: &Key) -> bool {
         *key == Key::Named(NamedKey::Escape) && self.cancel_drag()
     }
 
-    pub(super) fn cancel_drag(&mut self) -> bool {
+    pub(in crate::app::running) fn cancel_drag(&mut self) -> bool {
         let drag = match self.drag.take() {
             None | Some(Drag::Pending(..)) => return false,
             Some(drag) => drag,
@@ -117,11 +103,11 @@ impl Running {
         true
     }
 
-    pub(super) fn drags_tab(&self) -> bool {
+    pub(in crate::app::running) fn drags_tab(&self) -> bool {
         matches!(self.drag, Some(Drag::Tab(..)))
     }
 
-    pub(super) fn drag_cursor(&self) -> Option<CursorIcon> {
+    pub(in crate::app::running) fn drag_cursor(&self) -> Option<CursorIcon> {
         match &self.drag {
             Some(Drag::Divider(drag)) => Some(match drag.divider.axis {
                 Axis::Row => CursorIcon::ColResize,
@@ -131,34 +117,6 @@ impl Running {
             Some(Drag::Tab(..)) => Some(CursorIcon::Default),
             _ => None,
         }
-    }
-
-    pub(super) fn drag_view(&self) -> Option<DragView> {
-        let Some(Drag::Tab(tab, pointer)) = self.drag else {
-            return None;
-        };
-        Some(DragView {
-            label: self.tab_title(tab),
-            pointer,
-            mark: self.drop_spot(tab, pointer).map(|spot| spot.mark),
-        })
-    }
-
-    fn drop_spot(&self, tab: SessionId, pointer: Point) -> Option<DropSpot> {
-        let instance = self.workspace.active_instance()?.id;
-        let spot = self.frame.drop_at(pointer, instance)?;
-        let source = self.workspace.locate(tab)?;
-        let same_pane = matches!(
-            spot.target,
-            DropTarget::Tabs { pane, index: None, .. } if pane == source.pane
-        );
-        if same_pane {
-            return None;
-        }
-        self.workspace
-            .clone()
-            .move_tab(tab, spot.target)
-            .then_some(spot)
     }
 }
 

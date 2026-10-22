@@ -1,7 +1,7 @@
 use trame::geometry::Point;
 use trame::ui::frame::dragged_width;
 
-use super::super::Running;
+use crate::app::running::Running;
 
 #[derive(Clone, Copy)]
 pub(in crate::app::running) struct SidebarDrag {
