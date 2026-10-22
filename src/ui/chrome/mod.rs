@@ -14,6 +14,7 @@ use crate::text::TextSystem;
 use crate::theme::Theme;
 use crate::ui::frame::FrameLayout;
 use crate::ui::hit::Hit;
+use crate::ui::metrics::UiMetrics;
 use crate::ui::motion::Motion;
 use crate::ui::paint::FrameView;
 use crate::workspace::Axis;
@@ -59,13 +60,19 @@ pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
 }
 
 pub fn draw_dividers(scene: &mut Scene, theme: &Theme, frame: &FrameLayout, view: &FrameView) {
-    let active = |index: usize| {
-        let hit = Some(Hit::Divider(index));
-        view.pressed == hit || (view.pressed.is_none() && view.hover == hit)
-    };
+    let active =
+        |hit: Hit| view.pressed == Some(hit) || (view.pressed.is_none() && view.hover == Some(hit));
     let grow = ((frame.metrics.px(ACTIVE_DIVIDER) - frame.metrics.line()) / 2.0).max(0.0);
+    if active(Hit::SidebarEdge) {
+        let grab = frame.metrics.px(UiMetrics::DIVIDER_GRAB);
+        scene.fill(
+            frame.sidebar_edge().inset_by(grab - grow, 0.0),
+            theme.accent,
+            0.0,
+        );
+    }
     for (index, divider) in frame.dividers.iter().enumerate() {
-        if !active(index) {
+        if !active(Hit::Divider(index)) {
             scene.fill(divider.rect, theme.border, 0.0);
             continue;
         }

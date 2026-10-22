@@ -1,4 +1,5 @@
 mod rail;
+mod width;
 
 use std::sync::Arc;
 
@@ -11,6 +12,7 @@ use crate::ui::metrics::UiMetrics;
 use crate::workspace::{Instance, InstanceId, Workspace};
 pub use rail::RailFrame;
 pub(super) use rail::layout_rail;
+pub use width::{dragged_width, shown_width};
 
 const CAPTION: &str = "INSTANCES";
 const CAPTION_MARGIN: f32 = 14.0;

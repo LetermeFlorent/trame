@@ -15,6 +15,9 @@ impl Workspace {
             reserve,
         };
         restorer.workspace.sidebar_open = snapshot.sidebar_open;
+        restorer.workspace.sidebar_width = snapshot
+            .sidebar_width
+            .filter(|width| width.is_finite() && *width > 0.0);
         for item in &snapshot.instances {
             if let Some(instance) = restorer.instance(item) {
                 restorer.workspace.instances.push(instance);

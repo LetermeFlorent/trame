@@ -69,6 +69,7 @@ pub fn single(root: NodeSnapshot) -> Snapshot {
     Snapshot {
         version: SNAPSHOT_VERSION,
         sidebar_open: true,
+        sidebar_width: None,
         font_size: 14.0,
         active_instance: 0,
         window: None,

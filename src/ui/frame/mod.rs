@@ -9,7 +9,7 @@ mod titlebar;
 pub use editor::{EditAnchor, EditTarget, EditorFrame, EditorRequest, SwatchSlot};
 pub use label::fit_label;
 pub use panes::{PaneFrame, TabFrame, TabStrip};
-pub use sidebar::{RailFrame, SidebarFrame, SidebarItem, SidebarRow};
+pub use sidebar::{RailFrame, SidebarFrame, SidebarItem, SidebarRow, dragged_width, shown_width};
 pub use titlebar::{TitleBarFrame, WindowControls};
 
 use crate::geometry::Rect;
@@ -61,7 +61,9 @@ impl FrameLayout {
         let open = input.workspace.sidebar_open;
         let reveal = motion.sidebar(open);
         let rail_width = metrics.px(UiMetrics::RAIL_WIDTH);
-        let full_width = metrics.px(UiMetrics::SIDEBAR_WIDTH);
+        let full_width = metrics
+            .px(shown_width(input.workspace.sidebar_width))
+            .round();
         let visible_width = (rail_width + (full_width - rail_width) * reveal).round();
         let (side, _) = rest.split_left(visible_width);
         let (_, content) = rest.split_left(if open { full_width } else { rail_width });
@@ -94,6 +96,18 @@ impl FrameLayout {
             dividers,
             editor: None,
         }
+    }
+
+    pub fn sidebar_edge(&self) -> Rect {
+        let line = self.metrics.line();
+        let grab = self.metrics.px(UiMetrics::DIVIDER_GRAB);
+        Rect::new(
+            self.side.right() - line,
+            self.side.y,
+            line,
+            self.side.height,
+        )
+        .inset_by(-grab, 0.0)
     }
 
     pub fn pane(&self, id: PaneId) -> Option<&PaneFrame> {
