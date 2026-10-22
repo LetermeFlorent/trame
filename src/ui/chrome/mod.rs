@@ -1,13 +1,13 @@
-mod editor;
 mod icons;
 pub mod logo;
+mod overlay;
 mod painter;
 mod sidebar;
 mod tabbar;
 mod titlebar;
 
-pub use editor::draw_editor;
 pub use icons::{Icon, Pen, draw_icon};
+pub use overlay::{draw_editor, draw_tooltip};
 
 use self::painter::{Painter, Press, centered};
 use crate::render::Scene;

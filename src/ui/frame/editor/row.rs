@@ -4,8 +4,8 @@ use crate::ui::metrics::UiMetrics;
 
 const SWATCH_SIZE: f32 = 14.0;
 const SWATCH_GAP: f32 = 6.0;
-const STRIP_PAD_X: f32 = 8.0;
-const STRIP_PAD_Y: f32 = 6.0;
+pub(super) const STRIP_PAD_X: f32 = 8.0;
+pub(super) const STRIP_PAD_Y: f32 = 6.0;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SwatchSlot {

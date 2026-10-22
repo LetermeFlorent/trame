@@ -6,7 +6,7 @@ mod panes;
 mod sidebar;
 mod titlebar;
 
-pub use editor::{EditAnchor, EditTarget, EditorFrame, EditorRequest, SwatchSlot};
+pub use editor::{EditAnchor, EditTarget, EditorFrame, EditorRequest, EmblemSlot, SwatchSlot};
 pub use label::fit_label;
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{

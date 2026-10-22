@@ -2,7 +2,7 @@ mod zones;
 
 use crate::geometry::Point;
 use crate::session::SessionId;
-use crate::theme::Swatch;
+use crate::theme::{Emblem, Swatch};
 use crate::ui::frame::{FrameLayout, SidebarItem};
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{Axis, InstanceId, PaneId};
@@ -45,6 +45,7 @@ pub enum Hit {
     Terminal(PaneId),
     EditField,
     EditSwatch(Option<Swatch>),
+    EditEmblem(Emblem),
 }
 
 impl FrameLayout {

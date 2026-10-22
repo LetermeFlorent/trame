@@ -4,6 +4,7 @@ mod logo;
 mod motion;
 mod sidebar;
 mod tabbar;
+mod tooltip;
 
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};

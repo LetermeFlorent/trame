@@ -19,7 +19,15 @@ impl Running {
                 self.changed();
                 true
             }
-            (Some(Hit::EditField | Hit::EditSwatch(_)), ElementState::Released) => true,
+            (Some(Hit::EditEmblem(emblem)), ElementState::Pressed) => {
+                self.pick_emblem(emblem);
+                self.changed();
+                true
+            }
+            (
+                Some(Hit::EditField | Hit::EditSwatch(_) | Hit::EditEmblem(_)),
+                ElementState::Released,
+            ) => true,
             (Some(Hit::EditField), ElementState::Pressed) => true,
             (_, ElementState::Pressed) => {
                 self.cancel_edit();

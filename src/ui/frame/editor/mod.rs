@@ -1,3 +1,4 @@
+mod emblems;
 mod row;
 
 use std::sync::Arc;
@@ -7,9 +8,11 @@ use crate::geometry::{Point, Rect};
 use crate::input::TextField;
 use crate::session::SessionId;
 use crate::text::{TextLayout, TextSystem};
-use crate::theme::Swatch;
-
+use crate::theme::{Emblem, Swatch};
+use crate::ui::metrics::UiMetrics;
 use crate::workspace::{InstanceId, PaneId};
+pub use emblems::EmblemSlot;
+use emblems::{emblem_row_height, emblem_row_width, emblem_slots};
 pub use row::SwatchSlot;
 use row::{SwatchRow, swatch_row};
 
@@ -26,6 +29,7 @@ pub enum EditTarget {
 pub enum EditAnchor {
     Strip(PaneId),
     Sidebar,
+    Rail,
 }
 
 pub struct EditorRequest<'a> {
@@ -33,6 +37,7 @@ pub struct EditorRequest<'a> {
     pub anchor: EditAnchor,
     pub field: &'a TextField,
     pub color: Option<Swatch>,
+    pub emblem: Option<Emblem>,
 }
 
 #[derive(Clone, Debug)]
@@ -46,6 +51,8 @@ pub struct EditorFrame {
     pub strip: Rect,
     pub slots: Vec<SwatchSlot>,
     pub selected: Option<Swatch>,
+    pub emblems: Vec<EmblemSlot>,
+    pub emblem: Option<Emblem>,
 }
 
 impl EditorFrame {
@@ -55,6 +62,10 @@ impl EditorFrame {
 
     pub fn slot_at(&self, point: Point) -> Option<&SwatchSlot> {
         self.slots.iter().find(|slot| slot.rect.contains(point))
+    }
+
+    pub fn emblem_at(&self, point: Point) -> Option<&EmblemSlot> {
+        self.emblems.iter().find(|slot| slot.rect.contains(point))
     }
 }
 
@@ -86,6 +97,10 @@ impl FrameLayout {
                     .find(|row| row.item == item)
                     .map(|row| row.rect)
             }
+            (EditAnchor::Rail, EditTarget::Instance(id)) => {
+                let width = self.metrics.px(UiMetrics::SIDEBAR_WIDTH);
+                self.rail.as_ref()?.beside(&self.metrics, id, width)
+            }
             _ => None,
         }
     }
@@ -98,15 +113,8 @@ impl FrameLayout {
     ) -> EditorFrame {
         let metrics = &self.metrics;
         let bounds = self.bounds;
-        let row = swatch_row(metrics);
-        let field_width = anchor.width.min(bounds.width);
-        let inset = metrics.px(FIELD_INSET_Y);
-        let field = Rect::new(
-            clamp_x(anchor.x, field_width, bounds),
-            anchor.y + inset,
-            field_width,
-            anchor.height - 2.0 * inset,
-        );
+        let row = strip_row(metrics, request.emblem.is_some());
+        let field = place_field(metrics, anchor, bounds);
         let strip = place_strip(anchor, field, &row, bounds);
         let text_area = field.inset_by(metrics.px(TEXT_PAD), 0.0);
         let style = metrics.label();
@@ -132,12 +140,39 @@ impl FrameLayout {
             strip,
             slots: row.slots(metrics, strip),
             selected: request.color,
+            emblems: match request.emblem {
+                Some(_) => emblem_slots(metrics, strip),
+                None => Vec::new(),
+            },
+            emblem: request.emblem,
         }
+    }
+}
+
+fn strip_row(metrics: &UiMetrics, emblems: bool) -> SwatchRow {
+    let row = swatch_row(metrics);
+    match emblems {
+        true => SwatchRow {
+            width: row.width.max(emblem_row_width(metrics)),
+            height: row.height + emblem_row_height(metrics),
+        },
+        false => row,
     }
 }
 
 fn clamp_x(x: f32, width: f32, bounds: Rect) -> f32 {
     x.min(bounds.right() - width).max(bounds.x).round()
+}
+
+fn place_field(metrics: &UiMetrics, anchor: Rect, bounds: Rect) -> Rect {
+    let width = anchor.width.min(bounds.width);
+    let inset = metrics.px(FIELD_INSET_Y);
+    Rect::new(
+        clamp_x(anchor.x, width, bounds),
+        anchor.y + inset,
+        width,
+        anchor.height - 2.0 * inset,
+    )
 }
 
 fn place_strip(anchor: Rect, field: Rect, row: &SwatchRow, bounds: Rect) -> Rect {

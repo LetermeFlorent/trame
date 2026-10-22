@@ -1,9 +1,9 @@
-use super::{ChromeInput, Painter};
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::text::TextSystem;
-use crate::theme::Swatch;
-use crate::ui::frame::{EditorFrame, SwatchSlot};
+use crate::theme::{Emblem, Swatch};
+use crate::ui::chrome::{ChromeInput, Icon, Painter};
+use crate::ui::frame::{EditorFrame, EmblemSlot, SwatchSlot};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
@@ -43,6 +43,27 @@ fn draw_strip(painter: &mut Painter, editor: &EditorFrame) {
     for slot in &editor.slots {
         draw_slot(painter, slot, editor.selected);
     }
+    for slot in &editor.emblems {
+        draw_emblem(painter, slot, editor.emblem);
+    }
+}
+
+fn draw_emblem(painter: &mut Painter, slot: &EmblemSlot, selected: Option<Emblem>) {
+    let theme = painter.theme;
+    let radius = painter.metrics.px(UiMetrics::RADIUS);
+    let chosen = selected == Some(slot.emblem);
+    if painter.view.hover == Some(Hit::EditEmblem(slot.emblem)) {
+        painter.scene.fill(slot.rect, theme.hover, radius);
+    }
+    if chosen {
+        let line = painter.metrics.line();
+        painter.scene.border(slot.rect, theme.text, radius, line);
+    }
+    let color = match chosen {
+        true => theme.text,
+        false => theme.text_muted,
+    };
+    painter.icon(Icon::Emblem(slot.emblem), slot.icon, color);
 }
 
 fn draw_slot(painter: &mut Painter, slot: &SwatchSlot, selected: Option<Swatch>) {

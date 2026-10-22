@@ -34,6 +34,9 @@ pub(super) fn hit_editor(editor: &EditorFrame, point: Point) -> Option<Hit> {
     if let Some(slot) = editor.slot_at(point) {
         return Some(Hit::EditSwatch(slot.color));
     }
+    if let Some(slot) = editor.emblem_at(point) {
+        return Some(Hit::EditEmblem(slot.emblem));
+    }
     editor.contains(point).then_some(Hit::EditField)
 }
 

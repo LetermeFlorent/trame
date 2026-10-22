@@ -2,7 +2,7 @@ mod keys;
 mod pointer;
 
 use trame::input::TextField;
-use trame::theme::Swatch;
+use trame::theme::{Emblem, Swatch};
 use trame::ui::Hit;
 use trame::ui::frame::{EditAnchor, EditTarget, EditorRequest, SidebarItem};
 
@@ -22,6 +22,7 @@ fn target_of(hit: Hit) -> Option<(EditTarget, EditAnchor)> {
         Hit::Row(SidebarItem::Instance(id)) => {
             Some((EditTarget::Instance(id), EditAnchor::Sidebar))
         }
+        Hit::RailInstance(id) => Some((EditTarget::Instance(id), EditAnchor::Rail)),
         _ => None,
     }
 }
@@ -51,6 +52,7 @@ impl Running {
             anchor: editing.anchor,
             field: &editing.field,
             color: self.color_of(editing.target),
+            emblem: self.emblem_of(editing.target),
         };
         self.frame.place_editor(&mut self.text, &request);
         if self.frame.editor.is_none() {
@@ -86,14 +88,19 @@ impl Running {
         }
     }
 
+    fn pick_emblem(&mut self, emblem: Emblem) {
+        if let Some(EditTarget::Instance(id)) = self.editing.as_ref().map(|editing| editing.target)
+        {
+            self.workspace.set_instance_emblem(id, emblem);
+        }
+    }
+
     fn name_of(&self, target: EditTarget) -> String {
         match target {
             EditTarget::Tab(id) => self.tab_title(id),
             EditTarget::Instance(id) => self
                 .workspace
-                .instances
-                .iter()
-                .find(|instance| instance.id == id)
+                .instance(id)
                 .map(|instance| instance.name.clone())
                 .unwrap_or_default(),
         }
@@ -102,12 +109,14 @@ impl Running {
     fn color_of(&self, target: EditTarget) -> Option<Swatch> {
         match target {
             EditTarget::Tab(id) => self.workspace.tab_color(id),
-            EditTarget::Instance(id) => self
-                .workspace
-                .instances
-                .iter()
-                .find(|instance| instance.id == id)
-                .and_then(|instance| instance.color),
+            EditTarget::Instance(id) => self.workspace.instance(id)?.color,
+        }
+    }
+
+    fn emblem_of(&self, target: EditTarget) -> Option<Emblem> {
+        match target {
+            EditTarget::Tab(_) => None,
+            EditTarget::Instance(id) => Some(self.workspace.instance(id)?.emblem),
         }
     }
 }

@@ -1,3 +1,4 @@
+mod emblems;
 mod sidebar;
 mod swatches;
 
@@ -23,6 +24,7 @@ fn request<'a>(
         anchor,
         field,
         color,
+        emblem: None,
     }
 }
 
