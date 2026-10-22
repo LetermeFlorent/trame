@@ -42,7 +42,6 @@ impl UiMetrics {
     pub const RAIL_WIDTH: f32 = 38.0;
     pub const SIDEBAR_HEADER: f32 = 30.0;
     pub const SIDEBAR_ROW: f32 = 26.0;
-    pub const SIDEBAR_INDENT: f32 = 22.0;
     pub const TAB_BAR: f32 = 26.0;
     pub const TAB_PADDING: f32 = 10.0;
     pub const TAB_CLOSE: f32 = 16.0;
@@ -53,7 +52,6 @@ impl UiMetrics {
     pub const MAC_CONTROLS_INSET: f32 = 76.0;
     pub const TERMINAL_PAD_X: f32 = 10.0;
     pub const TERMINAL_PAD_Y: f32 = 6.0;
-    pub const DIVIDER: f32 = 1.0;
     pub const DIVIDER_GRAB: f32 = 4.0;
     pub const RESIZE_BORDER: f32 = 5.0;
     pub const RADIUS: f32 = 5.0;

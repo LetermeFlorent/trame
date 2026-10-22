@@ -95,11 +95,6 @@ impl Rect {
         )
     }
 
-    pub fn split_right(&self, width: f32) -> (Rect, Rect) {
-        let (rest, right) = self.split_left(self.width - width.clamp(0.0, self.width));
-        (rest, right)
-    }
-
     pub fn split_top(&self, height: f32) -> (Rect, Rect) {
         let height = height.clamp(0.0, self.height);
         (

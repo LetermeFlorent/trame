@@ -70,10 +70,6 @@ impl Screen {
         std::mem::take(&mut self.responses)
     }
 
-    pub fn take_bell(&mut self) -> bool {
-        std::mem::take(&mut self.bell)
-    }
-
     pub fn take_clipboard(&mut self) -> Option<String> {
         self.clipboard.take()
     }

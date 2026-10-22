@@ -31,7 +31,6 @@ pub struct Screen {
     pub(crate) cwd: Option<String>,
     pub(crate) responses: Vec<u8>,
     pub(crate) last_char: Option<char>,
-    pub(crate) bell: bool,
     pub(crate) clipboard: Option<String>,
     pub(crate) colors: ReportedColors,
 }
@@ -55,7 +54,6 @@ impl Screen {
             cwd: None,
             responses: Vec::new(),
             last_char: None,
-            bell: false,
             clipboard: None,
             colors: ReportedColors::default(),
         }

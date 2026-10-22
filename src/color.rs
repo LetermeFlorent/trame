@@ -7,8 +7,6 @@ pub struct Rgba {
 }
 
 impl Rgba {
-    pub const TRANSPARENT: Rgba = Rgba::new(0.0, 0.0, 0.0, 0.0);
-
     pub const fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
         Self { r, g, b, a }
     }
