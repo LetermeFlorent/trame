@@ -1,4 +1,4 @@
-use super::tree::{Axis, Edge, Node, PaneId, sync_pins};
+use super::{Axis, Edge, Node, PaneId, sync_pins};
 
 const MIN_SHARE_RATIO: f32 = 0.05;
 const HALF: f32 = 2.0;

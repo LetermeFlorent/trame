@@ -1,6 +1,12 @@
+mod layout;
+mod resize;
+mod split;
+
 use serde::{Deserialize, Serialize};
 
 use crate::geometry::Rect;
+pub use layout::{Divider, PaneLayout};
+pub use resize::{MIN_PANE, resize_split, resized};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct PaneId(pub u32);
