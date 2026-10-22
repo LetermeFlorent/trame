@@ -1,3 +1,6 @@
+#[cfg(feature = "capture")]
+mod capture;
+
 use std::error::Error;
 use std::sync::Arc;
 
@@ -10,7 +13,7 @@ use trame::render::{
 use trame::theme::Rgba;
 
 #[cfg(feature = "capture")]
-use super::capture::Capture;
+use capture::Capture;
 
 const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::VULKAN.union(wgpu::Backends::METAL);
 

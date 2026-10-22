@@ -1,5 +1,3 @@
-#[cfg(feature = "capture")]
-mod capture;
 mod graphics;
 mod persist;
 mod running;
