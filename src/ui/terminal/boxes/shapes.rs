@@ -1,13 +1,15 @@
-use crate::color::Rgba;
+use super::super::Ink;
+use super::HEAVY_WIDTH;
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 
 const DASH_RATIO: f32 = 0.6;
 
-pub fn draw_dashes(scene: &mut Scene, code: u16, count: u8, rect: Rect, color: Rgba, light: f32) {
+pub fn draw_dashes(scene: &mut Scene, code: u16, count: u8, ink: Ink) {
+    let Ink { rect, color, light } = ink;
     let horizontal = code & 0x0F00 != 0;
     let heavy = code & 0x2222 != 0;
-    let thickness = if heavy { light * 2.0 } else { light };
+    let thickness = if heavy { light * HEAVY_WIDTH } else { light };
     let length = if horizontal { rect.width } else { rect.height };
     let slot = length / f32::from(count);
     let dash = (slot * DASH_RATIO).round().max(1.0);
@@ -24,7 +26,8 @@ pub fn draw_dashes(scene: &mut Scene, code: u16, count: u8, rect: Rect, color: R
     }
 }
 
-pub fn draw_arc(scene: &mut Scene, code: u16, rect: Rect, color: Rgba, light: f32) {
+pub fn draw_arc(scene: &mut Scene, code: u16, ink: Ink) {
+    let Ink { rect, color, light } = ink;
     let up = code & 0xF000 != 0;
     let right = code & 0x0F00 != 0;
     let x = rect.x + ((rect.width - light) / 2.0).floor();
@@ -52,14 +55,8 @@ pub fn draw_arc(scene: &mut Scene, code: u16, rect: Rect, color: Rgba, light: f3
     scene.pop_clip();
 }
 
-pub fn draw_diagonals(
-    scene: &mut Scene,
-    rect: Rect,
-    color: Rgba,
-    light: f32,
-    rising: bool,
-    falling: bool,
-) {
+pub fn draw_diagonals(scene: &mut Scene, ink: Ink, rising: bool, falling: bool) {
+    let Ink { rect, color, light } = ink;
     scene.push_clip(rect);
     if rising {
         scene.line(

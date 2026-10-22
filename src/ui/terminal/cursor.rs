@@ -4,6 +4,8 @@ use crate::term::{CursorShape, Flags, Screen};
 use crate::text::CellMetrics;
 use crate::theme::Theme;
 
+use super::GridPaint;
+
 const BAR_RATIO: f32 = 1.0 / 7.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -61,17 +63,11 @@ impl CursorPlace {
         scene.fill(cell, theme.cursor, 0.0);
     }
 
-    pub fn draw_outline(
-        &self,
-        scene: &mut Scene,
-        theme: &Theme,
-        cell: Rect,
-        metrics: &CellMetrics,
-        focused: bool,
-    ) {
-        let stroke = (metrics.font_size * BAR_RATIO).round().max(1.0);
+    pub(super) fn draw_outline(&self, scene: &mut Scene, grid: &GridPaint, cell: Rect) {
+        let theme = grid.theme;
+        let stroke = (grid.metrics.font_size * BAR_RATIO).round().max(1.0);
         match self.shape {
-            CursorShape::Block if !focused => {
+            CursorShape::Block if !grid.paint.focused => {
                 scene.border(cell, theme.cursor, 0.0, (stroke / 2.0).round().max(1.0));
             }
             CursorShape::Block => {}

@@ -1,8 +1,8 @@
-use crate::color::Rgba;
+use super::super::Ink;
+use super::HEAVY_WIDTH;
 use crate::geometry::Rect;
 use crate::render::Scene;
 
-const HEAVY_WIDTH: f32 = 2.0;
 const DOUBLE_WIDTH: f32 = 3.0;
 const DOUBLE_SECOND_STROKE: f32 = 2.0;
 
@@ -163,7 +163,8 @@ impl Arm {
     }
 }
 
-pub fn draw_lines(scene: &mut Scene, code: u16, rect: Rect, color: Rgba, light: f32) {
+pub fn draw_lines(scene: &mut Scene, code: u16, ink: Ink) {
+    let Ink { rect, color, light } = ink;
     let [up, right, down, left] = [12, 8, 4, 0].map(|shift| Weight::from_nibble(code, shift));
     let xs = Span {
         lo: rect.x,

@@ -3,30 +3,31 @@ mod lines;
 mod shapes;
 mod table;
 
-use crate::color::Rgba;
-use crate::geometry::Rect;
 use crate::render::Scene;
 
+use super::Ink;
 use table::Special;
+
+const HEAVY_WIDTH: f32 = 2.0;
 
 pub fn is_drawn(ch: char) -> bool {
     matches!(u32::from(ch), 0x2500..=0x259F)
 }
 
-pub fn draw(scene: &mut Scene, ch: char, rect: Rect, color: Rgba, light: f32) -> bool {
-    if blocks::draw_block(scene, ch, rect, color) {
+pub(super) fn draw(scene: &mut Scene, ch: char, ink: Ink) -> bool {
+    if blocks::draw_block(scene, ch, ink.rect, ink.color) {
         return true;
     }
     let Some(code) = table::line_code(ch) else {
         return false;
     };
     match table::special(ch) {
-        Some(Special::Dashed(count)) => shapes::draw_dashes(scene, code, count, rect, color, light),
-        Some(Special::Arc) => shapes::draw_arc(scene, code, rect, color, light),
+        Some(Special::Dashed(count)) => shapes::draw_dashes(scene, code, count, ink),
+        Some(Special::Arc) => shapes::draw_arc(scene, code, ink),
         Some(Special::Diagonal { rising, falling }) => {
-            shapes::draw_diagonals(scene, rect, color, light, rising, falling);
+            shapes::draw_diagonals(scene, ink, rising, falling);
         }
-        None => lines::draw_lines(scene, code, rect, color, light),
+        None => lines::draw_lines(scene, code, ink),
     }
     true
 }
@@ -34,14 +35,20 @@ pub fn draw(scene: &mut Scene, ch: char, rect: Rect, color: Rgba, light: f32) ->
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::color::Rgba;
+    use crate::geometry::Rect;
 
-    fn cell() -> Rect {
-        Rect::new(0.0, 0.0, 8.0, 17.0)
+    fn cell() -> Ink {
+        Ink {
+            rect: Rect::new(0.0, 0.0, 8.0, 17.0),
+            color: Rgba::hex(0xffffff),
+            light: 1.0,
+        }
     }
 
     fn quads(ch: char) -> usize {
         let mut scene = Scene::new(8.0, 17.0);
-        assert!(draw(&mut scene, ch, cell(), Rgba::hex(0xffffff), 1.0));
+        assert!(draw(&mut scene, ch, cell()));
         scene.quads().len()
     }
 
@@ -57,7 +64,7 @@ mod tests {
     #[test]
     fn other_characters_are_left_to_the_font() {
         let mut scene = Scene::new(8.0, 17.0);
-        assert!(!draw(&mut scene, 'a', cell(), Rgba::hex(0xffffff), 1.0));
+        assert!(!draw(&mut scene, 'a', cell()));
         assert!(!is_drawn('a'));
         assert!(scene.quads().is_empty());
     }
@@ -65,7 +72,7 @@ mod tests {
     #[test]
     fn straight_lines_span_the_whole_cell() {
         let mut scene = Scene::new(8.0, 17.0);
-        draw(&mut scene, '─', cell(), Rgba::hex(0xffffff), 1.0);
+        draw(&mut scene, '─', cell());
         let left = scene
             .quads()
             .iter()

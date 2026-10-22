@@ -5,6 +5,8 @@ use crate::term::{Cell, Color, Flags};
 use crate::text::CellMetrics;
 use crate::theme::Theme;
 
+use super::Ink;
+
 const DIM_AMOUNT: f32 = 0.4;
 const CURL_SEGMENTS: u8 = 4;
 const MIN_CURL_AMPLITUDE: f32 = 1.5;
@@ -33,13 +35,10 @@ pub fn colors(theme: &Theme, cell: &Cell) -> (Rgba, Rgba) {
     (foreground, background)
 }
 
-pub fn draw_decorations(
-    scene: &mut Scene,
-    flags: Flags,
-    cell: Rect,
-    metrics: &CellMetrics,
-    color: Rgba,
-) {
+pub fn draw_decorations(scene: &mut Scene, flags: Flags, metrics: &CellMetrics, ink: Ink) {
+    let Ink {
+        rect: cell, color, ..
+    } = ink;
     let thickness = metrics.underline_thickness.max(1.0);
     let underline_y = cell.y + metrics.underline_position;
     if flags.contains(Flags::UNDERLINE) {
@@ -57,7 +56,8 @@ pub fn draw_decorations(
         }
     }
     if flags.contains(Flags::CURLY_UNDERLINE) {
-        draw_curl(scene, cell, underline_y, thickness, color);
+        let underline = Rect::new(cell.x, underline_y, cell.width, thickness);
+        draw_curl(scene, cell, underline, color);
     }
     if flags.contains(Flags::STRIKE) {
         let strike = metrics.strike_thickness.max(1.0);
@@ -69,7 +69,8 @@ pub fn draw_decorations(
     }
 }
 
-fn draw_curl(scene: &mut Scene, cell: Rect, y: f32, thickness: f32, color: Rgba) {
+fn draw_curl(scene: &mut Scene, cell: Rect, underline: Rect, color: Rgba) {
+    let (y, thickness) = (underline.y, underline.height);
     let amplitude = thickness.max(MIN_CURL_AMPLITUDE);
     let middle = (y + thickness / 2.0).min(cell.bottom() - amplitude);
     let step = cell.width / f32::from(CURL_SEGMENTS);
