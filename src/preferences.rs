@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::locale::LanguageChoice;
 use crate::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
 
 pub const FONT_SIZE_STEP: f32 = 1.0;
@@ -17,6 +18,8 @@ pub struct Preferences {
     pub restore_text: bool,
     #[serde(default = "interface_size")]
     pub interface_size: u16,
+    #[serde(default)]
+    pub language: LanguageChoice,
 }
 
 impl Default for Preferences {
@@ -25,6 +28,7 @@ impl Default for Preferences {
             font_size: TERMINAL_FONT_SIZE,
             restore_text: restores_text(),
             interface_size: INTERFACE_SIZE,
+            language: LanguageChoice::Auto,
         }
     }
 }
@@ -35,6 +39,7 @@ impl Preferences {
             font_size: clamp_font_size(self.font_size),
             restore_text: self.restore_text,
             interface_size: clamp_interface_size(self.interface_size),
+            language: self.language,
         }
     }
 

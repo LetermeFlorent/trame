@@ -46,6 +46,7 @@ pub struct FrameLayout {
     pub dividers: Vec<Divider>,
     pub editor: Option<EditorFrame>,
     pub settings: Option<SettingsFrame>,
+    pub blocked: bool,
 }
 
 impl FrameLayout {
@@ -91,6 +92,7 @@ impl FrameLayout {
             dividers,
             editor: None,
             settings: None,
+            blocked: false,
         }
     }
 

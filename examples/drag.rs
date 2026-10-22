@@ -70,6 +70,7 @@ fn paint(text: &mut TextSystem, frame: &FrameLayout, theme: &Theme, drag: &DragV
         sessions: &HashMap::new(),
         motion: &Motion::default(),
         drag: Some(drag),
+        loader: None,
     };
     let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
     draw_frame(&mut scene, text, &sources);

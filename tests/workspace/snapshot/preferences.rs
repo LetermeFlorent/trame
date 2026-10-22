@@ -1,3 +1,4 @@
+use trame::locale::LanguageChoice;
 use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences};
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
 use trame::workspace::{NodeSnapshot, PaneSnapshot, Snapshot, TabSnapshot};
@@ -86,6 +87,7 @@ fn preferences_and_text_keys_survive_json() {
         font_size: 18.0,
         restore_text: false,
         interface_size: 120,
+        language: LanguageChoice::French,
     };
     let text = snapshot.to_json().expect("serializes");
     let parsed = Snapshot::from_json(&text).expect("parses");

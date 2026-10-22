@@ -7,7 +7,7 @@ mod tabbar;
 mod titlebar;
 
 pub use icons::{Icon, Pen, draw_icon};
-pub use overlay::{draw_editor, draw_settings, draw_tooltip};
+pub use overlay::{LoaderView, draw_editor, draw_loader, draw_settings, draw_tooltip};
 
 use self::painter::{Painter, Press, centered};
 use crate::render::Scene;

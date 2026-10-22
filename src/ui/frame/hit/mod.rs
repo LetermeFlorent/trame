@@ -6,7 +6,7 @@ use crate::theme::{Emblem, Swatch};
 use crate::ui::frame::{FrameLayout, SettingControl, SidebarItem};
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{Axis, InstanceId, PaneId};
-use zones::{hit_editor, hit_pane, hit_sidebar, hit_title_bar, resize_edge};
+use zones::{hit_editor, hit_pane, hit_sidebar, hit_title_bar, resize_edge, through_backdrop};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ResizeEdge {
@@ -47,6 +47,7 @@ pub enum Hit {
     Settings,
     SettingsPanel,
     Setting(SettingControl),
+    Backdrop,
 }
 
 impl FrameLayout {
@@ -55,13 +56,17 @@ impl FrameLayout {
             return None;
         }
         let border = self.metrics.px(UiMetrics::RESIZE_BORDER);
-        resizable
+        let hit = resizable
             .then(|| resize_edge(self.bounds, border, point))
             .flatten()
             .map(Hit::Resize)
             .or_else(|| self.overlay_hit(point))
             .or_else(|| self.chrome_hit(point))
-            .or_else(|| self.content_hit(point))
+            .or_else(|| self.content_hit(point));
+        match self.blocked {
+            true => Some(through_backdrop(hit)),
+            false => hit,
+        }
     }
 
     fn overlay_hit(&self, point: Point) -> Option<Hit> {

@@ -96,3 +96,12 @@ pub(super) fn resize_edge(bounds: Rect, border: f32, point: Point) -> Option<Res
         _ => None,
     }
 }
+
+pub(super) fn through_backdrop(hit: Option<Hit>) -> Hit {
+    match hit {
+        Some(
+            hit @ (Hit::Resize(_) | Hit::TitleBar | Hit::Minimize | Hit::Maximize | Hit::Close),
+        ) => hit,
+        _ => Hit::Backdrop,
+    }
+}

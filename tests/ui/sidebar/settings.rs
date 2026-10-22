@@ -102,6 +102,7 @@ fn steppers_stop_at_their_limits() {
         font_size: MIN_TERMINAL_FONT_SIZE,
         restore_text: false,
         interface_size: MIN_INTERFACE_SIZE,
+        ..Preferences::default()
     };
     let layout = with_settings(&workspace(), &smallest);
     let settings = panel(&layout);
@@ -113,6 +114,7 @@ fn steppers_stop_at_their_limits() {
         font_size: MAX_TERMINAL_FONT_SIZE,
         restore_text: true,
         interface_size: MAX_INTERFACE_SIZE,
+        ..Preferences::default()
     };
     let layout = with_settings(&workspace(), &largest);
     let settings = panel(&layout);

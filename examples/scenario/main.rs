@@ -71,6 +71,7 @@ fn paint(
         sessions,
         motion: &motion,
         drag: None,
+        loader: None,
     };
     let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
     draw_frame(&mut scene, text, &sources);

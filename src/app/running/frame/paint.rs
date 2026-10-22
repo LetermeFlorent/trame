@@ -33,6 +33,7 @@ impl Running {
                 sessions: self.sessions.map(),
                 motion: &self.motion,
                 drag: drag.as_ref(),
+                loader: None,
             };
             draw_frame(&mut self.scene, &mut self.text, &sources);
             if !self.text.end_frame() {

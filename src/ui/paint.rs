@@ -5,7 +5,7 @@ use crate::render::Scene;
 use crate::session::{Session, SessionId};
 use crate::text::TextSystem;
 use crate::theme::Theme;
-use crate::ui::chrome::{self, ChromeInput};
+use crate::ui::chrome::{self, ChromeInput, LoaderView};
 use crate::ui::drop::{DragView, draw_drag};
 use crate::ui::frame::{FrameLayout, PaneFrame};
 use crate::ui::hit::Hit;
@@ -26,6 +26,7 @@ pub struct FrameSources<'a> {
     pub sessions: &'a HashMap<SessionId, Session>,
     pub motion: &'a Motion,
     pub drag: Option<&'a DragView>,
+    pub loader: Option<&'a LoaderView<'a>>,
 }
 
 pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSources) {
@@ -48,6 +49,9 @@ pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSourc
     match sources.drag {
         Some(drag) => draw_drag(scene, text, &input, drag),
         None => chrome::draw_tooltip(scene, text, &input),
+    }
+    if let Some(loader) = sources.loader {
+        chrome::draw_loader(scene, text, &input, loader);
     }
 }
 

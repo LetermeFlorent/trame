@@ -36,6 +36,7 @@ png = { version = "0.18.1", optional = true }
 wgpu = { version = "30.0.1", default-features = false, features = ["dx12", "vulkan"] }
 windows-sys = { version = "0.61.2", features = [
     "Win32_Foundation",
+    "Win32_Globalization",
     "Win32_Security",
     "Win32_Storage_FileSystem",
     "Win32_System_Console",
