@@ -77,7 +77,7 @@ impl Running {
             }
         };
         self.drag = Some(next);
-        self.changed();
+        self.window.request_redraw();
         true
     }
 
