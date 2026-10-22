@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+hooks="$(git rev-parse --git-dir)/hooks"
+mkdir -p "$hooks"
+printf '#!/bin/sh\nexec sh scripts/hooks/pre-commit "$@"\n' > "$hooks/pre-commit"
+chmod +x "$hooks/pre-commit"
