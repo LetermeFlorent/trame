@@ -34,6 +34,7 @@ pub fn draw_frame(
         draw_body(scene, text, theme, pane, view, sources);
     }
     chrome::draw_dividers(scene, theme, frame, view);
+    chrome::draw_editor(scene, text, theme, frame, view);
 }
 
 fn draw_body(

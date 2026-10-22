@@ -1,8 +1,11 @@
+mod editor;
 mod label;
+mod marks;
 mod sidebar;
 mod tabs;
 mod titlebar;
 
+pub use editor::{EditAnchor, EditTarget, EditorFrame, EditorRequest, SwatchSlot};
 pub use label::fit_label;
 pub use sidebar::{RailFrame, SidebarFrame, SidebarItem, SidebarRow};
 pub use tabs::{TabFrame, TabStrip};
@@ -53,6 +56,7 @@ pub struct FrameLayout {
     pub content: Rect,
     pub panes: Vec<PaneFrame>,
     pub dividers: Vec<Divider>,
+    pub editor: Option<EditorFrame>,
 }
 
 impl FrameLayout {
@@ -66,7 +70,7 @@ impl FrameLayout {
             title: input.title,
         };
         let title_bar = titlebar::layout_title_bar(text, &metrics, bar, title_input);
-        let (sidebar, rail, content) = match input.workspace.sidebar_open {
+        let (mut sidebar, rail, content) = match input.workspace.sidebar_open {
             true => {
                 let (side, content) = rest.split_left(metrics.px(UiMetrics::SIDEBAR_WIDTH));
                 let frame =
@@ -78,10 +82,11 @@ impl FrameLayout {
                 (None, Some(sidebar::layout_rail(&metrics, strip)), content)
             }
         };
-        let (panes, dividers) = match input.workspace.active_instance() {
+        let (mut panes, dividers) = match input.workspace.active_instance() {
             Some(instance) => layout_panes(text, &metrics, content, instance, input.title),
             None => (Vec::new(), Vec::new()),
         };
+        marks::apply(input.workspace, sidebar.as_mut(), &mut panes);
         Self {
             bounds,
             metrics,
@@ -91,6 +96,7 @@ impl FrameLayout {
             content,
             panes,
             dividers,
+            editor: None,
         }
     }
 

@@ -4,6 +4,8 @@ use crate::ui::frame::{RailFrame, SidebarFrame, SidebarItem, SidebarRow};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
+const HOVER_OVER_TINT: f32 = 0.7;
+
 pub(super) fn draw_rail(painter: &mut Painter, rail: &RailFrame) {
     let theme = painter.theme;
     let line = painter.metrics.line();
@@ -60,18 +62,30 @@ fn draw_row(painter: &mut Painter, row: &SidebarRow) {
         SidebarItem::Instance(_) => (Icon::Instance, false),
         SidebarItem::Tab(_) => (Icon::Terminal, row.active),
     };
+    let radius = painter.metrics.px(UiMetrics::RADIUS);
+    let tint = match row.item {
+        SidebarItem::Instance(_) => row.color.map(|swatch| theme.swatch_tint(swatch)),
+        SidebarItem::Tab(_) => None,
+    };
+    if let Some(color) = tint {
+        painter.scene.fill(row.rect, color, radius);
+    }
     let background = match () {
         _ if pressed => Some(theme.pressed),
         _ if hovered || selected => Some(theme.hover),
         _ => None,
     };
     if let Some(color) = background {
-        let radius = painter.metrics.px(UiMetrics::RADIUS);
+        let color = match tint {
+            Some(_) => color.with_alpha(HOVER_OVER_TINT),
+            None => color,
+        };
         painter.scene.fill(row.rect, color, radius);
     }
-    let icon_color = match row.active {
-        true => theme.accent,
-        false => theme.text_faint,
+    let icon_color = match (row.color, row.active) {
+        (Some(swatch), _) => theme.swatch(swatch),
+        (None, true) => theme.accent,
+        (None, false) => theme.text_faint,
     };
     painter.icon(icon, row.icon, icon_color);
     let text_color = match row.active || hovered {

@@ -1,8 +1,10 @@
+mod editor;
 mod icons;
 mod sidebar;
 mod tabbar;
 mod titlebar;
 
+pub use editor::draw_editor;
 pub use icons::{Icon, Pen, draw_icon};
 
 use crate::color::Rgba;
