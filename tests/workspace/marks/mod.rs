@@ -1,3 +1,5 @@
+mod emblems;
+
 use trame::theme::Swatch;
 use trame::workspace::{Edge, Instance, Workspace};
 
@@ -66,7 +68,8 @@ fn closing_a_tab_forgets_its_name_and_colour() {
     let mut workspace = workspace_with(&[1, 2]);
     workspace.rename_tab(tab(2), "gone");
     workspace.set_tab_color(tab(2), Some(Swatch::Green));
-    let pristine = workspace_with(&[1]);
+    let mut pristine = workspace_with(&[1]);
+    pristine.instances[0].emblem = workspace.instances[0].emblem;
     workspace.close_tab(tab(2));
     assert_eq!(workspace, pristine);
 }

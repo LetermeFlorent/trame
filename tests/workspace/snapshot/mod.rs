@@ -81,6 +81,7 @@ pub fn instance_of(root: NodeSnapshot) -> InstanceSnapshot {
     InstanceSnapshot {
         name: "work".to_owned(),
         color: None,
+        emblem: None,
         active_pane: 0,
         root,
     }

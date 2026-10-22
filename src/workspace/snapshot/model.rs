@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::SnapshotError;
-use crate::theme::Swatch;
+use crate::theme::{Emblem, Swatch};
 use crate::workspace::Axis;
 
 pub const SNAPSHOT_VERSION: u32 = 1;
@@ -34,6 +34,8 @@ pub struct InstanceSnapshot {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<Swatch>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub emblem: Option<Emblem>,
     pub active_pane: usize,
     pub root: NodeSnapshot,
 }

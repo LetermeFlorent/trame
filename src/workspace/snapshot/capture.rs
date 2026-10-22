@@ -31,6 +31,7 @@ fn capture_instance(workspace: &Workspace, instance: &Instance, cwd: CwdOf) -> I
     InstanceSnapshot {
         name: instance.name.clone(),
         color: instance.color,
+        emblem: Some(instance.emblem),
         active_pane: order
             .iter()
             .position(|id| *id == instance.active_pane)

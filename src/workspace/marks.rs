@@ -1,6 +1,6 @@
 use super::{Instance, InstanceId, Workspace};
 use crate::session::SessionId;
-use crate::theme::Swatch;
+use crate::theme::{Emblem, Swatch};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct TabMark {
@@ -49,6 +49,12 @@ impl Workspace {
         }
     }
 
+    pub fn set_instance_emblem(&mut self, id: InstanceId, emblem: Emblem) {
+        if let Some(instance) = self.instance_mut(id) {
+            instance.emblem = emblem;
+        }
+    }
+
     pub(super) fn restore_mark(&mut self, tab: SessionId, mark: TabMark) {
         if !mark.is_blank() {
             self.marks.insert(tab, mark);
@@ -59,6 +65,10 @@ impl Workspace {
         for tab in tabs {
             self.marks.remove(tab);
         }
+    }
+
+    pub fn instance(&self, id: InstanceId) -> Option<&Instance> {
+        self.instances.iter().find(|instance| instance.id == id)
     }
 
     fn instance_mut(&mut self, id: InstanceId) -> Option<&mut Instance> {

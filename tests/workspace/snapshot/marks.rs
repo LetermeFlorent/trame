@@ -1,5 +1,5 @@
 use trame::session::SessionId;
-use trame::theme::Swatch;
+use trame::theme::{Emblem, Swatch};
 use trame::workspace::{Snapshot, Workspace};
 
 use super::{FIRST_RESTORED_ID, restore, snapshot_of};
@@ -74,5 +74,33 @@ fn a_blank_saved_title_is_not_a_name() {
 #[test]
 fn an_unknown_colour_name_is_a_parse_error() {
     let text = OLD_FILE.replace(r#""name":"old""#, r#""name":"old","color":"mauve""#);
+    assert!(Snapshot::from_json(&text).is_err());
+}
+
+#[test]
+fn emblems_survive_saving_and_restoring() {
+    let mut workspace = marked();
+    let first = workspace.instances[0].id;
+    let second = workspace.instances[1].id;
+    workspace.set_instance_emblem(first, Emblem::Globe);
+    workspace.set_instance_emblem(second, Emblem::Server);
+    let text = snapshot_of(&workspace, &[]).to_json().expect("serializes");
+    assert!(text.contains("\"globe\""));
+    let (restored, _) = restore(&Snapshot::from_json(&text).expect("parses"));
+    assert_eq!(restored.instances[0].emblem, Emblem::Globe);
+    assert_eq!(restored.instances[1].emblem, Emblem::Server);
+}
+
+#[test]
+fn an_old_session_file_gets_distinct_emblems() {
+    let two = OLD_FILE.replace("}}}]}", "}}},{\"name\":\"other\",\"active_pane\":0,\"root\":{\"Pane\":{\"tabs\":[{}],\"active\":0}}}]}");
+    let (workspace, _) = restore(&Snapshot::from_json(&two).expect("old files load"));
+    assert_eq!(workspace.instances.len(), 2);
+    assert_ne!(workspace.instances[0].emblem, workspace.instances[1].emblem);
+}
+
+#[test]
+fn an_unknown_emblem_name_is_a_parse_error() {
+    let text = OLD_FILE.replace(r#""name":"old""#, r#""name":"old","emblem":"rocket""#);
     assert!(Snapshot::from_json(&text).is_err());
 }

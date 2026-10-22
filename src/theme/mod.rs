@@ -1,10 +1,12 @@
 mod ansi;
 mod color;
+mod emblems;
 mod palettes;
 mod swatches;
 pub mod system;
 
 pub use color::Rgba;
+pub use emblems::Emblem;
 pub use swatches::Swatch;
 
 use crate::term::{Color, ReportedColors};

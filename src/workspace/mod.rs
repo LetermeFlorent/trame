@@ -19,6 +19,7 @@ pub use tree::{Axis, Divider, Edge, MIN_PANE, Node, PaneId, PaneLayout, resize_s
 use std::collections::HashMap;
 
 use crate::session::SessionId;
+use crate::theme::Emblem;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TabLocation {
@@ -82,7 +83,9 @@ impl Workspace {
         let id = InstanceId(self.next_instance);
         let name = name.unwrap_or_else(|| Instance::automatic_name(id));
         let pane = self.new_pane_id();
-        self.instances.push(Instance::new(id, name, pane, tab));
+        let mut instance = Instance::new(id, name, pane, tab);
+        instance.emblem = Emblem::random(&self.emblems());
+        self.instances.push(instance);
         self.active = self.instances.len() - 1;
         id
     }
@@ -97,6 +100,13 @@ impl Workspace {
             self.active = self.active.saturating_sub(1);
         }
         removed.tabs()
+    }
+
+    pub fn emblems(&self) -> Vec<Emblem> {
+        self.instances
+            .iter()
+            .map(|instance| instance.emblem)
+            .collect()
     }
 
     pub fn instance_index(&self, id: InstanceId) -> Option<usize> {

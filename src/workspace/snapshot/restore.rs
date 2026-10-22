@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use super::{InstanceSnapshot, NodeSnapshot, PaneSnapshot, Snapshot, SnapshotError, TabSnapshot};
 use crate::session::SessionId;
+use crate::theme::Emblem;
 use crate::workspace::{Instance, InstanceId, Node, Pane, PaneId, TabMark, Workspace, clean_name};
 
 type Reserve<'a> = &'a mut dyn FnMut(&TabSnapshot) -> SessionId;
@@ -47,10 +48,14 @@ impl Restorer<'_> {
         let number = self.workspace.next_instance;
         let id = InstanceId(number);
         let name = clean_name(&item.name).unwrap_or_else(|| Instance::automatic_name(id));
+        let emblem = item
+            .emblem
+            .unwrap_or_else(|| Emblem::random(&self.workspace.emblems()));
         Some(Instance {
             id,
             name,
             color: item.color,
+            emblem,
             root,
             panes,
             active_pane,
