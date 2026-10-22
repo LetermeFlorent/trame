@@ -60,6 +60,9 @@ impl Running {
             saved.as_ref().and_then(|snapshot| snapshot.window),
         )?;
         let mut running = Self::with_surface(surface, proxy);
+        running
+            .saver
+            .remember_window(saved.as_ref().and_then(|snapshot| snapshot.window));
         if !running.restore_session(saved.as_ref()) {
             running.open(Placement::Instance)?;
         }

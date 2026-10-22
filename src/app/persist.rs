@@ -4,7 +4,7 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
-use trame::workspace::{Snapshot, Workspace};
+use trame::workspace::{Snapshot, WindowSnapshot, Workspace};
 
 const APP_DIR: &str = "trame";
 const FILE_NAME: &str = "session.json";
@@ -78,6 +78,7 @@ pub struct Saver {
     path: Option<PathBuf>,
     last_layout: Option<Workspace>,
     last_write: Option<Instant>,
+    last_window: Option<WindowSnapshot>,
     dirty: bool,
 }
 
@@ -87,6 +88,7 @@ impl Saver {
             path: session_path(),
             last_layout: None,
             last_write: None,
+            last_window: None,
             dirty: false,
         }
     }
@@ -100,6 +102,13 @@ impl Saver {
             self.last_layout = Some(workspace.clone());
             self.dirty = true;
         }
+    }
+
+    pub fn remember_window(&mut self, window: Option<WindowSnapshot>) -> Option<WindowSnapshot> {
+        if window.is_some() {
+            self.last_window = window;
+        }
+        self.last_window
     }
 
     pub fn due(&self) -> Option<Instant> {

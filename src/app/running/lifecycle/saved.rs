@@ -27,7 +27,7 @@ impl Running {
         let mut snapshot = self
             .workspace
             .snapshot(self.font_size, &|id| sessions.cwd(id));
-        snapshot.window = window::snapshot(&self.window);
+        snapshot.window = self.saver.remember_window(window::snapshot(&self.window));
         self.saver.save(&snapshot);
     }
 
