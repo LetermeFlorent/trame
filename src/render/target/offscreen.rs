@@ -1,3 +1,6 @@
+use std::fmt;
+use std::sync::mpsc;
+
 use crate::color::Rgba;
 use crate::render::gpu::Gpu;
 use crate::render::renderer::Renderer;
@@ -7,7 +10,35 @@ pub const OFFSCREEN_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unor
 
 const BYTES_PER_PIXEL: u32 = 4;
 
-pub fn render_to_rgba(gpu: &Gpu, renderer: &mut Renderer, scene: &Scene, clear: Rgba) -> Vec<u8> {
+#[derive(Debug)]
+pub enum ReadbackError {
+    Poll(wgpu::PollError),
+    Map(wgpu::BufferAsyncError),
+    Range(wgpu::MapRangeError),
+}
+
+impl fmt::Display for ReadbackError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ReadbackError::Poll(error) => write!(formatter, "the graphics device stalled: {error}"),
+            ReadbackError::Map(error) => {
+                write!(formatter, "the pixels could not be mapped: {error}")
+            }
+            ReadbackError::Range(error) => {
+                write!(formatter, "the pixels could not be read: {error}")
+            }
+        }
+    }
+}
+
+impl std::error::Error for ReadbackError {}
+
+pub fn render_to_rgba(
+    gpu: &Gpu,
+    renderer: &mut Renderer,
+    scene: &Scene,
+    clear: Rgba,
+) -> Result<Vec<u8>, ReadbackError> {
     let width = scene.width().max(1.0) as u32;
     let height = scene.height().max(1.0) as u32;
     let size = wgpu::Extent3d {
@@ -30,7 +61,12 @@ pub fn render_to_rgba(gpu: &Gpu, renderer: &mut Renderer, scene: &Scene, clear: 
     read_texture(gpu, &texture, width, height)
 }
 
-pub fn read_texture(gpu: &Gpu, texture: &wgpu::Texture, width: u32, height: u32) -> Vec<u8> {
+pub fn read_texture(
+    gpu: &Gpu,
+    texture: &wgpu::Texture,
+    width: u32,
+    height: u32,
+) -> Result<Vec<u8>, ReadbackError> {
     let row = width * BYTES_PER_PIXEL;
     let padded = row.next_multiple_of(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT);
     let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
@@ -62,14 +98,24 @@ pub fn read_texture(gpu: &Gpu, texture: &wgpu::Texture, width: u32, height: u32)
     );
     gpu.queue.submit([encoder.finish()]);
     let slice = buffer.slice(..);
-    slice.map_async(wgpu::MapMode::Read, |_| {});
-    let _ = gpu.device.poll(wgpu::PollType::wait_indefinitely());
+    let (sender, receiver) = mpsc::channel();
+    slice.map_async(wgpu::MapMode::Read, move |result| {
+        let _ = sender.send(result);
+    });
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .map_err(ReadbackError::Poll)?;
+    receiver
+        .try_recv()
+        .unwrap_or(Err(wgpu::BufferAsyncError))
+        .map_err(ReadbackError::Map)?;
     let mut pixels = Vec::with_capacity((row * height) as usize);
-    if let Ok(mapped) = slice.get_mapped_range() {
+    {
+        let mapped = slice.get_mapped_range().map_err(ReadbackError::Range)?;
         for line in mapped.chunks(padded as usize) {
             pixels.extend_from_slice(&line[..row as usize]);
         }
     }
     buffer.unmap();
-    pixels
+    Ok(pixels)
 }

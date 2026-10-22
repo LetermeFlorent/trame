@@ -83,7 +83,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     text.end_frame();
     let mut renderer = Renderer::new(&gpu, OFFSCREEN_FORMAT, text.atlas_mut());
     renderer.sync_atlas(&gpu, text.atlas_mut());
-    let pixels = render_to_rgba(&gpu, &mut renderer, &scene, BACKGROUND);
+    let pixels = render_to_rgba(&gpu, &mut renderer, &scene, BACKGROUND)?;
     write_png(
         &output,
         scene.width() as u32,

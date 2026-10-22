@@ -118,7 +118,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         draw_frame(&mut scene, &mut text, &theme, &frame, &view, &sources);
         text.end_frame();
         renderer.sync_atlas(&gpu, text.atlas_mut());
-        let pixels = render_to_rgba(&gpu, &mut renderer, &scene, theme.terminal);
+        let pixels = render_to_rgba(&gpu, &mut renderer, &scene, theme.terminal)?;
         let path = output.join(format!("frame-{name}-{scale}.png"));
         write_png(&path, size.0 as u32, size.1 as u32, &pixels)?;
     }

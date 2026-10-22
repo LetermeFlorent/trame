@@ -9,4 +9,6 @@ pub use atlas::{Atlas, AtlasKind, AtlasRegion};
 pub use gpu::{Gpu, GpuError};
 pub use renderer::Renderer;
 pub use scene::Scene;
-pub use target::{Frame, OFFSCREEN_FORMAT, WindowSurface, read_texture, render_to_rgba};
+pub use target::{
+    Frame, OFFSCREEN_FORMAT, ReadbackError, WindowSurface, read_texture, render_to_rgba,
+};

@@ -67,7 +67,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         draw_drag(&mut scene, &mut text, &theme, &frame, &drag);
         text.end_frame();
         renderer.sync_atlas(&gpu, text.atlas_mut());
-        let pixels = render_to_rgba(&gpu, &mut renderer, &scene, theme.terminal);
+        let pixels = render_to_rgba(&gpu, &mut renderer, &scene, theme.terminal)?;
         let path = output.join(format!("drag-{name}-{scale}.png"));
         write_png(&path, size.0 as u32, size.1 as u32, &pixels)?;
     }

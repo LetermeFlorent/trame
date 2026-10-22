@@ -28,7 +28,7 @@ impl Capture {
 
     fn write(&self, gpu: &Gpu, texture: &wgpu::Texture) -> Result<(), Box<dyn Error>> {
         let (width, height) = (texture.width(), texture.height());
-        let mut pixels = read_texture(gpu, texture, width, height);
+        let mut pixels = read_texture(gpu, texture, width, height)?;
         let swap = matches!(
             texture.format(),
             wgpu::TextureFormat::Bgra8Unorm | wgpu::TextureFormat::Bgra8UnormSrgb
