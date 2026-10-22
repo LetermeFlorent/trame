@@ -3,6 +3,7 @@ name: release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,19 +14,88 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Check the tag against Cargo.toml
+      - name: Read the version
+        id: version
         shell: pwsh
         run: |
           $version = (cargo metadata --no-deps --format-version 1 | ConvertFrom-Json).packages[0].version
-          if ("v$version" -ne "${{ github.ref_name }}") {
-            Write-Error "Cargo.toml says $version but the tag is ${{ github.ref_name }}"
+          if ($env:GITHUB_REF_TYPE -eq "tag" -and "v$version" -ne $env:GITHUB_REF_NAME) {
+            Write-Error "Cargo.toml says $version but the tag is $env:GITHUB_REF_NAME"
             exit 1
           }
+          "number=$version" >> $env:GITHUB_OUTPUT
 
       - name: Build
         run: cargo build --release --locked
 
+      - name: Build the installer
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /Qp "/DAppVersion=${{ steps.version.outputs.number }}" packaging\windows\trame.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory dist | Out-Null
+          Copy-Item target\release\trame.exe, target\installer\*.exe dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows
+          path: dist/*
+          if-no-files-found: error
+
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the test and packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb mesa-vulkan-drivers fontconfig fonts-dejavu-core
+          cargo install cargo-deb cargo-generate-rpm --locked
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Build
+        run: cargo build --release --locked
+
+      - name: Package
+        run: |
+          cargo deb --no-build --locked
+          cargo generate-rpm
+          mkdir dist
+          cp target/debian/*.deb target/generate-rpm/*.rpm dist/
+
+      - name: Install the .deb and open trame
+        run: |
+          sudo apt-get install -y ./dist/*.deb
+          xvfb-run -a trame > trame.log 2>&1 &
+          sleep 15
+          cat trame.log
+          pid=$(pgrep -x trame)
+          pgrep -P "$pid"
+          kill "$pid"
+
+      - name: Install the .rpm on Fedora
+        run: docker run --rm -v "$PWD/dist:/dist:ro" fedora:latest sh -c 'dnf install -y /dist/*.rpm && test -x /usr/bin/trame'
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: linux
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    if: github.ref_type == 'tag'
+    needs: [windows, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" target/release/trame.exe --title "trame ${{ github.ref_name }}" --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --title "trame $GITHUB_REF_NAME" --generate-notes
