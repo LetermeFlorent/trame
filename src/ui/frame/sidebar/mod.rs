@@ -7,7 +7,7 @@ use std::sync::Arc;
 use crate::geometry::Rect;
 use crate::session::SessionId;
 use crate::text::{TextLayout, TextSystem};
-use crate::theme::Swatch;
+use crate::theme::{Emblem, Swatch};
 use crate::ui::frame::FrameInput;
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::InstanceId;
@@ -38,6 +38,7 @@ pub struct SidebarRow {
     pub count: Option<Arc<TextLayout>>,
     pub active: bool,
     pub color: Option<Swatch>,
+    pub emblem: Option<Emblem>,
 }
 
 #[derive(Clone, Debug)]

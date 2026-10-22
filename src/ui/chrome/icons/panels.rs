@@ -15,7 +15,7 @@ const CURSOR_LINE_Y: f32 = 0.74;
 const CURSOR_LINE_LEFT: f32 = 0.56;
 const CURSOR_LINE_RIGHT: f32 = 0.84;
 
-fn icon_frame(rect: Rect, size: f32) -> Rect {
+pub(super) fn icon_frame(rect: Rect, size: f32) -> Rect {
     rect.inset((size * FRAME_INSET).round()).snapped()
 }
 

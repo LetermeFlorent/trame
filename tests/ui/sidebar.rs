@@ -1,6 +1,6 @@
 use trame::geometry::Point;
 use trame::theme::Swatch;
-use trame::ui::frame::{dragged_width, shown_width};
+use trame::ui::frame::{SidebarItem, dragged_width, shown_width};
 use trame::ui::{FrameLayout, Hit, UiMetrics};
 
 use crate::{frame, text_system, workspace};
@@ -84,6 +84,8 @@ fn a_closed_sidebar_leaves_a_rail_with_one_button_per_instance() {
         let hit = layout.hit(slot.rect.center(), false);
         assert_eq!(hit, Some(Hit::RailInstance(instance.id)));
         assert_eq!(slot.color, instance.color);
+        assert_eq!(slot.emblem, instance.emblem);
+        assert_eq!(slot.name, instance.name);
         assert!(rail.rect.contains(slot.icon.center()));
     }
     assert!(rail.slots[workspace.active].active);
@@ -96,4 +98,21 @@ fn a_closed_sidebar_leaves_a_rail_with_one_button_per_instance() {
 fn an_open_sidebar_has_no_rail() {
     let mut text = text_system();
     assert!(frame(&mut text, &workspace()).rail.is_none());
+}
+
+#[test]
+fn instance_rows_carry_their_emblem_and_tab_rows_none() {
+    let mut text = text_system();
+    let workspace = workspace();
+    let layout = frame(&mut text, &workspace);
+    let sidebar = layout.sidebar.as_ref().expect("the sidebar");
+    for row in &sidebar.rows {
+        match row.item {
+            SidebarItem::Instance(id) => {
+                let instance = workspace.instance(id).expect("the instance");
+                assert_eq!(row.emblem, Some(instance.emblem));
+            }
+            SidebarItem::Tab(_) => assert_eq!(row.emblem, None),
+        }
+    }
 }

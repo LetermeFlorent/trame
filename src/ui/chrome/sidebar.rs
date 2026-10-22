@@ -36,7 +36,7 @@ fn draw_slot(painter: &mut Painter, slot: &RailSlot) {
         tint,
     );
     let color = icon_color(theme, slot.color, slot.active);
-    painter.icon(Icon::Instance, slot.icon, color);
+    painter.icon(Icon::Emblem(slot.emblem), slot.icon, color);
 }
 
 fn draw_backdrop(painter: &mut Painter, rect: Rect, hit: Hit, selected: bool, tint: Option<Rgba>) {
@@ -93,7 +93,7 @@ fn draw_row(painter: &mut Painter, row: &SidebarRow) {
     let hit = Hit::Row(row.item);
     let glow = painter.glow(hit);
     let (icon, selected) = match row.item {
-        SidebarItem::Instance(_) => (Icon::Instance, false),
+        SidebarItem::Instance(_) => (Icon::Emblem(row.emblem.unwrap_or_default()), false),
         SidebarItem::Tab(_) => (Icon::Terminal, row.active),
     };
     let tint = match row.item {
