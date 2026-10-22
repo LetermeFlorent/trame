@@ -64,11 +64,19 @@ fn draw_tab_fill(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, glow: 
         let above_rule = Rect::new(rect.x, rect.y, rect.width, rect.height - line);
         painter.scene.fill_top(above_rule, hover, radius);
     }
-    if tab.active && pane.focused {
+    let current = tab.active && pane.focused;
+    let accent = match tab.color {
+        Some(swatch) if current => {
+            painter
+                .scene
+                .fill_top(rect, theme.swatch_tint(swatch), radius);
+            Some(theme.swatch(swatch))
+        }
+        Some(swatch) => Some(theme.swatch(swatch)),
+        None => current.then_some(theme.accent),
+    };
+    if let Some(color) = accent {
         let height = painter.metrics.px(ACCENT_HEIGHT);
-        let color = tab
-            .color
-            .map_or(theme.accent, |swatch| theme.swatch(swatch));
         painter
             .scene
             .push_clip(Rect::new(rect.x, rect.y, rect.width, height));

@@ -3,6 +3,7 @@ mod editor;
 mod logo;
 mod motion;
 mod sidebar;
+mod tabbar;
 
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
