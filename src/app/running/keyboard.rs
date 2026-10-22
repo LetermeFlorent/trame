@@ -44,6 +44,7 @@ impl Running {
         let Some(session) = self.active_session() else {
             return;
         };
+        let id = session.id();
         let bytes = {
             let mut terminal = session.terminal();
             let bytes = bytes_for(terminal.screen().modes());
@@ -54,8 +55,10 @@ impl Running {
             }
             bytes
         };
+
         if !bytes.is_empty() {
             session.write(bytes);
+            self.motion.stop_scroll(id);
             self.window.request_redraw();
         }
     }

@@ -75,6 +75,7 @@ impl Running {
             Some(Drag::Tab(tab, pointer)) => {
                 if let Some(spot) = self.drop_spot(tab, pointer) {
                     self.workspace.move_tab(tab, spot.target);
+                    self.motion.animate_next();
                 }
                 true
             }

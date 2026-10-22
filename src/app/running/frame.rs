@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use std::time::Instant;
+
 use winit::window::Window;
 
 use trame::session::SessionId;
@@ -7,7 +9,7 @@ use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
 use trame::theme::{Appearance, Theme};
 use trame::ui::drop::draw_drag;
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE};
-use trame::ui::{FrameInput, FrameLayout, FrameSources, UiMetrics, draw_frame};
+use trame::ui::{FrameInput, FrameLayout, FrameSources, Motion, UiMetrics, draw_frame};
 use trame::workspace::{Instance, Workspace};
 
 use super::Running;
@@ -15,23 +17,30 @@ use crate::app::sessions::Sessions;
 
 const ATLAS_ATTEMPTS: usize = 2;
 
+pub(super) struct LayoutInput<'a> {
+    pub(super) workspace: &'a Workspace,
+    pub(super) window: &'a Window,
+    pub(super) metrics: UiMetrics,
+}
+
 pub(super) fn compute(
     text: &mut TextSystem,
-    workspace: &Workspace,
-    window: &Window,
-    metrics: UiMetrics,
+    layout: &LayoutInput,
+    motion: &mut Motion,
     title: &dyn Fn(SessionId) -> String,
 ) -> FrameLayout {
-    let size = window.inner_size();
+    let size = layout.window.inner_size();
     let input = FrameInput {
-        workspace,
+        workspace: layout.workspace,
         width: size.width as f32,
         height: size.height as f32,
-        metrics,
-        maximized: window.is_maximized(),
+        metrics: layout.metrics,
+        maximized: layout.window.is_maximized(),
         title,
     };
-    FrameLayout::compute(text, &input)
+    let frame = FrameLayout::compute_with(text, &input, motion);
+    motion.finish_layout();
+    frame
 }
 
 fn title_of(
@@ -58,13 +67,13 @@ impl Running {
             .map(|id| (id, self.sessions.label(id)))
             .collect();
         let title = |id: SessionId| title_of(&self.workspace, &self.labels, &self.sessions, id);
-        self.frame = compute(
-            &mut self.text,
-            &self.workspace,
-            &self.window,
-            self.metrics,
-            &title,
-        );
+        let layout = LayoutInput {
+            workspace: &self.workspace,
+            window: &self.window,
+            metrics: self.metrics,
+        };
+        self.motion.tick(Instant::now());
+        self.frame = compute(&mut self.text, &layout, &mut self.motion, &title);
         self.place_editor();
         self.sync_sizes();
         self.refresh_hover();
@@ -92,10 +101,12 @@ impl Running {
             return;
         }
         let drag = self.drag_view();
+        self.motion.hover(self.view.hover);
         for _ in 0..ATLAS_ATTEMPTS {
             self.scene.reset(size.width as f32, size.height as f32);
             let sources = FrameSources {
                 sessions: self.sessions.map(),
+                motion: &self.motion,
             };
             draw_frame(
                 &mut self.scene,
@@ -121,6 +132,9 @@ impl Running {
         let clear = self.theme.chrome;
         self.graphics
             .present(&self.window, &self.scene, self.text.atlas_mut(), clear);
+        if self.motion.is_busy() {
+            self.window.request_redraw();
+        }
     }
 
     pub(super) fn output(&mut self, id: SessionId) {

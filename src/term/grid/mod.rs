@@ -78,6 +78,12 @@ impl Grid {
         &self.lines[self.screen_start() - self.display_offset + row]
     }
 
+    pub fn view_row(&self, row: isize) -> Option<&Row> {
+        let start = (self.screen_start() - self.display_offset) as isize;
+        let index = usize::try_from(start + row).ok()?;
+        self.lines.get(index)
+    }
+
     pub fn first_visible_line(&self) -> u64 {
         self.dropped + (self.screen_start() - self.display_offset) as u64
     }

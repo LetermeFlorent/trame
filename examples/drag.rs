@@ -12,7 +12,7 @@ use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
 use trame::theme::{Appearance, Theme};
 use trame::ui::drop::{DragView, draw_drag};
 use trame::ui::metrics::TERMINAL_FONT_SIZE;
-use trame::ui::{FrameInput, FrameLayout, FrameSources, FrameView, UiMetrics, draw_frame};
+use trame::ui::{FrameInput, FrameLayout, FrameSources, FrameView, Motion, UiMetrics, draw_frame};
 use trame::workspace::{Edge, Workspace};
 
 const WIDTH: f32 = 1280.0;
@@ -46,8 +46,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut renderer = Renderer::new(&gpu, OFFSCREEN_FORMAT, text.atlas_mut());
     let instance = workspace.active_instance().ok_or("no instance")?.id;
     let sessions = HashMap::new();
+    let motion = Motion::default();
     let sources = FrameSources {
         sessions: &sessions,
+        motion: &motion,
     };
     for (name, appearance, pointer) in pointers(&frame) {
         let theme = Theme::new(appearance);

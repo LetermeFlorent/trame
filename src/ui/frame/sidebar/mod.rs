@@ -1,12 +1,16 @@
+mod rail;
+
 use std::sync::Arc;
 
-use super::label::fit_label;
 use crate::geometry::Rect;
 use crate::session::SessionId;
 use crate::text::{TextLayout, TextSystem};
 use crate::theme::Swatch;
+use crate::ui::frame::fit_label;
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{Instance, InstanceId, Workspace};
+pub use rail::RailFrame;
+pub(super) use rail::layout_rail;
 
 const CAPTION: &str = "INSTANCES";
 const CAPTION_MARGIN: f32 = 14.0;
@@ -165,23 +169,4 @@ fn layout_row(
         active: spec.active,
         color: None,
     }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct RailFrame {
-    pub rect: Rect,
-    pub expand: Rect,
-}
-
-pub(super) fn layout_rail(metrics: &UiMetrics, rect: Rect) -> RailFrame {
-    let size = metrics.px(UiMetrics::BUTTON);
-    let header = metrics.px(UiMetrics::SIDEBAR_HEADER);
-    let expand = Rect::new(
-        rect.x + (rect.width - size) / 2.0,
-        rect.y + (header - size) / 2.0,
-        size,
-        size,
-    )
-    .snapped();
-    RailFrame { rect, expand }
 }

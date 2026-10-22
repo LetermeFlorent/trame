@@ -6,15 +6,17 @@ use crate::ui::metrics::UiMetrics;
 
 const HOVER_OVER_TINT: f32 = 0.7;
 
-pub(super) fn draw_rail(painter: &mut Painter, rail: &RailFrame) {
+pub(super) fn draw_panel(painter: &mut Painter, rect: Rect) {
     let theme = painter.theme;
     let line = painter.metrics.line();
-    let rect = rail.rect;
     painter.rule(rect, theme.chrome);
     painter.rule(
         Rect::new(rect.right() - line, rect.y, line, rect.height),
         theme.border,
     );
+}
+
+pub(super) fn draw_rail(painter: &mut Painter, rail: &RailFrame) {
     painter.button(
         rail.expand,
         Hit::SidebarExpand,
@@ -26,11 +28,6 @@ pub(super) fn draw(painter: &mut Painter, sidebar: &SidebarFrame) {
     let theme = painter.theme;
     let line = painter.metrics.line();
     let rect = sidebar.rect;
-    painter.rule(rect, theme.chrome);
-    painter.rule(
-        Rect::new(rect.right() - line, rect.y, line, rect.height),
-        theme.border,
-    );
     painter.label(
         &sidebar.caption,
         sidebar.caption_x,
@@ -53,10 +50,7 @@ pub(super) fn draw(painter: &mut Painter, sidebar: &SidebarFrame) {
 
 fn draw_row(painter: &mut Painter, row: &SidebarRow) {
     let theme = painter.theme;
-    let hovered = matches!(
-        painter.view.hover,
-        Some(Hit::Row(item) | Hit::RowClose(item)) if item == row.item
-    );
+    let glow = painter.glow(Hit::Row(row.item));
     let pressed = painter.state(Hit::Row(row.item)) == Press::Pressed;
     let (icon, selected) = match row.item {
         SidebarItem::Instance(_) => (Icon::Instance, false),
@@ -70,33 +64,37 @@ fn draw_row(painter: &mut Painter, row: &SidebarRow) {
     if let Some(color) = tint {
         painter.scene.fill(row.rect, color, radius);
     }
-    let background = match () {
-        _ if pressed => Some(theme.pressed),
-        _ if hovered || selected => Some(theme.hover),
-        _ => None,
+    let (fill, strength) = match () {
+        _ if pressed => (theme.pressed, 1.0),
+        _ if selected => (theme.hover, 1.0),
+        _ => (theme.hover, glow),
     };
-    if let Some(color) = background {
-        let color = match tint {
-            Some(_) => color.with_alpha(HOVER_OVER_TINT),
-            None => color,
-        };
-        painter.scene.fill(row.rect, color, radius);
-    }
+    let alpha = tint.map_or(fill.a, |_| HOVER_OVER_TINT);
+    painter
+        .scene
+        .fill(row.rect, fill.with_alpha(alpha * strength), radius);
     let icon_color = match (row.color, row.active) {
         (Some(swatch), _) => theme.swatch(swatch),
         (None, true) => theme.accent,
         (None, false) => theme.text_faint,
     };
     painter.icon(icon, row.icon, icon_color);
-    let text_color = match row.active || hovered {
+    let text_color = match row.active {
         true => theme.text,
-        false => theme.text_muted,
+        false => theme.text_muted.mix(theme.text, glow),
     };
     painter.label(&row.label, row.label_x, row.rect, text_color);
-    if hovered {
-        painter.small_button(row.close, Hit::RowClose(row.item), Icon::Close);
-    } else if let Some(count) = &row.count {
+    draw_row_end(painter, row, glow);
+}
+
+fn draw_row_end(painter: &mut Painter, row: &SidebarRow, glow: f32) {
+    painter.scene.push_opacity(glow);
+    painter.small_button(row.close, Hit::RowClose(row.item), Icon::Close);
+    painter.scene.pop_opacity();
+    if let Some(count) = &row.count {
         let x = row.close.right() - count.width;
-        painter.label(count, x, row.rect, theme.text_faint);
+        painter.scene.push_opacity(1.0 - glow);
+        painter.label(count, x, row.rect, painter.theme.text_faint);
+        painter.scene.pop_opacity();
     }
 }

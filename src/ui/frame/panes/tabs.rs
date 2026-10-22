@@ -1,12 +1,15 @@
 use std::sync::Arc;
 
-use super::label::fit_label;
+use super::PaneContext;
+use super::widths::{fit_widths, scroll_offset};
 use crate::geometry::Rect;
 use crate::session::SessionId;
-use crate::text::{TextLayout, TextSystem};
+use crate::text::TextLayout;
 use crate::theme::Swatch;
+use crate::ui::frame::fit_label;
 use crate::ui::metrics::UiMetrics;
-use crate::workspace::Pane;
+use crate::ui::motion::MotionKey;
+use crate::workspace::{Pane, PaneId};
 
 const BUTTON_GAP: f32 = 2.0;
 const BUTTON_MARGIN: f32 = 6.0;
@@ -43,13 +46,34 @@ impl TabStrip {
     }
 }
 
-pub fn layout_strip(
-    text: &mut TextSystem,
-    metrics: &UiMetrics,
-    rect: Rect,
-    pane: &Pane,
-    title: &dyn Fn(SessionId) -> String,
-) -> TabStrip {
+pub(super) struct StripPlacement<'a> {
+    pub(super) pane_id: PaneId,
+    pub(super) pane: &'a Pane,
+    pub(super) bar: Rect,
+    pub(super) target: Rect,
+    pub(super) grows: bool,
+}
+
+struct Controls {
+    tabs_area: Rect,
+    new_tab: Rect,
+    split: Rect,
+}
+
+pub(super) fn layout_strip(cx: &mut PaneContext, placement: StripPlacement) -> TabStrip {
+    let controls = controls(&cx.metrics, placement.bar);
+    let target_area = self::controls(&cx.metrics, placement.target).tabs_area;
+    let tabs = layout_tabs(cx, &placement, controls.tabs_area, target_area.width);
+    TabStrip {
+        rect: placement.bar,
+        tabs_area: controls.tabs_area,
+        tabs,
+        new_tab: controls.new_tab,
+        split: controls.split,
+    }
+}
+
+fn controls(metrics: &UiMetrics, rect: Rect) -> Controls {
     let button = metrics.px(UiMetrics::BUTTON);
     let margin = metrics.px(BUTTON_MARGIN);
     let button_y = (rect.y + (rect.height - button) / 2.0).round();
@@ -61,81 +85,67 @@ pub fn layout_strip(
         button,
     );
     let tabs_area = Rect::from_edges(rect.x, rect.y, new_tab.x - margin, rect.bottom());
-    let tabs = layout_tabs(text, metrics, tabs_area, pane, title);
-    TabStrip {
-        rect,
+    Controls {
         tabs_area,
-        tabs,
         new_tab,
         split,
     }
 }
 
 fn layout_tabs(
-    text: &mut TextSystem,
-    metrics: &UiMetrics,
+    cx: &mut PaneContext,
+    placement: &StripPlacement,
     area: Rect,
-    pane: &Pane,
-    title: &dyn Fn(SessionId) -> String,
+    available: f32,
 ) -> Vec<TabFrame> {
+    let metrics = cx.metrics;
     let style = metrics.label();
     let padding = metrics.px(UiMetrics::TAB_PADDING);
     let close = metrics.px(UiMetrics::TAB_CLOSE);
     let close_margin = metrics.px(CLOSE_MARGIN);
-    let label_gap = metrics.px(LABEL_GAP);
-    let fixed = padding + label_gap + close + close_margin;
+    let fixed = padding + metrics.px(LABEL_GAP) + close + close_margin;
     let minimum = metrics.px(UiMetrics::TAB_MIN);
     let maximum = metrics.px(UiMetrics::TAB_MAX);
-    let titles: Vec<String> = pane.tabs.iter().map(|tab| title(*tab)).collect();
+    let pane = placement.pane;
+    let titles: Vec<String> = pane.tabs.iter().map(|tab| (cx.title)(*tab)).collect();
     let natural: Vec<f32> = titles
         .iter()
         .map(|label| {
-            (text.layout(label, style).width + fixed)
+            (cx.text.layout(label, style).width + fixed)
                 .ceil()
                 .clamp(minimum, maximum)
         })
         .collect();
-    let widths = fit_widths(&natural, area.width, minimum);
-    let mut x = area.x - scroll_offset(&widths, pane.active, area.width);
+    let widths = fit_widths(&natural, available, minimum);
+    let mut x = -scroll_offset(&widths, pane.active, available);
     let mut frames = Vec::with_capacity(widths.len());
     for (index, (tab, width)) in pane.tabs.iter().zip(&widths).enumerate() {
-        let rect = Rect::new(x, area.y, *width, area.height);
+        let target = Rect::new(x, 0.0, *width, area.height);
+        let entry = placement
+            .grows
+            .then_some(Rect::new(x, 0.0, 0.0, area.height));
+        let key = MotionKey::Tab(placement.pane_id, *tab);
+        let rect = cx
+            .motion
+            .place(key, target, entry)
+            .translated(area.x, area.y);
         let close_rect = Rect::new(
             rect.right() - close_margin - close,
             (rect.y + (rect.height - close) / 2.0).round(),
             close,
             close,
         );
-        let label_x = rect.x + padding;
-        let label_width = close_rect.x - label_gap - label_x;
         frames.push(TabFrame {
             id: *tab,
             index,
             rect,
             close: close_rect,
-            label: fit_label(text, &titles[index], style, label_width),
-            label_x,
+            label: fit_label(cx.text, &titles[index], style, width - fixed),
+            label_x: rect.x + padding,
             active: index == pane.active,
             color: None,
         });
         x += width;
     }
     frames
-}
-
-fn fit_widths(natural: &[f32], available: f32, minimum: f32) -> Vec<f32> {
-    let total: f32 = natural.iter().sum();
-    if total <= available || total <= 0.0 {
-        return natural.to_vec();
-    }
-    let scale = available / total;
-    natural
-        .iter()
-        .map(|width| (width * scale).floor().max(minimum))
-        .collect()
-}
-
-fn scroll_offset(widths: &[f32], active: usize, available: f32) -> f32 {
-    let end: f32 = widths.iter().take(active + 1).sum();
-    (end - available).max(0.0)
 }

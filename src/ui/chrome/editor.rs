@@ -1,34 +1,28 @@
-use super::Painter;
+use super::{ChromeInput, Painter};
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::text::TextSystem;
-use crate::theme::{Swatch, Theme};
-use crate::ui::frame::{EditorFrame, FrameLayout, SwatchSlot};
+use crate::theme::Swatch;
+use crate::ui::frame::{EditorFrame, SwatchSlot};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
-use crate::ui::paint::FrameView;
 
 const STRIP_BLUR: f32 = 8.0;
 const RING_GAP: f32 = 2.0;
 const RING_RADIUS_EXTRA: f32 = 2.0;
 const SLASH_INSET: f32 = 3.0;
 
-pub fn draw_editor(
-    scene: &mut Scene,
-    text: &mut TextSystem,
-    theme: &Theme,
-    frame: &FrameLayout,
-    view: &FrameView,
-) {
-    let Some(editor) = &frame.editor else {
+pub fn draw_editor(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput) {
+    let Some(editor) = &input.frame.editor else {
         return;
     };
     let mut painter = Painter {
         scene,
         text,
-        theme,
-        metrics: frame.metrics,
-        view,
+        theme: input.theme,
+        metrics: input.frame.metrics,
+        view: input.view,
+        motion: input.motion,
     };
     draw_strip(&mut painter, editor);
     draw_field(&mut painter, editor);

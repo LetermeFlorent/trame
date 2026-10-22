@@ -6,7 +6,7 @@ use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use trame::pty::{ShellCommand, default_shell};
 use trame::render::{Gpu, OFFSCREEN_FORMAT, Renderer, Scene, render_to_rgba};
@@ -15,7 +15,10 @@ use trame::term::ReportedColors;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
 use trame::theme::{Appearance, Theme};
 use trame::ui::metrics::TERMINAL_FONT_SIZE;
-use trame::ui::{FrameInput, FrameLayout, FrameSources, FrameView, Hit, UiMetrics, draw_frame};
+use trame::ui::motion::DURATION;
+use trame::ui::{
+    FrameInput, FrameLayout, FrameSources, FrameView, Hit, Motion, UiMetrics, draw_frame,
+};
 use trame::workspace::{Edge, Workspace};
 
 const WIDTH: f32 = 1280.0;
@@ -104,8 +107,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             window_focused: true,
         };
         let mut scene = Scene::new(size.0, size.1);
+        let start = Instant::now();
+        let mut motion = Motion::new(start);
+        motion.hover(hover);
+        motion.tick(start + DURATION);
         let sources = FrameSources {
             sessions: &scenario.sessions,
+            motion: &motion,
         };
         draw_frame(&mut scene, &mut text, &theme, &frame, &view, &sources);
         text.end_frame();

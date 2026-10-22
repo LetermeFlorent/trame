@@ -8,7 +8,13 @@ impl Grid {
     }
 
     pub fn is_selected(&self, visible_row: usize, col: usize) -> bool {
-        let line = self.first_visible_line() + visible_row as u64;
+        self.is_selected_in_view(visible_row as isize, col)
+    }
+
+    pub fn is_selected_in_view(&self, row: isize, col: usize) -> bool {
+        let Some(line) = self.first_visible_line().checked_add_signed(row as i64) else {
+            return false;
+        };
         self.selection
             .as_ref()
             .is_some_and(|selection| selection.contains(line, col))

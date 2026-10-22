@@ -24,7 +24,7 @@ use trame::session::{SessionEvent, SessionId};
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
 use trame::theme::Theme;
 use trame::ui::metrics::TERMINAL_FONT_SIZE;
-use trame::ui::{FrameLayout, FrameView, UiMetrics};
+use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
@@ -50,6 +50,7 @@ pub struct Running {
     saver: Saver,
     labels: HashMap<SessionId, String>,
     frame: FrameLayout,
+    motion: Motion,
     view: FrameView,
     pointer: Pointer,
     drag: Option<Drag>,
@@ -72,7 +73,13 @@ impl Running {
         let graphics = Graphics::new(event_loop, window.clone(), text.atlas_mut())?;
         let theme = Theme::new(window::appearance(&window));
         let workspace = Workspace::new();
-        let frame = frame::compute(&mut text, &workspace, &window, metrics, &|_| String::new());
+        let mut motion = Motion::default();
+        let layout_input = frame::LayoutInput {
+            workspace: &workspace,
+            window: &window,
+            metrics,
+        };
+        let frame = frame::compute(&mut text, &layout_input, &mut motion, &|_| String::new());
         let mut running = Self {
             window,
             graphics,
@@ -86,6 +93,7 @@ impl Running {
             saver: Saver::new(),
             labels: HashMap::new(),
             frame,
+            motion,
             view: FrameView {
                 window_focused: true,
                 ..FrameView::default()
