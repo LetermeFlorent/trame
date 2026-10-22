@@ -54,7 +54,7 @@ jobs:
           cargo install cargo-deb cargo-generate-rpm --locked
 
       - name: Test
-        run: cargo test --locked
+        run: cargo test --locked --no-fail-fast
 
       - name: Build
         run: cargo build --release --locked
