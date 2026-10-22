@@ -1,4 +1,4 @@
-use super::instance::InstanceId;
+use super::instance::{Instance, InstanceId};
 use super::tree::{Edge, PaneId};
 use super::{TabLocation, Workspace};
 use crate::session::SessionId;
@@ -24,59 +24,37 @@ impl Workspace {
         let Some(source) = self.locate(tab) else {
             return false;
         };
-        let source_id = self.instances[source.instance].id;
-        let source_tabs = self.instances[source.instance].panes[&source.pane]
-            .tabs
-            .len();
+        let origin = &self.instances[source.instance];
+        let source_id = origin.id;
+        let alone_in_pane = origin.panes[&source.pane].tabs.len() == 1;
+        let alone_in_instance = origin.tab_count() == 1;
         match target {
             DropTarget::Tabs {
+                instance,
                 pane,
                 index,
-                instance,
-            } if pane == source.pane && instance == source_id => {
-                let index = index.unwrap_or(source_tabs);
-                if let Some(pane) = self.instances[source.instance].panes.get_mut(&pane) {
-                    pane.reorder(tab, index);
-                }
-                true
-            }
+            } if pane == source.pane && instance == source_id => self.reorder(tab, source, index),
             DropTarget::Tabs {
                 instance,
                 pane,
                 index,
-            } => self.transfer(tab, source, instance, |workspace, at| {
-                let target = &mut workspace.instances[at];
-                let Some(destination) = target.panes.get_mut(&pane) else {
-                    return false;
-                };
-                destination.insert(tab, index);
-                target.focus(pane);
-                true
-            }),
-            DropTarget::Split { pane, .. } if pane == source.pane && source_tabs == 1 => false,
+            } => self.transfer(tab, source, instance, |into| into.insert(pane, tab, index)),
+            DropTarget::Split { pane, .. } if pane == source.pane && alone_in_pane => false,
             DropTarget::Split {
                 instance,
                 pane,
                 edge,
             } => {
                 let new = self.new_pane_id();
-                self.transfer(tab, source, instance, |workspace, at| {
-                    workspace.instances[at].split(pane, new, tab, edge)
+                self.transfer(tab, source, instance, |into| {
+                    into.split(pane, new, tab, edge)
                 })
             }
             DropTarget::Instance(instance) if instance == source_id => false,
             DropTarget::Instance(instance) => {
-                self.transfer(tab, source, instance, |workspace, at| {
-                    match workspace.instances[at].active_mut() {
-                        Some(pane) => {
-                            pane.insert(tab, None);
-                            true
-                        }
-                        None => false,
-                    }
-                })
+                self.transfer(tab, source, instance, |into| into.insert_active(tab))
             }
-            DropTarget::NewInstance if self.instances[source.instance].tab_count() == 1 => false,
+            DropTarget::NewInstance if alone_in_instance => false,
             DropTarget::NewInstance => {
                 self.detach(tab, source);
                 self.add_instance(None, tab);
@@ -85,12 +63,20 @@ impl Workspace {
         }
     }
 
+    fn reorder(&mut self, tab: SessionId, source: TabLocation, index: Option<usize>) -> bool {
+        if let Some(pane) = self.instances[source.instance].panes.get_mut(&source.pane) {
+            let last = pane.tabs.len();
+            pane.reorder(tab, index.unwrap_or(last));
+        }
+        true
+    }
+
     fn transfer(
         &mut self,
         tab: SessionId,
         source: TabLocation,
         target: InstanceId,
-        place: impl FnOnce(&mut Workspace, usize) -> bool,
+        place: impl FnOnce(&mut Instance) -> bool,
     ) -> bool {
         if self.instance_index(target).is_none() {
             return false;
@@ -101,7 +87,7 @@ impl Workspace {
             *self = snapshot;
             return false;
         };
-        if !place(self, at) {
+        if !place(&mut self.instances[at]) {
             *self = snapshot;
             return false;
         }

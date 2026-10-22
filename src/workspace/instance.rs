@@ -85,6 +85,23 @@ impl Instance {
         true
     }
 
+    pub(super) fn insert(&mut self, pane: PaneId, tab: SessionId, index: Option<usize>) -> bool {
+        let Some(destination) = self.panes.get_mut(&pane) else {
+            return false;
+        };
+        destination.insert(tab, index);
+        self.focus(pane);
+        true
+    }
+
+    pub(super) fn insert_active(&mut self, tab: SessionId) -> bool {
+        let Some(pane) = self.active_mut() else {
+            return false;
+        };
+        pane.insert(tab, None);
+        true
+    }
+
     pub fn remove_tab(&mut self, tab: SessionId) -> bool {
         let Some(pane_id) = self.find(tab) else {
             return false;

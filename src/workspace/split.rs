@@ -1,4 +1,4 @@
-use super::tree::{Edge, Node, PaneId, sync_pins};
+use super::tree::{Axis, Edge, Node, PaneId, sync_pins};
 
 const MIN_SHARE_RATIO: f32 = 0.05;
 const HALF: f32 = 2.0;
@@ -87,33 +87,18 @@ impl Node {
             return;
         }
         sync_pins(pinned, flexes.len());
-        let mut merged = Merged::default();
+        let mut merged = Merged {
+            axis: *axis,
+            children: Vec::new(),
+            flexes: Vec::new(),
+            pinned: Vec::new(),
+        };
         let slots = children
             .drain(..)
             .zip(flexes.drain(..))
             .zip(pinned.drain(..));
         for ((child, flex), pin) in slots {
-            match child {
-                Node::Split {
-                    axis: inner,
-                    children: inner_children,
-                    flexes: inner_flexes,
-                    pinned: mut inner_pinned,
-                } if inner == *axis => {
-                    sync_pins(&mut inner_pinned, inner_flexes.len());
-                    let total: f32 = inner_flexes.iter().sum();
-                    let scaled = inner_flexes.iter().map(|value| value / total * flex);
-                    merged.flexes.extend(scaled);
-                    let inherited = inner_pinned.iter().map(|inner| *inner || pin);
-                    merged.pinned.extend(inherited);
-                    merged.children.extend(inner_children);
-                }
-                other => {
-                    merged.children.push(other);
-                    merged.flexes.push(flex);
-                    merged.pinned.push(pin);
-                }
-            }
+            merged.absorb(child, flex, pin);
         }
         *children = merged.children;
         *flexes = merged.flexes;
@@ -121,9 +106,34 @@ impl Node {
     }
 }
 
-#[derive(Default)]
 struct Merged {
+    axis: Axis,
     children: Vec<Node>,
     flexes: Vec<f32>,
     pinned: Vec<bool>,
+}
+
+impl Merged {
+    fn absorb(&mut self, child: Node, flex: f32, pin: bool) {
+        match child {
+            Node::Split {
+                axis,
+                children,
+                flexes,
+                mut pinned,
+            } if axis == self.axis => {
+                sync_pins(&mut pinned, flexes.len());
+                let total: f32 = flexes.iter().sum();
+                let scaled = flexes.iter().map(|value| value / total * flex);
+                self.flexes.extend(scaled);
+                self.pinned.extend(pinned.iter().map(|inner| *inner || pin));
+                self.children.extend(children);
+            }
+            other => {
+                self.children.push(other);
+                self.flexes.push(flex);
+                self.pinned.push(pin);
+            }
+        }
+    }
 }

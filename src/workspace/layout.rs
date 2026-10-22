@@ -56,23 +56,16 @@ impl PaneLayout {
             let end = (available * consumed / total).round();
             let size = end - offset;
             let start = offset + gap * index as f32;
-            let child_rect = match axis {
-                Axis::Row => Rect::new(rect.x + start, rect.y, size, rect.height),
-                Axis::Column => Rect::new(rect.x, rect.y + start, rect.width, size),
-            };
+            let child_rect = band(rect, axis, start, size);
             path.push(index);
             self.place(child, child_rect, gap, path);
             path.pop();
             if index + 1 < children.len() {
-                let divider = match axis {
-                    Axis::Row => Rect::new(child_rect.right(), rect.y, gap, rect.height),
-                    Axis::Column => Rect::new(rect.x, child_rect.bottom(), rect.width, gap),
-                };
                 self.dividers.push(Divider {
                     path: path.clone(),
                     index,
                     axis,
-                    rect: divider,
+                    rect: gap_after(rect, axis, child_rect, gap),
                     extent: available,
                 });
             }
@@ -150,4 +143,18 @@ fn overlap_x(a: Rect, b: Rect) -> f32 {
 
 fn overlap_y(a: Rect, b: Rect) -> f32 {
     a.bottom().min(b.bottom()) - a.y.max(b.y)
+}
+
+fn band(rect: Rect, axis: Axis, start: f32, size: f32) -> Rect {
+    match axis {
+        Axis::Row => Rect::new(rect.x + start, rect.y, size, rect.height),
+        Axis::Column => Rect::new(rect.x, rect.y + start, rect.width, size),
+    }
+}
+
+fn gap_after(rect: Rect, axis: Axis, child: Rect, gap: f32) -> Rect {
+    match axis {
+        Axis::Row => Rect::new(child.right(), rect.y, gap, rect.height),
+        Axis::Column => Rect::new(rect.x, child.bottom(), rect.width, gap),
+    }
 }
