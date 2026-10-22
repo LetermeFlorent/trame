@@ -123,7 +123,7 @@ impl Running {
             return None;
         };
         Some(DragView {
-            label: self.sessions.label(tab),
+            label: self.tab_title(tab),
             pointer,
             mark: self.drop_spot(tab, pointer).map(|spot| spot.mark),
         })
