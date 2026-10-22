@@ -6,13 +6,12 @@ use swash::shape::ShapeContext;
 
 use super::cells::CellCache;
 use super::font::{self, Family, FontId, FontLibrary};
-use super::layout::{self, FontRole, TextLayout, TextStyle};
+use super::layout::{FontRole, Shaping, TextLayout, TextStyle};
 use super::metrics::CellMetrics;
 use super::raster::{GlyphCache, GlyphKey};
 use crate::color::Rgba;
+use crate::geometry::Point;
 use crate::render::{Atlas, Scene};
-
-const INTERFACE_HINTING: bool = false;
 
 type LayoutCache = HashMap<String, Vec<Arc<TextLayout>>>;
 
@@ -92,13 +91,11 @@ impl TextSystem {
                 FontRole::Terminal => &self.terminal,
                 FontRole::Interface => &self.interface,
             };
-            Arc::new(layout::shape_text(
-                &mut self.shaper,
-                &mut self.library,
-                family,
-                text,
-                style,
-            ))
+            let shaping = Shaping {
+                context: &mut self.shaper,
+                library: &mut self.library,
+            };
+            Arc::new(shaping.shape(family, text, style))
         });
         self.layouts
             .entry(text.to_owned())
@@ -107,28 +104,15 @@ impl TextSystem {
         layout
     }
 
-    pub fn draw_layout(
-        &mut self,
-        scene: &mut Scene,
-        layout: &TextLayout,
-        x: f32,
-        baseline: f32,
-        color: Rgba,
-    ) {
+    pub fn draw_layout(&mut self, scene: &mut Scene, layout: &TextLayout, pen: Point, color: Rgba) {
         for glyph in &layout.glyphs {
-            let position = x + glyph.x;
-            let key = GlyphKey::new(
-                glyph.font,
-                glyph.glyph,
-                layout.style.size,
-                position,
-                INTERFACE_HINTING,
-            );
+            let position = pen.x + glyph.x;
+            let key = GlyphKey::subpixel(glyph.font, glyph.glyph, layout.style.size, position);
             let Some(raster) = self.glyphs.get(&self.library, &mut self.atlas, key) else {
                 continue;
             };
             let left = position.floor() + raster.left as f32;
-            let top = (baseline - glyph.y).round() - raster.top as f32;
+            let top = (pen.y - glyph.y).round() - raster.top as f32;
             scene.glyph(raster.region, left, top, color);
         }
     }

@@ -43,39 +43,61 @@ struct Run {
     script: Option<Script>,
 }
 
-pub fn shape_text(
-    context: &mut ShapeContext,
-    library: &mut FontLibrary,
-    family: &Family,
-    text: &str,
-    style: TextStyle,
-) -> TextLayout {
-    let mut layout = TextLayout {
-        style,
-        glyphs: Vec::new(),
-        width: 0.0,
-        ascent: 0.0,
-        descent: 0.0,
-        cap_height: 0.0,
-    };
-    let Some(primary) = family.resolve(library, style.weight, style.italic) else {
-        return layout;
-    };
-    let metrics = library.face(primary.id).metrics(style.size);
-    layout.ascent = metrics.ascent;
-    layout.descent = metrics.descent;
-    layout.cap_height = metrics.cap_height;
-    for run in split_runs(library, primary, text, style) {
-        shape_run(
-            context,
-            library,
-            &text[run.range],
-            run.font,
-            run.script,
-            &mut layout,
-        );
+pub struct Shaping<'a> {
+    pub context: &'a mut ShapeContext,
+    pub library: &'a mut FontLibrary,
+}
+
+impl Shaping<'_> {
+    pub fn shape(mut self, family: &Family, text: &str, style: TextStyle) -> TextLayout {
+        let mut layout = TextLayout {
+            style,
+            glyphs: Vec::new(),
+            width: 0.0,
+            ascent: 0.0,
+            descent: 0.0,
+            cap_height: 0.0,
+        };
+        let Some(primary) = family.resolve(self.library, style.weight, style.italic) else {
+            return layout;
+        };
+        let metrics = self.library.face(primary.id).metrics(style.size);
+        layout.ascent = metrics.ascent;
+        layout.descent = metrics.descent;
+        layout.cap_height = metrics.cap_height;
+        for run in split_runs(self.library, primary, text, style) {
+            self.shape_run(&text[run.range.clone()], &run, &mut layout);
+        }
+        layout
     }
-    layout
+
+    fn shape_run(&mut self, text: &str, run: &Run, layout: &mut TextLayout) {
+        let face = self.library.face(run.font.id);
+        let mut builder = self
+            .context
+            .builder(face.font())
+            .size(layout.style.size)
+            .script(run.script.unwrap_or(Script::Latin));
+        if let Some(weight) = run.font.weight {
+            builder = builder.variations([(WEIGHT_AXIS, f32::from(weight))]);
+        }
+        let mut shaper = builder.build();
+        shaper.add_str(text);
+        let mut pen = layout.width;
+        let glyphs = &mut layout.glyphs;
+        shaper.shape_with(|cluster| {
+            for glyph in cluster.glyphs {
+                glyphs.push(LayoutGlyph {
+                    font: run.font,
+                    glyph: glyph.id,
+                    x: pen + glyph.x,
+                    y: glyph.y,
+                });
+                pen += glyph.advance;
+            }
+        });
+        layout.width = pen;
+    }
 }
 
 fn split_runs(
@@ -115,40 +137,6 @@ fn font_for(library: &mut FontLibrary, primary: FontKey, ch: char, style: TextSt
         Some(id) => FontKey::synthesize(library, id, style.weight, style.italic),
         None => primary,
     }
-}
-
-fn shape_run(
-    context: &mut ShapeContext,
-    library: &FontLibrary,
-    text: &str,
-    font: FontKey,
-    script: Option<Script>,
-    layout: &mut TextLayout,
-) {
-    let face = library.face(font.id);
-    let mut builder = context
-        .builder(face.font())
-        .size(layout.style.size)
-        .script(script.unwrap_or(Script::Latin));
-    if let Some(weight) = font.weight {
-        builder = builder.variations([(WEIGHT_AXIS, f32::from(weight))]);
-    }
-    let mut shaper = builder.build();
-    shaper.add_str(text);
-    let mut pen = layout.width;
-    let glyphs = &mut layout.glyphs;
-    shaper.shape_with(|cluster| {
-        for glyph in cluster.glyphs {
-            glyphs.push(LayoutGlyph {
-                font,
-                glyph: glyph.id,
-                x: pen + glyph.x,
-                y: glyph.y,
-            });
-            pen += glyph.advance;
-        }
-    });
-    layout.width = pen;
 }
 
 fn is_neutral(script: Script) -> bool {

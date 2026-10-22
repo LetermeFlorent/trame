@@ -8,8 +8,6 @@ use crate::color::Rgba;
 use crate::geometry::Point;
 use crate::render::{AtlasRegion, Scene};
 
-const TERMINAL_HINTING: bool = true;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CellText {
     pub ch: char,
@@ -100,7 +98,7 @@ impl TextSystem {
             size *= scale;
             offset = ((span - advance * scale) / 2.0).round();
         }
-        let glyph_key = GlyphKey::new(font, glyph, size, 0.0, TERMINAL_HINTING);
+        let glyph_key = GlyphKey::hinted(font, glyph, size);
         let raster = self.glyphs.get(&self.library, &mut self.atlas, glyph_key)?;
         Some(CellGlyph {
             region: raster.region,

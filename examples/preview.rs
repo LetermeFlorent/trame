@@ -157,7 +157,7 @@ fn label(
 ) {
     let layout = text.layout(value, style);
     let baseline = (rect.center().y + layout.cap_height / 2.0).round();
-    text.draw_layout(scene, &layout, rect.x, baseline, color);
+    text.draw_layout(scene, &layout, Point::new(rect.x, baseline), color);
 }
 
 fn draw_line(

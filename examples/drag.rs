@@ -10,7 +10,7 @@ use trame::render::{Gpu, OFFSCREEN_FORMAT, Renderer, Scene, render_to_rgba};
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
 use trame::theme::{Appearance, Theme};
-use trame::ui::drop::{DragView, draw_drag};
+use trame::ui::drop::DragView;
 use trame::ui::metrics::TERMINAL_FONT_SIZE;
 use trame::ui::{FrameInput, FrameLayout, FrameSources, FrameView, Motion, UiMetrics, draw_frame};
 use trame::workspace::{Edge, Workspace};
@@ -47,10 +47,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let instance = workspace.active_instance().ok_or("no instance")?.id;
     let sessions = HashMap::new();
     let motion = Motion::default();
-    let sources = FrameSources {
-        sessions: &sessions,
-        motion: &motion,
-    };
     for (name, appearance, pointer) in pointers(&frame) {
         let theme = Theme::new(appearance);
         let drag = DragView {
@@ -63,8 +59,15 @@ fn main() -> Result<(), Box<dyn Error>> {
             ..FrameView::default()
         };
         let mut scene = Scene::new(size.0, size.1);
-        draw_frame(&mut scene, &mut text, &theme, &frame, &view, &sources);
-        draw_drag(&mut scene, &mut text, &theme, &frame, &drag);
+        let sources = FrameSources {
+            theme: &theme,
+            frame: &frame,
+            view: &view,
+            sessions: &sessions,
+            motion: &motion,
+            drag: Some(&drag),
+        };
+        draw_frame(&mut scene, &mut text, &sources);
         text.end_frame();
         renderer.sync_atlas(&gpu, text.atlas_mut());
         let pixels = render_to_rgba(&gpu, &mut renderer, &scene, theme.terminal)?;

@@ -112,10 +112,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         motion.hover(hover);
         motion.tick(start + DURATION);
         let sources = FrameSources {
+            theme: &theme,
+            frame: &frame,
+            view: &view,
             sessions: &scenario.sessions,
             motion: &motion,
+            drag: None,
         };
-        draw_frame(&mut scene, &mut text, &theme, &frame, &view, &sources);
+        draw_frame(&mut scene, &mut text, &sources);
         text.end_frame();
         renderer.sync_atlas(&gpu, text.atlas_mut());
         let pixels = render_to_rgba(&gpu, &mut renderer, &scene, theme.terminal)?;

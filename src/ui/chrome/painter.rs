@@ -1,6 +1,6 @@
 use super::icons::{Icon, Pen, draw_icon};
 use crate::color::Rgba;
-use crate::geometry::Rect;
+use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::text::{TextLayout, TextSystem};
 use crate::theme::Theme;
@@ -82,8 +82,8 @@ impl Painter<'_> {
 
     pub(super) fn label(&mut self, layout: &TextLayout, x: f32, rect: Rect, color: Rgba) {
         let baseline = (rect.y + (rect.height + layout.ascent - layout.descent) / 2.0).round();
-        self.text
-            .draw_layout(self.scene, layout, x.round(), baseline, color);
+        let pen = Point::new(x.round(), baseline);
+        self.text.draw_layout(self.scene, layout, pen, color);
     }
 
     pub(super) fn rule(&mut self, rect: Rect, color: Rgba) {
