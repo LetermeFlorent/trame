@@ -42,19 +42,32 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the drivers and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mesa-vulkan-drivers fontconfig fonts-dejavu-core
+
+      - name: Test
+        run: cargo test --locked --no-fail-fast
+
   linux:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install the test and packaging tools
+      - name: Install the display and drivers
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb mesa-vulkan-drivers fontconfig fonts-dejavu-core
-          cargo install cargo-deb cargo-generate-rpm --locked
 
-      - name: Test
-        run: cargo test --locked --no-fail-fast
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deb,cargo-generate-rpm
 
       - name: Build
         run: cargo build --release --locked
@@ -70,9 +83,12 @@ jobs:
         run: |
           sudo apt-get install -y ./dist/*.deb
           xvfb-run -a trame > trame.log 2>&1 &
-          sleep 15
+          for _ in $(seq 30); do
+            pid=$(pgrep -x trame) && pgrep -P "$pid" > /dev/null && break
+            sleep 1
+          done
+          sleep 3
           cat trame.log
-          pid=$(pgrep -x trame)
           pgrep -P "$pid"
           kill "$pid"
 
@@ -87,7 +103,7 @@ jobs:
 
   publish:
     if: github.ref_type == 'tag'
-    needs: [windows, linux]
+    needs: [windows, test, linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
