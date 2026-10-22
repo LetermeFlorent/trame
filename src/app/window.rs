@@ -76,21 +76,26 @@ pub fn has_area(window: &Window) -> bool {
 }
 
 #[cfg(windows)]
+pub fn hwnd(window: &Window) -> Option<windows_sys::Win32::Foundation::HWND> {
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    match window.window_handle().ok()?.as_raw() {
+        RawWindowHandle::Win32(handle) => Some(handle.hwnd.get() as _),
+        _ => None,
+    }
+}
+
+#[cfg(windows)]
 pub fn round_corners(window: &Window) {
     use windows_sys::Win32::Graphics::Dwm::{
         DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND, DwmSetWindowAttribute,
     };
-    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
-    let Ok(handle) = window.window_handle() else {
-        return;
-    };
-    let RawWindowHandle::Win32(handle) = handle.as_raw() else {
+    let Some(hwnd) = hwnd(window) else {
         return;
     };
     let preference = DWMWCP_ROUND;
     unsafe {
         DwmSetWindowAttribute(
-            handle.hwnd.get() as _,
+            hwnd,
             DWMWA_WINDOW_CORNER_PREFERENCE as u32,
             (&raw const preference).cast(),
             size_of_val(&preference) as u32,

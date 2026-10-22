@@ -1,3 +1,4 @@
+mod paint;
 mod style;
 
 use std::collections::HashMap;
@@ -7,14 +8,12 @@ use winit::window::Window;
 
 use trame::session::SessionId;
 use trame::text::TextSystem;
-use trame::ui::{FrameInput, FrameLayout, FrameSources, Motion, UiMetrics, draw_frame};
+use trame::ui::{FrameInput, FrameLayout, Motion, UiMetrics};
 use trame::workspace::{Instance, Workspace};
 
 use super::Running;
 use crate::app::sessions::Sessions;
 use crate::app::window;
-
-const ATLAS_ATTEMPTS: usize = 2;
 
 pub(super) struct LayoutInput<'a> {
     pub(super) workspace: &'a Workspace,
@@ -92,57 +91,6 @@ impl Running {
             for tab in &pane.tabs {
                 self.sessions.resize(*tab, size);
             }
-        }
-    }
-
-    pub(super) fn redraw(&mut self) {
-        self.sessions.clear_output();
-        self.relayout();
-        let size = self.window.inner_size();
-        if size.width == 0 || size.height == 0 {
-            return;
-        }
-        let drag = self.drag_view();
-        self.motion.hover(self.view.hover);
-        for _ in 0..ATLAS_ATTEMPTS {
-            self.scene.reset(size.width as f32, size.height as f32);
-            let sources = FrameSources {
-                theme: &self.theme,
-                frame: &self.frame,
-                view: &self.view,
-                sessions: self.sessions.map(),
-                motion: &self.motion,
-                drag: drag.as_ref(),
-            };
-            draw_frame(&mut self.scene, &mut self.text, &sources);
-            if !self.text.end_frame() {
-                break;
-            }
-        }
-        let clear = self.theme.chrome;
-        self.graphics
-            .present(&self.window, &self.scene, self.text.atlas_mut(), clear);
-        if self.motion.is_busy() {
-            self.window.request_redraw();
-        }
-    }
-
-    pub(super) fn output(&mut self, id: SessionId) {
-        self.forward_clipboard(id);
-        if self.frame.panes.iter().any(|pane| pane.active == Some(id)) {
-            self.window.request_redraw();
-            return;
-        }
-        let Some(session) = self.sessions.get(id) else {
-            return;
-        };
-        session.take_output();
-        if self
-            .labels
-            .get(&id)
-            .is_some_and(|known| *known != session.label())
-        {
-            self.window.request_redraw();
         }
     }
 }

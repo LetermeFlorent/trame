@@ -9,6 +9,7 @@ mod tabs;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use winit::dpi::PhysicalSize;
 use winit::event::WindowEvent;
 use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::ModifiersState;
@@ -25,6 +26,7 @@ use trame::workspace::Workspace;
 use super::graphics::Graphics;
 use super::persist::Saver;
 use super::sessions::Sessions;
+use super::visibility::Visibility;
 use super::{UserEvent, window};
 use editing::Editing;
 use pointer::{Drag, Pointer, Selecting};
@@ -49,6 +51,7 @@ pub struct Running {
     editing: Option<Editing>,
     selecting: Selecting,
     modifiers: ModifiersState,
+    visibility: Visibility,
 }
 
 impl Running {
@@ -63,15 +66,16 @@ impl Running {
         match event {
             WindowEvent::CloseRequested => event_loop.exit(),
             WindowEvent::RedrawRequested => self.redraw(),
-            WindowEvent::Resized(size) => {
-                self.graphics.resize(size.width, size.height);
-                self.changed();
-            }
+            WindowEvent::Resized(size) => self.resized(size),
+            WindowEvent::Occluded(occluded) => self.visibility.set_occluded(occluded),
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 self.rescale(scale_factor as f32)
             }
             WindowEvent::ThemeChanged(theme) => self.set_appearance(window::appearance_of(theme)),
-            WindowEvent::Focused(focused) => self.focus_changed(focused),
+            WindowEvent::Focused(focused) => {
+                self.visibility.forget();
+                self.focus_changed(focused);
+            }
             WindowEvent::ModifiersChanged(modifiers) => self.modifiers = modifiers.state(),
             WindowEvent::KeyboardInput {
                 event,
@@ -88,6 +92,12 @@ impl Running {
             WindowEvent::MouseWheel { delta, .. } => self.wheel(delta),
             _ => {}
         }
+    }
+
+    fn resized(&mut self, size: PhysicalSize<u32>) {
+        self.visibility.forget();
+        self.graphics.resize(size.width, size.height);
+        self.changed();
     }
 
     fn changed(&mut self) {

@@ -53,11 +53,16 @@ impl Graphics {
         self.surface.resize(&self.gpu, width, height);
     }
 
-    pub fn present(&mut self, window: &Window, scene: &Scene, atlas: &mut Atlas, clear: Rgba) {
+    pub fn present(
+        &mut self,
+        window: &Window,
+        scene: &Scene,
+        atlas: &mut Atlas,
+        clear: Rgba,
+    ) -> bool {
         self.renderer.sync_atlas(&self.gpu, atlas);
         let Frame::Ready(texture) = self.surface.acquire(&self.gpu) else {
-            window.request_redraw();
-            return;
+            return false;
         };
         let view = texture
             .texture
@@ -69,5 +74,6 @@ impl Graphics {
         }
         window.pre_present_notify();
         self.gpu.queue.present(texture);
+        true
     }
 }

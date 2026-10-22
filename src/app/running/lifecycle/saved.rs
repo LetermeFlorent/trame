@@ -2,8 +2,6 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use winit::event_loop::{ActiveEventLoop, ControlFlow};
-
 use trame::session::SessionId;
 use trame::workspace::{Snapshot, Workspace};
 
@@ -14,17 +12,14 @@ use crate::app::{persist, window};
 type SavedCwds = HashMap<SessionId, Option<PathBuf>>;
 
 impl Running {
-    pub fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+    pub(super) fn save_deadline(&mut self) -> Option<Instant> {
         self.saver.watch(&self.workspace);
-        let flow = match self.saver.due() {
-            None => ControlFlow::Wait,
-            Some(due) if due > Instant::now() => ControlFlow::WaitUntil(due),
-            Some(_) => {
-                self.save_session();
-                ControlFlow::Wait
-            }
-        };
-        event_loop.set_control_flow(flow);
+        let due = self.saver.due()?;
+        if due > Instant::now() {
+            return Some(due);
+        }
+        self.save_session();
+        None
     }
 
     pub fn save_session(&mut self) {

@@ -62,14 +62,20 @@ impl WindowSurface {
 
     pub fn acquire(&mut self, gpu: &Gpu) -> Frame {
         match self.surface.get_current_texture() {
-            wgpu::CurrentSurfaceTexture::Success(texture)
-            | wgpu::CurrentSurfaceTexture::Suboptimal(texture) => Frame::Ready(texture),
             wgpu::CurrentSurfaceTexture::Outdated | wgpu::CurrentSurfaceTexture::Lost => {
                 self.surface.configure(&gpu.device, &self.config);
-                Frame::Skip
+                frame_of(self.surface.get_current_texture())
             }
-            _ => Frame::Skip,
+            current => frame_of(current),
         }
+    }
+}
+
+fn frame_of(current: wgpu::CurrentSurfaceTexture) -> Frame {
+    match current {
+        wgpu::CurrentSurfaceTexture::Success(texture)
+        | wgpu::CurrentSurfaceTexture::Suboptimal(texture) => Frame::Ready(texture),
+        _ => Frame::Skip,
     }
 }
 

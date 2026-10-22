@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 
-use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
+use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
@@ -20,6 +20,7 @@ use super::{Pointer, Running, Selecting, frame};
 use crate::app::graphics::Graphics;
 use crate::app::persist::{self, Saver};
 use crate::app::sessions::Sessions;
+use crate::app::visibility::Visibility;
 use crate::app::{UserEvent, window};
 
 struct Surface {
@@ -62,9 +63,16 @@ impl Running {
         if !running.restore_session(saved.as_ref()) {
             running.open(Placement::Instance)?;
         }
-        running.redraw();
+        running.draw();
         running.window.set_visible(true);
         Ok(running)
+    }
+
+    pub fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        let save = self.save_deadline();
+        let retry = self.visibility.retry(&self.window);
+        let wake = save.into_iter().chain(retry).min();
+        event_loop.set_control_flow(wake.map_or(ControlFlow::Wait, ControlFlow::WaitUntil));
     }
 
     fn with_surface(surface: Surface, proxy: EventLoopProxy<UserEvent>) -> Self {
@@ -105,6 +113,7 @@ impl Running {
             editing: None,
             selecting: Selecting::default(),
             modifiers: ModifiersState::empty(),
+            visibility: Visibility::default(),
         }
     }
 }

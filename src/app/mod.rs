@@ -4,6 +4,7 @@ mod graphics;
 mod persist;
 mod running;
 mod sessions;
+mod visibility;
 mod window;
 
 use std::error::Error;
