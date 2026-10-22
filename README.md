@@ -32,7 +32,8 @@ The rest stays out of your way:
 - a double click on a tab or an instance renames it, gives it a colour, and for instances an icon;
 - the light or dark theme follows the system and changes when the system does;
 - the default shell of the system opens in every new tab: PowerShell 7 when it is installed, Windows PowerShell otherwise, and `$SHELL` on Linux;
-- at launch, trame reopens the last layout with each shell in the folder it was in.
+- the gear at the bottom of the side bar opens the settings, where you can turn tab text restoring on or off and change the size of the terminal text and of the interface (80% to 150%);
+- at launch, trame reopens the last layout with each shell in the folder it was in, and each tab shows again the text it held when trame closed. Only the text comes back: a program that was running in the tab is not started again.
 
 Drawing goes through the graphics card with [wgpu](https://wgpu.rs), on Vulkan first, with DirectX 12 on Windows and OpenGL on Linux when Vulkan is missing. Nothing is drawn while the window is hidden or minimized. The terminal itself, from the escape sequence parser to the screen grid and the scrollback, is written from scratch in Rust. On Windows 11 the program weighs 6.4 MB and uses around 65 MB of memory once open.
 
@@ -102,7 +103,9 @@ The layout of instances, tabs and splits, along with the window size, is saved o
 - Windows: `%APPDATA%\trame\session.json`
 - Linux: `$XDG_STATE_HOME/trame/session.json`, which is `~/.local/state/trame/session.json` by default
 
-Deleting that file makes trame start over with a single instance.
+The settings live in the same file. Deleting it makes trame start over with a single instance.
+
+The text of each tab goes into the `text` folder next to it, `%APPDATA%\trame\text` or `~/.local/state/trame/text`, once a minute when something changed and once more when trame closes. Each tab keeps its last 4 MB. Turning "Restore tab text" off deletes that folder.
 
 ## Build from source
 
@@ -121,7 +124,7 @@ The packages are made with the same tools the release workflow uses:
 ```sh
 cargo deb --no-build
 cargo generate-rpm
-iscc /DAppVersion=0.2.1 packaging\windows\trame.iss
+iscc /DAppVersion=0.2.2 packaging\windows\trame.iss
 ```
 
 The first two need [cargo-deb](https://github.com/kornelski/cargo-deb) and [cargo-generate-rpm](https://github.com/cat-in-136/cargo-generate-rpm). The last one needs [Inno Setup 6](https://jrsoftware.org/isinfo.php) and writes the installer to `target/installer`.
