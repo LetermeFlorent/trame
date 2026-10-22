@@ -1,13 +1,12 @@
-use std::collections::HashMap;
+mod style;
 
+use std::collections::HashMap;
 use std::time::Instant;
 
 use winit::window::Window;
 
 use trame::session::SessionId;
-use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
-use trame::theme::{Appearance, Theme};
-use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE};
+use trame::text::TextSystem;
 use trame::ui::{FrameInput, FrameLayout, FrameSources, Motion, UiMetrics, draw_frame};
 use trame::workspace::{Instance, Workspace};
 
@@ -141,33 +140,5 @@ impl Running {
         {
             self.window.request_redraw();
         }
-    }
-
-    pub(super) fn rescale(&mut self, scale: f32) {
-        self.metrics = UiMetrics::new(scale);
-        self.apply_font();
-    }
-
-    pub(super) fn set_font_size(&mut self, size: f32) {
-        let size = size.clamp(MIN_TERMINAL_FONT_SIZE, MAX_TERMINAL_FONT_SIZE);
-        if size != self.font_size {
-            self.font_size = size;
-            self.apply_font();
-        }
-    }
-
-    fn apply_font(&mut self) {
-        let size = self.font_size * self.metrics.scale;
-        self.text.set_terminal_font(size, DEFAULT_LINE_HEIGHT);
-        self.changed();
-    }
-
-    pub(super) fn set_appearance(&mut self, appearance: Appearance) {
-        if appearance == self.theme.appearance {
-            return;
-        }
-        self.theme = Theme::new(appearance);
-        self.sessions.set_colors(self.theme.reported_colors());
-        self.window.request_redraw();
     }
 }

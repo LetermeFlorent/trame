@@ -4,7 +4,7 @@ mod editing;
 mod frame;
 mod keyboard;
 mod lifecycle;
-mod mouse;
+mod pointer;
 mod scroll;
 mod selection;
 mod tabs;
@@ -31,7 +31,7 @@ use super::sessions::Sessions;
 use super::{UserEvent, window};
 use drag::Drag;
 use editing::Editing;
-use mouse::Pointer;
+use pointer::Pointer;
 use selection::Selecting;
 
 pub struct Running {
