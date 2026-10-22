@@ -83,7 +83,7 @@ impl Running {
                 ..
             } => self.key(event_loop, &event),
             WindowEvent::CursorMoved { position, .. } => {
-                self.pointer_moved(Point::new(position.x as f32, position.y as f32))
+                self.pointer_moved(event_loop, Point::new(position.x as f32, position.y as f32))
             }
             WindowEvent::CursorLeft { .. } => self.pointer_left(),
             WindowEvent::MouseInput { state, button, .. } => {

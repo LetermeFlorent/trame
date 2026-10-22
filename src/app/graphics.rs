@@ -4,7 +4,9 @@ use std::sync::Arc;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::Window;
 
-use trame::render::{Atlas, Frame, Gpu, Renderer, Scene, WindowSurface};
+use trame::render::{
+    Atlas, Frame, Gpu, ReadbackError, Renderer, Scene, WindowSurface, render_in_format,
+};
 use trame::theme::Rgba;
 
 #[cfg(feature = "capture")]
@@ -47,6 +49,17 @@ impl Graphics {
             #[cfg(feature = "capture")]
             capture,
         })
+    }
+
+    pub fn render_image(
+        &mut self,
+        scene: &Scene,
+        atlas: &mut Atlas,
+    ) -> Result<Vec<u8>, ReadbackError> {
+        self.renderer.sync_atlas(&self.gpu, atlas);
+        let clear = Rgba::new(0.0, 0.0, 0.0, 0.0);
+        let format = self.surface.format();
+        render_in_format(&self.gpu, &mut self.renderer, scene, clear, format)
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {

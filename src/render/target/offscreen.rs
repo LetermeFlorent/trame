@@ -1,6 +1,6 @@
-use std::fmt;
 use std::sync::mpsc;
 
+use super::error::ReadbackError;
 use crate::render::gpu::Gpu;
 use crate::render::renderer::Renderer;
 use crate::render::scene::Scene;
@@ -10,34 +10,21 @@ pub const OFFSCREEN_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unor
 
 const BYTES_PER_PIXEL: u32 = 4;
 
-#[derive(Debug)]
-pub enum ReadbackError {
-    Poll(wgpu::PollError),
-    Map(wgpu::BufferAsyncError),
-    Range(wgpu::MapRangeError),
-}
-
-impl fmt::Display for ReadbackError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ReadbackError::Poll(error) => write!(formatter, "the graphics device stalled: {error}"),
-            ReadbackError::Map(error) => {
-                write!(formatter, "the pixels could not be mapped: {error}")
-            }
-            ReadbackError::Range(error) => {
-                write!(formatter, "the pixels could not be read: {error}")
-            }
-        }
-    }
-}
-
-impl std::error::Error for ReadbackError {}
-
 pub fn render_to_rgba(
     gpu: &Gpu,
     renderer: &mut Renderer,
     scene: &Scene,
     clear: Rgba,
+) -> Result<Vec<u8>, ReadbackError> {
+    render_in_format(gpu, renderer, scene, clear, OFFSCREEN_FORMAT)
+}
+
+pub fn render_in_format(
+    gpu: &Gpu,
+    renderer: &mut Renderer,
+    scene: &Scene,
+    clear: Rgba,
+    format: wgpu::TextureFormat,
 ) -> Result<Vec<u8>, ReadbackError> {
     let width = scene.width().max(1.0) as u32;
     let height = scene.height().max(1.0) as u32;
@@ -52,13 +39,22 @@ pub fn render_to_rgba(
         mip_level_count: 1,
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
-        format: OFFSCREEN_FORMAT,
+        format,
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
         view_formats: &[],
     });
     let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
     renderer.render(gpu, &view, scene, clear);
-    read_texture(gpu, &texture, width, height)
+    let mut pixels = read_texture(gpu, &texture, width, height)?;
+    if matches!(
+        format,
+        wgpu::TextureFormat::Bgra8Unorm | wgpu::TextureFormat::Bgra8UnormSrgb
+    ) {
+        pixels
+            .chunks_exact_mut(4)
+            .for_each(|pixel| pixel.swap(0, 2));
+    }
+    Ok(pixels)
 }
 
 pub fn read_texture(

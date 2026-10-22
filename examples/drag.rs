@@ -33,6 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             label: title(SessionId(2)),
             pointer,
             mark: frame.drop_at(pointer, instance).map(|spot| spot.mark),
+            ghost: true,
         };
         let scene = paint(&mut studio.text, &frame, &theme, &drag);
         let path = args.output.join(format!("drag-{name}-{scale}.png"));

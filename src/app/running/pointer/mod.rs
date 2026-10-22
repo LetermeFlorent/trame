@@ -7,7 +7,7 @@ use std::time::Instant;
 
 use winit::event::{ElementState, MouseButton};
 use winit::event_loop::ActiveEventLoop;
-use winit::window::CursorIcon;
+use winit::window::{Cursor, CursorIcon};
 
 use trame::geometry::Point;
 use trame::ui::{FrameLayout, Hit};
@@ -15,7 +15,7 @@ use trame::workspace::Axis;
 
 use super::Running;
 use crate::app::window;
-pub(super) use drag::Drag;
+pub(super) use drag::{Drag, Ghost};
 pub(super) use scroll::Scroll;
 pub(super) use selection::Selecting;
 
@@ -24,14 +24,16 @@ pub(super) struct Pointer {
     pub position: Option<Point>,
     pub pressed: Option<Hit>,
     pub last_click: Option<(Instant, Hit)>,
-    pub cursor: CursorIcon,
+    pub cursor: Cursor,
+    pub ghost: Ghost,
     pub wheel: f32,
 }
 
 impl Running {
-    pub(super) fn pointer_moved(&mut self, point: Point) {
+    pub(super) fn pointer_moved(&mut self, event_loop: &ActiveEventLoop, point: Point) {
         self.pointer.position = Some(point);
         if self.drag_moved(point) {
+            self.lift_ghost(event_loop);
             return;
         }
         self.refresh_hover();
@@ -56,9 +58,9 @@ impl Running {
         }
         let cursor = self
             .drag_cursor()
-            .unwrap_or_else(|| cursor_for(hover, &self.frame));
+            .unwrap_or_else(|| Cursor::Icon(cursor_for(hover, &self.frame)));
         if cursor != self.pointer.cursor {
-            self.pointer.cursor = cursor;
+            self.pointer.cursor = cursor.clone();
             self.window.set_cursor(cursor);
         }
     }

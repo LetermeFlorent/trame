@@ -3,11 +3,12 @@ use trame::session::SessionId;
 use trame::ui::drop::{DragView, DropSpot};
 use trame::workspace::DropTarget;
 
-use super::Drag;
+use super::{Drag, Ghost};
 use crate::app::running::Running;
 
 impl Running {
     pub(in crate::app::running) fn drag_released(&mut self) -> bool {
+        self.pointer.ghost = Ghost::Idle;
         match self.drag.take() {
             Some(Drag::Tab(tab, pointer)) => {
                 if let Some(spot) = self.drop_spot(tab, pointer) {
@@ -29,6 +30,7 @@ impl Running {
             label: self.tab_title(tab),
             pointer,
             mark: self.drop_spot(tab, pointer).map(|spot| spot.mark),
+            ghost: self.pointer.ghost.painted(),
         })
     }
 

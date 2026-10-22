@@ -1,3 +1,5 @@
+mod formats;
+
 use std::sync::Arc;
 
 use trame::render::{Gpu, OFFSCREEN_FORMAT, ReadbackError, read_texture};

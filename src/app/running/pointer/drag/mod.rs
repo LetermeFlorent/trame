@@ -1,8 +1,9 @@
+mod ghost;
 mod sidebar;
 mod tab;
 
 use winit::keyboard::{Key, NamedKey};
-use winit::window::CursorIcon;
+use winit::window::{Cursor, CursorIcon};
 
 use trame::geometry::Point;
 use trame::session::SessionId;
@@ -10,6 +11,7 @@ use trame::ui::Hit;
 use trame::workspace::{Axis, Divider, Node, resized};
 
 use crate::app::running::Running;
+pub(in crate::app::running) use ghost::Ghost;
 use sidebar::SidebarDrag;
 
 const DRAG_THRESHOLD: f32 = 4.0;
@@ -98,6 +100,7 @@ impl Running {
             _ => {}
         }
         self.pointer.pressed = None;
+        self.pointer.ghost = Ghost::Idle;
         self.view.pressed = None;
         self.changed();
         true
@@ -107,14 +110,14 @@ impl Running {
         matches!(self.drag, Some(Drag::Tab(..)))
     }
 
-    pub(in crate::app::running) fn drag_cursor(&self) -> Option<CursorIcon> {
+    pub(in crate::app::running) fn drag_cursor(&self) -> Option<Cursor> {
         match &self.drag {
-            Some(Drag::Divider(drag)) => Some(match drag.divider.axis {
+            Some(Drag::Divider(drag)) => Some(Cursor::Icon(match drag.divider.axis {
                 Axis::Row => CursorIcon::ColResize,
                 Axis::Column => CursorIcon::RowResize,
-            }),
-            Some(Drag::Sidebar(_)) => Some(CursorIcon::ColResize),
-            Some(Drag::Tab(..)) => Some(CursorIcon::Default),
+            })),
+            Some(Drag::Sidebar(_)) => Some(Cursor::Icon(CursorIcon::ColResize)),
+            Some(Drag::Tab(..)) => Some(self.pointer.ghost.cursor()),
             _ => None,
         }
     }
