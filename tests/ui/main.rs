@@ -1,4 +1,6 @@
+mod drop;
 mod editor;
+mod motion;
 
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
