@@ -11,8 +11,8 @@ use crate::theme::Swatch;
 use crate::ui::frame::FrameInput;
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::InstanceId;
-pub use rail::RailFrame;
 pub(super) use rail::layout_rail;
+pub use rail::{RailFrame, RailSlot};
 use row::{RowSpec, layout_row, row_specs};
 pub use width::{dragged_width, shown_width};
 

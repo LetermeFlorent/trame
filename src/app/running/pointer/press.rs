@@ -38,7 +38,9 @@ impl Running {
                 return;
             }
             Hit::Tab(_, id) | Hit::Row(SidebarItem::Tab(id)) => self.workspace.activate_tab(id),
-            Hit::Row(SidebarItem::Instance(instance)) => self.activate_instance(instance),
+            Hit::Row(SidebarItem::Instance(instance)) | Hit::RailInstance(instance) => {
+                self.activate_instance(instance)
+            }
             Hit::Terminal(pane) | Hit::TabBar(pane) => self.focus_pane(pane),
             _ => {}
         }
@@ -63,9 +65,7 @@ impl Running {
 
     fn click(&mut self, event_loop: &ActiveEventLoop, hit: Hit) {
         match hit {
-            Hit::SidebarToggle | Hit::SidebarExpand => {
-                self.command(event_loop, Command::ToggleSidebar)
-            }
+            Hit::SidebarToggle => self.command(event_loop, Command::ToggleSidebar),
             Hit::Minimize => self.window.set_minimized(true),
             Hit::Maximize => self.toggle_maximized(),
             Hit::Close => event_loop.exit(),

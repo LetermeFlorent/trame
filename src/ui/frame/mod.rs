@@ -9,7 +9,9 @@ mod titlebar;
 pub use editor::{EditAnchor, EditTarget, EditorFrame, EditorRequest, SwatchSlot};
 pub use label::fit_label;
 pub use panes::{PaneFrame, TabFrame, TabStrip};
-pub use sidebar::{RailFrame, SidebarFrame, SidebarItem, SidebarRow, dragged_width, shown_width};
+pub use sidebar::{
+    RailFrame, RailSlot, SidebarFrame, SidebarItem, SidebarRow, dragged_width, shown_width,
+};
 pub use titlebar::{TitleBarFrame, WindowControls};
 
 use crate::geometry::Rect;
@@ -60,7 +62,7 @@ impl FrameLayout {
             content,
         } = Columns::split(input, rest, reveal);
         let mut sidebar = (reveal > 0.0).then(|| sidebar::layout_sidebar(text, input, sidebar));
-        let rail = (reveal < 1.0).then(|| sidebar::layout_rail(&metrics, side));
+        let rail = (reveal < 1.0).then(|| sidebar::layout_rail(&metrics, input.workspace, side));
         let mut context = panes::PaneContext {
             text,
             metrics,

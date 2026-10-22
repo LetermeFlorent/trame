@@ -5,7 +5,7 @@ use crate::session::SessionId;
 use crate::theme::Swatch;
 use crate::ui::frame::{FrameLayout, SidebarItem};
 use crate::ui::metrics::UiMetrics;
-use crate::workspace::{Axis, PaneId};
+use crate::workspace::{Axis, InstanceId, PaneId};
 use zones::{hit_editor, hit_pane, hit_sidebar, hit_title_bar};
 
 const CORNER_FACTOR: f32 = 2.0;
@@ -27,7 +27,7 @@ pub enum Hit {
     Resize(ResizeEdge),
     TitleBar,
     SidebarToggle,
-    SidebarExpand,
+    RailInstance(InstanceId),
     SidebarEdge,
     Minimize,
     Maximize,
@@ -75,11 +75,11 @@ impl FrameLayout {
         {
             return Some(hit_sidebar(sidebar, point));
         }
-        if let Some(rail) = self.rail.filter(|rail| rail.rect.contains(point)) {
-            return Some(match rail.expand.contains(point) {
-                true => Hit::SidebarExpand,
-                false => Hit::Sidebar,
-            });
+        if let Some(rail) = self.rail.as_ref().filter(|rail| rail.rect.contains(point)) {
+            return Some(
+                rail.slot_at(point)
+                    .map_or(Hit::Sidebar, |slot| Hit::RailInstance(slot.id)),
+            );
         }
         if let Some(index) = self.divider_at(point) {
             return Some(Hit::Divider(index));

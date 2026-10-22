@@ -1,4 +1,5 @@
 use trame::geometry::Point;
+use trame::theme::Swatch;
 use trame::ui::frame::{dragged_width, shown_width};
 use trame::ui::{FrameLayout, Hit, UiMetrics};
 
@@ -65,4 +66,34 @@ fn the_edge_can_be_grabbed_open_or_collapsed() {
         collapsed.hit(middle_of_edge(&collapsed), false),
         Some(Hit::SidebarEdge)
     );
+}
+
+#[test]
+fn a_closed_sidebar_leaves_a_rail_with_one_button_per_instance() {
+    let mut text = text_system();
+    let mut workspace = workspace();
+    workspace.set_instance_color(workspace.instances[1].id, Some(Swatch::Teal));
+    workspace.sidebar_open = false;
+    let layout = frame(&mut text, &workspace);
+    let rail = layout.rail.as_ref().expect("the rail is shown");
+    assert!(layout.sidebar.is_none());
+    assert_eq!(rail.rect.width, UiMetrics::RAIL_WIDTH);
+    assert_eq!(layout.content.x, rail.rect.right());
+    assert_eq!(rail.slots.len(), workspace.instances.len());
+    for (slot, instance) in rail.slots.iter().zip(&workspace.instances) {
+        let hit = layout.hit(slot.rect.center(), false);
+        assert_eq!(hit, Some(Hit::RailInstance(instance.id)));
+        assert_eq!(slot.color, instance.color);
+        assert!(rail.rect.contains(slot.icon.center()));
+    }
+    assert!(rail.slots[workspace.active].active);
+    assert!(!rail.slots[1].active);
+    let below = Point::new(rail.rect.center().x, rail.rect.bottom() - 4.0);
+    assert_eq!(layout.hit(below, false), Some(Hit::Sidebar));
+}
+
+#[test]
+fn an_open_sidebar_has_no_rail() {
+    let mut text = text_system();
+    assert!(frame(&mut text, &workspace()).rail.is_none());
 }
