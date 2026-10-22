@@ -7,10 +7,6 @@ impl Grid {
         self.selection.as_ref()
     }
 
-    pub fn is_selected(&self, visible_row: usize, col: usize) -> bool {
-        self.is_selected_in_view(visible_row as isize, col)
-    }
-
     pub fn is_selected_in_view(&self, row: isize, col: usize) -> bool {
         let Some(line) = self.first_visible_line().checked_add_signed(row as i64) else {
             return false;

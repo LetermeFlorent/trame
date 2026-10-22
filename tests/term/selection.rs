@@ -18,7 +18,7 @@ fn a_plain_click_selects_nothing() {
     term.screen_mut()
         .start_selection(SelectionKind::Simple, 0, 2);
     assert_eq!(text(&term), None);
-    assert!(!term.screen().grid().is_selected(0, 2));
+    assert!(!term.screen().grid().is_selected_in_view(0, 2));
 }
 
 #[test]
@@ -26,9 +26,9 @@ fn drag_selects_cells_inclusively() {
     let mut term = feed(2, 10, "hello world");
     select(&mut term, SelectionKind::Simple, (0, 1), (0, 3));
     assert_eq!(text(&term).as_deref(), Some("ell"));
-    assert!(term.screen().grid().is_selected(0, 1));
-    assert!(term.screen().grid().is_selected(0, 3));
-    assert!(!term.screen().grid().is_selected(0, 4));
+    assert!(term.screen().grid().is_selected_in_view(0, 1));
+    assert!(term.screen().grid().is_selected_in_view(0, 3));
+    assert!(!term.screen().grid().is_selected_in_view(0, 4));
 }
 
 #[test]
@@ -77,9 +77,9 @@ fn word_stops_at_separators() {
 fn double_click_on_blanks_selects_the_blank_run() {
     let mut term = feed(1, 12, "ab    cd");
     term.screen_mut().start_selection(SelectionKind::Word, 0, 3);
-    assert!(term.screen().grid().is_selected(0, 2));
-    assert!(term.screen().grid().is_selected(0, 5));
-    assert!(!term.screen().grid().is_selected(0, 1));
+    assert!(term.screen().grid().is_selected_in_view(0, 2));
+    assert!(term.screen().grid().is_selected_in_view(0, 5));
+    assert!(!term.screen().grid().is_selected_in_view(0, 1));
 }
 
 #[test]
@@ -139,7 +139,7 @@ fn selection_stays_on_the_same_text_when_the_view_scrolls() {
     assert_eq!(text(&term).as_deref(), Some("two"));
     term.screen_mut().scroll_display(2);
     let grid = term.screen().grid();
-    let shown = (0..grid.rows()).find(|row| grid.is_selected(*row, 0));
+    let shown = (0..grid.rows()).find(|row| grid.is_selected_in_view(*row as isize, 0));
     assert_eq!(
         shown.map(|row| grid.visible_row(row).text()).as_deref(),
         Some("two")

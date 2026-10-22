@@ -1,4 +1,4 @@
-use trame::geometry::{Point, Rect};
+use trame::geometry::Rect;
 use trame::workspace::{Axis, PaneId, PaneLayout};
 
 use crate::{column, leaf, row, weighted};
@@ -84,25 +84,4 @@ fn nested_splits_stay_inside_their_parent_cell() {
         .map(|divider| (divider.path.clone(), divider.axis))
         .collect();
     assert_eq!(kinds, vec![(vec![], Axis::Row), (vec![1], Axis::Column)]);
-}
-
-#[test]
-fn pane_at_hits_panes_and_misses_gaps_and_outside_points() {
-    let layout = PaneLayout::compute(&row(vec![leaf(1), leaf(2)]), AREA, 4.0);
-    let hit = |x: f32, y: f32| layout.pane_at(Point::new(x, y)).map(|(pane, _)| pane);
-    assert_eq!(hit(0.0, 0.0), Some(PaneId(1)));
-    assert_eq!(hit(97.9, 50.0), Some(PaneId(1)));
-    assert_eq!(hit(98.0, 50.0), None);
-    assert_eq!(hit(101.9, 50.0), None);
-    assert_eq!(hit(102.0, 50.0), Some(PaneId(2)));
-    assert_eq!(hit(200.0, 50.0), None);
-    assert_eq!(hit(50.0, 100.0), None);
-    assert_eq!(hit(-1.0, 50.0), None);
-}
-
-#[test]
-fn pane_at_returns_the_rect_of_the_pane_it_found() {
-    let layout = PaneLayout::compute(&row(vec![leaf(1), leaf(2)]), AREA, 4.0);
-    let found = layout.pane_at(Point::new(150.0, 10.0));
-    assert_eq!(found, Some((PaneId(2), Rect::new(102.0, 0.0, 98.0, 100.0))));
 }

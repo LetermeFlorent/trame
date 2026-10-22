@@ -87,13 +87,6 @@ impl PaneLayout {
             .map(|(_, rect)| *rect)
     }
 
-    pub fn pane_at(&self, point: Point) -> Option<(PaneId, Rect)> {
-        self.panes
-            .iter()
-            .copied()
-            .find(|(_, rect)| rect.contains(point))
-    }
-
     pub fn neighbor(&self, from: PaneId, edge: Edge) -> Option<PaneId> {
         let origin = self.rect_of(from)?;
         let center = origin.center();

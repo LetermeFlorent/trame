@@ -1,7 +1,12 @@
-use trame::icon::{SIZE, pixel, pixels, window_icon};
+use trame::icon::{SIZE, pixels, window_icon};
 
 const BYTES_PER_PIXEL: usize = 4;
 const CENTER: u32 = SIZE / 2;
+
+fn pixel(x: u32, y: u32) -> &'static [u8] {
+    let start = (y * SIZE + x) as usize * BYTES_PER_PIXEL;
+    &pixels()[start..start + BYTES_PER_PIXEL]
+}
 
 #[test]
 fn embedded_pixels_cover_the_whole_square() {
