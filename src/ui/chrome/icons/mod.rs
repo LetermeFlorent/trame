@@ -1,24 +1,14 @@
+mod panels;
+
 use crate::color::Rgba;
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
+use panels::{grid, sidebar, split, terminal};
 
-const FRAME_INSET: f32 = 0.07;
-const FRAME_RADIUS: f32 = 0.18;
-const SIDEBAR_SPLIT: f32 = 0.38;
-const PANEL_ALPHA: f32 = 0.35;
 const PLUS_REACH: f32 = 0.36;
 const CROSS_REACH: f32 = 0.28;
 const DASH_REACH: f32 = 0.36;
 const RESTORE_OFFSET: f32 = 0.2;
-const GRID_GAP: f32 = 0.14;
-const GRID_RADIUS: f32 = 0.12;
-const CHEVRON_LEFT: f32 = 0.2;
-const CHEVRON_TIP: f32 = 0.46;
-const CHEVRON_TOP: f32 = 0.28;
-const CHEVRON_BOTTOM: f32 = 0.72;
-const CURSOR_LINE_Y: f32 = 0.74;
-const CURSOR_LINE_LEFT: f32 = 0.56;
-const CURSOR_LINE_RIGHT: f32 = 0.84;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Icon {
@@ -77,29 +67,6 @@ pub fn draw_icon(pen: &mut Pen, icon: Icon, rect: Rect) {
     }
 }
 
-fn icon_frame(rect: Rect, size: f32) -> Rect {
-    rect.inset((size * FRAME_INSET).round()).snapped()
-}
-
-fn sidebar(pen: &mut Pen, rect: Rect, size: f32, open: bool) {
-    let frame = icon_frame(rect, size);
-    let split = pen.crisp(frame.x + frame.width * SIDEBAR_SPLIT);
-    if open {
-        let panel = Rect::from_edges(frame.x, frame.y, split, frame.bottom());
-        let radius = size * FRAME_RADIUS;
-        pen.scene.fill(
-            panel,
-            pen.color.with_alpha(pen.color.a * PANEL_ALPHA),
-            radius,
-        );
-    }
-    pen.frame(frame, size * FRAME_RADIUS);
-    pen.line(
-        Point::new(split, frame.y),
-        Point::new(split, frame.bottom()),
-    );
-}
-
 fn cross(pen: &mut Pen, center: Point, reach: f32, diagonal: bool) {
     let point = |dx: f32, dy: f32| Point::new(center.x + dx, center.y + dy);
     if diagonal {
@@ -108,19 +75,6 @@ fn cross(pen: &mut Pen, center: Point, reach: f32, diagonal: bool) {
     } else {
         pen.line(point(-reach, 0.0), point(reach, 0.0));
         pen.line(point(0.0, -reach), point(0.0, reach));
-    }
-}
-
-fn split(pen: &mut Pen, rect: Rect, size: f32, vertical: bool) {
-    let frame = icon_frame(rect, size);
-    pen.frame(frame, size * FRAME_RADIUS);
-    let middle = frame.center();
-    if vertical {
-        let x = pen.crisp(middle.x);
-        pen.line(Point::new(x, frame.y), Point::new(x, frame.bottom()));
-    } else {
-        let y = pen.crisp(middle.y);
-        pen.line(Point::new(frame.x, y), Point::new(frame.right(), y));
     }
 }
 
@@ -145,29 +99,4 @@ fn restore(pen: &mut Pen, rect: Rect, size: f32) {
         Point::new(right, bottom),
         Point::new(rect.right() - offset, bottom),
     );
-}
-
-fn terminal(pen: &mut Pen, rect: Rect, size: f32) {
-    let at = |fx: f32, fy: f32| Point::new(rect.x + size * fx, rect.y + size * fy);
-    let tip = at(CHEVRON_TIP, 0.5);
-    pen.line(at(CHEVRON_LEFT, CHEVRON_TOP), tip);
-    pen.line(tip, at(CHEVRON_LEFT, CHEVRON_BOTTOM));
-    let base = pen.crisp(rect.y + size * CURSOR_LINE_Y);
-    pen.line(
-        Point::new(rect.x + size * CURSOR_LINE_LEFT, base),
-        Point::new(rect.x + size * CURSOR_LINE_RIGHT, base),
-    );
-}
-
-fn grid(pen: &mut Pen, rect: Rect, size: f32) {
-    let frame = icon_frame(rect, size);
-    let gap = (size * GRID_GAP).round().max(1.0);
-    let cell = ((frame.width - gap) / 2.0).floor();
-    for row in 0..2 {
-        for col in 0..2 {
-            let x = frame.x + col as f32 * (cell + gap);
-            let y = frame.y + row as f32 * (cell + gap);
-            pen.frame(Rect::new(x, y, cell, cell), size * GRID_RADIUS);
-        }
-    }
 }
