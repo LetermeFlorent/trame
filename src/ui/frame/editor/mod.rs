@@ -11,7 +11,7 @@ use crate::theme::Swatch;
 
 use crate::workspace::{InstanceId, PaneId};
 pub use row::SwatchSlot;
-use row::swatch_row;
+use row::{SwatchRow, swatch_row};
 
 const FIELD_INSET_Y: f32 = 2.0;
 const TEXT_PAD: f32 = 6.0;
@@ -99,16 +99,15 @@ impl FrameLayout {
         let metrics = &self.metrics;
         let bounds = self.bounds;
         let row = swatch_row(metrics);
-        let width = anchor.width.max(row.width).min(bounds.width);
-        let x = anchor.x.min(bounds.right() - width).max(bounds.x).round();
+        let field_width = anchor.width.min(bounds.width);
         let inset = metrics.px(FIELD_INSET_Y);
-        let field = Rect::new(x, anchor.y + inset, width, anchor.height - 2.0 * inset);
-        let below = field.bottom() + row.height <= bounds.bottom();
-        let strip_y = match below {
-            true => field.bottom(),
-            false => field.y - row.height,
-        };
-        let strip = Rect::new(x, strip_y, width, row.height);
+        let field = Rect::new(
+            clamp_x(anchor.x, field_width, bounds),
+            anchor.y + inset,
+            field_width,
+            anchor.height - 2.0 * inset,
+        );
+        let strip = place_strip(anchor, field, &row, bounds);
         let text_area = field.inset_by(metrics.px(TEXT_PAD), 0.0);
         let style = metrics.label();
         let label = text.layout(request.field.text(), style);
@@ -135,4 +134,17 @@ impl FrameLayout {
             selected: request.color,
         }
     }
+}
+
+fn clamp_x(x: f32, width: f32, bounds: Rect) -> f32 {
+    x.min(bounds.right() - width).max(bounds.x).round()
+}
+
+fn place_strip(anchor: Rect, field: Rect, row: &SwatchRow, bounds: Rect) -> Rect {
+    let width = anchor.width.max(row.width).min(bounds.width);
+    let y = match field.bottom() + row.height <= bounds.bottom() {
+        true => field.bottom(),
+        false => field.y - row.height,
+    };
+    Rect::new(clamp_x(anchor.x, width, bounds), y, width, row.height)
 }

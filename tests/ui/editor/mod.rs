@@ -49,7 +49,8 @@ fn the_field_covers_the_edited_tab_in_the_strip() {
     let tab = frame.panes[0].strip.tabs[1].rect;
     assert!((editor.field.x - tab.x).abs() <= 1.0);
     assert!(editor.field.y >= tab.y && editor.field.bottom() <= tab.bottom());
-    assert!(editor.field.width >= tab.width);
+    assert!((editor.field.width - tab.width).abs() <= 1.0);
+    assert!(editor.strip.width >= editor.field.width);
     assert_eq!(
         frame.hit(editor.field.center(), false),
         Some(Hit::EditField)
