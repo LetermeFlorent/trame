@@ -2,6 +2,7 @@ use unicode_width::UnicodeWidthChar;
 
 use super::Screen;
 use crate::term::cell::{Cell, Flags};
+use crate::term::grid::Row;
 use crate::term::modes::Modes;
 
 impl Screen {
@@ -59,8 +60,8 @@ impl Screen {
 
     fn write_cell(&mut self, c: char, width: usize) {
         let (row, col, template) = (self.cursor.row, self.cursor.col, self.cursor.template);
-        self.clear_wide_fragments(row, col, width);
         let line = self.grid_mut().row_mut(row);
+        clear_wide_fragments(line, col, width);
         let cell = line.cell_mut(col);
         *cell = Cell { ch: c, ..template };
         cell.flags.remove(Flags::WIDTH_MARKS);
@@ -75,19 +76,18 @@ impl Screen {
             spacer.flags.insert(Flags::WIDE_SPACER);
         }
     }
+}
 
-    fn clear_wide_fragments(&mut self, row: usize, col: usize, width: usize) {
-        let line = self.grid_mut().row_mut(row);
-        if col > 0 && line.cell(col).flags.contains(Flags::WIDE_SPACER) {
-            let leader = line.cell_mut(col - 1);
-            leader.ch = ' ';
-            leader.flags.remove(Flags::WIDTH_MARKS);
-        }
-        let last = col + width - 1;
-        if line.cell(last).flags.contains(Flags::WIDE) {
-            let spacer = line.cell_mut(last + 1);
-            spacer.ch = ' ';
-            spacer.flags.remove(Flags::WIDTH_MARKS);
-        }
+fn clear_wide_fragments(line: &mut Row, col: usize, width: usize) {
+    if col > 0 && line.cell(col).flags.contains(Flags::WIDE_SPACER) {
+        let leader = line.cell_mut(col - 1);
+        leader.ch = ' ';
+        leader.flags.remove(Flags::WIDTH_MARKS);
+    }
+    let last = col + width - 1;
+    if line.cell(last).flags.contains(Flags::WIDE) {
+        let spacer = line.cell_mut(last + 1);
+        spacer.ch = ' ';
+        spacer.flags.remove(Flags::WIDTH_MARKS);
     }
 }

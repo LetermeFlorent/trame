@@ -10,7 +10,10 @@ impl Row {
     pub fn blank(cols: usize, template: &Cell) -> Self {
         let blank = Cell::blank_with(template);
         if blank == Cell::default() {
-            return Self::default();
+            return Self {
+                cells: Vec::with_capacity(cols),
+                wrapped: false,
+            };
         }
         Self {
             cells: vec![blank; cols],
