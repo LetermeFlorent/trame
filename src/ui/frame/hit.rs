@@ -27,6 +27,7 @@ pub enum Hit {
     TitleBar,
     SidebarToggle,
     SidebarExpand,
+    SidebarEdge,
     Minimize,
     Maximize,
     Close,
@@ -62,6 +63,9 @@ impl FrameLayout {
         }
         if self.title_bar.rect.contains(point) {
             return Some(hit_title_bar(&self.title_bar, point));
+        }
+        if self.sidebar_edge().contains(point) {
+            return Some(Hit::SidebarEdge);
         }
         if let Some(sidebar) = self
             .sidebar

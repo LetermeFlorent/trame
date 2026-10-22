@@ -85,6 +85,7 @@ impl Running {
             event_loop.exit();
             return;
         }
+        self.motion.animate_next();
         self.changed();
     }
 

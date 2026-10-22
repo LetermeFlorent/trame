@@ -181,6 +181,7 @@ fn cursor_for(hit: Option<Hit>, frame: &FrameLayout) -> CursorIcon {
             Some(Axis::Column) => CursorIcon::RowResize,
             None => CursorIcon::Default,
         },
+        Some(Hit::SidebarEdge) => CursorIcon::ColResize,
         Some(Hit::Terminal(_) | Hit::EditField) => CursorIcon::Text,
         _ => CursorIcon::Default,
     }

@@ -91,6 +91,24 @@ fn sidebar_font_size_and_window_survive() {
 }
 
 #[test]
+fn the_sidebar_width_survives() {
+    let mut workspace = sample();
+    workspace.sidebar_width = Some(280.0);
+    let snapshot = snapshot_of(&workspace, &[]);
+    let parsed = Snapshot::from_json(&snapshot.to_json().expect("serializes")).expect("parses");
+    let (restored, _) = restore(&parsed);
+    assert_eq!(restored.sidebar_width, Some(280.0));
+}
+
+#[test]
+fn an_unusable_sidebar_width_falls_back_to_the_default() {
+    let mut snapshot = snapshot_of(&sample(), &[]);
+    snapshot.sidebar_width = Some(-5.0);
+    let (restored, _) = restore(&snapshot);
+    assert_eq!(restored.sidebar_width, None);
+}
+
+#[test]
 fn missing_window_is_left_out_of_the_file() {
     let snapshot = snapshot_of(&sample(), &[]);
     assert!(snapshot.window.is_none());

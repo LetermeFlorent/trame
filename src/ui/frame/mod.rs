@@ -1,21 +1,23 @@
 mod editor;
+pub mod hit;
 mod label;
 mod marks;
+mod panes;
 mod sidebar;
-mod tabs;
 mod titlebar;
 
 pub use editor::{EditAnchor, EditTarget, EditorFrame, EditorRequest, SwatchSlot};
 pub use label::fit_label;
-pub use sidebar::{RailFrame, SidebarFrame, SidebarItem, SidebarRow};
-pub use tabs::{TabFrame, TabStrip};
+pub use panes::{PaneFrame, TabFrame, TabStrip};
+pub use sidebar::{RailFrame, SidebarFrame, SidebarItem, SidebarRow, dragged_width, shown_width};
 pub use titlebar::{TitleBarFrame, WindowControls};
 
 use crate::geometry::Rect;
 use crate::session::SessionId;
-use crate::text::{CellMetrics, TextSystem};
+use crate::text::TextSystem;
 use crate::ui::metrics::UiMetrics;
-use crate::workspace::{Divider, Instance, PaneId, PaneLayout, Workspace};
+use crate::ui::motion::Motion;
+use crate::workspace::{Divider, PaneId, Workspace};
 
 pub struct FrameInput<'a> {
     pub workspace: &'a Workspace,
@@ -27,30 +29,12 @@ pub struct FrameInput<'a> {
 }
 
 #[derive(Clone, Debug)]
-pub struct PaneFrame {
-    pub id: PaneId,
-    pub rect: Rect,
-    pub focused: bool,
-    pub strip: TabStrip,
-    pub body: Rect,
-    pub terminal: Rect,
-    pub tabs: Vec<SessionId>,
-    pub active: Option<SessionId>,
-}
-
-impl PaneFrame {
-    pub fn grid_size(&self, cell: &CellMetrics) -> (usize, usize) {
-        let rows = (self.terminal.height / cell.height).floor().max(1.0) as usize;
-        let cols = (self.terminal.width / cell.width).floor().max(1.0) as usize;
-        (rows, cols)
-    }
-}
-
-#[derive(Clone, Debug)]
 pub struct FrameLayout {
     pub bounds: Rect,
     pub metrics: UiMetrics,
     pub title_bar: TitleBarFrame,
+    pub side: Rect,
+    pub reveal: f32,
     pub sidebar: Option<SidebarFrame>,
     pub rail: Option<RailFrame>,
     pub content: Rect,
@@ -61,6 +45,10 @@ pub struct FrameLayout {
 
 impl FrameLayout {
     pub fn compute(text: &mut TextSystem, input: &FrameInput) -> Self {
+        Self::compute_with(text, input, &mut Motion::default())
+    }
+
+    pub fn compute_with(text: &mut TextSystem, input: &FrameInput, motion: &mut Motion) -> Self {
         let metrics = input.metrics;
         let bounds = Rect::new(0.0, 0.0, input.width, input.height);
         let (bar, rest) = bounds.split_top(metrics.px(UiMetrics::TITLE_BAR));
@@ -70,20 +58,28 @@ impl FrameLayout {
             title: input.title,
         };
         let title_bar = titlebar::layout_title_bar(text, &metrics, bar, title_input);
-        let (mut sidebar, rail, content) = match input.workspace.sidebar_open {
-            true => {
-                let (side, content) = rest.split_left(metrics.px(UiMetrics::SIDEBAR_WIDTH));
-                let frame =
-                    sidebar::layout_sidebar(text, &metrics, side, input.workspace, input.title);
-                (Some(frame), None, content)
-            }
-            false => {
-                let (strip, content) = rest.split_left(metrics.px(UiMetrics::RAIL_WIDTH));
-                (None, Some(sidebar::layout_rail(&metrics, strip)), content)
-            }
+        let open = input.workspace.sidebar_open;
+        let reveal = motion.sidebar(open);
+        let rail_width = metrics.px(UiMetrics::RAIL_WIDTH);
+        let full_width = metrics
+            .px(shown_width(input.workspace.sidebar_width))
+            .round();
+        let visible_width = (rail_width + (full_width - rail_width) * reveal).round();
+        let (side, _) = rest.split_left(visible_width);
+        let (_, content) = rest.split_left(if open { full_width } else { rail_width });
+        let mut sidebar = (reveal > 0.0).then(|| {
+            let rect = Rect::new(side.right() - full_width, side.y, full_width, side.height);
+            sidebar::layout_sidebar(text, &metrics, rect, input.workspace, input.title)
+        });
+        let rail = (reveal < 1.0).then(|| sidebar::layout_rail(&metrics, side));
+        let mut context = panes::PaneContext {
+            text,
+            metrics,
+            title: input.title,
+            motion,
         };
         let (mut panes, dividers) = match input.workspace.active_instance() {
-            Some(instance) => layout_panes(text, &metrics, content, instance, input.title),
+            Some(instance) => panes::layout_panes(&mut context, content, instance),
             None => (Vec::new(), Vec::new()),
         };
         marks::apply(input.workspace, sidebar.as_mut(), &mut panes);
@@ -91,6 +87,8 @@ impl FrameLayout {
             bounds,
             metrics,
             title_bar,
+            side,
+            reveal,
             sidebar,
             rail,
             content,
@@ -100,38 +98,19 @@ impl FrameLayout {
         }
     }
 
+    pub fn sidebar_edge(&self) -> Rect {
+        let line = self.metrics.line();
+        let grab = self.metrics.px(UiMetrics::DIVIDER_GRAB);
+        Rect::new(
+            self.side.right() - line,
+            self.side.y,
+            line,
+            self.side.height,
+        )
+        .inset_by(-grab, 0.0)
+    }
+
     pub fn pane(&self, id: PaneId) -> Option<&PaneFrame> {
         self.panes.iter().find(|pane| pane.id == id)
     }
-}
-
-fn layout_panes(
-    text: &mut TextSystem,
-    metrics: &UiMetrics,
-    content: Rect,
-    instance: &Instance,
-    title: &dyn Fn(SessionId) -> String,
-) -> (Vec<PaneFrame>, Vec<Divider>) {
-    let layout = PaneLayout::compute(&instance.root, content, metrics.line());
-    let panes = layout
-        .panes
-        .iter()
-        .filter_map(|(id, rect)| {
-            let pane = instance.panes.get(id)?;
-            let (bar, body) = rect.split_top(metrics.px(UiMetrics::TAB_BAR));
-            let padding_x = metrics.px(UiMetrics::TERMINAL_PAD_X);
-            let padding_y = metrics.px(UiMetrics::TERMINAL_PAD_Y);
-            Some(PaneFrame {
-                id: *id,
-                rect: *rect,
-                focused: *id == instance.active_pane,
-                strip: tabs::layout_strip(text, metrics, bar, pane, title),
-                body,
-                terminal: body.inset_by(padding_x, padding_y),
-                tabs: pane.tabs.clone(),
-                active: pane.active_tab(),
-            })
-        })
-        .collect();
-    (panes, layout.dividers)
 }

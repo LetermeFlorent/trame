@@ -12,6 +12,7 @@ const FONT_STEP: f32 = 1.0;
 
 impl Running {
     pub(super) fn command(&mut self, event_loop: &ActiveEventLoop, command: Command) {
+        self.motion.animate_next();
         match command {
             Command::NewTab => self.open_or_report(event_loop, Placement::Tab),
             Command::NewInstance => self.open_or_report(event_loop, Placement::Instance),

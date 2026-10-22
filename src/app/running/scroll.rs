@@ -23,18 +23,29 @@ impl Running {
         else {
             return;
         };
+        let id = session.id();
         let mut terminal = session.terminal();
         let screen = terminal.screen_mut();
         match scroll {
             Scroll::Pages(pages) => {
                 let page = screen.rows().saturating_sub(1).max(1) as isize;
+                let before = screen.grid().display_offset();
                 screen.scroll_display(pages * page);
+                let after = screen.grid().display_offset();
+                let rows = screen.rows() as f32;
+                drop(terminal);
+                self.motion
+                    .scroll_by(id, before as f32 - after as f32, rows);
             }
             Scroll::Top => {
                 let history = screen.grid().history_len() as isize;
                 screen.scroll_display(history);
+                self.motion.stop_scroll(id);
             }
-            Scroll::Bottom => screen.reset_display(),
+            Scroll::Bottom => {
+                screen.reset_display();
+                self.motion.stop_scroll(id);
+            }
         }
     }
 
@@ -70,7 +81,14 @@ impl Running {
         let modes = terminal.screen().modes();
         match wheel_action(lines, modes) {
             WheelAction::History(lines) => {
-                terminal.screen_mut().scroll_display(lines);
+                let screen = terminal.screen_mut();
+                let before = screen.grid().display_offset();
+                screen.scroll_display(lines);
+                let after = screen.grid().display_offset();
+                let rows = screen.rows() as f32;
+                drop(terminal);
+                self.motion
+                    .scroll_by(id, before as f32 - after as f32, rows);
                 self.window.request_redraw();
             }
             WheelAction::Keys(count, up) => {

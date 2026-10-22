@@ -36,6 +36,9 @@ pub struct UiMetrics {
 impl UiMetrics {
     pub const TITLE_BAR: f32 = 32.0;
     pub const SIDEBAR_WIDTH: f32 = 216.0;
+    pub const SIDEBAR_MIN_WIDTH: f32 = 160.0;
+    pub const SIDEBAR_MAX_WIDTH: f32 = 480.0;
+    pub const SIDEBAR_COLLAPSE_WIDTH: f32 = 96.0;
     pub const RAIL_WIDTH: f32 = 38.0;
     pub const SIDEBAR_HEADER: f32 = 30.0;
     pub const SIDEBAR_ROW: f32 = 26.0;

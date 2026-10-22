@@ -99,6 +99,16 @@ impl Node {
         removed
     }
 
+    pub fn node(&self, path: &[usize]) -> Option<&Node> {
+        let Some((first, rest)) = path.split_first() else {
+            return Some(self);
+        };
+        match self {
+            Node::Split { children, .. } => children.get(*first)?.node(rest),
+            Node::Pane(_) => None,
+        }
+    }
+
     pub fn node_mut(&mut self, path: &[usize]) -> Option<&mut Node> {
         let Some((first, rest)) = path.split_first() else {
             return Some(self);

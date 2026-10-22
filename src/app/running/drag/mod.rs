@@ -1,3 +1,5 @@
+mod sidebar;
+
 use winit::keyboard::{Key, NamedKey};
 use winit::window::CursorIcon;
 
@@ -8,6 +10,7 @@ use trame::ui::drop::{DragView, DropSpot};
 use trame::workspace::{Axis, Divider, DropTarget, Node, resized};
 
 use super::Running;
+use sidebar::SidebarDrag;
 
 const DRAG_THRESHOLD: f32 = 4.0;
 
@@ -21,6 +24,7 @@ pub(super) enum Drag {
     Pending(SessionId, Point),
     Tab(SessionId, Point),
     Divider(DividerDrag),
+    Sidebar(SidebarDrag),
 }
 
 impl Running {
@@ -31,6 +35,7 @@ impl Running {
         self.drag = match hit {
             Hit::Tab(_, tab) => Some(Drag::Pending(tab, origin)),
             Hit::Divider(index) => self.divider_drag(index, origin).map(Drag::Divider),
+            Hit::SidebarEdge => Some(Drag::Sidebar(self.sidebar_drag())),
             _ => None,
         };
     }
@@ -64,6 +69,10 @@ impl Running {
                 }
                 Drag::Divider(drag)
             }
+            Some(Drag::Sidebar(drag)) => {
+                self.drag_sidebar(drag, point);
+                Drag::Sidebar(drag)
+            }
         };
         self.drag = Some(next);
         self.changed();
@@ -75,10 +84,11 @@ impl Running {
             Some(Drag::Tab(tab, pointer)) => {
                 if let Some(spot) = self.drop_spot(tab, pointer) {
                     self.workspace.move_tab(tab, spot.target);
+                    self.motion.animate_next();
                 }
                 true
             }
-            Some(Drag::Divider(_)) => true,
+            Some(Drag::Divider(_) | Drag::Sidebar(_)) => true,
             _ => false,
         }
     }
@@ -92,10 +102,14 @@ impl Running {
             None | Some(Drag::Pending(..)) => return false,
             Some(drag) => drag,
         };
-        if let Drag::Divider(drag) = drag
-            && let Some(instance) = self.workspace.active_instance_mut()
-        {
-            instance.root = drag.root;
+        match drag {
+            Drag::Divider(drag) => {
+                if let Some(instance) = self.workspace.active_instance_mut() {
+                    instance.root = drag.root;
+                }
+            }
+            Drag::Sidebar(drag) => self.restore_sidebar(drag),
+            _ => {}
         }
         self.pointer.pressed = None;
         self.view.pressed = None;
@@ -113,6 +127,7 @@ impl Running {
                 Axis::Row => CursorIcon::ColResize,
                 Axis::Column => CursorIcon::RowResize,
             }),
+            Some(Drag::Sidebar(_)) => Some(CursorIcon::ColResize),
             Some(Drag::Tab(..)) => Some(CursorIcon::Default),
             _ => None,
         }

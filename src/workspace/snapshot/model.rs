@@ -13,6 +13,8 @@ pub const SNAPSHOT_VERSION: u32 = 1;
 pub struct Snapshot {
     pub version: u32,
     pub sidebar_open: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sidebar_width: Option<f32>,
     pub font_size: f32,
     pub active_instance: usize,
     #[serde(default, skip_serializing_if = "Option::is_none")]

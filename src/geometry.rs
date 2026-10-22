@@ -52,6 +52,19 @@ impl Rect {
         point.x >= self.x && point.x < self.right() && point.y >= self.y && point.y < self.bottom()
     }
 
+    pub fn union(&self, other: Rect) -> Rect {
+        Rect::from_edges(
+            self.x.min(other.x),
+            self.y.min(other.y),
+            self.right().max(other.right()),
+            self.bottom().max(other.bottom()),
+        )
+    }
+
+    pub fn translated(&self, dx: f32, dy: f32) -> Rect {
+        Rect::new(self.x + dx, self.y + dy, self.width, self.height)
+    }
+
     pub fn intersect(&self, other: Rect) -> Rect {
         Rect::from_edges(
             self.x.max(other.x),

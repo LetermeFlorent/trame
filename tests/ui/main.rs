@@ -1,4 +1,7 @@
+mod drop;
 mod editor;
+mod motion;
+mod sidebar;
 
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};

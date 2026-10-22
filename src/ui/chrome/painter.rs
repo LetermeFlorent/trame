@@ -1,0 +1,101 @@
+use super::icons::{Icon, Pen, draw_icon};
+use crate::color::Rgba;
+use crate::geometry::Rect;
+use crate::render::Scene;
+use crate::text::{TextLayout, TextSystem};
+use crate::theme::Theme;
+use crate::ui::hit::Hit;
+use crate::ui::metrics::UiMetrics;
+use crate::ui::motion::Motion;
+use crate::ui::paint::FrameView;
+
+const ICON_STROKE: f32 = 1.25;
+const SMALL_RADIUS: f32 = 3.0;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum Press {
+    Idle,
+    Hover,
+    Pressed,
+}
+
+pub(super) struct Painter<'a> {
+    pub(super) scene: &'a mut Scene,
+    pub(super) text: &'a mut TextSystem,
+    pub(super) theme: &'a Theme,
+    pub(super) metrics: UiMetrics,
+    pub(super) view: &'a FrameView,
+    pub(super) motion: &'a Motion,
+}
+
+impl Painter<'_> {
+    pub(super) fn state(&self, hit: Hit) -> Press {
+        match (self.view.hover == Some(hit), self.view.pressed == Some(hit)) {
+            (true, true) => Press::Pressed,
+            (true, false) => Press::Hover,
+            _ => Press::Idle,
+        }
+    }
+
+    pub(super) fn button(&mut self, rect: Rect, hit: Hit, icon: Icon) {
+        let radius = self.metrics.px(UiMetrics::RADIUS);
+        self.icon_button(rect, hit, icon, radius);
+    }
+
+    pub(super) fn small_button(&mut self, rect: Rect, hit: Hit, icon: Icon) {
+        let radius = self.metrics.px(SMALL_RADIUS);
+        self.icon_button(rect, hit, icon, radius);
+    }
+
+    pub(super) fn glow(&self, hit: Hit) -> f32 {
+        self.motion.glow(hit)
+    }
+
+    fn icon_button(&mut self, rect: Rect, hit: Hit, icon: Icon, radius: f32) {
+        let theme = self.theme;
+        let glow = match self.state(hit) {
+            Press::Pressed => {
+                self.scene.fill(rect, theme.pressed, radius);
+                1.0
+            }
+            _ => {
+                let hover = theme.hover;
+                self.scene
+                    .fill(rect, hover.with_alpha(hover.a * self.glow(hit)), radius);
+                self.glow(hit)
+            }
+        };
+        let size = self.metrics.px(UiMetrics::ICON);
+        let color = theme.text_muted.mix(theme.text, glow);
+        self.icon(icon, centered(rect, size), color);
+    }
+
+    pub(super) fn icon(&mut self, icon: Icon, rect: Rect, color: Rgba) {
+        let stroke = (ICON_STROKE * self.metrics.scale).round().max(1.0);
+        let mut pen = Pen {
+            scene: self.scene,
+            color,
+            stroke,
+        };
+        draw_icon(&mut pen, icon, rect);
+    }
+
+    pub(super) fn label(&mut self, layout: &TextLayout, x: f32, rect: Rect, color: Rgba) {
+        let baseline = (rect.y + (rect.height + layout.ascent - layout.descent) / 2.0).round();
+        self.text
+            .draw_layout(self.scene, layout, x.round(), baseline, color);
+    }
+
+    pub(super) fn rule(&mut self, rect: Rect, color: Rgba) {
+        self.scene.fill(rect, color, 0.0);
+    }
+}
+
+pub(super) fn centered(rect: Rect, size: f32) -> Rect {
+    Rect::new(
+        (rect.x + (rect.width - size) / 2.0).round(),
+        (rect.y + (rect.height - size) / 2.0).round(),
+        size,
+        size,
+    )
+}
