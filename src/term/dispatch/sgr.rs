@@ -37,18 +37,10 @@ fn apply_group(template: &mut Cell, group: &[u16], rest: &mut ParamsIter) {
         28 => flags.remove(Flags::HIDDEN),
         29 => flags.remove(Flags::STRIKE),
         value @ 30..=37 => template.fg = Color::Indexed((value - 30) as u8),
-        38 => {
-            if let Some(color) = extended_color(group, rest) {
-                template.fg = color;
-            }
-        }
+        38 => template.fg = extended_color(group, rest).unwrap_or(template.fg),
         39 => template.fg = Color::Foreground,
         value @ 40..=47 => template.bg = Color::Indexed((value - 40) as u8),
-        48 => {
-            if let Some(color) = extended_color(group, rest) {
-                template.bg = color;
-            }
-        }
+        48 => template.bg = extended_color(group, rest).unwrap_or(template.bg),
         49 => template.bg = Color::Background,
         58 => {
             extended_color(group, rest);

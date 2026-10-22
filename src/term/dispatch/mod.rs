@@ -20,20 +20,10 @@ impl Screen {
             ([], b'B' | b'e') => self.move_down(count),
             ([], b'C' | b'a') => self.move_forward(count),
             ([], b'D') => self.move_backward(count),
-            ([], b'E') => {
-                self.move_down(count);
-                self.carriage_return();
-            }
-            ([], b'F') => {
-                self.move_up(count);
-                self.carriage_return();
-            }
+            ([], b'E') => self.cursor_next_line(count),
+            ([], b'F') => self.cursor_previous_line(count),
             ([], b'G' | b'`') => self.goto_col(count - 1),
-            ([], b'H' | b'f') => {
-                let row = usize::from(params.first_or(0, 1)) - 1;
-                let col = usize::from(params.first_or(1, 1)) - 1;
-                self.goto(row, col);
-            }
+            ([], b'H' | b'f') => self.cursor_position(params),
             ([], b'I') => self.tab_forward(count),
             ([] | [b'?'], b'J') => self.erase_display(raw),
             ([] | [b'?'], b'K') => self.erase_line(raw),
@@ -52,16 +42,27 @@ impl Screen {
             ([b'?'], b'h') => self.set_private_modes(params, true),
             ([b'?'], b'l') => self.set_private_modes(params, false),
             ([], b'm') => self.apply_sgr(params),
-            ([], b'r') => {
-                let top = usize::from(params.raw(0));
-                let bottom = usize::from(params.raw(1));
-                self.set_scroll_region(top, bottom);
-            }
+            ([], b'r') => self.set_scroll_region(params.raw(0).into(), params.raw(1).into()),
             ([], b's') => self.save_cursor(),
             ([], b'u') => self.restore_cursor(),
             ([b' '], b'q') => self.cursor_shape = CursorShape::from_decscusr(raw),
             ([b'!'], b'p') => self.soft_reset(),
             _ => self.report(params, intermediates, action),
         }
+    }
+    fn cursor_next_line(&mut self, count: usize) {
+        self.move_down(count);
+        self.carriage_return();
+    }
+
+    fn cursor_previous_line(&mut self, count: usize) {
+        self.move_up(count);
+        self.carriage_return();
+    }
+
+    fn cursor_position(&mut self, params: &Params) {
+        let row = usize::from(params.first_or(0, 1)) - 1;
+        let col = usize::from(params.first_or(1, 1)) - 1;
+        self.goto(row, col);
     }
 }

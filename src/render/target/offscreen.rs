@@ -69,9 +69,34 @@ pub fn read_texture(
 ) -> Result<Vec<u8>, ReadbackError> {
     let row = width * BYTES_PER_PIXEL;
     let padded = row.next_multiple_of(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT);
+    let size = wgpu::Extent3d {
+        width,
+        height,
+        depth_or_array_layers: 1,
+    };
+    let buffer = copy_to_buffer(gpu, texture, size, padded);
+    let slice = buffer.slice(..);
+    map_and_wait(gpu, &slice)?;
+    let mut pixels = Vec::with_capacity((row * height) as usize);
+    {
+        let mapped = slice.get_mapped_range().map_err(ReadbackError::Range)?;
+        for line in mapped.chunks(padded as usize) {
+            pixels.extend_from_slice(&line[..row as usize]);
+        }
+    }
+    buffer.unmap();
+    Ok(pixels)
+}
+
+fn copy_to_buffer(
+    gpu: &Gpu,
+    texture: &wgpu::Texture,
+    size: wgpu::Extent3d,
+    padded: u32,
+) -> wgpu::Buffer {
     let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("readback"),
-        size: u64::from(padded * height),
+        size: u64::from(padded * size.height),
         usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
         mapped_at_creation: false,
     });
@@ -87,17 +112,16 @@ pub fn read_texture(
             layout: wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(padded),
-                rows_per_image: Some(height),
+                rows_per_image: Some(size.height),
             },
         },
-        wgpu::Extent3d {
-            width,
-            height,
-            depth_or_array_layers: 1,
-        },
+        size,
     );
     gpu.queue.submit([encoder.finish()]);
-    let slice = buffer.slice(..);
+    buffer
+}
+
+fn map_and_wait(gpu: &Gpu, slice: &wgpu::BufferSlice) -> Result<(), ReadbackError> {
     let (sender, receiver) = mpsc::channel();
     slice.map_async(wgpu::MapMode::Read, move |result| {
         let _ = sender.send(result);
@@ -108,14 +132,5 @@ pub fn read_texture(
     receiver
         .try_recv()
         .unwrap_or(Err(wgpu::BufferAsyncError))
-        .map_err(ReadbackError::Map)?;
-    let mut pixels = Vec::with_capacity((row * height) as usize);
-    {
-        let mapped = slice.get_mapped_range().map_err(ReadbackError::Range)?;
-        for line in mapped.chunks(padded as usize) {
-            pixels.extend_from_slice(&line[..row as usize]);
-        }
-    }
-    buffer.unmap();
-    Ok(pixels)
+        .map_err(ReadbackError::Map)
 }
