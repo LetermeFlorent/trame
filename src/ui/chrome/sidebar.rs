@@ -1,7 +1,7 @@
-use super::{Icon, Painter, Press};
+use super::{Icon, Painter, Press, centered};
 use crate::geometry::Rect;
 use crate::theme::{Rgba, Swatch, Theme};
-use crate::ui::frame::{RailFrame, RailSlot, SidebarFrame, SidebarItem, SidebarRow};
+use crate::ui::frame::{FooterFrame, RailFrame, RailSlot, SidebarFrame, SidebarItem, SidebarRow};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
@@ -23,6 +23,25 @@ pub(super) fn draw_rail(painter: &mut Painter, rail: &RailFrame) {
         draw_slot(painter, slot);
     }
     painter.scene.pop_clip();
+}
+
+pub(super) fn draw_footer(painter: &mut Painter, footer: &FooterFrame, open: bool) {
+    let theme = painter.theme;
+    let line = painter.metrics.line();
+    let rect = footer.rect;
+    painter.rule(
+        Rect::new(rect.x, rect.y, rect.width - line, line),
+        theme.border,
+    );
+    draw_backdrop(painter, footer.settings, Hit::Settings, open, None);
+    let color = match open {
+        true => theme.text,
+        false => theme
+            .text_muted
+            .mix(theme.text, painter.glow(Hit::Settings)),
+    };
+    let size = painter.metrics.px(UiMetrics::ICON);
+    painter.icon(Icon::Gear, centered(footer.settings, size), color);
 }
 
 fn draw_slot(painter: &mut Painter, slot: &RailSlot) {

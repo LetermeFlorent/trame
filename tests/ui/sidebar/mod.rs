@@ -1,3 +1,5 @@
+mod settings;
+
 use trame::geometry::Point;
 use trame::theme::Swatch;
 use trame::ui::frame::{SidebarItem, dragged_width, shown_width};

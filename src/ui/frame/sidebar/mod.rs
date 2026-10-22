@@ -1,5 +1,7 @@
+mod footer;
 mod rail;
 mod row;
+mod settings;
 mod width;
 
 use std::sync::Arc;
@@ -11,9 +13,12 @@ use crate::theme::{Emblem, Swatch};
 use crate::ui::frame::FrameInput;
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::InstanceId;
+pub use footer::FooterFrame;
+pub(super) use footer::layout_footer;
 pub(super) use rail::layout_rail;
 pub use rail::{RailFrame, RailSlot};
 use row::{RowSpec, layout_row, row_specs};
+pub use settings::{SettingControl, SettingLine, SettingsFrame, Stepper};
 pub use width::{dragged_width, shown_width};
 
 const CAPTION: &str = "INSTANCES";

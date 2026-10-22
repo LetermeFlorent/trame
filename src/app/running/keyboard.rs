@@ -17,6 +17,7 @@ impl Running {
         if event.state != ElementState::Pressed
             || self.drag_key(&event.logical_key)
             || self.editing_key(event)
+            || self.settings_key(event)
         {
             return;
         }

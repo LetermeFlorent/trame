@@ -8,8 +8,6 @@ use super::Running;
 use super::pointer::Scroll;
 use super::tabs::Placement;
 
-const FONT_STEP: f32 = 1.0;
-
 impl Running {
     pub(super) fn command(&mut self, event_loop: &ActiveEventLoop, command: Command) {
         self.motion.animate_next();
@@ -33,9 +31,11 @@ impl Running {
             Command::NextInstance => self.cycle_instance(1),
             Command::PreviousInstance => self.cycle_instance(-1),
             Command::FocusPane(edge) => self.focus_neighbor(edge),
-            Command::FontBigger => self.set_font_size(self.font_size + FONT_STEP),
-            Command::FontSmaller => self.set_font_size(self.font_size - FONT_STEP),
-            Command::FontReset => self.set_font_size(TERMINAL_FONT_SIZE),
+            Command::FontBigger => self.set_preferences(self.preferences.step_font_size(1)),
+            Command::FontSmaller => self.set_preferences(self.preferences.step_font_size(-1)),
+            Command::FontReset => {
+                self.set_preferences(self.preferences.with_font_size(TERMINAL_FONT_SIZE))
+            }
             Command::ScrollPageUp => self.scroll_active(Scroll::Pages(1)),
             Command::ScrollPageDown => self.scroll_active(Scroll::Pages(-1)),
             Command::ScrollTop => self.scroll_active(Scroll::Top),

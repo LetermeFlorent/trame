@@ -1,32 +1,35 @@
-use std::path::PathBuf;
-
 use super::{
     InstanceSnapshot, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot, TabSnapshot,
 };
+use crate::preferences::Preferences;
 use crate::session::SessionId;
 use crate::workspace::{Instance, Node, Pane, Workspace};
 
-type CwdOf<'a> = &'a dyn Fn(SessionId) -> Option<PathBuf>;
+pub type DescribeTab<'a> = &'a dyn Fn(SessionId) -> TabSnapshot;
 
 impl Workspace {
-    pub fn snapshot(&self, font_size: f32, cwd: CwdOf) -> Snapshot {
+    pub fn snapshot(&self, preferences: Preferences, describe: DescribeTab) -> Snapshot {
         Snapshot {
             version: SNAPSHOT_VERSION,
             sidebar_open: self.sidebar_open,
             sidebar_width: self.sidebar_width,
-            font_size,
+            preferences,
             active_instance: self.active,
             window: None,
             instances: self
                 .instances
                 .iter()
-                .map(|instance| capture_instance(self, instance, cwd))
+                .map(|instance| capture_instance(self, instance, describe))
                 .collect(),
         }
     }
 }
 
-fn capture_instance(workspace: &Workspace, instance: &Instance, cwd: CwdOf) -> InstanceSnapshot {
+fn capture_instance(
+    workspace: &Workspace,
+    instance: &Instance,
+    describe: DescribeTab,
+) -> InstanceSnapshot {
     let order = instance.root.panes();
     InstanceSnapshot {
         name: instance.name.clone(),
@@ -36,7 +39,7 @@ fn capture_instance(workspace: &Workspace, instance: &Instance, cwd: CwdOf) -> I
             .iter()
             .position(|id| *id == instance.active_pane)
             .unwrap_or(0),
-        root: capture_node(workspace, instance, &instance.root, cwd),
+        root: capture_node(workspace, instance, &instance.root, describe),
     }
 }
 
@@ -44,14 +47,14 @@ fn capture_node(
     workspace: &Workspace,
     instance: &Instance,
     node: &Node,
-    cwd: CwdOf,
+    describe: DescribeTab,
 ) -> NodeSnapshot {
     match node {
         Node::Pane(id) => NodeSnapshot::Pane(
             instance
                 .panes
                 .get(id)
-                .map(|pane| capture_pane(workspace, pane, cwd))
+                .map(|pane| capture_pane(workspace, pane, describe))
                 .unwrap_or_default(),
         ),
         Node::Split {
@@ -65,23 +68,29 @@ fn capture_node(
             pinned: pinned.clone(),
             children: children
                 .iter()
-                .map(|child| capture_node(workspace, instance, child, cwd))
+                .map(|child| capture_node(workspace, instance, child, describe))
                 .collect(),
         },
     }
 }
 
-fn capture_pane(workspace: &Workspace, pane: &Pane, cwd: CwdOf) -> PaneSnapshot {
+fn capture_pane(workspace: &Workspace, pane: &Pane, describe: DescribeTab) -> PaneSnapshot {
     PaneSnapshot {
         tabs: pane
             .tabs
             .iter()
-            .map(|tab| TabSnapshot {
-                cwd: cwd(*tab).filter(|path| path.to_str().is_some()),
-                title: workspace.tab_name(*tab).map(str::to_owned),
-                color: workspace.tab_color(*tab),
-            })
+            .map(|tab| capture_tab(workspace, *tab, describe))
             .collect(),
         active: pane.active,
+    }
+}
+
+fn capture_tab(workspace: &Workspace, id: SessionId, describe: DescribeTab) -> TabSnapshot {
+    let described = describe(id);
+    TabSnapshot {
+        cwd: described.cwd.filter(|path| path.to_str().is_some()),
+        title: workspace.tab_name(id).map(str::to_owned),
+        color: workspace.tab_color(id),
+        transcript: described.transcript,
     }
 }

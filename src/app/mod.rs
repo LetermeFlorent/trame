@@ -1,6 +1,7 @@
 mod graphics;
 mod persist;
 mod running;
+mod saver;
 mod sessions;
 mod update;
 mod visibility;
@@ -88,7 +89,7 @@ impl ApplicationHandler<UserEvent> for App {
 
     fn exiting(&mut self, _: &ActiveEventLoop) {
         if let Some(running) = &mut self.running {
-            running.save_session();
+            running.save_on_exit();
         }
         self.running = None;
     }

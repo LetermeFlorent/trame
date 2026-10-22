@@ -11,8 +11,8 @@ pub use marks::{TabMark, clean_name};
 pub use moves::DropTarget;
 pub use pane::Pane;
 pub use snapshot::{
-    InstanceSnapshot, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot, SnapshotError,
-    TabSnapshot, WindowSnapshot,
+    DescribeTab, InstanceSnapshot, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot,
+    SnapshotError, TabSnapshot, WindowSnapshot,
 };
 pub use tree::{Axis, Divider, Edge, MIN_PANE, Node, PaneId, PaneLayout, resize_split, resized};
 

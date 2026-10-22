@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::SnapshotError;
+use crate::preferences::Preferences;
 use crate::theme::{Emblem, Swatch};
 use crate::workspace::Axis;
 
@@ -15,7 +16,8 @@ pub struct Snapshot {
     pub sidebar_open: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sidebar_width: Option<f32>,
-    pub font_size: f32,
+    #[serde(flatten)]
+    pub preferences: Preferences,
     pub active_instance: usize,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub window: Option<WindowSnapshot>,
@@ -66,6 +68,8 @@ pub struct TabSnapshot {
     pub title: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<Swatch>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transcript: Option<String>,
 }
 
 impl Snapshot {

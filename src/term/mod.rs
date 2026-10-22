@@ -20,6 +20,7 @@ pub const DEFAULT_HISTORY: usize = 10_000;
 pub struct Terminal {
     parser: Parser,
     screen: Screen,
+    generation: u64,
 }
 
 impl Terminal {
@@ -27,11 +28,17 @@ impl Terminal {
         Self {
             parser: Parser::new(),
             screen: Screen::new(rows, cols, max_history),
+            generation: 0,
         }
     }
 
     pub fn feed(&mut self, bytes: &[u8]) {
         self.parser.advance(&mut self.screen, bytes);
+        self.generation = self.generation.wrapping_add(1);
+    }
+
+    pub fn generation(&self) -> u64 {
+        self.generation
     }
 
     pub fn screen(&self) -> &Screen {

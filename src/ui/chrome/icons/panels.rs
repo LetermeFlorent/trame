@@ -1,3 +1,5 @@
+use std::f32::consts::TAU;
+
 use super::Pen;
 use crate::geometry::{Point, Rect};
 
@@ -14,6 +16,12 @@ const CHEVRON_BOTTOM: f32 = 0.72;
 const CURSOR_LINE_Y: f32 = 0.74;
 const CURSOR_LINE_LEFT: f32 = 0.56;
 const CURSOR_LINE_RIGHT: f32 = 0.84;
+const GEAR_RING: f32 = 0.3;
+const GEAR_HOLE: f32 = 0.12;
+const GEAR_TOOTH_FROM: f32 = 0.24;
+const GEAR_TOOTH_TO: f32 = 0.45;
+const GEAR_TOOTH_WIDTH: f32 = 0.16;
+const GEAR_TEETH: usize = 8;
 
 pub(super) fn icon_frame(rect: Rect, size: f32) -> Rect {
     rect.inset((size * FRAME_INSET).round()).snapped()
@@ -73,5 +81,25 @@ pub(super) fn grid(pen: &mut Pen, rect: Rect, size: f32) {
             let y = frame.y + row as f32 * (cell + gap);
             pen.frame(Rect::new(x, y, cell, cell), size * GRID_RADIUS);
         }
+    }
+}
+
+pub(super) fn gear(pen: &mut Pen, rect: Rect, size: f32) {
+    let center = rect.center();
+    let ring = size * GEAR_RING;
+    let body = Rect::new(center.x - ring, center.y - ring, ring * 2.0, ring * 2.0);
+    pen.scene
+        .border(body, pen.color, ring, ring - size * GEAR_HOLE);
+    let width = (size * GEAR_TOOTH_WIDTH).max(pen.stroke);
+    for tooth in 0..GEAR_TEETH {
+        let angle = tooth as f32 * TAU / GEAR_TEETH as f32;
+        let (sin, cos) = angle.sin_cos();
+        let at = |reach: f32| Point::new(center.x + cos * reach, center.y + sin * reach);
+        pen.scene.line(
+            at(size * GEAR_TOOTH_FROM),
+            at(size * GEAR_TOOTH_TO),
+            width,
+            pen.color,
+        );
     }
 }

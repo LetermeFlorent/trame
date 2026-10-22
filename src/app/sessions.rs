@@ -11,6 +11,13 @@ use trame::term::ReportedColors;
 
 use super::UserEvent;
 
+pub struct ShellStart<'a> {
+    pub cwd: Option<&'a Path>,
+    pub size: (usize, usize),
+    pub colors: ReportedColors,
+    pub transcript: &'a [u8],
+}
+
 pub struct Sessions {
     map: HashMap<SessionId, Session>,
     origins: HashMap<SessionId, PathBuf>,
@@ -40,23 +47,18 @@ impl Sessions {
         SessionId(self.next)
     }
 
-    pub fn spawn(
-        &mut self,
-        id: SessionId,
-        cwd: Option<&Path>,
-        size: (usize, usize),
-        colors: ReportedColors,
-    ) -> io::Result<()> {
+    pub fn spawn(&mut self, id: SessionId, start: &ShellStart) -> io::Result<()> {
         let options = SessionOptions {
             shell: &self.shell,
-            cwd,
-            rows: size.0,
-            cols: size.1,
-            colors,
+            cwd: start.cwd,
+            rows: start.size.0,
+            cols: start.size.1,
+            colors: start.colors,
+            transcript: start.transcript,
         };
         let session = Session::spawn(id, &options, self.notify.clone())?;
         self.map.insert(id, session);
-        if let Some(path) = cwd {
+        if let Some(path) = start.cwd {
             self.origins.insert(id, path.to_path_buf());
         }
         Ok(())

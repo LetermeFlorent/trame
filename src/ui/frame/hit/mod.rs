@@ -3,12 +3,10 @@ mod zones;
 use crate::geometry::Point;
 use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
-use crate::ui::frame::{FrameLayout, SidebarItem};
+use crate::ui::frame::{FrameLayout, SettingControl, SidebarItem};
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{Axis, InstanceId, PaneId};
-use zones::{hit_editor, hit_pane, hit_sidebar, hit_title_bar};
-
-const CORNER_FACTOR: f32 = 2.0;
+use zones::{hit_editor, hit_pane, hit_sidebar, hit_title_bar, resize_edge};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ResizeEdge {
@@ -46,6 +44,9 @@ pub enum Hit {
     EditField,
     EditSwatch(Option<Swatch>),
     EditEmblem(Emblem),
+    Settings,
+    SettingsPanel,
+    Setting(SettingControl),
 }
 
 impl FrameLayout {
@@ -53,9 +54,17 @@ impl FrameLayout {
         if !self.bounds.contains(point) {
             return None;
         }
-        if let Some(edge) = resizable.then(|| self.resize_edge(point)).flatten() {
-            return Some(Hit::Resize(edge));
-        }
+        let border = self.metrics.px(UiMetrics::RESIZE_BORDER);
+        resizable
+            .then(|| resize_edge(self.bounds, border, point))
+            .flatten()
+            .map(Hit::Resize)
+            .or_else(|| self.overlay_hit(point))
+            .or_else(|| self.chrome_hit(point))
+            .or_else(|| self.content_hit(point))
+    }
+
+    fn overlay_hit(&self, point: Point) -> Option<Hit> {
         if let Some(hit) = self
             .editor
             .as_ref()
@@ -63,11 +72,29 @@ impl FrameLayout {
         {
             return Some(hit);
         }
+        let settings = self
+            .settings
+            .as_ref()
+            .filter(|panel| panel.rect.contains(point))?;
+        Some(
+            settings
+                .control_at(point)
+                .map_or(Hit::SettingsPanel, Hit::Setting),
+        )
+    }
+
+    fn chrome_hit(&self, point: Point) -> Option<Hit> {
         if self.title_bar.rect.contains(point) {
             return Some(hit_title_bar(&self.title_bar, point));
         }
         if self.sidebar_edge().contains(point) {
             return Some(Hit::SidebarEdge);
+        }
+        if self.footer.rect.contains(point) {
+            return Some(match self.footer.settings.contains(point) {
+                true => Hit::Settings,
+                false => Hit::Sidebar,
+            });
         }
         if let Some(sidebar) = self
             .sidebar
@@ -76,12 +103,17 @@ impl FrameLayout {
         {
             return Some(hit_sidebar(sidebar, point));
         }
-        if let Some(rail) = self.rail.as_ref().filter(|rail| rail.rect.contains(point)) {
-            return Some(
-                rail.slot_at(point)
-                    .map_or(Hit::Sidebar, |slot| Hit::RailInstance(slot.id)),
-            );
-        }
+        let rail = self
+            .rail
+            .as_ref()
+            .filter(|rail| rail.rect.contains(point))?;
+        Some(
+            rail.slot_at(point)
+                .map_or(Hit::Sidebar, |slot| Hit::RailInstance(slot.id)),
+        )
+    }
+
+    fn content_hit(&self, point: Point) -> Option<Hit> {
         if let Some(index) = self.divider_at(point) {
             return Some(Hit::Divider(index));
         }
@@ -100,31 +132,5 @@ impl FrameLayout {
             };
             zone.contains(point)
         })
-    }
-
-    fn resize_edge(&self, point: Point) -> Option<ResizeEdge> {
-        let border = self.metrics.px(UiMetrics::RESIZE_BORDER);
-        let corner = border * CORNER_FACTOR;
-        let bounds = self.bounds;
-        let near = |distance: f32, reach: f32| distance < reach;
-        let west = near(point.x - bounds.x, border);
-        let east = near(bounds.right() - point.x, border);
-        let north = near(point.y - bounds.y, border);
-        let south = near(bounds.bottom() - point.y, border);
-        let west_corner = near(point.x - bounds.x, corner);
-        let east_corner = near(bounds.right() - point.x, corner);
-        let north_corner = near(point.y - bounds.y, corner);
-        let south_corner = near(bounds.bottom() - point.y, corner);
-        match () {
-            _ if (north && west_corner) || (west && north_corner) => Some(ResizeEdge::NorthWest),
-            _ if (north && east_corner) || (east && north_corner) => Some(ResizeEdge::NorthEast),
-            _ if (south && west_corner) || (west && south_corner) => Some(ResizeEdge::SouthWest),
-            _ if (south && east_corner) || (east && south_corner) => Some(ResizeEdge::SouthEast),
-            _ if north => Some(ResizeEdge::North),
-            _ if south => Some(ResizeEdge::South),
-            _ if west => Some(ResizeEdge::West),
-            _ if east => Some(ResizeEdge::East),
-            _ => None,
-        }
     }
 }

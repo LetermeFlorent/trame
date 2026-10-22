@@ -10,7 +10,8 @@ use std::path::PathBuf;
 
 use windows_sys::Win32::Foundation::WAIT_OBJECT_0;
 use windows_sys::Win32::System::Console::{
-    COORD, ClosePseudoConsole, CreatePseudoConsole, HPCON, ResizePseudoConsole,
+    COORD, ClosePseudoConsole, CreatePseudoConsole, HPCON, PSEUDOCONSOLE_INHERIT_CURSOR,
+    ResizePseudoConsole,
 };
 use windows_sys::Win32::System::Threading::{GetExitCodeProcess, INFINITE, WaitForSingleObject};
 
@@ -95,7 +96,7 @@ fn create_console(size: PtySize, input: &OwnedHandle, output: &OwnedHandle) -> i
             coord(size),
             input.as_raw_handle(),
             output.as_raw_handle(),
-            0,
+            PSEUDOCONSOLE_INHERIT_CURSOR,
             &mut console,
         )
     };

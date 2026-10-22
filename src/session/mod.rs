@@ -1,6 +1,7 @@
 pub mod pty;
 mod threads;
 mod title;
+mod transcript;
 
 use std::io;
 use std::path::{Path, PathBuf};
@@ -11,6 +12,9 @@ use std::thread;
 
 use crate::term::{DEFAULT_HISTORY, ReportedColors, Terminal};
 use pty::{Pty, PtyOptions, PtySize, ShellCommand};
+pub use transcript::{
+    MAX_TRANSCRIPT_BYTES, TRANSCRIPT_SAVE_INTERVAL, Transcripts, transcript_of, transcript_within,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct SessionId(pub u64);
@@ -29,6 +33,7 @@ pub struct SessionOptions<'a> {
     pub rows: usize,
     pub cols: usize,
     pub colors: ReportedColors,
+    pub transcript: &'a [u8],
 }
 
 pub struct Session {
@@ -52,6 +57,7 @@ impl Session {
         })?;
         let mut terminal = Terminal::new(rows, cols, DEFAULT_HISTORY);
         terminal.screen_mut().set_reported_colors(options.colors);
+        terminal.feed(options.transcript);
         let terminal = Arc::new(Mutex::new(terminal));
         let (input, queue) = mpsc::channel();
         let pending = Arc::new(AtomicBool::new(false));

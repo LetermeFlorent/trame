@@ -7,7 +7,7 @@ mod tabbar;
 mod titlebar;
 
 pub use icons::{Icon, Pen, draw_icon};
-pub use overlay::{draw_editor, draw_tooltip};
+pub use overlay::{draw_editor, draw_settings, draw_tooltip};
 
 use self::painter::{Painter, Press, centered};
 use crate::render::Scene;
@@ -55,6 +55,7 @@ pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
         painter.scene.pop_opacity();
         painter.scene.pop_clip();
     }
+    sidebar::draw_footer(&mut painter, &frame.footer, frame.settings.is_some());
     for pane in &frame.panes {
         tabbar::draw(&mut painter, pane);
     }

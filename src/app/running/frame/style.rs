@@ -1,27 +1,39 @@
+use std::mem;
+
+use trame::preferences::Preferences;
 use trame::text::DEFAULT_LINE_HEIGHT;
 use trame::theme::{Appearance, Theme};
 use trame::ui::UiMetrics;
-use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE};
 
 use crate::app::running::Running;
 
 impl Running {
     pub(in crate::app::running) fn rescale(&mut self, scale: f32) {
-        self.metrics = UiMetrics::new(scale);
-        self.apply_font();
+        self.window_scale = scale;
+        self.apply_scale();
     }
 
-    pub(in crate::app::running) fn set_font_size(&mut self, size: f32) {
-        let size = size.clamp(MIN_TERMINAL_FONT_SIZE, MAX_TERMINAL_FONT_SIZE);
-        if size != self.font_size {
-            self.font_size = size;
-            self.apply_font();
+    pub(in crate::app::running) fn set_preferences(&mut self, preferences: Preferences) {
+        let preferences = preferences.sanitized();
+        let previous = mem::replace(&mut self.preferences, preferences);
+        if previous == preferences {
+            return;
+        }
+        if previous.restore_text && !preferences.restore_text {
+            self.transcripts.clear();
+        }
+        self.saver.touch();
+        let sizes = |kept: Preferences| (kept.font_size, kept.interface_size);
+        match sizes(previous) == sizes(preferences) {
+            true => self.changed(),
+            false => self.apply_scale(),
         }
     }
 
-    fn apply_font(&mut self) {
-        let size = self.font_size * self.metrics.scale;
-        self.text.set_terminal_font(size, DEFAULT_LINE_HEIGHT);
+    fn apply_scale(&mut self) {
+        self.metrics = UiMetrics::new(self.preferences.ui_scale(self.window_scale));
+        let font = self.preferences.font_pixels(self.window_scale);
+        self.text.set_terminal_font(font, DEFAULT_LINE_HEIGHT);
         self.changed();
     }
 

@@ -1,12 +1,14 @@
 mod invalid;
 mod marks;
 mod nesting;
+mod preferences;
 mod round_trip;
 mod sanitize;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use trame::preferences::Preferences;
 use trame::session::SessionId;
 use trame::workspace::{
     Instance, InstanceSnapshot, Node, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot,
@@ -20,7 +22,10 @@ pub fn snapshot_of(workspace: &Workspace, cwds: &[(u64, &str)]) -> Snapshot {
         .iter()
         .map(|(id, path)| (SessionId(*id), PathBuf::from(path)))
         .collect();
-    workspace.snapshot(14.0, &|id| known.get(&id).cloned())
+    workspace.snapshot(Preferences::default(), &|id| TabSnapshot {
+        cwd: known.get(&id).cloned(),
+        ..TabSnapshot::default()
+    })
 }
 
 pub fn restore(snapshot: &Snapshot) -> (Workspace, Vec<TabSnapshot>) {
@@ -70,7 +75,7 @@ pub fn single(root: NodeSnapshot) -> Snapshot {
         version: SNAPSHOT_VERSION,
         sidebar_open: true,
         sidebar_width: None,
-        font_size: 14.0,
+        preferences: Preferences::default(),
         active_instance: 0,
         window: None,
         instances: vec![instance_of(root)],

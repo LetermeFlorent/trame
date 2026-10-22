@@ -10,7 +10,8 @@ pub use editor::{EditAnchor, EditTarget, EditorFrame, EditorRequest, EmblemSlot,
 pub use label::fit_label;
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{
-    RailFrame, RailSlot, SidebarFrame, SidebarItem, SidebarRow, dragged_width, shown_width,
+    FooterFrame, RailFrame, RailSlot, SettingControl, SettingLine, SettingsFrame, SidebarFrame,
+    SidebarItem, SidebarRow, Stepper, dragged_width, shown_width,
 };
 pub use titlebar::{TitleBarFrame, WindowControls};
 
@@ -39,10 +40,12 @@ pub struct FrameLayout {
     pub reveal: f32,
     pub sidebar: Option<SidebarFrame>,
     pub rail: Option<RailFrame>,
+    pub footer: FooterFrame,
     pub content: Rect,
     pub panes: Vec<PaneFrame>,
     pub dividers: Vec<Divider>,
     pub editor: Option<EditorFrame>,
+    pub settings: Option<SettingsFrame>,
 }
 
 impl FrameLayout {
@@ -56,13 +59,13 @@ impl FrameLayout {
         let (bar, rest) = bounds.split_top(metrics.px(UiMetrics::TITLE_BAR));
         let title_bar = titlebar::layout_title_bar(text, input, bar);
         let reveal = motion.sidebar(input.workspace.sidebar_open);
-        let Columns {
-            side,
-            sidebar,
-            content,
-        } = Columns::split(input, rest, reveal);
-        let mut sidebar = (reveal > 0.0).then(|| sidebar::layout_sidebar(text, input, sidebar));
-        let rail = (reveal < 1.0).then(|| sidebar::layout_rail(&metrics, input.workspace, side));
+        let columns = Columns::split(input, rest, reveal);
+        let (side, content) = (columns.side, columns.content);
+        let footer = sidebar::layout_footer(&metrics, side);
+        let mut sidebar = (reveal > 0.0)
+            .then(|| sidebar::layout_sidebar(text, input, footer.above(columns.sidebar)));
+        let rail = (reveal < 1.0)
+            .then(|| sidebar::layout_rail(&metrics, input.workspace, footer.above(side)));
         let mut context = panes::PaneContext {
             text,
             metrics,
@@ -82,10 +85,12 @@ impl FrameLayout {
             reveal,
             sidebar,
             rail,
+            footer,
             content,
             panes,
             dividers,
             editor: None,
+            settings: None,
         }
     }
 

@@ -1,5 +1,7 @@
+pub mod files;
 pub mod geometry;
 pub mod input;
+pub mod preferences;
 pub mod render;
 pub mod session;
 pub mod term;

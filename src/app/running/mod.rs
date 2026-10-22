@@ -4,6 +4,7 @@ mod frame;
 mod keyboard;
 mod lifecycle;
 mod pointer;
+mod settings;
 mod tabs;
 
 use std::collections::HashMap;
@@ -16,15 +17,16 @@ use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
 use trame::geometry::Point;
+use trame::preferences::Preferences;
 use trame::render::Scene;
-use trame::session::{SessionEvent, SessionId};
+use trame::session::{SessionEvent, SessionId, Transcripts};
 use trame::text::TextSystem;
 use trame::theme::Theme;
 use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
-use super::persist::Saver;
+use super::saver::Saver;
 use super::sessions::Sessions;
 use super::visibility::Visibility;
 use super::{UserEvent, window};
@@ -38,10 +40,12 @@ pub struct Running {
     scene: Scene,
     theme: Theme,
     metrics: UiMetrics,
-    font_size: f32,
+    window_scale: f32,
+    preferences: Preferences,
     workspace: Workspace,
     sessions: Sessions,
     saver: Saver,
+    transcripts: Transcripts,
     labels: HashMap<SessionId, String>,
     frame: FrameLayout,
     motion: Motion,
@@ -49,6 +53,7 @@ pub struct Running {
     pointer: Pointer,
     drag: Option<Drag>,
     editing: Option<Editing>,
+    settings_open: bool,
     selecting: Selecting,
     modifiers: ModifiersState,
     visibility: Visibility,

@@ -6,6 +6,7 @@ use trame::session::{Session, SessionId};
 use trame::workspace::{Edge, InstanceId, PaneId};
 
 use super::Running;
+use crate::app::sessions::ShellStart;
 
 pub(super) const FALLBACK_GRID: (usize, usize) = (24, 80);
 
@@ -32,9 +33,13 @@ impl Running {
             }
         }
         self.relayout();
-        let size = self.grid_size_of(id).unwrap_or(FALLBACK_GRID);
-        let colors = self.theme.reported_colors();
-        let spawned = self.sessions.spawn(id, cwd.as_deref(), size, colors);
+        let start = ShellStart {
+            cwd: cwd.as_deref(),
+            size: self.grid_size_of(id).unwrap_or(FALLBACK_GRID),
+            colors: self.theme.reported_colors(),
+            transcript: &[],
+        };
+        let spawned = self.sessions.spawn(id, &start);
         if spawned.is_err() {
             self.workspace.close_tab(id);
         }

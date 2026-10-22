@@ -1,6 +1,8 @@
-use super::Hit;
+use super::{Hit, ResizeEdge};
 use crate::geometry::{Point, Rect};
 use crate::ui::frame::{EditorFrame, PaneFrame, SidebarFrame, TitleBarFrame};
+
+const CORNER_FACTOR: f32 = 2.0;
 
 pub(super) fn hit_title_bar(bar: &TitleBarFrame, point: Point) -> Hit {
     if bar.toggle.contains(point) {
@@ -69,4 +71,28 @@ fn first_hit(candidates: &[(Rect, Hit)], point: Point) -> Option<Hit> {
         .iter()
         .find(|(rect, _)| rect.contains(point))
         .map(|(_, hit)| *hit)
+}
+
+pub(super) fn resize_edge(bounds: Rect, border: f32, point: Point) -> Option<ResizeEdge> {
+    let corner = border * CORNER_FACTOR;
+    let near = |distance: f32, reach: f32| distance < reach;
+    let west = near(point.x - bounds.x, border);
+    let east = near(bounds.right() - point.x, border);
+    let north = near(point.y - bounds.y, border);
+    let south = near(bounds.bottom() - point.y, border);
+    let west_corner = near(point.x - bounds.x, corner);
+    let east_corner = near(bounds.right() - point.x, corner);
+    let north_corner = near(point.y - bounds.y, corner);
+    let south_corner = near(bounds.bottom() - point.y, corner);
+    match () {
+        _ if (north && west_corner) || (west && north_corner) => Some(ResizeEdge::NorthWest),
+        _ if (north && east_corner) || (east && north_corner) => Some(ResizeEdge::NorthEast),
+        _ if (south && west_corner) || (west && south_corner) => Some(ResizeEdge::SouthWest),
+        _ if (south && east_corner) || (east && south_corner) => Some(ResizeEdge::SouthEast),
+        _ if north => Some(ResizeEdge::North),
+        _ if south => Some(ResizeEdge::South),
+        _ if west => Some(ResizeEdge::West),
+        _ if east => Some(ResizeEdge::East),
+        _ => None,
+    }
 }

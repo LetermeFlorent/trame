@@ -44,6 +44,7 @@ pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSourc
     }
     chrome::draw_dividers(scene, theme, frame, view);
     chrome::draw_editor(scene, text, &input);
+    chrome::draw_settings(scene, text, &input);
     match sources.drag {
         Some(drag) => draw_drag(scene, text, &input, drag),
         None => chrome::draw_tooltip(scene, text, &input),

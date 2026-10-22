@@ -70,6 +70,8 @@ impl Running {
             Hit::Maximize => self.toggle_maximized(),
             Hit::Close => event_loop.exit(),
             Hit::NewInstance => self.command(event_loop, Command::NewInstance),
+            Hit::Settings => self.toggle_settings(),
+            Hit::Setting(control) => self.apply_setting(control),
             Hit::RowClose(SidebarItem::Instance(id)) => self.close_instance(event_loop, id),
             Hit::RowClose(SidebarItem::Tab(id)) | Hit::TabClose(_, id) => {
                 self.close_tab(event_loop, id)

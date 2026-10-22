@@ -7,16 +7,16 @@ use std::time::{Duration, Instant};
 use trame::session::pty::{PtyOptions, PtySize, default_shell, spawn};
 use trame::term::Terminal;
 
-const ROWS: usize = 24;
-const COLS: usize = 100;
-const TIMEOUT: Duration = Duration::from_secs(40);
+pub(crate) const ROWS: usize = 24;
+pub(crate) const COLS: usize = 100;
+pub(crate) const TIMEOUT: Duration = Duration::from_secs(40);
 
 #[cfg(windows)]
-const COMMAND: &[u8] = b"echo ('trame-' + 6*7)\r";
+pub(crate) const COMMAND: &[u8] = b"echo ('trame-' + 6*7)\r";
 #[cfg(unix)]
-const COMMAND: &[u8] = b"echo trame-$((6*7))\r";
+pub(crate) const COMMAND: &[u8] = b"echo trame-$((6*7))\r";
 
-fn screen_text(terminal: &Terminal) -> String {
+pub(crate) fn screen_text(terminal: &Terminal) -> String {
     let screen = terminal.screen();
     (0..screen.rows())
         .map(|row| screen.grid().row(row).text())

@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
+use trame::preferences::Preferences;
 use trame::session::SessionId;
-use trame::workspace::{Snapshot, SnapshotError, Workspace};
+use trame::workspace::{Snapshot, SnapshotError, TabSnapshot, Workspace};
 
 use super::{pane, single, snapshot_of};
 
@@ -94,7 +95,7 @@ fn unknown_extra_fields_are_ignored() {
 
 #[test]
 fn empty_workspace_has_nothing_to_restore() {
-    let snapshot = Workspace::new().snapshot(14.0, &|_| None);
+    let snapshot = Workspace::new().snapshot(Preferences::default(), &|_| TabSnapshot::default());
     assert!(snapshot.instances.is_empty());
     let result = Workspace::restore(&snapshot, &mut |_| SessionId(1));
     assert!(matches!(result, Err(SnapshotError::Empty)));
@@ -102,7 +103,7 @@ fn empty_workspace_has_nothing_to_restore() {
 
 #[test]
 fn empty_workspace_round_trips_through_json() {
-    let snapshot = Workspace::new().snapshot(14.0, &|_| None);
+    let snapshot = Workspace::new().snapshot(Preferences::default(), &|_| TabSnapshot::default());
     let text = snapshot.to_json().expect("serializes");
     assert_eq!(Snapshot::from_json(&text).expect("parses"), snapshot);
 }

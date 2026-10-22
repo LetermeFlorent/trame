@@ -35,6 +35,7 @@ impl Scenario {
             rows: 24,
             cols: 80,
             colors: self.colors,
+            transcript: &[],
         };
         let notify: Notifier = Arc::new(|_| {});
         self.sessions
