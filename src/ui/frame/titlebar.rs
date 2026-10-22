@@ -1,11 +1,10 @@
 use std::sync::Arc;
 
+use super::FrameInput;
 use super::label::fit_label;
 use crate::geometry::Rect;
-use crate::session::SessionId;
 use crate::text::{TextLayout, TextSystem};
 use crate::ui::metrics::{Platform, UiMetrics};
-use crate::workspace::Workspace;
 
 const TOGGLE_MARGIN: f32 = 8.0;
 const TITLE_GAP: f32 = 10.0;
@@ -31,29 +30,9 @@ pub struct TitleBarFrame {
     pub maximized: bool,
 }
 
-pub struct TitleInput<'a> {
-    pub workspace: &'a Workspace,
-    pub maximized: bool,
-    pub title: &'a dyn Fn(SessionId) -> String,
-}
-
-pub fn layout_title_bar(
-    text: &mut TextSystem,
-    metrics: &UiMetrics,
-    rect: Rect,
-    input: TitleInput,
-) -> TitleBarFrame {
-    let inset = match metrics.platform {
-        Platform::Mac => metrics.px(UiMetrics::MAC_CONTROLS_INSET),
-        _ => 0.0,
-    };
-    let button = metrics.px(UiMetrics::BUTTON);
-    let toggle = Rect::new(
-        rect.x + inset + metrics.px(TOGGLE_MARGIN),
-        (rect.y + (rect.height - button) / 2.0).round(),
-        button,
-        button,
-    );
+pub fn layout_title_bar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> TitleBarFrame {
+    let metrics = &input.metrics;
+    let toggle = sidebar_toggle(metrics, rect);
     let controls = metrics
         .platform
         .draws_window_controls()
@@ -88,6 +67,20 @@ pub fn layout_title_bar(
         controls,
         maximized: input.maximized,
     }
+}
+
+fn sidebar_toggle(metrics: &UiMetrics, rect: Rect) -> Rect {
+    let inset = match metrics.platform {
+        Platform::Mac => metrics.px(UiMetrics::MAC_CONTROLS_INSET),
+        _ => 0.0,
+    };
+    let button = metrics.px(UiMetrics::BUTTON);
+    Rect::new(
+        rect.x + inset + metrics.px(TOGGLE_MARGIN),
+        (rect.y + (rect.height - button) / 2.0).round(),
+        button,
+        button,
+    )
 }
 
 fn window_controls(metrics: &UiMetrics, rect: Rect) -> WindowControls {

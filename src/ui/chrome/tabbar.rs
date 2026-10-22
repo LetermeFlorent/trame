@@ -33,14 +33,33 @@ pub(super) fn draw(painter: &mut Painter, pane: &PaneFrame) {
 
 fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_active: bool) {
     let theme = painter.theme;
-    let line = painter.metrics.line();
-    let radius = painter.metrics.px(TAB_RADIUS);
     let rect = tab.rect;
     let glow = painter.glow(Hit::Tab(pane.id, tab.id));
     painter.scene.push_clip(rect);
+    draw_tab_fill(painter, pane, tab, glow);
+    if !tab.active && !before_active {
+        draw_separator(painter, rect);
+    }
+    let color = match tab.active {
+        true => theme.text,
+        false => theme.text_muted.mix(theme.text, glow),
+    };
+    painter.label(&tab.label, tab.label_x, rect, color);
+    let close_opacity = if tab.active { 1.0 } else { glow };
+    painter.scene.push_opacity(close_opacity);
+    painter.small_button(tab.close, Hit::TabClose(pane.id, tab.id), Icon::Close);
+    painter.scene.pop_opacity();
+    painter.scene.pop_clip();
+}
+
+fn draw_tab_fill(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, glow: f32) {
+    let theme = painter.theme;
+    let radius = painter.metrics.px(TAB_RADIUS);
+    let rect = tab.rect;
     if tab.active {
         painter.scene.fill_top(rect, theme.tab_active, radius);
     } else {
+        let line = painter.metrics.line();
         let hover = theme.hover.with_alpha(theme.hover.a * glow);
         let above_rule = Rect::new(rect.x, rect.y, rect.width, rect.height - line);
         painter.scene.fill_top(above_rule, hover, radius);
@@ -56,24 +75,17 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
         painter.scene.fill_top(rect, color, radius);
         painter.scene.pop_clip();
     }
-    if !tab.active && !before_active {
-        let inset = painter.metrics.px(SEPARATOR_INSET);
-        let separator = Rect::new(
-            rect.right() - line,
-            rect.y + inset,
-            line,
-            rect.height - inset * 2.0,
-        );
-        painter.rule(separator, theme.border);
-    }
-    let color = match tab.active {
-        true => theme.text,
-        false => theme.text_muted.mix(theme.text, glow),
-    };
-    painter.label(&tab.label, tab.label_x, rect, color);
-    let close_opacity = if tab.active { 1.0 } else { glow };
-    painter.scene.push_opacity(close_opacity);
-    painter.small_button(tab.close, Hit::TabClose(pane.id, tab.id), Icon::Close);
-    painter.scene.pop_opacity();
-    painter.scene.pop_clip();
+}
+
+fn draw_separator(painter: &mut Painter, rect: Rect) {
+    let line = painter.metrics.line();
+    let inset = painter.metrics.px(SEPARATOR_INSET);
+    let separator = Rect::new(
+        rect.right() - line,
+        rect.y + inset,
+        line,
+        rect.height - inset * 2.0,
+    );
+    let border = painter.theme.border;
+    painter.rule(separator, border);
 }

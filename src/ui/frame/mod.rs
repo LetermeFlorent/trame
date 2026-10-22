@@ -52,12 +52,7 @@ impl FrameLayout {
         let metrics = input.metrics;
         let bounds = Rect::new(0.0, 0.0, input.width, input.height);
         let (bar, rest) = bounds.split_top(metrics.px(UiMetrics::TITLE_BAR));
-        let title_input = titlebar::TitleInput {
-            workspace: input.workspace,
-            maximized: input.maximized,
-            title: input.title,
-        };
-        let title_bar = titlebar::layout_title_bar(text, &metrics, bar, title_input);
+        let title_bar = titlebar::layout_title_bar(text, input, bar);
         let reveal = motion.sidebar(input.workspace.sidebar_open);
         let Columns {
             side,
