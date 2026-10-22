@@ -12,6 +12,7 @@ use trame::workspace::{Instance, Workspace};
 
 use super::Running;
 use crate::app::sessions::Sessions;
+use crate::app::window;
 
 const ATLAS_ATTEMPTS: usize = 2;
 
@@ -58,6 +59,9 @@ fn title_of(
 
 impl Running {
     pub(super) fn relayout(&mut self) {
+        if !window::has_area(&self.window) {
+            return;
+        }
         let visible = self.workspace.active_instance().map(Instance::tabs);
         self.labels = visible
             .unwrap_or_default()

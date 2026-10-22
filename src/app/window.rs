@@ -70,6 +70,11 @@ fn platform_attributes(attributes: WindowAttributes) -> WindowAttributes {
     WindowAttributesExtX11::with_name(attributes, APP_NAME, APP_NAME).with_decorations(false)
 }
 
+pub fn has_area(window: &Window) -> bool {
+    let size = window.inner_size();
+    window.is_minimized() != Some(true) && size.width > 0 && size.height > 0
+}
+
 #[cfg(windows)]
 pub fn round_corners(window: &Window) {
     use windows_sys::Win32::Graphics::Dwm::{
