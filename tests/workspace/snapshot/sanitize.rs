@@ -1,7 +1,7 @@
 use trame::session::SessionId;
 use trame::workspace::{Axis, NodeSnapshot, PaneSnapshot, SnapshotError, TabSnapshot, Workspace};
 
-use crate::{instance_of, pane, restore, shape, single};
+use super::{instance_of, pane, restore, shape, single};
 
 fn row(ratios: Vec<f32>, children: Vec<NodeSnapshot>) -> NodeSnapshot {
     NodeSnapshot::Split {

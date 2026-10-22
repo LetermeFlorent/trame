@@ -1,5 +1,6 @@
 mod editor;
 mod icons;
+pub mod logo;
 mod painter;
 mod sidebar;
 mod tabbar;

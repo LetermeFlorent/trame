@@ -6,7 +6,7 @@ mod resize;
 mod select;
 mod view;
 
-use super::charset::CharsetState;
+use super::cursor::charset::CharsetState;
 use super::cursor::{Cursor, CursorShape, SavedCursor};
 use super::grid::Grid;
 use super::modes::Modes;

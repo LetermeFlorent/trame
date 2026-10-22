@@ -1,4 +1,4 @@
-use crate::color::Rgba;
+use crate::theme::Rgba;
 
 const CUBE_START: u8 = 16;
 const GRAY_START: u8 = 232;

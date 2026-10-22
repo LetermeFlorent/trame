@@ -2,7 +2,7 @@ use trame::session::SessionId;
 use trame::theme::Swatch;
 use trame::workspace::{Snapshot, Workspace};
 
-use crate::{FIRST_RESTORED_ID, restore, snapshot_of};
+use super::{FIRST_RESTORED_ID, restore, snapshot_of};
 
 const OLD_FILE: &str = r#"{"version":1,"sidebar_open":true,"font_size":14.0,"active_instance":0,"instances":[{"name":"old","active_pane":0,"root":{"Pane":{"tabs":[{"cwd":"/home/ada"},{}],"active":0}}}]}"#;
 

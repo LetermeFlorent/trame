@@ -1,6 +1,6 @@
 use crate::term::cell::{Cell, Color, Flags};
 use crate::term::screen::Screen;
-use crate::vt::{Params, ParamsIter};
+use crate::term::vt::{Params, ParamsIter};
 
 impl Screen {
     pub(crate) fn apply_sgr(&mut self, params: &Params) {

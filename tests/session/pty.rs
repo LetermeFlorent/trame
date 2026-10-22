@@ -4,7 +4,7 @@ use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use trame::pty::{PtyOptions, PtySize, default_shell, spawn};
+use trame::session::pty::{PtyOptions, PtySize, default_shell, spawn};
 use trame::term::Terminal;
 
 const ROWS: usize = 24;

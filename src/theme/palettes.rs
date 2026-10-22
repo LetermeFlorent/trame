@@ -1,5 +1,5 @@
 use super::{Appearance, Theme};
-use crate::color::Rgba;
+use crate::theme::Rgba;
 
 pub fn dark() -> Theme {
     let accent = Rgba::hex(0x74ade8);

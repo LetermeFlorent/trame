@@ -6,10 +6,10 @@ use std::error::Error;
 
 use common::{Args, Studio};
 use sample::{LINES, Sample};
-use trame::color::Rgba;
 use trame::geometry::{Point, Rect};
 use trame::render::Scene;
 use trame::text::{CellText, FontRole, REGULAR, SEMIBOLD, TextLayout, TextStyle, TextSystem};
+use trame::theme::Rgba;
 
 const WIDTH: f32 = 760.0;
 const HEIGHT: f32 = 420.0;

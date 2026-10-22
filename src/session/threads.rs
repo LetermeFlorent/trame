@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use super::{Notifier, SessionEvent, SessionId, lock};
-use crate::pty::Child;
+use crate::session::pty::Child;
 use crate::term::{Modes, Terminal};
 
 const READ_BUFFER: usize = 64 * 1024;

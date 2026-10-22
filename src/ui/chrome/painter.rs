@@ -1,8 +1,8 @@
 use super::icons::{Icon, Pen, draw_icon};
-use crate::color::Rgba;
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::text::{TextLayout, TextSystem};
+use crate::theme::Rgba;
 use crate::theme::Theme;
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;

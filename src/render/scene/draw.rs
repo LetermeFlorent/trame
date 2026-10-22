@@ -1,8 +1,8 @@
 use super::Scene;
 use super::shape::{QuadKind, Shape};
-use crate::color::Rgba;
 use crate::geometry::{Point, Rect};
 use crate::render::atlas::{AtlasKind, AtlasRegion};
+use crate::theme::Rgba;
 
 impl Scene {
     pub fn fill(&mut self, rect: Rect, color: Rgba, radius: f32) {

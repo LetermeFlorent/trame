@@ -8,7 +8,7 @@ mod sgr;
 
 use crate::term::cursor::CursorShape;
 use crate::term::screen::Screen;
-use crate::vt::Params;
+use crate::term::vt::Params;
 
 impl Screen {
     pub(crate) fn csi(&mut self, params: &Params, intermediates: &[u8], action: u8) {

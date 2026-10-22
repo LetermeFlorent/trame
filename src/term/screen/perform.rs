@@ -1,5 +1,5 @@
 use super::Screen;
-use crate::vt::{Params, Perform};
+use crate::term::vt::{Params, Perform};
 
 impl Perform for Screen {
     fn print(&mut self, c: char) {

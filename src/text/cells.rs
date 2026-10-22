@@ -4,9 +4,9 @@ use super::font::{BOLD, FontId, FontKey, REGULAR};
 use super::metrics::CellMetrics;
 use super::raster::GlyphKey;
 use super::system::TextSystem;
-use crate::color::Rgba;
 use crate::geometry::Point;
 use crate::render::{AtlasRegion, Scene};
+use crate::theme::Rgba;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CellText {

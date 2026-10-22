@@ -4,9 +4,9 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
-use trame::color::Rgba;
 use trame::render::{Gpu, OFFSCREEN_FORMAT, Renderer, Scene, render_to_rgba};
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
+use trame::theme::Rgba;
 
 pub struct Args {
     pub output: PathBuf,

@@ -4,7 +4,7 @@ use super::atlas::{Atlas, AtlasKind};
 use super::gpu::Gpu;
 use super::pipeline::{self, Bindings, Globals};
 use super::scene::{Quad, Scene};
-use crate::color::Rgba;
+use crate::theme::Rgba;
 
 const INITIAL_QUAD_CAPACITY: usize = 4096;
 

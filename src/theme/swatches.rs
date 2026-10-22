@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::{Appearance, Theme};
-use crate::color::Rgba;
+use crate::theme::Rgba;
 
 const TINT_DARK: f32 = 0.16;
 const TINT_LIGHT: f32 = 0.12;

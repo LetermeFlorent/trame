@@ -1,10 +1,8 @@
-mod clipboard;
+mod dispatch;
 mod editing;
-mod modes;
-mod reports;
 mod scrolling;
 mod selection;
-mod style;
+mod vt;
 
 use trame::term::Terminal;
 

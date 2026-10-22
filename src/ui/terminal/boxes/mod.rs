@@ -36,8 +36,8 @@ pub(super) fn draw(scene: &mut Scene, ch: char, ink: Ink) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::Rgba;
     use crate::geometry::Rect;
+    use crate::theme::Rgba;
 
     fn cell() -> Ink {
         Ink {

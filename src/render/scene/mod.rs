@@ -4,8 +4,8 @@ mod shape;
 use bytemuck::{Pod, Zeroable};
 
 use self::shape::Shape;
-use crate::color::Rgba;
 use crate::geometry::Rect;
+use crate::theme::Rgba;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]

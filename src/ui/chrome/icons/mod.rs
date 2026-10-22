@@ -1,8 +1,8 @@
 mod panels;
 
-use crate::color::Rgba;
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
+use crate::theme::Rgba;
 use panels::{grid, sidebar, split, terminal};
 
 const PLUS_REACH: f32 = 0.36;

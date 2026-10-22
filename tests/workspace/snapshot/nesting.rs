@@ -1,7 +1,7 @@
 use trame::session::SessionId;
 use trame::workspace::{Axis, Edge, Node, NodeSnapshot, Snapshot, Workspace};
 
-use crate::{pane, restore, shape, single, snapshot_of};
+use super::{pane, restore, shape, single, snapshot_of};
 
 fn nested() -> Workspace {
     let mut workspace = Workspace::new();

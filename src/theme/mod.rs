@@ -1,11 +1,12 @@
 mod ansi;
+mod color;
 mod palettes;
 mod swatches;
 pub mod system;
 
+pub use color::Rgba;
 pub use swatches::Swatch;
 
-use crate::color::Rgba;
 use crate::term::{Color, ReportedColors};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

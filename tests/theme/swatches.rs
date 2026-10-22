@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use trame::color::Rgba;
+use trame::theme::Rgba;
 use trame::theme::{Appearance, Swatch, Theme};
 
 const MIN_CONTRAST: f32 = 3.0;

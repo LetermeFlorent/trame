@@ -1,9 +1,9 @@
 use super::{GridPaint, Ink, boxes, style};
-use crate::color::Rgba;
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::term::{Cell, Flags};
 use crate::text::{CellText, TextSystem};
+use crate::theme::Rgba;
 
 pub(super) struct RowPaint<'a> {
     pub(super) cells: &'a [Cell],

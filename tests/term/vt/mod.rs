@@ -3,7 +3,7 @@ mod recorder;
 use recorder::{Event, Recorder};
 
 fn parse(bytes: &[u8]) -> Vec<Event> {
-    let mut parser = trame::vt::Parser::new();
+    let mut parser = trame::term::vt::Parser::new();
     let mut recorder = Recorder::default();
     parser.advance(&mut recorder, bytes);
     recorder.events
@@ -24,7 +24,7 @@ fn prints_ascii_and_executes_controls() {
 
 #[test]
 fn decodes_utf8_across_chunks() {
-    let mut parser = trame::vt::Parser::new();
+    let mut parser = trame::term::vt::Parser::new();
     let mut recorder = Recorder::default();
     let bytes = "é漢".as_bytes();
     parser.advance(&mut recorder, &bytes[..1]);

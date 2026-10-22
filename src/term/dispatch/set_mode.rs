@@ -1,6 +1,6 @@
 use crate::term::modes::Modes;
 use crate::term::screen::Screen;
-use crate::vt::Params;
+use crate::term::vt::Params;
 
 impl Screen {
     pub(crate) fn set_ansi_modes(&mut self, params: &Params, enabled: bool) {

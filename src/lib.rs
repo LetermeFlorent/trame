@@ -1,13 +1,9 @@
-pub mod color;
 pub mod geometry;
-pub mod icon;
 pub mod input;
-pub mod pty;
 pub mod render;
 pub mod session;
 pub mod term;
 pub mod text;
 pub mod theme;
 pub mod ui;
-pub mod vt;
 pub mod workspace;

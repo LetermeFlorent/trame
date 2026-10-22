@@ -3,11 +3,11 @@ mod cursor;
 mod row;
 mod style;
 
-use crate::color::Rgba;
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::term::Screen;
 use crate::text::{CellMetrics, TextSystem};
+use crate::theme::Rgba;
 use crate::theme::Theme;
 
 pub use cursor::CursorPlace;

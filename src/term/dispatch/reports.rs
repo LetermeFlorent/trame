@@ -1,6 +1,6 @@
 use crate::term::modes::Modes;
 use crate::term::screen::Screen;
-use crate::vt::Params;
+use crate::term::vt::Params;
 
 const PRIMARY_ATTRIBUTES: &[u8] = b"\x1b[?62;22c";
 const SECONDARY_ATTRIBUTES: &[u8] = b"\x1b[>1;10;0c";

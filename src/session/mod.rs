@@ -1,3 +1,4 @@
+pub mod pty;
 mod threads;
 mod title;
 
@@ -8,8 +9,8 @@ use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::thread;
 
-use crate::pty::{self, Pty, PtyOptions, PtySize, ShellCommand};
 use crate::term::{DEFAULT_HISTORY, ReportedColors, Terminal};
+use pty::{Pty, PtyOptions, PtySize, ShellCommand};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct SessionId(pub u64);

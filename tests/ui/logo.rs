@@ -1,4 +1,4 @@
-use trame::icon::{SIZE, pixels, window_icon};
+use trame::ui::chrome::logo::{SIZE, pixels, window_icon};
 
 const BYTES_PER_PIXEL: usize = 4;
 const CENTER: u32 = SIZE / 2;

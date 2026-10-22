@@ -1,12 +1,12 @@
 pub mod cell;
-pub mod charset;
 pub mod cursor;
 mod dispatch;
 pub mod grid;
 pub mod modes;
 pub mod screen;
+pub mod vt;
 
-use crate::vt::Parser;
+use vt::Parser;
 
 pub use cell::{Cell, Color, Flags};
 pub use cursor::CursorShape;

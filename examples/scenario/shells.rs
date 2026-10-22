@@ -4,7 +4,7 @@ use std::error::Error;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use trame::pty::{ShellCommand, default_shell};
+use trame::session::pty::{ShellCommand, default_shell};
 use trame::session::{Notifier, Session, SessionId, SessionOptions};
 use trame::term::ReportedColors;
 use trame::text::CellMetrics;

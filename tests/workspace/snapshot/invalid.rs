@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use trame::session::SessionId;
 use trame::workspace::{Snapshot, SnapshotError, Workspace};
 
-use crate::{pane, single, snapshot_of};
+use super::{pane, single, snapshot_of};
 
 const MINIMAL: &str = r#"{"version":1,"sidebar_open":true,"font_size":14.0,"active_instance":0,"instances":[{"name":"a","active_pane":0,"root":{"Pane":{"tabs":[{}],"active":0}}}]}"#;
 
@@ -71,7 +71,7 @@ fn missing_or_odd_version_is_refused() {
 #[test]
 fn tab_without_a_directory_parses() {
     let snapshot = Snapshot::from_json(MINIMAL).expect("parses");
-    let (workspace, seen) = crate::restore(&snapshot);
+    let (workspace, seen) = super::restore(&snapshot);
     assert_eq!(workspace.tabs().len(), 1);
     assert_eq!(seen[0].cwd, None);
     assert_eq!(seen[0].title, None);
@@ -81,7 +81,7 @@ fn tab_without_a_directory_parses() {
 fn directory_and_title_are_read_when_present() {
     let text = MINIMAL.replace("{}", r#"{"cwd":"/srv/app","title":"deploy"}"#);
     let snapshot = Snapshot::from_json(&text).expect("parses");
-    let (_, seen) = crate::restore(&snapshot);
+    let (_, seen) = super::restore(&snapshot);
     assert_eq!(seen[0].cwd, Some(PathBuf::from("/srv/app")));
     assert_eq!(seen[0].title.as_deref(), Some("deploy"));
 }

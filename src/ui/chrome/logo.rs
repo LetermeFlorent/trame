@@ -1,7 +1,7 @@
 use winit::window::Icon;
 
 pub const SIZE: u32 = 64;
-const PIXELS: &[u8] = include_bytes!("../assets/icon-64.rgba");
+const PIXELS: &[u8] = include_bytes!("../../../assets/icon-64.rgba");
 
 pub fn pixels() -> &'static [u8] {
     PIXELS

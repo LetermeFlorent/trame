@@ -4,8 +4,8 @@ use std::sync::Arc;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::Window;
 
-use trame::color::Rgba;
 use trame::render::{Atlas, Frame, Gpu, Renderer, Scene, WindowSurface};
+use trame::theme::Rgba;
 
 #[cfg(feature = "capture")]
 use super::capture::Capture;

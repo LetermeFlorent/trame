@@ -1,4 +1,4 @@
-use trame::color::Rgba;
+use trame::theme::Rgba;
 
 use super::{ACCENT, TEXT};
 

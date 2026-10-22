@@ -1,6 +1,6 @@
-use crate::color::Rgba;
 use crate::geometry::Rect;
 use crate::render::Scene;
+use crate::theme::Rgba;
 
 const UPPER_LEFT: u8 = 1;
 const UPPER_RIGHT: u8 = 2;

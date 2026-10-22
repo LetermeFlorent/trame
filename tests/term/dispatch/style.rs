@@ -1,4 +1,4 @@
-use super::feed;
+use crate::feed;
 use trame::term::{Color, Flags};
 
 #[test]

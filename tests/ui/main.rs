@@ -1,5 +1,6 @@
 mod drop;
 mod editor;
+mod logo;
 mod motion;
 mod sidebar;
 

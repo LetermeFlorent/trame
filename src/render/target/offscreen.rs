@@ -1,10 +1,10 @@
 use std::fmt;
 use std::sync::mpsc;
 
-use crate::color::Rgba;
 use crate::render::gpu::Gpu;
 use crate::render::renderer::Renderer;
 use crate::render::scene::Scene;
+use crate::theme::Rgba;
 
 pub const OFFSCREEN_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
 

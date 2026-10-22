@@ -1,4 +1,4 @@
-use super::feed;
+use crate::feed;
 
 #[test]
 fn osc_52_accepts_the_string_terminator() {

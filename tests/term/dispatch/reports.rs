@@ -1,4 +1,4 @@
-use super::feed;
+use crate::feed;
 
 fn responses(input: &str) -> String {
     let mut term = feed(5, 10, input);

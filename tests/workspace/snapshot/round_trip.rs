@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use trame::session::SessionId;
 use trame::workspace::{Edge, Snapshot, WindowSnapshot, Workspace};
 
-use crate::{FIRST_RESTORED_ID, restore, shape, snapshot_of};
+use super::{FIRST_RESTORED_ID, restore, shape, snapshot_of};
 
 fn sample() -> Workspace {
     let mut workspace = Workspace::new();

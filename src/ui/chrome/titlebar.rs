@@ -1,6 +1,6 @@
 use super::{Icon, Painter, Press, centered};
-use crate::color::Rgba;
 use crate::geometry::Rect;
+use crate::theme::Rgba;
 use crate::ui::frame::{TitleBarFrame, WindowControls};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::Platform;

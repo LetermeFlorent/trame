@@ -1,4 +1,4 @@
-use super::{cursor, feed, lines};
+use crate::{cursor, feed, lines};
 use trame::term::{CursorShape, Modes};
 
 #[test]

@@ -3,6 +3,7 @@ mod lifecycle;
 mod marks;
 mod moving;
 mod panes;
+mod snapshot;
 mod tree;
 
 use trame::session::SessionId;

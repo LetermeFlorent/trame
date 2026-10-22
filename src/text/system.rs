@@ -9,9 +9,9 @@ use super::font::{self, Family, FontId, FontLibrary};
 use super::layout::{FontRole, Shaping, TextLayout, TextStyle};
 use super::metrics::CellMetrics;
 use super::raster::{GlyphCache, GlyphKey};
-use crate::color::Rgba;
 use crate::geometry::Point;
 use crate::render::{Atlas, Scene};
+use crate::theme::Rgba;
 
 type LayoutCache = HashMap<String, Vec<Arc<TextLayout>>>;
 

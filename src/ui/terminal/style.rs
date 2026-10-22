@@ -1,8 +1,8 @@
-use crate::color::Rgba;
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::term::{Cell, Color, Flags};
 use crate::text::CellMetrics;
+use crate::theme::Rgba;
 use crate::theme::Theme;
 
 use super::Ink;

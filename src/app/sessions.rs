@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex, PoisonError};
 
 use winit::event_loop::EventLoopProxy;
 
-use trame::pty::{ShellCommand, default_shell};
+use trame::session::pty::{ShellCommand, default_shell};
 use trame::session::{Notifier, Session, SessionId, SessionOptions};
 use trame::term::ReportedColors;
 

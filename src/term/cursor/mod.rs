@@ -1,5 +1,7 @@
-use super::cell::Cell;
-use super::charset::CharsetState;
+pub mod charset;
+
+use crate::term::cell::Cell;
+use charset::CharsetState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CursorShape {

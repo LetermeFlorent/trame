@@ -1,4 +1,4 @@
-use trame::vt::{Params, Perform};
+use trame::term::vt::{Params, Perform};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Event {
