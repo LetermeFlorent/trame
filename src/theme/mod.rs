@@ -1,6 +1,9 @@
 mod ansi;
 mod palettes;
+mod swatches;
 pub mod system;
+
+pub use swatches::Swatch;
 
 use crate::color::Rgba;
 use crate::term::{Color, ReportedColors};
