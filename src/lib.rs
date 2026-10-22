@@ -1,5 +1,6 @@
 pub mod color;
 pub mod geometry;
+pub mod icon;
 pub mod input;
 pub mod pty;
 pub mod render;

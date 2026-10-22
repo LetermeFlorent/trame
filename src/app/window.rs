@@ -1,6 +1,7 @@
 use winit::dpi::LogicalSize;
 use winit::window::{CursorIcon, ResizeDirection, Theme, Window, WindowAttributes};
 
+use trame::icon;
 use trame::theme::{Appearance, system};
 use trame::ui::ResizeEdge;
 use trame::workspace::WindowSnapshot;
@@ -13,6 +14,7 @@ const MAXIMUM_SAVED_EXTENT: f64 = 16384.0;
 pub fn attributes() -> WindowAttributes {
     let attributes = Window::default_attributes()
         .with_title(APP_NAME)
+        .with_window_icon(icon::window_icon())
         .with_visible(false)
         .with_inner_size(INITIAL_SIZE)
         .with_min_inner_size(MINIMUM_SIZE);
