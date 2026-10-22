@@ -7,6 +7,7 @@ use crate::theme::Theme;
 
 const DIM_AMOUNT: f32 = 0.4;
 const CURL_SEGMENTS: u8 = 4;
+const MIN_CURL_AMPLITUDE: f32 = 1.5;
 
 pub fn colors(theme: &Theme, cell: &Cell) -> (Rgba, Rgba) {
     let flags = cell.flags;
@@ -69,7 +70,7 @@ pub fn draw_decorations(
 }
 
 fn draw_curl(scene: &mut Scene, cell: Rect, y: f32, thickness: f32, color: Rgba) {
-    let amplitude = thickness.max(1.5);
+    let amplitude = thickness.max(MIN_CURL_AMPLITUDE);
     let middle = (y + thickness / 2.0).min(cell.bottom() - amplitude);
     let step = cell.width / f32::from(CURL_SEGMENTS);
     let height = |index: u8| match index % 4 {

@@ -2,6 +2,10 @@ use crate::color::Rgba;
 use crate::geometry::Rect;
 use crate::render::Scene;
 
+const HEAVY_WIDTH: f32 = 2.0;
+const DOUBLE_WIDTH: f32 = 3.0;
+const DOUBLE_SECOND_STROKE: f32 = 2.0;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Weight {
     None,
@@ -24,8 +28,8 @@ impl Weight {
         match self {
             Self::None => 0.0,
             Self::Light => light,
-            Self::Heavy => light * 2.0,
-            Self::Double => light * 3.0,
+            Self::Heavy => light * HEAVY_WIDTH,
+            Self::Double => light * DOUBLE_WIDTH,
         }
     }
 }
@@ -69,12 +73,12 @@ impl Arm {
         match self.weight {
             Weight::None => Vec::new(),
             Weight::Double => {
-                let start = across.centered(3.0 * light);
+                let start = across.centered(DOUBLE_WIDTH * light);
                 vec![
                     self.stroke(along, start, light, self.double_reach(true, along, light)),
                     self.stroke(
                         along,
-                        start + 2.0 * light,
+                        start + DOUBLE_SECOND_STROKE * light,
                         light,
                         self.double_reach(false, along, light),
                     ),
@@ -101,7 +105,7 @@ impl Arm {
     fn band(&self, along: Span, light: f32) -> Band {
         if self.before == Weight::Double || self.after == Weight::Double {
             return Band::Double {
-                start: along.centered(3.0 * light),
+                start: along.centered(DOUBLE_WIDTH * light),
             };
         }
         let thickness = self
@@ -130,9 +134,9 @@ impl Arm {
             Band::Double { start }
                 if self.before == Weight::Double && self.after == Weight::Double =>
             {
-                self.pick(start + light, start + 2.0 * light)
+                self.reach_gap(start, light)
             }
-            Band::Double { start } => self.pick(start + 3.0 * light, start),
+            Band::Double { start } => self.reach_past_band(start, light),
         }
     }
 
@@ -141,11 +145,17 @@ impl Arm {
         match self.band(along, light) {
             Band::None => along.center(),
             Band::Single { start, thickness } => self.pick(start + thickness, start),
-            Band::Double { start } if near != Weight::None => {
-                self.pick(start + light, start + 2.0 * light)
-            }
-            Band::Double { start } => self.pick(start + 3.0 * light, start),
+            Band::Double { start } if near != Weight::None => self.reach_gap(start, light),
+            Band::Double { start } => self.reach_past_band(start, light),
         }
+    }
+
+    fn reach_gap(&self, start: f32, light: f32) -> f32 {
+        self.pick(start + light, start + DOUBLE_SECOND_STROKE * light)
+    }
+
+    fn reach_past_band(&self, start: f32, light: f32) -> f32 {
+        self.pick(start + DOUBLE_WIDTH * light, start)
     }
 
     fn pick(&self, low: f32, high: f32) -> f32 {

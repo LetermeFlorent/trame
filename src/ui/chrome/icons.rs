@@ -12,6 +12,13 @@ const DASH_REACH: f32 = 0.36;
 const RESTORE_OFFSET: f32 = 0.2;
 const GRID_GAP: f32 = 0.14;
 const GRID_RADIUS: f32 = 0.12;
+const CHEVRON_LEFT: f32 = 0.2;
+const CHEVRON_TIP: f32 = 0.46;
+const CHEVRON_TOP: f32 = 0.28;
+const CHEVRON_BOTTOM: f32 = 0.72;
+const CURSOR_LINE_Y: f32 = 0.74;
+const CURSOR_LINE_LEFT: f32 = 0.56;
+const CURSOR_LINE_RIGHT: f32 = 0.84;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Icon {
@@ -142,12 +149,13 @@ fn restore(pen: &mut Pen, rect: Rect, size: f32) {
 
 fn terminal(pen: &mut Pen, rect: Rect, size: f32) {
     let at = |fx: f32, fy: f32| Point::new(rect.x + size * fx, rect.y + size * fy);
-    pen.line(at(0.2, 0.28), at(0.46, 0.5));
-    pen.line(at(0.46, 0.5), at(0.2, 0.72));
-    let base = pen.crisp(rect.y + size * 0.74);
+    let tip = at(CHEVRON_TIP, 0.5);
+    pen.line(at(CHEVRON_LEFT, CHEVRON_TOP), tip);
+    pen.line(tip, at(CHEVRON_LEFT, CHEVRON_BOTTOM));
+    let base = pen.crisp(rect.y + size * CURSOR_LINE_Y);
     pen.line(
-        Point::new(rect.x + size * 0.56, base),
-        Point::new(rect.x + size * 0.84, base),
+        Point::new(rect.x + size * CURSOR_LINE_LEFT, base),
+        Point::new(rect.x + size * CURSOR_LINE_RIGHT, base),
     );
 }
 
