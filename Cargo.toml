@@ -5,6 +5,9 @@ edition = "2024"
 rust-version = "1.87"
 description = "A light terminal with instances, tabs and splits"
 license = "MIT"
+authors = ["Florent Leterme <letermeflorent@gmail.com>"]
+repository = "https://github.com/LetermeFlorent/trame"
+homepage = "https://github.com/LetermeFlorent/trame"
 
 [lib]
 path = "src/lib.rs"
@@ -70,6 +73,44 @@ panic = "abort"
 
 [profile.dev.package."*"]
 opt-level = 2
+
+[package.metadata.deb]
+section = "x11"
+priority = "optional"
+license-file = ["LICENSE", "0"]
+extended-description = "trame groups shells into instances in a side bar, with tabs and splits in each instance. It follows the light or dark theme of the system, opens the default shell of the system and reopens the last layout at launch."
+depends = "$auto, fontconfig, libxkbcommon0, libvulkan1 | libegl1"
+recommends = "libxkbcommon-x11-0, libx11-6, libx11-xcb1, libxcursor1, libxi6, libxrandr2, libwayland-client0, libwayland-cursor0"
+assets = [
+    ["target/release/trame", "usr/bin/", "755"],
+    ["packaging/linux/trame.desktop", "usr/share/applications/", "644"],
+    ["assets/logo-256.png", "usr/share/icons/hicolor/256x256/apps/trame.png", "644"],
+    ["assets/logo-512.png", "usr/share/icons/hicolor/512x512/apps/trame.png", "644"],
+]
+
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/trame", dest = "/usr/bin/trame", mode = "755" },
+    { source = "packaging/linux/trame.desktop", dest = "/usr/share/applications/trame.desktop", mode = "644" },
+    { source = "assets/logo-256.png", dest = "/usr/share/icons/hicolor/256x256/apps/trame.png", mode = "644" },
+    { source = "assets/logo-512.png", dest = "/usr/share/icons/hicolor/512x512/apps/trame.png", mode = "644" },
+    { source = "LICENSE", dest = "/usr/share/licenses/trame/LICENSE", mode = "644", doc = true },
+]
+
+[package.metadata.generate-rpm.requires]
+fontconfig = "*"
+libxkbcommon = "*"
+"(vulkan-loader or mesa-libEGL)" = ""
+
+[package.metadata.generate-rpm.recommends]
+libxkbcommon-x11 = "*"
+libX11 = "*"
+libX11-xcb = "*"
+libXcursor = "*"
+libXi = "*"
+libXrandr = "*"
+libwayland-client = "*"
+libwayland-cursor = "*"
 
 [lints.clippy]
 too_many_lines = "warn"

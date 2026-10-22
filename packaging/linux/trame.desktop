@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=trame
+GenericName=Terminal
+Comment=A light terminal with instances, tabs and splits
+Exec=trame
+Icon=trame
+Terminal=false
+Categories=System;TerminalEmulator;
+Keywords=terminal;shell;console;prompt;
+StartupWMClass=trame
