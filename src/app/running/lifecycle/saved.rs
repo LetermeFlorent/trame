@@ -7,8 +7,8 @@ use winit::event_loop::{ActiveEventLoop, ControlFlow};
 use trame::session::SessionId;
 use trame::workspace::{Snapshot, Workspace};
 
-use super::Running;
-use super::tabs::FALLBACK_GRID;
+use crate::app::running::Running;
+use crate::app::running::tabs::FALLBACK_GRID;
 use crate::app::{persist, window};
 
 type SavedCwds = HashMap<SessionId, Option<PathBuf>>;

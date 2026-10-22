@@ -3,39 +3,36 @@ mod drag;
 mod editing;
 mod frame;
 mod keyboard;
+mod lifecycle;
 mod mouse;
-mod saved_session;
 mod scroll;
 mod selection;
 mod tabs;
 
 use std::collections::HashMap;
-use std::error::Error;
 use std::sync::Arc;
 
 use winit::event::WindowEvent;
-use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
+use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
 use trame::geometry::Point;
 use trame::render::Scene;
 use trame::session::{SessionEvent, SessionId};
-use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
+use trame::text::TextSystem;
 use trame::theme::Theme;
-use trame::ui::metrics::TERMINAL_FONT_SIZE;
 use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
-use super::persist::{self, Saver};
+use super::persist::Saver;
 use super::sessions::Sessions;
 use super::{UserEvent, window};
 use drag::Drag;
 use editing::Editing;
 use mouse::Pointer;
 use selection::Selecting;
-use tabs::Placement;
 
 pub struct Running {
     window: Arc<Window>,
@@ -60,58 +57,6 @@ pub struct Running {
 }
 
 impl Running {
-    pub fn start(
-        event_loop: &ActiveEventLoop,
-        proxy: EventLoopProxy<UserEvent>,
-    ) -> Result<Self, Box<dyn Error>> {
-        let saved = persist::load();
-        let saved_window = saved.as_ref().and_then(|snapshot| snapshot.window);
-        let window = Arc::new(event_loop.create_window(window::restored_attributes(saved_window))?);
-        window::round_corners(&window);
-        let metrics = UiMetrics::new(window.scale_factor() as f32);
-        let mut text = TextSystem::new(TERMINAL_FONT_SIZE * metrics.scale, DEFAULT_LINE_HEIGHT)?;
-        let graphics = Graphics::new(event_loop, window.clone(), text.atlas_mut())?;
-        let theme = Theme::new(window::appearance(&window));
-        let workspace = Workspace::new();
-        let mut motion = Motion::default();
-        let layout_input = frame::LayoutInput {
-            workspace: &workspace,
-            window: &window,
-            metrics,
-        };
-        let frame = frame::compute(&mut text, &layout_input, &mut motion, &|_| String::new());
-        let mut running = Self {
-            window,
-            graphics,
-            text,
-            scene: Scene::new(0.0, 0.0),
-            theme,
-            metrics,
-            font_size: TERMINAL_FONT_SIZE,
-            workspace,
-            sessions: Sessions::new(proxy),
-            saver: Saver::new(),
-            labels: HashMap::new(),
-            frame,
-            motion,
-            view: FrameView {
-                window_focused: true,
-                ..FrameView::default()
-            },
-            pointer: Pointer::default(),
-            drag: None,
-            editing: None,
-            selecting: Selecting::default(),
-            modifiers: ModifiersState::empty(),
-        };
-        if !running.restore_session(saved.as_ref()) {
-            running.open(Placement::Instance)?;
-        }
-        running.redraw();
-        running.window.set_visible(true);
-        Ok(running)
-    }
-
     pub fn user_event(&mut self, event_loop: &ActiveEventLoop, event: UserEvent) {
         match event {
             UserEvent::Session(SessionEvent::Output(id)) => self.output(id),
