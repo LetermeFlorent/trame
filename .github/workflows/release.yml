@@ -1,0 +1,31 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check the tag against Cargo.toml
+        shell: pwsh
+        run: |
+          $version = (cargo metadata --no-deps --format-version 1 | ConvertFrom-Json).packages[0].version
+          if ("v$version" -ne "${{ github.ref_name }}") {
+            Write-Error "Cargo.toml says $version but the tag is ${{ github.ref_name }}"
+            exit 1
+          }
+
+      - name: Build
+        run: cargo build --release --locked
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" target/release/trame.exe --title "trame ${{ github.ref_name }}" --generate-notes
