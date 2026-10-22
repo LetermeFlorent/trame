@@ -10,35 +10,19 @@ const SHIFT: ModifiersState = ModifiersState::SHIFT;
 const ALT: ModifiersState = ModifiersState::ALT;
 const LOGO: ModifiersState = ModifiersState::SUPER;
 
-fn press_with_base(
-    platform: Platform,
-    modifiers: ModifiersState,
-    key: Key,
-    base: Key,
-    physical: PhysicalKey,
-) -> Option<Command> {
-    let input = ShortcutInput {
-        key: &key,
-        base: &base,
-        physical,
-        modifiers,
-    };
-    shortcut(input, platform)
-}
-
 fn press(
     platform: Platform,
     modifiers: ModifiersState,
     key: Key,
     code: KeyCode,
 ) -> Option<Command> {
-    press_with_base(
-        platform,
+    let input = ShortcutInput {
+        key: &key,
+        base: &key,
+        physical: PhysicalKey::Code(code),
         modifiers,
-        key.clone(),
-        key,
-        PhysicalKey::Code(code),
-    )
+    };
+    shortcut(input, platform)
 }
 
 fn named(platform: Platform, modifiers: ModifiersState, key: NamedKey) -> Option<Command> {
@@ -47,13 +31,13 @@ fn named(platform: Platform, modifiers: ModifiersState, key: NamedKey) -> Option
 
 #[test]
 fn opens_and_closes_tabs_with_the_platform_modifier() {
-    let windows = press_with_base(
-        Platform::Windows,
-        CONTROL | SHIFT,
-        character("T"),
-        character("t"),
-        PhysicalKey::Code(KeyCode::KeyT),
-    );
+    let shifted = ShortcutInput {
+        key: &character("T"),
+        base: &character("t"),
+        physical: PhysicalKey::Code(KeyCode::KeyT),
+        modifiers: CONTROL | SHIFT,
+    };
+    let windows = shortcut(shifted, Platform::Windows);
     assert_eq!(windows, Some(Command::NewTab));
     let linux = press(
         Platform::Linux,
@@ -193,13 +177,13 @@ fn changes_the_font_size() {
 #[test]
 fn reads_the_font_keys_when_the_position_is_unknown() {
     let unknown = PhysicalKey::Unidentified(winit::keyboard::NativeKeyCode::Unidentified);
-    let bigger = press_with_base(
-        Platform::Windows,
-        CONTROL,
-        character("+"),
-        character("="),
-        unknown,
-    );
+    let plus = ShortcutInput {
+        key: &character("+"),
+        base: &character("="),
+        physical: unknown,
+        modifiers: CONTROL,
+    };
+    let bigger = shortcut(plus, Platform::Windows);
     assert_eq!(bigger, Some(Command::FontBigger));
 }
 

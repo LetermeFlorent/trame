@@ -1,82 +1,51 @@
 use std::mem::size_of;
 
-use bytemuck::{Pod, Zeroable};
-
-use super::atlas::{Atlas, AtlasKind, AtlasTexture};
+use super::atlas::{Atlas, AtlasKind};
 use super::gpu::Gpu;
-use super::pipeline;
+use super::pipeline::{self, Bindings, Globals};
 use super::scene::{Quad, Scene};
 use crate::color::Rgba;
 
 const INITIAL_QUAD_CAPACITY: usize = 4096;
 
-#[repr(C)]
-#[derive(Clone, Copy, Pod, Zeroable)]
-struct Globals {
-    viewport: [f32; 2],
-    srgb_output: u32,
-    padding: u32,
-}
-
 pub struct Renderer {
     pipeline: wgpu::RenderPipeline,
-    layout: wgpu::BindGroupLayout,
-    globals: wgpu::Buffer,
+    bindings: Bindings,
+    bind_group: wgpu::BindGroup,
     quads: wgpu::Buffer,
     quad_capacity: usize,
-    mask: AtlasTexture,
-    color: AtlasTexture,
-    bind_group: wgpu::BindGroup,
     srgb_output: bool,
 }
 
 impl Renderer {
     pub fn new(gpu: &Gpu, format: wgpu::TextureFormat, atlas: &Atlas) -> Self {
         let device = &gpu.device;
-        let layout = pipeline::bind_group_layout(device);
-        let pipeline = pipeline::render_pipeline(device, &layout, format);
-        let globals = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("globals"),
-            size: size_of::<Globals>() as wgpu::BufferAddress,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let mask = AtlasTexture::new(device, AtlasKind::Mask, atlas.size(AtlasKind::Mask));
-        let color = AtlasTexture::new(device, AtlasKind::Color, atlas.size(AtlasKind::Color));
-        let bind_group = create_bind_group(device, &layout, &globals, &mask, &color);
+        let bindings = Bindings::new(device, atlas);
         Self {
-            pipeline,
-            layout,
-            globals,
+            pipeline: pipeline::render_pipeline(device, bindings.layout(), format),
+            bind_group: bindings.group(device),
+            bindings,
             quads: create_quad_buffer(device, INITIAL_QUAD_CAPACITY),
             quad_capacity: INITIAL_QUAD_CAPACITY,
-            mask,
-            color,
-            bind_group,
             srgb_output: format.is_srgb(),
         }
     }
 
     pub fn sync_atlas(&mut self, gpu: &Gpu, atlas: &mut Atlas) {
-        let grew_mask = self
+        let bindings = &mut self.bindings;
+        let grew_mask = bindings
             .mask
             .grow(&gpu.device, &gpu.queue, atlas.size(AtlasKind::Mask));
-        let grew_color = self
+        let grew_color = bindings
             .color
             .grow(&gpu.device, &gpu.queue, atlas.size(AtlasKind::Color));
         if grew_mask || grew_color {
-            self.bind_group = create_bind_group(
-                &gpu.device,
-                &self.layout,
-                &self.globals,
-                &self.mask,
-                &self.color,
-            );
+            self.bind_group = bindings.group(&gpu.device);
         }
         for upload in atlas.take_uploads() {
             match upload.region.kind {
-                AtlasKind::Mask => self.mask.write(&gpu.queue, &upload),
-                AtlasKind::Color => self.color.write(&gpu.queue, &upload),
+                AtlasKind::Mask => bindings.mask.write(&gpu.queue, &upload),
+                AtlasKind::Color => bindings.color.write(&gpu.queue, &upload),
             }
         }
     }
@@ -88,7 +57,7 @@ impl Renderer {
             padding: 0,
         };
         gpu.queue
-            .write_buffer(&self.globals, 0, bytemuck::bytes_of(&globals));
+            .write_buffer(&self.bindings.globals, 0, bytemuck::bytes_of(&globals));
         let quads = scene.quads();
         self.reserve(&gpu.device, quads.len());
         if !quads.is_empty() {
@@ -164,32 +133,5 @@ fn create_quad_buffer(device: &wgpu::Device, capacity: usize) -> wgpu::Buffer {
         size: (capacity * size_of::<Quad>()) as wgpu::BufferAddress,
         usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
-    })
-}
-
-fn create_bind_group(
-    device: &wgpu::Device,
-    layout: &wgpu::BindGroupLayout,
-    globals: &wgpu::Buffer,
-    mask: &AtlasTexture,
-    color: &AtlasTexture,
-) -> wgpu::BindGroup {
-    device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("scene"),
-        layout,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: globals.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: wgpu::BindingResource::TextureView(mask.view()),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: wgpu::BindingResource::TextureView(color.view()),
-            },
-        ],
     })
 }

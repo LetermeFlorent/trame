@@ -7,9 +7,9 @@ use crate::geometry::Rect;
 use crate::session::SessionId;
 use crate::text::{TextLayout, TextSystem};
 use crate::theme::Swatch;
-use crate::ui::frame::fit_label;
+use crate::ui::frame::{FrameInput, fit_label};
 use crate::ui::metrics::UiMetrics;
-use crate::workspace::{Instance, InstanceId, Workspace};
+use crate::workspace::{Instance, InstanceId};
 pub use rail::RailFrame;
 pub(super) use rail::layout_rail;
 pub use width::{dragged_width, shown_width};
@@ -61,13 +61,9 @@ struct RowSpec {
     active: bool,
 }
 
-pub fn layout_sidebar(
-    text: &mut TextSystem,
-    metrics: &UiMetrics,
-    rect: Rect,
-    workspace: &Workspace,
-    title: &dyn Fn(SessionId) -> String,
-) -> SidebarFrame {
+pub fn layout_sidebar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> SidebarFrame {
+    let metrics = &input.metrics;
+    let workspace = input.workspace;
     let (header, list) = rect.split_top(metrics.px(UiMetrics::SIDEBAR_HEADER));
     let button = metrics.px(UiMetrics::BUTTON);
     let new_instance = Rect::new(
@@ -76,17 +72,21 @@ pub fn layout_sidebar(
         button,
         button,
     );
-    let step = metrics.px(UiMetrics::SIDEBAR_ROW) + metrics.px(ROW_SPACING);
+    let height = metrics.px(UiMetrics::SIDEBAR_ROW);
+    let step = height + metrics.px(ROW_SPACING);
     let specs: Vec<RowSpec> = workspace
         .instances
         .iter()
         .enumerate()
-        .flat_map(|(index, instance)| row_specs(instance, index == workspace.active, title))
+        .flat_map(|(index, instance)| row_specs(instance, index == workspace.active, input.title))
         .collect();
     let rows = specs
         .into_iter()
         .enumerate()
-        .map(|(index, spec)| layout_row(text, metrics, list, list.y + index as f32 * step, spec))
+        .map(|(index, spec)| {
+            let slot = Rect::new(list.x, list.y + index as f32 * step, list.width, height);
+            layout_row(text, metrics, slot, spec)
+        })
         .collect();
     SidebarFrame {
         rect,
@@ -123,34 +123,23 @@ fn row_specs(
     specs
 }
 
-fn layout_row(
-    text: &mut TextSystem,
-    metrics: &UiMetrics,
-    list: Rect,
-    y: f32,
-    spec: RowSpec,
-) -> SidebarRow {
+fn layout_row(text: &mut TextSystem, metrics: &UiMetrics, slot: Rect, spec: RowSpec) -> SidebarRow {
     let margin = metrics.px(ROW_MARGIN);
     let rect = Rect::new(
-        list.x + margin,
-        y,
-        list.width - 2.0 * margin,
-        metrics.px(UiMetrics::SIDEBAR_ROW),
+        slot.x + margin,
+        slot.y,
+        slot.width - 2.0 * margin,
+        slot.height,
     );
     let icon_size = metrics.px(UiMetrics::ICON);
-    let icon = Rect::new(
+    let icon = square_in(
+        rect,
         rect.x + metrics.px(ICON_MARGIN + spec.indent),
-        (rect.y + (rect.height - icon_size) / 2.0).round(),
-        icon_size,
         icon_size,
     );
     let close_size = metrics.px(UiMetrics::TAB_CLOSE);
-    let close = Rect::new(
-        rect.right() - metrics.px(CLOSE_MARGIN) - close_size,
-        (rect.y + (rect.height - close_size) / 2.0).round(),
-        close_size,
-        close_size,
-    );
+    let close_x = rect.right() - metrics.px(CLOSE_MARGIN) - close_size;
+    let close = square_in(rect, close_x, close_size);
     let label_x = icon.right() + metrics.px(LABEL_GAP);
     let label_width = close.x - metrics.px(LABEL_GAP) - label_x;
     let style = if spec.indent > 0.0 {
@@ -171,4 +160,8 @@ fn layout_row(
         active: spec.active,
         color: None,
     }
+}
+
+fn square_in(row: Rect, x: f32, size: f32) -> Rect {
+    Rect::new(x, (row.y + (row.height - size) / 2.0).round(), size, size)
 }
