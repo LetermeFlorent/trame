@@ -5,6 +5,7 @@ use swash::{CacheKey, FontRef, Metrics, Style, Tag, tag_from_bytes};
 pub type FontData = Arc<dyn AsRef<[u8]> + Send + Sync>;
 
 pub const WEIGHT_AXIS: Tag = tag_from_bytes(b"wght");
+const CAP_HEIGHT_TO_ASCENT: f32 = 0.72;
 
 pub struct Face {
     data: FontData,
@@ -63,7 +64,11 @@ impl Face {
     }
 
     pub fn metrics(&self, size: f32) -> Metrics {
-        self.font().metrics(&[]).scale(size)
+        let mut metrics = self.font().metrics(&[]).scale(size);
+        if metrics.cap_height <= 0.0 {
+            metrics.cap_height = metrics.ascent * CAP_HEIGHT_TO_ASCENT;
+        }
+        metrics
     }
 
     pub fn advance(&self, glyph: u16, size: f32) -> f32 {
