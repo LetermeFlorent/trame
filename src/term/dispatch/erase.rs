@@ -1,4 +1,8 @@
+use crate::term::cell::Cell;
+use crate::term::grid::Grid;
 use crate::term::screen::Screen;
+
+type LineShift = fn(&mut Grid, usize, usize, usize, &Cell);
 
 impl Screen {
     pub(crate) fn erase_display(&mut self, mode: u16) {
@@ -19,12 +23,7 @@ impl Screen {
     }
 
     pub(crate) fn erase_line(&mut self, mode: u16) {
-        let (row, col, cols, template) = (
-            self.cursor.row,
-            self.cursor.col,
-            self.cols(),
-            self.cursor.template,
-        );
+        let (row, col, cols, template) = self.cursor_span();
         let (start, end) = match mode {
             0 => (col, cols),
             1 => (0, col + 1),
@@ -39,12 +38,7 @@ impl Screen {
     }
 
     pub(crate) fn erase_chars(&mut self, count: usize) {
-        let (row, col, cols, template) = (
-            self.cursor.row,
-            self.cursor.col,
-            self.cols(),
-            self.cursor.template,
-        );
+        let (row, col, cols, template) = self.cursor_span();
         let end = col.saturating_add(count).min(cols);
         self.grid_mut()
             .row_mut(row)
@@ -52,12 +46,7 @@ impl Screen {
     }
 
     pub(crate) fn insert_chars(&mut self, count: usize) {
-        let (row, col, cols, template) = (
-            self.cursor.row,
-            self.cursor.col,
-            self.cols(),
-            self.cursor.template,
-        );
+        let (row, col, cols, template) = self.cursor_span();
         self.grid_mut()
             .row_mut(row)
             .insert_blanks(col, count, cols, &template);
@@ -65,12 +54,7 @@ impl Screen {
     }
 
     pub(crate) fn delete_chars(&mut self, count: usize) {
-        let (row, col, cols, template) = (
-            self.cursor.row,
-            self.cursor.col,
-            self.cols(),
-            self.cursor.template,
-        );
+        let (row, col, cols, template) = self.cursor_span();
         self.grid_mut()
             .row_mut(row)
             .delete_cells(col, count, cols, &template);
@@ -78,21 +62,29 @@ impl Screen {
     }
 
     pub(crate) fn insert_lines(&mut self, count: usize) {
-        let (row, bottom, template) = (self.cursor.row, self.scroll_bottom, self.cursor.template);
-        if row < self.scroll_top || row > bottom {
-            return;
-        }
-        self.grid_mut().scroll_down(row, bottom, count, &template);
-        self.carriage_return();
+        self.shift_lines(count, Grid::scroll_down);
     }
 
     pub(crate) fn delete_lines(&mut self, count: usize) {
+        self.shift_lines(count, Grid::rotate_up);
+    }
+
+    fn shift_lines(&mut self, count: usize, shift: LineShift) {
         let (row, bottom, template) = (self.cursor.row, self.scroll_bottom, self.cursor.template);
         if row < self.scroll_top || row > bottom {
             return;
         }
-        self.grid_mut().rotate_up(row, bottom, count, &template);
+        shift(self.grid_mut(), row, bottom, count, &template);
         self.carriage_return();
+    }
+
+    fn cursor_span(&self) -> (usize, usize, usize, Cell) {
+        (
+            self.cursor.row,
+            self.cursor.col,
+            self.cols(),
+            self.cursor.template,
+        )
     }
 
     fn clear_rows(&mut self, start: usize, end: usize, cols: usize) {

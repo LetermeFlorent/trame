@@ -15,30 +15,31 @@ impl Grid {
     }
 
     pub fn rotate_up(&mut self, top: usize, bottom: usize, count: usize, template: &Cell) {
-        if top > bottom || bottom >= self.rows {
-            return;
-        }
-        self.drop_selection_touching(self.screen_line(top), self.screen_line(bottom));
-        let count = count.min(bottom - top + 1);
-        let start = self.screen_start();
-        for _ in 0..count {
-            self.lines.remove(start + top);
-            self.lines
-                .insert(start + bottom, Row::blank(self.cols, template));
+        if let Some(start) = self.open_region(top, bottom) {
+            let count = count.min(bottom - top + 1);
+            self.cycle_rows(start + top, start + bottom, count, template);
         }
     }
 
     pub fn scroll_down(&mut self, top: usize, bottom: usize, count: usize, template: &Cell) {
+        if let Some(start) = self.open_region(top, bottom) {
+            let count = count.min(bottom - top + 1);
+            self.cycle_rows(start + bottom, start + top, count, template);
+        }
+    }
+
+    fn open_region(&mut self, top: usize, bottom: usize) -> Option<usize> {
         if top > bottom || bottom >= self.rows {
-            return;
+            return None;
         }
         self.drop_selection_touching(self.screen_line(top), self.screen_line(bottom));
-        let count = count.min(bottom - top + 1);
-        let start = self.screen_start();
+        Some(self.screen_start())
+    }
+
+    fn cycle_rows(&mut self, removed: usize, inserted: usize, count: usize, template: &Cell) {
         for _ in 0..count {
-            self.lines.remove(start + bottom);
-            self.lines
-                .insert(start + top, Row::blank(self.cols, template));
+            self.lines.remove(removed);
+            self.lines.insert(inserted, Row::blank(self.cols, template));
         }
     }
 
