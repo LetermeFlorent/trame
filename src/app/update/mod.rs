@@ -1,6 +1,8 @@
 mod fetch;
 mod launch;
 mod progress;
+mod route;
+mod setup;
 mod swap;
 mod version;
 mod watch;
@@ -12,6 +14,7 @@ use std::path::{Path, PathBuf};
 use std::thread;
 
 pub use launch::{relaunch, restart};
+use route::Route;
 use version::Version;
 
 const RELEASES: &str = "https://github.com/LetermeFlorent/trame/releases";
@@ -42,10 +45,13 @@ pub fn start(notify: impl Fn(UpdateStatus) + Send + 'static) -> UpdateStatus {
     let Some(asset) = ASSET.filter(|_| allowed()) else {
         return UpdateStatus::Done;
     };
-    let installs = !just_updated();
+    let Some(route) = Route::of(&exe) else {
+        return UpdateStatus::Done;
+    };
+    let installs = route == Route::Swap && !just_updated();
     let spawned = thread::Builder::new()
         .name("trame-update".into())
-        .spawn(move || follow(installs.then_some(asset), exe, &notify));
+        .spawn(move || follow(route, installs.then_some(asset), exe, &notify));
     match spawned {
         Ok(_) if installs => UpdateStatus::Checking,
         Ok(_) => UpdateStatus::Done,
@@ -64,7 +70,7 @@ fn just_updated() -> bool {
     env::args_os().any(|arg| arg == UPDATED_FLAG)
 }
 
-fn follow(asset: Option<&str>, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) {
+fn follow(route: Route, asset: Option<&str>, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) {
     if let Some(asset) = asset {
         let status = check(asset, exe, notify);
         let installed = matches!(status, UpdateStatus::Installed(_));
@@ -73,7 +79,7 @@ fn follow(asset: Option<&str>, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) {
             return;
         }
     }
-    watch::watch(notify);
+    watch::watch(route, notify);
 }
 
 fn check(asset: &str, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) -> UpdateStatus {

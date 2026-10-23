@@ -1,17 +1,22 @@
 # Work in progress
 
-Task K (display settings) is finished. Next up is task L.
+Task L (installer) is finished. Only the release is left.
 
 ## Done in the last commit
 
-The Display section of the settings has two new rows. Panel side puts the instances panel on the
-left or the right: the rail, its tooltips, the border and the drag that resizes it follow. Spacing
-switches between Compact, the sizes used so far, and Spacious, which makes the panel rows, the tab
-bars and the terminal margins a quarter larger. Both are saved with the other preferences as
-`panel_side` and `density`, and older files fall back to Left and Compact. The full test suite
-passed.
+The Windows installer now opens on a choice between Install for me only, the default, and Install
+for all users. The first keeps the old place, `%LOCALAPPDATA%\Programs\trame`, with no prompt. The
+second needs an administrator and goes to `C:\Program Files\trame`, with the Start menu and desktop
+shortcuts of every account. `/CURRENTUSER` and `/ALLUSERS` pick the mode without the window.
 
-## Left to do, in order
+A copy that cannot write its own folder and sits next to the uninstaller is an install for all
+users: it no longer tries to swap its executable at startup. It downloads
+`trame-<version>-setup.exe` into `%TEMP%\trame-update` once a newer release exists, then offers the
+Update button. The click saves every tab, runs the installer with
+`/SILENT /SUPPRESSMSGBOXES /NORESTART /ALLUSERS /RELAUNCH=yes` and quits. `/RELAUNCH=yes` makes the
+installer open trame again with `--updated`, as the user who clicked. Both install modes were
+installed under Wine, and the choice window was checked there.
 
-1. Installer (task L): per-user by default or for all users.
-2. Release 0.3.6, published only, never installed on the main PC.
+## Left to do
+
+1. Release 0.3.6, published only, never installed on the main PC.

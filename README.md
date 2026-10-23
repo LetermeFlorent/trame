@@ -40,7 +40,7 @@ Drawing goes through the graphics card with [wgpu](https://wgpu.rs), on Vulkan f
 
 ### Windows
 
-Download `trame-<version>-setup.exe` from the [latest release](https://github.com/LetermeFlorent/trame/releases/latest) and run it. It installs trame for your account only, in `%LOCALAPPDATA%\Programs\trame`, so it asks for no administrator rights. It adds trame to the Start menu, and to the desktop if you tick the box.
+Download `trame-<version>-setup.exe` from the [latest release](https://github.com/LetermeFlorent/trame/releases/latest) and run it. Its first window asks who trame is for. Install for me only is the default: trame goes to `%LOCALAPPDATA%\Programs\trame` and no administrator rights are needed. Install for all users puts it in `C:\Program Files\trame` for every account on the PC, after an administrator prompt. Either way it adds trame to the Start menu, and to the desktop if you tick the box. Scripts can skip the question with `/CURRENTUSER` or `/ALLUSERS`.
 
 If you would rather not install anything, the same release has `trame.exe` on its own. It runs from any folder.
 
@@ -65,6 +65,8 @@ The Linux build passes the whole test suite and is opened under a virtual displa
 ## Updates
 
 On Windows, trame looks for a newer release on GitHub every time it starts. The window opens right away on an update screen while your shells start behind it, and the check gives up after one second, so a slow or missing connection never holds you back. When a newer version exists, a bar under the message fills with the download percentage, then trame swaps its own executable and restarts. Your layout and the text of your tabs come back as they were. Until the screen fades out, only the window itself can be moved, resized or closed. A release that comes out while trame is open shows an Update button at the bottom of the side bar: clicking it restarts on the new version and reopens every instance and tab with its text, exactly as you left them, even when the launch settings say to forget them.
+
+A copy installed for all users cannot rewrite its own folder, so it never updates on its own at startup. It downloads the new installer in the background instead and shows the same Update button. Clicking it closes trame, asks for administrator rights, installs the new version with a small progress window and opens trame again with your tabs. If you refuse the prompt, nothing changes and trame stays closed until you open it.
 
 To turn this off, set the environment variable `TRAME_NO_UPDATE` to any value. Debug builds never update themselves.
 

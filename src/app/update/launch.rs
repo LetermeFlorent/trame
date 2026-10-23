@@ -4,14 +4,19 @@ use std::io;
 use std::path::Path;
 use std::process::Command;
 
-use super::UPDATED_FLAG;
+use super::route::Route;
+use super::{UPDATED_FLAG, setup};
 
 pub fn relaunch(exe: &Path) -> io::Result<()> {
     spawn_again(exe, true)
 }
 
-pub fn restart() -> io::Result<()> {
-    spawn_again(&env::current_exe()?, false)
+pub fn restart(offer: &str) -> io::Result<()> {
+    let exe = env::current_exe()?;
+    match Route::of(&exe) {
+        Some(Route::Setup) => setup::run(offer),
+        _ => spawn_again(&exe, false),
+    }
 }
 
 fn spawn_again(exe: &Path, updated: bool) -> io::Result<()> {

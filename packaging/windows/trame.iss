@@ -10,11 +10,12 @@ AppPublisher=Florent Leterme
 AppPublisherURL=https://github.com/LetermeFlorent/trame
 AppSupportURL=https://github.com/LetermeFlorent/trame/issues
 AppUpdatesURL=https://github.com/LetermeFlorent/trame/releases
-DefaultDirName={localappdata}\Programs\trame
+DefaultDirName={autopf}\trame
 DefaultGroupName=trame
 DisableProgramGroupPage=yes
 DisableDirPage=auto
 PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=dialog commandline
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 SourceDir=..\..
@@ -54,3 +55,10 @@ Name: "{autodesktop}\trame"; Filename: "{app}\trame.exe"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\trame.exe"; Description: "{cm:LaunchProgram,trame}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\trame.exe"; Parameters: "--updated"; Flags: nowait runasoriginaluser; Check: Relaunching
+
+[Code]
+function Relaunching: Boolean;
+begin
+  Result := ExpandConstant('{param:relaunch|no}') = 'yes';
+end;
