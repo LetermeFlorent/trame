@@ -26,19 +26,13 @@ impl Platform {
     pub fn draws_window_controls(self) -> bool {
         self != Self::Mac
     }
-
-    pub fn hidden_bottom(self, maximized: bool) -> f32 {
-        match self == Self::Windows && !maximized {
-            true => WINDOWS_SHADOW_SHIFT,
-            false => 0.0,
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct UiMetrics {
     pub scale: f32,
     pub platform: Platform,
+    pub frame_border: f32,
 }
 
 impl UiMetrics {
@@ -71,6 +65,21 @@ impl UiMetrics {
         Self {
             scale,
             platform: Platform::current(),
+            frame_border: 0.0,
+        }
+    }
+
+    pub fn with_frame_border(self, frame_border: f32) -> Self {
+        Self {
+            frame_border,
+            ..self
+        }
+    }
+
+    pub fn hidden_bottom(&self, maximized: bool) -> f32 {
+        match self.platform == Platform::Windows && !maximized {
+            true => WINDOWS_SHADOW_SHIFT + self.frame_border,
+            false => 0.0,
         }
     }
 

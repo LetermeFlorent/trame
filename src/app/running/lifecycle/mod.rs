@@ -85,7 +85,8 @@ impl Running {
 
     fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>) -> Self {
         let preferences = &surface.preferences;
-        let metrics = UiMetrics::new(preferences.ui_scale(surface.window_scale));
+        let metrics = UiMetrics::new(preferences.ui_scale(surface.window_scale))
+            .with_frame_border(window::frame_border(&surface.window));
         let workspace = Workspace::new();
         let mut motion = Motion::default();
         let strings = preferences.language.resolve().strings();

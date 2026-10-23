@@ -29,7 +29,7 @@ pub(crate) fn layout_footer(text: &mut TextSystem, input: &FrameInput, side: Rec
     let gap = ((metrics.px(UiMetrics::SIDEBAR_HEADER) - line - size) / 2.0)
         .floor()
         .max(0.0);
-    let shown = side.height - metrics.platform.hidden_bottom(input.maximized);
+    let shown = side.height - metrics.hidden_bottom(input.maximized);
     let height = (line + size + 2.0 * gap).min(shown);
     let rect = Rect::new(side.x, side.y + shown - height, side.width, height);
     let inset = (metrics.px(UiMetrics::RAIL_WIDTH) - size) / 2.0;

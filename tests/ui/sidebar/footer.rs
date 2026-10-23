@@ -1,7 +1,7 @@
-use trame::ui::{Hit, Platform};
+use trame::ui::{Hit, Platform, UiMetrics};
 use trame::workspace::Workspace;
 
-use crate::{frame, frame_at, text_system, workspace};
+use crate::{frame, frame_in, text_system, workspace};
 
 pub fn closed_sidebar() -> Workspace {
     let mut workspace = workspace();
@@ -14,7 +14,7 @@ fn the_settings_button_sits_at_the_bottom_of_the_side() {
     let mut text = text_system();
     let layout = frame(&mut text, &workspace());
     let footer = &layout.footer;
-    let shown = layout.side.bottom() - layout.metrics.platform.hidden_bottom(false);
+    let shown = layout.side.bottom() - layout.metrics.hidden_bottom(false);
     assert_eq!(footer.rect.bottom(), shown);
     assert!(footer.rect.contains(footer.settings.center()));
     assert_eq!(
@@ -55,24 +55,42 @@ fn the_open_sidebar_widens_the_button_to_hold_its_name() {
     assert_eq!(collapsed.footer.settings, collapsed.footer.icon);
 }
 
-#[test]
-fn the_settings_button_has_as_much_room_above_as_below() {
-    let mut text = text_system();
-    for scale in [1.0, 1.25, 1.5, 1.75, 2.0] {
-        let layout = frame_at(&mut text, &workspace(), scale);
-        let footer = &layout.footer;
-        let below_rule = footer.rect.y + layout.metrics.line();
-        let above = footer.settings.y - below_rule;
-        let below = footer.rect.bottom() - footer.settings.bottom();
-        assert_eq!(above, below, "scale {scale}");
-        assert!(above > 0.0, "scale {scale}");
+fn on(platform: Platform, scale: f32) -> UiMetrics {
+    UiMetrics {
+        platform,
+        ..UiMetrics::new(scale)
     }
 }
 
 #[test]
-fn only_an_unmaximized_windows_window_hides_its_last_row() {
-    assert_eq!(Platform::Windows.hidden_bottom(false), 1.0);
-    assert_eq!(Platform::Windows.hidden_bottom(true), 0.0);
-    assert_eq!(Platform::Mac.hidden_bottom(false), 0.0);
-    assert_eq!(Platform::Linux.hidden_bottom(false), 0.0);
+fn the_settings_button_has_as_much_visible_room_above_as_below() {
+    let mut text = text_system();
+    for scale in [1.0, 1.1, 1.25, 1.375, 1.5, 1.75, 2.0] {
+        for border in [0.0, 1.0] {
+            let metrics = on(Platform::Windows, scale).with_frame_border(border);
+            let layout = frame_in(&mut text, &workspace(), metrics);
+            let footer = &layout.footer;
+            let visible = layout.side.bottom() - metrics.hidden_bottom(false);
+            let above = footer.settings.y - footer.rect.y - metrics.line();
+            let below = visible - footer.settings.bottom();
+            assert_eq!(above, below, "scale {scale} border {border}");
+            assert!(above > 0.0, "scale {scale} border {border}");
+        }
+    }
+}
+
+#[test]
+fn an_unmaximized_windows_window_hides_its_last_row_and_its_border() {
+    let windows = on(Platform::Windows, 1.0);
+    let bordered = windows.with_frame_border(1.0);
+    assert_eq!(windows.hidden_bottom(false), 1.0);
+    assert_eq!(bordered.hidden_bottom(false), 2.0);
+    assert_eq!(bordered.hidden_bottom(true), 0.0);
+    for platform in [Platform::Mac, Platform::Linux] {
+        let other = UiMetrics {
+            platform,
+            ..bordered
+        };
+        assert_eq!(other.hidden_bottom(false), 0.0);
+    }
 }

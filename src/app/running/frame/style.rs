@@ -6,6 +6,7 @@ use trame::theme::{Appearance, Theme};
 use trame::ui::UiMetrics;
 
 use crate::app::running::Running;
+use crate::app::window;
 
 impl Running {
     pub(in crate::app::running) fn rescale(&mut self, scale: f32) {
@@ -33,7 +34,8 @@ impl Running {
     }
 
     fn apply_scale(&mut self) {
-        self.metrics = UiMetrics::new(self.preferences.ui_scale(self.window_scale));
+        self.metrics = UiMetrics::new(self.preferences.ui_scale(self.window_scale))
+            .with_frame_border(window::frame_border(&self.window));
         let font = self.preferences.font_pixels(self.window_scale);
         self.text.set_terminal_font(font, DEFAULT_LINE_HEIGHT);
         self.changed();

@@ -6,6 +6,10 @@ use trame::ui::ResizeEdge;
 use trame::ui::chrome::logo;
 use trame::workspace::WindowSnapshot;
 
+mod frame;
+
+pub use frame::{frame_border, round_corners};
+
 const APP_NAME: &str = "trame";
 const INITIAL_SIZE: LogicalSize<f64> = LogicalSize::new(1180.0, 740.0);
 const MINIMUM_SIZE: LogicalSize<f64> = LogicalSize::new(520.0, 320.0);
@@ -87,28 +91,6 @@ pub fn owner(window: &Window) -> Option<isize> {
 pub fn hwnd(window: &Window) -> Option<windows_sys::Win32::Foundation::HWND> {
     owner(window).map(|handle| handle as _)
 }
-
-#[cfg(windows)]
-pub fn round_corners(window: &Window) {
-    use windows_sys::Win32::Graphics::Dwm::{
-        DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND, DwmSetWindowAttribute,
-    };
-    let Some(hwnd) = hwnd(window) else {
-        return;
-    };
-    let preference = DWMWCP_ROUND;
-    unsafe {
-        DwmSetWindowAttribute(
-            hwnd,
-            DWMWA_WINDOW_CORNER_PREFERENCE as u32,
-            (&raw const preference).cast(),
-            size_of_val(&preference) as u32,
-        );
-    }
-}
-
-#[cfg(not(windows))]
-pub fn round_corners(_window: &Window) {}
 
 pub fn appearance(window: &Window) -> Appearance {
     window
