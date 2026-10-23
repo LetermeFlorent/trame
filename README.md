@@ -29,8 +29,9 @@ The rest stays out of your way:
 - a double click on the empty part of a tab bar opens a new tab in that pane;
 - the light or dark theme follows the system and changes when the system does;
 - the default shell of the system opens in every new tab: PowerShell 7 when it is installed, Windows PowerShell otherwise, and `$SHELL` on Linux;
-- the Settings button at the bottom of the side bar (a gear with a tooltip when the bar is folded) opens the settings window in the middle of the screen, where you can turn tab text restoring on or off, change the size of the terminal text and of the interface (80% to 150%), pick the language (Auto follows the language of Windows, or force French or English), choose the folder new instances open in and forget a saved SSH connection. Escape or the cross closes it;
-- at launch, trame reopens the last layout with each shell in the folder it was in, and each tab shows again the text it held when trame closed. Only the text comes back: a program that was running in the tab is not started again, except an SSH connection, which asks for its password again.
+- the Settings button at the bottom of the side bar (a gear with a tooltip when the bar is folded) opens the settings window in the middle of the screen, where you can choose what comes back at launch, set a startup command, choose how many terminals a new instance opens with (1 to 8, 1 by default), change the size of the terminal text and of the interface (80% to 150%), pick the language (Auto follows the language of Windows, or force French or English), choose the folder new instances open in and forget a saved SSH connection. Escape or the cross closes it;
+- at launch, trame reopens the last layout with each shell in the folder it was in, and each tab shows again the text it held when trame closed. Only the text comes back: a program that was running in the tab is not started again, except an SSH connection, which asks for its password again. Three switches in the settings change that, all on by default: "Remember instances" off starts a single new instance, "Remember terminals" off brings the instances back with their name, colour, icon and folder but with fresh terminals, as many as a new instance gets, and "Restore tab text" off brings the tabs back empty;
+- the startup command, empty by default, is typed and run in every shell trame opens, new tabs and tabs brought back at launch alike. A tab opened for an SSH connection only runs `ssh`. Click the command to change it, Enter or a click elsewhere keeps it, Escape leaves it as it was, and the cross removes it.
 
 Drawing goes through the graphics card with [wgpu](https://wgpu.rs), on Vulkan first, with DirectX 12 on Windows and OpenGL on Linux when Vulkan is missing. Nothing is drawn while the window is hidden or minimized. The terminal itself, from the escape sequence parser to the screen grid and the scrollback, is written from scratch in Rust. On Windows 11 the program weighs 6.4 MB and uses around 65 MB of memory once open.
 
@@ -102,7 +103,7 @@ The layout of instances, tabs and splits, along with the window size, is saved o
 
 The settings live in the same file. Deleting it makes trame start over with a single instance.
 
-The text of each tab goes into the `text` folder next to it, `%APPDATA%\trame\text` or `~/.local/state/trame/text`, once a minute when something changed and once more when trame closes. Each tab keeps its last 4 MB. Turning "Restore tab text" off deletes that folder.
+The text of each tab goes into the `text` folder next to it, `%APPDATA%\trame\text` or `~/.local/state/trame/text`, once a minute when something changed and once more when trame closes. Each tab keeps its last 4 MB. Turning off "Restore tab text", or one of the two switches above it, deletes that folder.
 
 ## Build from source
 
