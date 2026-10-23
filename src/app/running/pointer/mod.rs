@@ -72,7 +72,10 @@ impl Running {
         button: MouseButton,
     ) {
         self.dismiss_settings(state);
-        if self.editing_button(state) || self.terminal_button(state, button) {
+        if self.menu_button(state, button)
+            || self.editing_button(state)
+            || self.terminal_button(state, button)
+        {
             return;
         }
         let hit = self

@@ -1,6 +1,8 @@
 use super::{Hit, ResizeEdge};
 use crate::geometry::{Point, Rect};
-use crate::ui::frame::{EditorFrame, PaneFrame, SidebarFrame, TitleBarFrame};
+use crate::ui::frame::{
+    EditorFrame, MenuFrame, PaneFrame, SettingsFrame, SidebarFrame, TitleBarFrame,
+};
 
 const CORNER_FACTOR: f32 = 2.0;
 
@@ -39,7 +41,29 @@ pub(super) fn hit_editor(editor: &EditorFrame, point: Point) -> Option<Hit> {
     if let Some(slot) = editor.emblem_at(point) {
         return Some(Hit::EditEmblem(slot.emblem));
     }
-    editor.contains(point).then_some(Hit::EditField)
+    let in_field = editor
+        .field
+        .as_ref()
+        .is_some_and(|field| field.rect.contains(point));
+    match () {
+        _ if in_field => Some(Hit::EditField),
+        _ if editor.strip.contains(point) => Some(Hit::EditStrip),
+        _ => None,
+    }
+}
+
+pub(super) fn hit_menu(menu: &MenuFrame, point: Point) -> Option<Hit> {
+    menu.rect
+        .contains(point)
+        .then(|| menu.entry_at(point).map_or(Hit::Menu, Hit::MenuEntry))
+}
+
+pub(super) fn hit_settings(panel: &SettingsFrame, point: Point) -> Option<Hit> {
+    panel.rect.contains(point).then(|| {
+        panel
+            .control_at(point)
+            .map_or(Hit::SettingsPanel, Hit::Setting)
+    })
 }
 
 pub(super) fn hit_pane(pane: &PaneFrame, point: Point) -> Hit {

@@ -29,7 +29,7 @@ The rest stays out of your way:
 
 - a tab can be dragged into another pane, onto the edge of a pane to split it, or onto an instance in the side bar;
 - the side bar can be resized with the mouse or folded into a thin rail of icons;
-- a double click on a tab or an instance renames it, gives it a colour, and for instances an icon;
+- a double click on a tab or an instance renames it, and a right click opens a menu to rename it, change its colour or, for an instance, its icon;
 - a double click on the empty part of a tab bar opens a new tab in that pane;
 - the light or dark theme follows the system and changes when the system does;
 - the default shell of the system opens in every new tab: PowerShell 7 when it is installed, Windows PowerShell otherwise, and `$SHELL` on Linux;

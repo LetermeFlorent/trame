@@ -3,10 +3,13 @@ mod zones;
 use crate::geometry::Point;
 use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
-use crate::ui::frame::{FrameLayout, SettingControl, SidebarItem};
+use crate::ui::frame::{FrameLayout, MenuEntry, SettingControl, SidebarItem};
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{Axis, InstanceId, PaneId};
-use zones::{hit_editor, hit_pane, hit_sidebar, hit_title_bar, resize_edge, through_backdrop};
+use zones::{
+    hit_editor, hit_menu, hit_pane, hit_settings, hit_sidebar, hit_title_bar, resize_edge,
+    through_backdrop,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ResizeEdge {
@@ -42,11 +45,14 @@ pub enum Hit {
     Divider(usize),
     Terminal(PaneId),
     EditField,
+    EditStrip,
     EditSwatch(Option<Swatch>),
     EditEmblem(Emblem),
     Settings,
     SettingsPanel,
     Setting(SettingControl),
+    Menu,
+    MenuEntry(MenuEntry),
     Backdrop,
 }
 
@@ -70,22 +76,21 @@ impl FrameLayout {
     }
 
     fn overlay_hit(&self, point: Point) -> Option<Hit> {
-        if let Some(hit) = self
-            .editor
+        let editor = || {
+            self.editor
+                .as_ref()
+                .and_then(|editor| hit_editor(editor, point))
+        };
+        let settings = || {
+            self.settings
+                .as_ref()
+                .and_then(|panel| hit_settings(panel, point))
+        };
+        self.menu
             .as_ref()
-            .and_then(|editor| hit_editor(editor, point))
-        {
-            return Some(hit);
-        }
-        let settings = self
-            .settings
-            .as_ref()
-            .filter(|panel| panel.rect.contains(point))?;
-        Some(
-            settings
-                .control_at(point)
-                .map_or(Hit::SettingsPanel, Hit::Setting),
-        )
+            .and_then(|menu| hit_menu(menu, point))
+            .or_else(editor)
+            .or_else(settings)
     }
 
     fn chrome_hit(&self, point: Point) -> Option<Hit> {

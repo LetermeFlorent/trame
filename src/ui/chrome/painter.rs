@@ -1,3 +1,4 @@
+use super::ChromeInput;
 use super::icons::{Icon, Pen, draw_icon};
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
@@ -28,7 +29,32 @@ pub(super) struct Painter<'a> {
     pub(super) motion: &'a Motion,
 }
 
-impl Painter<'_> {
+impl<'a> Painter<'a> {
+    pub(super) fn new(
+        scene: &'a mut Scene,
+        text: &'a mut TextSystem,
+        input: &ChromeInput<'a>,
+    ) -> Self {
+        Self {
+            scene,
+            text,
+            theme: input.theme,
+            metrics: input.frame.metrics,
+            view: input.view,
+            motion: input.motion,
+        }
+    }
+
+    pub(super) fn panel(&mut self, rect: Rect, blur: f32) {
+        let theme = self.theme;
+        let radius = self.metrics.px(UiMetrics::RADIUS);
+        let line = self.metrics.line();
+        let blur = self.metrics.px(blur);
+        self.scene.shadow(rect, theme.shadow, radius, blur);
+        self.scene.fill(rect, theme.chrome, radius);
+        self.scene.border(rect, theme.border_strong, radius, line);
+    }
+
     pub(super) fn state(&self, hit: Hit) -> Press {
         match (self.view.hover == Some(hit), self.view.pressed == Some(hit)) {
             (true, true) => Press::Pressed,
@@ -52,22 +78,23 @@ impl Painter<'_> {
     }
 
     fn icon_button(&mut self, rect: Rect, hit: Hit, icon: Icon, radius: f32) {
+        let glow = self.press_fill(rect, hit, radius);
+        let size = self.metrics.px(UiMetrics::ICON);
+        let color = self.theme.text_muted.mix(self.theme.text, glow);
+        self.icon(icon, centered(rect, size), color);
+    }
+
+    pub(super) fn press_fill(&mut self, rect: Rect, hit: Hit, radius: f32) -> f32 {
         let theme = self.theme;
-        let glow = match self.state(hit) {
-            Press::Pressed => {
-                self.scene.fill(rect, theme.pressed, radius);
-                1.0
-            }
+        let (fill, glow) = match self.state(hit) {
+            Press::Pressed => (theme.pressed, 1.0),
             _ => {
-                let hover = theme.hover;
-                self.scene
-                    .fill(rect, hover.with_alpha(hover.a * self.glow(hit)), radius);
-                self.glow(hit)
+                let glow = self.glow(hit);
+                (theme.hover.with_alpha(theme.hover.a * glow), glow)
             }
         };
-        let size = self.metrics.px(UiMetrics::ICON);
-        let color = theme.text_muted.mix(theme.text, glow);
-        self.icon(icon, centered(rect, size), color);
+        self.scene.fill(rect, fill, radius);
+        glow
     }
 
     pub(super) fn icon(&mut self, icon: Icon, rect: Rect, color: Rgba) {

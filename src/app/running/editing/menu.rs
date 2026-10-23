@@ -1,0 +1,91 @@
+use winit::event::{ElementState, KeyEvent, MouseButton};
+
+use trame::geometry::Point;
+use trame::ui::Hit;
+use trame::ui::frame::{EditAnchor, EditTarget, MenuEntry, MenuRequest};
+
+use super::{Running, target_of};
+use crate::app::running::keyboard::is_escape;
+
+pub(in super::super) struct Menu {
+    target: EditTarget,
+    anchor: EditAnchor,
+    at: Point,
+}
+
+impl Running {
+    pub(in super::super) fn menu_button(
+        &mut self,
+        state: ElementState,
+        button: MouseButton,
+    ) -> bool {
+        let Some(point) = self
+            .pointer
+            .position
+            .filter(|_| state == ElementState::Pressed)
+        else {
+            return false;
+        };
+        let hit = self.frame.hit(point, false);
+        let was_open = self.menu.is_some();
+        if let Some(menu) = self.menu.take() {
+            self.choose(menu, hit);
+        }
+        let target = hit
+            .filter(|_| button == MouseButton::Right)
+            .and_then(target_of);
+        if let Some((target, anchor)) = target {
+            self.editing = None;
+            self.menu = Some(Menu {
+                target,
+                anchor,
+                at: point,
+            });
+        }
+        let handled = was_open || target.is_some();
+        if handled {
+            self.changed();
+        }
+        handled
+    }
+
+    fn choose(&mut self, menu: Menu, hit: Option<Hit>) {
+        match hit {
+            Some(Hit::Menu) => self.menu = Some(menu),
+            Some(Hit::MenuEntry(entry)) => self.start_edit(menu.target, menu.anchor, entry),
+            _ => {}
+        }
+    }
+
+    pub(in super::super) fn menu_key(&mut self, event: &KeyEvent) -> bool {
+        if self.menu.is_none() {
+            return false;
+        }
+        if is_escape(event) {
+            self.menu = None;
+            self.changed();
+        }
+        true
+    }
+
+    pub(in super::super) fn place_menu(&mut self) {
+        let Some(menu) = &self.menu else {
+            return;
+        };
+        let strings = self.strings;
+        let entries = [
+            (MenuEntry::Rename, strings.rename),
+            (MenuEntry::Color, strings.change_color),
+            (MenuEntry::Icon, strings.change_icon),
+        ];
+        let shown = match menu.target {
+            EditTarget::Instance(_) => &entries[..],
+            EditTarget::Tab(_) => &entries[..2],
+        };
+        let request = MenuRequest {
+            at: menu.at,
+            entries: shown,
+        };
+        self.frame.place_menu(&mut self.text, &request);
+    }
+}

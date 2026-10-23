@@ -2,7 +2,7 @@ use crate::geometry::Rect;
 use crate::render::Scene;
 use crate::text::TextSystem;
 use crate::theme::Rgba;
-use crate::ui::chrome::{ChromeInput, Icon, Painter, Press};
+use crate::ui::chrome::{ChromeInput, Icon, Painter};
 use crate::ui::frame::{SettingControl, SettingsFrame, Stepper};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
@@ -16,14 +16,7 @@ pub fn draw_settings(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInp
     let Some(settings) = &input.frame.settings else {
         return;
     };
-    let mut painter = Painter {
-        scene,
-        text,
-        theme: input.theme,
-        metrics: input.frame.metrics,
-        view: input.view,
-        motion: input.motion,
-    };
+    let mut painter = Painter::new(scene, text, input);
     draw_panel(&mut painter, settings);
     draw_restore(&mut painter, settings);
     let text_steps = [SettingControl::TextSmaller, SettingControl::TextBigger];
@@ -37,15 +30,7 @@ pub fn draw_settings(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInp
 
 fn draw_panel(painter: &mut Painter, settings: &SettingsFrame) {
     let theme = painter.theme;
-    let radius = painter.metrics.px(UiMetrics::RADIUS);
-    let line = painter.metrics.line();
-    let blur = painter.metrics.px(PANEL_BLUR);
-    let rect = settings.rect;
-    painter.scene.shadow(rect, theme.shadow, radius, blur);
-    painter.scene.fill(rect, theme.chrome, radius);
-    painter
-        .scene
-        .border(rect, theme.border_strong, radius, line);
+    painter.panel(settings.rect, PANEL_BLUR);
     let caption = &settings.caption;
     painter.label(
         &caption.label,
@@ -59,12 +44,8 @@ fn draw_restore(painter: &mut Painter, settings: &SettingsFrame) {
     let theme = painter.theme;
     let hit = Hit::Setting(SettingControl::RestoreText);
     let radius = painter.metrics.px(UiMetrics::RADIUS);
-    let fill = match painter.state(hit) {
-        Press::Pressed => theme.pressed,
-        _ => theme.hover.with_alpha(theme.hover.a * painter.glow(hit)),
-    };
     let line = &settings.restore;
-    painter.scene.fill(line.rect, fill, radius);
+    painter.press_fill(line.rect, hit, radius);
     painter.label(&line.label, line.label_x, line.rect, theme.text);
     draw_toggle(painter, settings.toggle, settings.restores_text);
 }

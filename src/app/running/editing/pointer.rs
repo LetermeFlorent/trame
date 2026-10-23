@@ -13,28 +13,21 @@ impl Running {
             .pointer
             .position
             .and_then(|point| self.frame.hit(point, false));
-        match (hit, state) {
-            (Some(Hit::EditSwatch(color)), ElementState::Pressed) => {
-                self.pick_color(color);
-                self.changed();
-                true
+        let pressed = state == ElementState::Pressed;
+        match hit {
+            Some(Hit::EditSwatch(color)) if pressed => self.pick_color(color),
+            Some(Hit::EditEmblem(emblem)) if pressed => self.pick_emblem(emblem),
+            Some(Hit::EditField | Hit::EditStrip | Hit::EditSwatch(_) | Hit::EditEmblem(_)) => {
+                return true;
             }
-            (Some(Hit::EditEmblem(emblem)), ElementState::Pressed) => {
-                self.pick_emblem(emblem);
-                self.changed();
-                true
-            }
-            (
-                Some(Hit::EditField | Hit::EditSwatch(_) | Hit::EditEmblem(_)),
-                ElementState::Released,
-            ) => true,
-            (Some(Hit::EditField), ElementState::Pressed) => true,
-            (_, ElementState::Pressed) => {
+            _ if pressed => {
                 self.cancel_edit();
                 self.changed();
-                false
+                return false;
             }
-            _ => false,
+            _ => return false,
         }
+        self.changed();
+        true
     }
 }

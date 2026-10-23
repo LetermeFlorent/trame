@@ -112,6 +112,7 @@ impl Running {
             pointer: Pointer::default(),
             drag: None,
             editing: None,
+            menu: None,
             settings_open: false,
             selecting: Selecting::default(),
             modifiers: ModifiersState::empty(),

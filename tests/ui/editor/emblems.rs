@@ -2,28 +2,21 @@ use trame::input::TextField;
 use trame::session::SessionId;
 use trame::text::TextSystem;
 use trame::theme::Emblem;
-use trame::ui::frame::{EditAnchor, EditTarget, EditorRequest};
+use trame::ui::frame::{EditAnchor, EditKind, EditTarget};
 use trame::ui::{FrameLayout, Hit, UiMetrics};
 use trame::workspace::Workspace;
 
-use super::request;
-use crate::{frame, text_system, workspace};
+use super::place;
+use crate::{text_system, workspace};
 
-fn instance_editor(
+fn second_instance(
     text: &mut TextSystem,
     workspace: &Workspace,
     anchor: EditAnchor,
-    emblem: Emblem,
+    kind: EditKind,
 ) -> FrameLayout {
-    let mut frame = frame(text, workspace);
-    let field = TextField::new("name");
     let target = EditTarget::Instance(workspace.instances[1].id);
-    let request = EditorRequest {
-        emblem: Some(emblem),
-        ..request(target, anchor, &field, None)
-    };
-    frame.place_editor(text, &request);
-    frame
+    place(text, workspace, target, anchor, kind)
 }
 
 fn collapsed() -> Workspace {
@@ -33,16 +26,16 @@ fn collapsed() -> Workspace {
 }
 
 #[test]
-fn an_instance_editor_offers_every_emblem_under_the_colours() {
+fn the_icon_row_offers_every_emblem_and_nothing_else() {
     let mut text = text_system();
-    let frame = instance_editor(&mut text, &workspace(), EditAnchor::Sidebar, Emblem::Code);
+    let kind = EditKind::Emblem(Some(Emblem::Code));
+    let frame = second_instance(&mut text, &workspace(), EditAnchor::Sidebar, kind);
     let editor = frame.editor.as_ref().expect("an editor");
     assert_eq!(editor.emblem, Some(Emblem::Code));
+    assert!(editor.field.is_none() && editor.slots.is_empty());
     let order: Vec<Emblem> = editor.emblems.iter().map(|slot| slot.emblem).collect();
     assert_eq!(order, Emblem::ALL.to_vec());
-    let colours = editor.slots[0].rect;
     for slot in &editor.emblems {
-        assert!(slot.rect.y > colours.bottom());
         assert!(editor.strip.contains(slot.rect.center()));
         assert!(slot.rect.right() <= editor.strip.right());
         assert!(slot.rect.contains(slot.icon.center()));
@@ -54,52 +47,43 @@ fn an_instance_editor_offers_every_emblem_under_the_colours() {
 }
 
 #[test]
-fn a_tab_editor_has_no_emblem_row() {
+fn a_rail_icon_opens_the_rename_field_beside_the_rail() {
     let mut text = text_system();
-    let workspace = workspace();
-    let mut tab = frame(&mut text, &workspace);
-    let field = TextField::new("tab");
-    let target = EditTarget::Tab(SessionId(1));
-    tab.place_editor(
-        &mut text,
-        &request(target, EditAnchor::Sidebar, &field, None),
-    );
-    let tab_editor = tab.editor.as_ref().expect("a tab editor");
-    assert!(tab_editor.emblems.is_empty());
-    assert_eq!(tab_editor.emblem, None);
-    let instance = instance_editor(&mut text, &workspace, EditAnchor::Sidebar, Emblem::Grid);
-    let instance_editor = instance.editor.as_ref().expect("an instance editor");
-    assert!(instance_editor.strip.height > tab_editor.strip.height);
+    let name = TextField::new("name");
+    let kind = EditKind::Name(&name);
+    let frame = second_instance(&mut text, &collapsed(), EditAnchor::Rail, kind);
+    let rail = frame.rail.as_ref().expect("the rail");
+    let row = rail.slots[1].rect.center().y;
+    let field = frame
+        .editor
+        .as_ref()
+        .and_then(|editor| editor.field.as_ref());
+    let field = field.expect("a field beside the rail").rect;
+    assert!(field.x >= rail.rect.right());
+    assert!(field.y <= row && field.bottom() >= row);
+    assert!(field.width >= UiMetrics::SIDEBAR_MIN_WIDTH);
+    assert_eq!(frame.hit(field.center(), false), Some(Hit::EditField));
 }
 
 #[test]
-fn a_rail_icon_opens_the_editor_beside_the_rail() {
+fn a_rail_icon_opens_its_icon_row_under_the_icon() {
     let mut text = text_system();
-    let workspace = collapsed();
-    let frame = instance_editor(&mut text, &workspace, EditAnchor::Rail, Emblem::Gear);
-    let editor = frame.editor.as_ref().expect("an editor beside the rail");
+    let kind = EditKind::Emblem(Some(Emblem::Gear));
+    let frame = second_instance(&mut text, &collapsed(), EditAnchor::Rail, kind);
     let rail = frame.rail.as_ref().expect("the rail");
-    let slot = &rail.slots[1];
-    assert!(editor.field.x >= rail.rect.right());
-    assert!(
-        editor.field.y <= slot.rect.center().y && editor.field.bottom() >= slot.rect.center().y
-    );
-    assert!(editor.field.width >= UiMetrics::SIDEBAR_MIN_WIDTH);
+    let editor = frame.editor.as_ref().expect("an editor beside the rail");
+    assert!(editor.strip.x >= rail.rect.right());
+    assert!(editor.strip.y >= rail.slots[1].rect.center().y);
     assert_eq!(editor.emblems.len(), Emblem::ALL.len());
-    assert_eq!(
-        frame.hit(editor.field.center(), false),
-        Some(Hit::EditField)
-    );
 }
 
 #[test]
 fn the_rail_anchor_needs_a_rail_and_an_instance() {
     let mut text = text_system();
-    let open = instance_editor(&mut text, &workspace(), EditAnchor::Rail, Emblem::Grid);
+    let kind = EditKind::Emblem(Some(Emblem::Grid));
+    let open = second_instance(&mut text, &workspace(), EditAnchor::Rail, kind);
     assert!(open.editor.is_none());
-    let mut frame = frame(&mut text, &collapsed());
-    let field = TextField::new("tab");
-    let target = EditTarget::Tab(SessionId(1));
-    frame.place_editor(&mut text, &request(target, EditAnchor::Rail, &field, None));
+    let tab = EditTarget::Tab(SessionId(1));
+    let frame = place(&mut text, &collapsed(), tab, EditAnchor::Rail, kind);
     assert!(frame.editor.is_none());
 }

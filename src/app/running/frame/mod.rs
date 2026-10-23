@@ -79,6 +79,7 @@ impl Running {
         self.frame = compute(&mut self.text, &layout, &mut self.motion, &title);
         self.frame.blocked = self.loader.is_some();
         self.place_editor();
+        self.place_menu();
         self.place_settings();
         self.sync_sizes();
         self.refresh_hover();

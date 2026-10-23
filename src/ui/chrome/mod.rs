@@ -8,7 +8,7 @@ mod titlebar;
 
 pub use icons::{Icon, Pen, draw_icon};
 pub use overlay::{
-    LoaderProgress, LoaderView, draw_editor, draw_loader, draw_settings, draw_tooltip,
+    LoaderProgress, LoaderView, draw_editor, draw_loader, draw_menu, draw_settings, draw_tooltip,
 };
 
 use self::painter::{Painter, Press, centered};
@@ -34,14 +34,7 @@ pub struct ChromeInput<'a> {
 
 pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput) {
     let frame = input.frame;
-    let mut painter = Painter {
-        scene,
-        text,
-        theme: input.theme,
-        metrics: frame.metrics,
-        view: input.view,
-        motion: input.motion,
-    };
+    let mut painter = Painter::new(scene, text, input);
     let shown = frame.reveal >= SIDEBAR_SHOWN;
     titlebar::draw(&mut painter, &frame.title_bar, shown);
     sidebar::draw_panel(&mut painter, frame.side);

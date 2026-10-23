@@ -31,7 +31,7 @@ use super::saver::Saver;
 use super::sessions::Sessions;
 use super::visibility::Visibility;
 use super::window;
-use editing::Editing;
+use editing::{Editing, Menu};
 use frame::Loader;
 use pointer::{Drag, Pointer, Selecting};
 
@@ -55,6 +55,7 @@ pub struct Running {
     pointer: Pointer,
     drag: Option<Drag>,
     editing: Option<Editing>,
+    menu: Option<Menu>,
     settings_open: bool,
     selecting: Selecting,
     modifiers: ModifiersState,

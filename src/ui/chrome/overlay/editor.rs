@@ -3,7 +3,7 @@ use crate::render::Scene;
 use crate::text::TextSystem;
 use crate::theme::{Emblem, Swatch};
 use crate::ui::chrome::{ChromeInput, Icon, Painter};
-use crate::ui::frame::{EditorFrame, EmblemSlot, SwatchSlot};
+use crate::ui::frame::{EditorFrame, EmblemSlot, FieldFrame, SwatchSlot};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
@@ -16,30 +16,17 @@ pub fn draw_editor(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
     let Some(editor) = &input.frame.editor else {
         return;
     };
-    let mut painter = Painter {
-        scene,
-        text,
-        theme: input.theme,
-        metrics: input.frame.metrics,
-        view: input.view,
-        motion: input.motion,
-    };
-    draw_strip(&mut painter, editor);
-    draw_field(&mut painter, editor);
+    let mut painter = Painter::new(scene, text, input);
+    if !editor.strip.is_empty() {
+        draw_strip(&mut painter, editor);
+    }
+    if let Some(field) = &editor.field {
+        draw_field(&mut painter, field);
+    }
 }
 
 fn draw_strip(painter: &mut Painter, editor: &EditorFrame) {
-    let theme = painter.theme;
-    let radius = painter.metrics.px(UiMetrics::RADIUS);
-    let line = painter.metrics.line();
-    let blur = painter.metrics.px(STRIP_BLUR);
-    painter
-        .scene
-        .shadow(editor.strip, theme.shadow, radius, blur);
-    painter.scene.fill(editor.strip, theme.chrome, radius);
-    painter
-        .scene
-        .border(editor.strip, theme.border_strong, radius, line);
+    painter.panel(editor.strip, STRIP_BLUR);
     for slot in &editor.slots {
         draw_slot(painter, slot, editor.selected);
     }
@@ -100,16 +87,14 @@ fn draw_empty(painter: &mut Painter, rect: Rect) {
     painter.scene.line(from, to, line, theme.text_faint);
 }
 
-fn draw_field(painter: &mut Painter, editor: &EditorFrame) {
+fn draw_field(painter: &mut Painter, field: &FieldFrame) {
     let theme = painter.theme;
     let radius = painter.metrics.px(UiMetrics::RADIUS);
     let line = painter.metrics.line();
-    painter.scene.fill(editor.field, theme.terminal, radius);
-    painter
-        .scene
-        .border(editor.field, theme.accent, radius, line);
-    painter.scene.push_clip(editor.text_area);
-    painter.label(&editor.label, editor.text_x, editor.field, theme.text);
-    painter.scene.fill(editor.caret, theme.text, 0.0);
+    painter.scene.fill(field.rect, theme.terminal, radius);
+    painter.scene.border(field.rect, theme.accent, radius, line);
+    painter.scene.push_clip(field.text_area);
+    painter.label(&field.label, field.text_x, field.rect, theme.text);
+    painter.scene.fill(field.caret, theme.text, 0.0);
     painter.scene.pop_clip();
 }

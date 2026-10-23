@@ -1,6 +1,6 @@
 use winit::event::{ElementState, KeyEvent};
 use winit::event_loop::ActiveEventLoop;
-use winit::keyboard::ModifiersState;
+use winit::keyboard::{Key, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
 use trame::input::{KeyInput, ShortcutInput, encode, shortcut};
@@ -17,6 +17,7 @@ impl Running {
         if self.frame.blocked
             || event.state != ElementState::Pressed
             || self.drag_key(&event.logical_key)
+            || self.menu_key(event)
             || self.editing_key(event)
             || self.settings_key(event)
         {
@@ -93,4 +94,8 @@ impl Running {
             .active_tab()
             .and_then(|id| self.sessions.get(id))
     }
+}
+
+pub(super) fn is_escape(event: &KeyEvent) -> bool {
+    event.logical_key == Key::Named(NamedKey::Escape)
 }

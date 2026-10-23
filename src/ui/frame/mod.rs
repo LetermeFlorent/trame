@@ -6,7 +6,10 @@ mod panes;
 mod sidebar;
 mod titlebar;
 
-pub use editor::{EditAnchor, EditTarget, EditorFrame, EditorRequest, EmblemSlot, SwatchSlot};
+pub use editor::{
+    EditAnchor, EditKind, EditTarget, EditorFrame, EditorRequest, EmblemSlot, FieldFrame,
+    MenuEntry, MenuFrame, MenuRequest, MenuRow, SwatchSlot,
+};
 pub use label::fit_label;
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{
@@ -45,6 +48,7 @@ pub struct FrameLayout {
     pub panes: Vec<PaneFrame>,
     pub dividers: Vec<Divider>,
     pub editor: Option<EditorFrame>,
+    pub menu: Option<MenuFrame>,
     pub settings: Option<SettingsFrame>,
     pub blocked: bool,
 }
@@ -91,6 +95,7 @@ impl FrameLayout {
             panes,
             dividers,
             editor: None,
+            menu: None,
             settings: None,
             blocked: false,
         }

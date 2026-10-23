@@ -33,7 +33,15 @@ fn an_explicit_choice_ignores_the_system() {
 fn each_language_has_its_own_texts() {
     let english = Language::English.strings();
     let french = Language::French.strings();
-    assert_ne!(english.checking_updates, french.checking_updates);
-    assert_ne!(english.downloading_version, french.downloading_version);
-    assert_ne!(english.installing_version, french.installing_version);
+    let pairs = [
+        (english.checking_updates, french.checking_updates),
+        (english.downloading_version, french.downloading_version),
+        (english.installing_version, french.installing_version),
+        (english.rename, french.rename),
+        (english.change_color, french.change_color),
+        (english.change_icon, french.change_icon),
+    ];
+    for (english, french) in pairs {
+        assert_ne!(english, french);
+    }
 }

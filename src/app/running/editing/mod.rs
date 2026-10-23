@@ -1,18 +1,25 @@
 mod keys;
+mod menu;
 mod pointer;
 
 use trame::input::TextField;
 use trame::theme::{Emblem, Swatch};
 use trame::ui::Hit;
-use trame::ui::frame::{EditAnchor, EditTarget, EditorRequest, SidebarItem};
+use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest, MenuEntry, SidebarItem};
 
 use super::Running;
+pub(super) use menu::Menu;
+
+enum EditMode {
+    Name { field: TextField, original: String },
+    Color,
+    Emblem,
+}
 
 pub(super) struct Editing {
     target: EditTarget,
     anchor: EditAnchor,
-    field: TextField,
-    original: String,
+    mode: EditMode,
 }
 
 fn target_of(hit: Hit) -> Option<(EditTarget, EditAnchor)> {
@@ -32,27 +39,43 @@ impl Running {
         let Some((target, anchor)) = target_of(hit) else {
             return false;
         };
-        let original = self.name_of(target);
+        self.start_edit(target, anchor, MenuEntry::Rename);
+        true
+    }
+
+    fn start_edit(&mut self, target: EditTarget, anchor: EditAnchor, entry: MenuEntry) {
+        let mode = match entry {
+            MenuEntry::Rename => {
+                let original = self.name_of(target);
+                EditMode::Name {
+                    field: TextField::new(&original),
+                    original,
+                }
+            }
+            MenuEntry::Color => EditMode::Color,
+            MenuEntry::Icon => EditMode::Emblem,
+        };
         self.editing = Some(Editing {
             target,
             anchor,
-            field: TextField::new(&original),
-            original,
+            mode,
         });
         self.changed();
-        true
     }
 
     pub(super) fn place_editor(&mut self) {
         let Some(editing) = &self.editing else {
             return;
         };
+        let kind = match &editing.mode {
+            EditMode::Name { field, .. } => EditKind::Name(field),
+            EditMode::Color => EditKind::Color(self.color_of(editing.target)),
+            EditMode::Emblem => EditKind::Emblem(self.emblem_of(editing.target)),
+        };
         let request = EditorRequest {
             target: editing.target,
             anchor: editing.anchor,
-            field: &editing.field,
-            color: self.color_of(editing.target),
-            emblem: self.emblem_of(editing.target),
+            kind,
         };
         self.frame.place_editor(&mut self.text, &request);
         if self.frame.editor.is_none() {
@@ -61,16 +84,20 @@ impl Running {
     }
 
     fn commit_edit(&mut self) {
-        let Some(editing) = self.editing.take() else {
+        let Some(Editing {
+            target,
+            mode: EditMode::Name { field, original },
+            ..
+        }) = self.editing.take()
+        else {
             return;
         };
-        if editing.field.text() == editing.original {
+        if field.text() == original {
             return;
         }
-        let name = editing.field.text();
-        match editing.target {
-            EditTarget::Tab(id) => self.workspace.rename_tab(id, name),
-            EditTarget::Instance(id) => self.workspace.rename_instance(id, name),
+        match target {
+            EditTarget::Tab(id) => self.workspace.rename_tab(id, field.text()),
+            EditTarget::Instance(id) => self.workspace.rename_instance(id, field.text()),
         }
     }
 
@@ -79,7 +106,7 @@ impl Running {
     }
 
     fn pick_color(&mut self, color: Option<Swatch>) {
-        let Some(editing) = &self.editing else {
+        let Some(editing) = self.editing.take() else {
             return;
         };
         match editing.target {
@@ -89,8 +116,7 @@ impl Running {
     }
 
     fn pick_emblem(&mut self, emblem: Emblem) {
-        if let Some(EditTarget::Instance(id)) = self.editing.as_ref().map(|editing| editing.target)
-        {
+        if let Some(EditTarget::Instance(id)) = self.editing.take().map(|editing| editing.target) {
             self.workspace.set_instance_emblem(id, emblem);
         }
     }

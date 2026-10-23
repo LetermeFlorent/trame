@@ -1,10 +1,10 @@
 use winit::event::{ElementState, KeyEvent};
-use winit::keyboard::{Key, NamedKey};
 
 use trame::ui::Hit;
 use trame::ui::frame::SettingControl;
 
 use super::Running;
+use super::keyboard::is_escape;
 
 impl Running {
     pub(super) fn place_settings(&mut self) {
@@ -36,8 +36,7 @@ impl Running {
     }
 
     pub(super) fn settings_key(&mut self, event: &KeyEvent) -> bool {
-        let escape = event.logical_key == Key::Named(NamedKey::Escape);
-        if !self.settings_open || !escape {
+        if !self.settings_open || !is_escape(event) {
             return false;
         }
         self.toggle_settings();

@@ -3,7 +3,7 @@ use trame::render::Scene;
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Theme};
 use trame::ui::chrome::{ChromeInput, draw_tooltip};
-use trame::ui::frame::{EditAnchor, EditTarget, EditorRequest};
+use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest};
 use trame::ui::{FrameLayout, FrameView, Hit, Motion};
 use trame::workspace::Workspace;
 
@@ -82,9 +82,7 @@ fn the_name_hides_while_the_editor_is_open() {
     let request = EditorRequest {
         target: EditTarget::Instance(id),
         anchor: EditAnchor::Rail,
-        field: &field,
-        color: None,
-        emblem: Some(workspace.instances[1].emblem),
+        kind: EditKind::Name(&field),
     };
     layout.place_editor(&mut text, &request);
     assert!(layout.editor.is_some());

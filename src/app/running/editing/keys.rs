@@ -4,15 +4,20 @@ use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
 use trame::input::{Command, ShortcutInput, TextField, shortcut};
 
-use super::Running;
+use super::{EditMode, Editing, Running};
 use crate::app::running::commands::read_clipboard;
+use crate::app::running::keyboard::is_escape;
 
 impl Running {
     pub(in super::super) fn editing_key(&mut self, event: &KeyEvent) -> bool {
-        if self.editing.is_none() {
+        let Some(editing) = &self.editing else {
             return false;
+        };
+        match editing.mode {
+            EditMode::Name { .. } => self.edit_key(event),
+            _ if is_escape(event) => self.cancel_edit(),
+            _ => {}
         }
-        self.edit_key(event);
         self.changed();
         true
     }
@@ -64,8 +69,12 @@ impl Running {
     }
 
     fn with_field(&mut self, change: impl FnOnce(&mut TextField)) {
-        if let Some(editing) = &mut self.editing {
-            change(&mut editing.field);
+        if let Some(Editing {
+            mode: EditMode::Name { field, .. },
+            ..
+        }) = &mut self.editing
+        {
+            change(field);
         }
     }
 }

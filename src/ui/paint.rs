@@ -46,9 +46,11 @@ pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSourc
     chrome::draw_dividers(scene, theme, frame, view);
     chrome::draw_editor(scene, text, &input);
     chrome::draw_settings(scene, text, &input);
+    chrome::draw_menu(scene, text, &input);
     match sources.drag {
         Some(drag) => draw_drag(scene, text, &input, drag),
-        None => chrome::draw_tooltip(scene, text, &input),
+        None if frame.menu.is_none() => chrome::draw_tooltip(scene, text, &input),
+        None => {}
     }
     if let Some(loader) = sources.loader {
         chrome::draw_loader(scene, text, &input, loader);
