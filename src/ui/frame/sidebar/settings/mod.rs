@@ -1,4 +1,5 @@
 mod column;
+mod launch;
 mod place;
 mod rows;
 
@@ -6,12 +7,18 @@ use std::sync::Arc;
 
 use crate::geometry::{Point, Rect};
 use crate::locale::LanguageChoice;
+use crate::preferences::Recall;
 use crate::text::TextLayout;
+use crate::ui::frame::FieldFrame;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SettingControl {
     Close,
-    RestoreText,
+    Recall(Recall),
+    StartupCommand,
+    ClearStartupCommand,
+    InstanceTabsFewer,
+    InstanceTabsMore,
     TextSmaller,
     TextBigger,
     InterfaceSmaller,
@@ -27,6 +34,15 @@ pub struct SettingLine {
     pub rect: Rect,
     pub label: Arc<TextLayout>,
     pub label_x: f32,
+}
+
+#[derive(Clone, Debug)]
+pub struct ToggleRow {
+    pub line: SettingLine,
+    pub switch: Rect,
+    pub on: bool,
+    pub enabled: bool,
+    pub control: SettingControl,
 }
 
 #[derive(Clone, Debug)]
@@ -70,10 +86,11 @@ pub struct SettingsFrame {
     pub rect: Rect,
     pub title: SettingLine,
     pub close: Rect,
-    pub sections: [SettingLine; 4],
-    pub restore: SettingLine,
-    pub toggle: Rect,
-    pub restores_text: bool,
+    pub sections: [SettingLine; 5],
+    pub toggles: [ToggleRow; 3],
+    pub command: ChoiceRow,
+    pub command_field: Option<FieldFrame>,
+    pub instance_tabs: Stepper,
     pub text_size: Stepper,
     pub interface_size: Stepper,
     pub language: ChoiceRow,
@@ -84,24 +101,33 @@ pub struct SettingsFrame {
 
 impl SettingsFrame {
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
-        let rows = [&self.language, &self.folder]
+        let field = self.command_field.as_ref().map(|field| field.rect);
+        let toggles = self.toggles.iter().filter(|toggle| toggle.enabled);
+        let rows = [&self.command, &self.language, &self.folder]
             .into_iter()
             .chain(&self.hosts)
             .flat_map(ChoiceRow::controls);
-        [
-            (self.close, SettingControl::Close),
-            (self.restore.rect, SettingControl::RestoreText),
-            (self.text_size.smaller, SettingControl::TextSmaller),
-            (self.text_size.bigger, SettingControl::TextBigger),
-            (
-                self.interface_size.smaller,
-                SettingControl::InterfaceSmaller,
-            ),
-            (self.interface_size.bigger, SettingControl::InterfaceBigger),
-        ]
-        .into_iter()
-        .chain(rows)
-        .find(|(rect, _)| rect.contains(point))
-        .map(|(_, control)| control)
+        field
+            .map(|rect| (rect, SettingControl::StartupCommand))
+            .into_iter()
+            .chain([(self.close, SettingControl::Close)])
+            .chain(toggles.map(|toggle| (toggle.line.rect, toggle.control)))
+            .chain([
+                (
+                    self.instance_tabs.smaller,
+                    SettingControl::InstanceTabsFewer,
+                ),
+                (self.instance_tabs.bigger, SettingControl::InstanceTabsMore),
+                (self.text_size.smaller, SettingControl::TextSmaller),
+                (self.text_size.bigger, SettingControl::TextBigger),
+                (
+                    self.interface_size.smaller,
+                    SettingControl::InterfaceSmaller,
+                ),
+                (self.interface_size.bigger, SettingControl::InterfaceBigger),
+            ])
+            .chain(rows)
+            .find(|(rect, _)| rect.contains(point))
+            .map(|(_, control)| control)
     }
 }

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Instant;
 
+use trame::preferences::Recall;
 use trame::session::SessionId;
 use trame::workspace::{Snapshot, TabSnapshot, Workspace};
 
@@ -25,7 +26,7 @@ impl Running {
         self.transcripts.assign(&self.workspace.tabs());
         let sessions = &self.sessions;
         let transcripts = &self.transcripts;
-        let keeps_text = self.preferences.restore_text;
+        let keeps_text = self.preferences.recalls(Recall::Text);
         let describe = |id: SessionId| TabSnapshot {
             cwd: sessions.cwd(id),
             transcript: transcripts
@@ -40,12 +41,12 @@ impl Running {
     }
 
     pub(super) fn restore_session(&mut self, saved: Option<&Snapshot>) -> bool {
-        let Some(saved) = saved else {
+        let Some(saved) = saved.and_then(Snapshot::recalled) else {
             return false;
         };
         let mut tabs = SavedTabs::new();
         let sessions = &mut self.sessions;
-        let restored = Workspace::restore(saved, &mut |tab| {
+        let restored = Workspace::restore(&saved, &mut |tab| {
             let id = sessions.reserve();
             tabs.insert(id, tab.clone());
             id
@@ -80,7 +81,7 @@ impl Running {
     }
 
     fn saved_text(&self, key: Option<&str>) -> Vec<u8> {
-        key.filter(|_| self.preferences.restore_text)
+        key.filter(|_| self.preferences.recalls(Recall::Text))
             .and_then(|key| self.transcripts.read(key))
             .unwrap_or_default()
     }

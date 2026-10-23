@@ -1,20 +1,22 @@
 use crate::geometry::Rect;
+use crate::input::TextField;
 use crate::locale::Strings;
 use crate::preferences::Preferences;
 use crate::text::TextSystem;
 use crate::ui::frame::FrameLayout;
+use crate::ui::frame::editor::place_field;
 use crate::ui::metrics::UiMetrics;
 
 use super::SettingsFrame;
-use super::column::{CAPTION_HEIGHT, Column, LINE_HEIGHT};
+use super::column::{CAPTION_HEIGHT, Column, LINE_HEIGHT, SECTION_GAP};
+use super::launch::{command_row, instance_tabs_stepper, recall_toggles};
 use super::rows::{folder_row, host_rows, language_row, size_steppers};
 
 const PANEL_WIDTH: f32 = 360.0;
 const PANEL_PAD: f32 = 12.0;
 const TITLE_HEIGHT: f32 = 36.0;
-const SECTION_GAP: f32 = 8.0;
-const CAPTIONS: f32 = 4.0;
-const FIXED_LINES: usize = 5;
+const CAPTIONS: f32 = 5.0;
+const FIXED_LINES: usize = 9;
 
 impl FrameLayout {
     pub fn place_settings(
@@ -47,6 +49,16 @@ impl FrameLayout {
             [backdrop, rect],
         ));
     }
+
+    pub fn place_command_field(&mut self, text: &mut TextSystem, field: &TextField) {
+        let metrics = self.metrics;
+        let Some(settings) = &mut self.settings else {
+            return;
+        };
+        let line = settings.command.line.rect;
+        let anchor = Rect::from_edges(line.center().x, line.y, line.right(), line.bottom());
+        settings.command_field = Some(place_field(text, &metrics, anchor, line, field));
+    }
 }
 
 fn settings_frame(
@@ -58,18 +70,17 @@ fn settings_frame(
     let metrics = column.metrics;
     let title = column.line(strings.settings, TITLE_HEIGHT, metrics.strong());
     let close = column.end_button(&title);
-    let tab_text = column.line(strings.tab_text, CAPTION_HEIGHT, metrics.caption());
-    let restore = column.line(strings.restore_text, LINE_HEIGHT, metrics.label());
-    let toggle = column.toggle(&restore);
-    column.skip(SECTION_GAP);
-    let display = column.line(strings.display, CAPTION_HEIGHT, metrics.caption());
+    let at_launch = column.caption(strings.at_launch);
+    let toggles = recall_toggles(column, strings, preferences);
+    let terminals = column.section(strings.terminals);
+    let command = command_row(column, strings, preferences);
+    let instance_tabs = instance_tabs_stepper(column, strings, preferences);
+    let display = column.section(strings.display);
     let [text_size, interface_size] = size_steppers(column, strings, preferences);
     let language = language_row(column, strings, preferences);
-    column.skip(SECTION_GAP);
-    let folders = column.line(strings.folders, CAPTION_HEIGHT, metrics.caption());
+    let folders = column.section(strings.folders);
     let folder = folder_row(column, strings, preferences);
-    column.skip(SECTION_GAP);
-    let connections = column.line(strings.connections, CAPTION_HEIGHT, metrics.caption());
+    let connections = column.section(strings.connections);
     let hosts = host_rows(column, preferences);
     let hint = hosts
         .is_empty()
@@ -79,10 +90,11 @@ fn settings_frame(
         rect,
         title,
         close,
-        sections: [tab_text, display, folders, connections],
-        restore,
-        toggle,
-        restores_text: preferences.restore_text,
+        sections: [at_launch, terminals, display, folders, connections],
+        toggles,
+        command,
+        command_field: None,
+        instance_tabs,
         text_size,
         interface_size,
         language,

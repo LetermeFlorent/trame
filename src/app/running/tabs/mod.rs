@@ -6,6 +6,7 @@ use std::path::Path;
 
 use winit::event_loop::ActiveEventLoop;
 
+use trame::preferences::SshHost;
 use trame::session::SessionId;
 use trame::workspace::{Edge, InstanceId, PaneId};
 
@@ -25,6 +26,23 @@ pub(super) enum Placement {
 impl Running {
     pub(super) fn open(&mut self, placement: Placement) -> io::Result<SessionId> {
         let cwd = self.start_folder(placement);
+        let first = self.open_in(placement, cwd.as_deref(), None)?;
+        if placement == Placement::Instance {
+            for _ in 1..self.preferences.instance_tabs {
+                self.open_in(Placement::Tab, cwd.as_deref(), None)?;
+            }
+            self.workspace.activate_tab(first);
+            self.changed();
+        }
+        Ok(first)
+    }
+
+    fn open_in(
+        &mut self,
+        placement: Placement,
+        cwd: Option<&Path>,
+        host: Option<SshHost>,
+    ) -> io::Result<SessionId> {
         let id = self.sessions.reserve();
         match placement {
             Placement::Tab => self.workspace.add_tab(id),
@@ -33,8 +51,12 @@ impl Running {
                 self.workspace.add_instance(None, id);
             }
         }
+        if let Some(host) = host {
+            self.workspace.rename_tab(id, &host.label());
+            self.workspace.set_tab_host(id, Some(host));
+        }
         self.relayout();
-        let spawned = self.start_shell(id, cwd.as_deref(), &[]);
+        let spawned = self.start_shell(id, cwd, &[]);
         self.changed();
         spawned.map(|()| id)
     }
@@ -53,7 +75,7 @@ impl Running {
         };
         let spawned = self.sessions.spawn(id, &start);
         match spawned {
-            Ok(()) => self.dial(id),
+            Ok(()) => self.greet(id),
             Err(_) => {
                 self.workspace.close_tab(id);
             }

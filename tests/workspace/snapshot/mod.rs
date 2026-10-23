@@ -2,9 +2,9 @@ mod invalid;
 mod marks;
 mod nesting;
 mod preferences;
+mod recall;
 mod round_trip;
 mod sanitize;
-mod ssh_hosts;
 
 use std::collections::HashMap;
 use std::path::PathBuf;

@@ -87,7 +87,7 @@ fn draw_empty(painter: &mut Painter, rect: Rect) {
     painter.scene.line(from, to, line, theme.text_faint);
 }
 
-fn draw_field(painter: &mut Painter, field: &FieldFrame) {
+pub(super) fn draw_field(painter: &mut Painter, field: &FieldFrame) {
     let theme = painter.theme;
     let radius = painter.metrics.px(UiMetrics::RADIUS);
     let line = painter.metrics.line();

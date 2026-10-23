@@ -1,12 +1,13 @@
 mod choices;
 mod connections;
 mod folders;
+mod launch;
 
-use trame::geometry::Point;
+use trame::geometry::{Point, Rect};
 use trame::locale::{Language, Strings};
 use trame::preferences::Preferences;
 use trame::text::TextSystem;
-use trame::ui::frame::{ChoiceRow, SettingControl, SettingsFrame};
+use trame::ui::frame::{ChoiceRow, SettingControl, SettingsFrame, ToggleRow};
 use trame::ui::{FrameLayout, Hit};
 
 use super::footer::closed_sidebar;
@@ -42,17 +43,25 @@ fn the_window_opens_in_the_middle_over_everything_below_the_title_bar() {
     assert!((panel.y - backdrop.y).abs() <= 1.0);
 }
 
-#[test]
-fn every_control_answers_where_it_is_drawn() {
-    let layout = english(&Preferences::default());
-    let settings = panel(&layout);
-    let rows = [&settings.language, &settings.folder]
+fn drawn_controls(settings: &SettingsFrame) -> Vec<(Rect, SettingControl)> {
+    let rows = [&settings.command, &settings.language, &settings.folder]
         .into_iter()
         .chain(&settings.hosts)
         .flat_map(ChoiceRow::controls);
+    let toggles = settings
+        .toggles
+        .iter()
+        .map(|toggle: &ToggleRow| (toggle.line.rect, toggle.control));
     let controls = [
         (settings.close, SettingControl::Close),
-        (settings.restore.rect, SettingControl::RestoreText),
+        (
+            settings.instance_tabs.smaller,
+            SettingControl::InstanceTabsFewer,
+        ),
+        (
+            settings.instance_tabs.bigger,
+            SettingControl::InstanceTabsMore,
+        ),
         (settings.text_size.smaller, SettingControl::TextSmaller),
         (settings.text_size.bigger, SettingControl::TextBigger),
         (
@@ -64,7 +73,14 @@ fn every_control_answers_where_it_is_drawn() {
             SettingControl::InterfaceBigger,
         ),
     ];
-    for (rect, control) in controls.into_iter().chain(rows) {
+    controls.into_iter().chain(toggles).chain(rows).collect()
+}
+
+#[test]
+fn every_control_answers_where_it_is_drawn() {
+    let layout = english(&Preferences::default());
+    let settings = panel(&layout);
+    for (rect, control) in drawn_controls(settings) {
         assert!(settings.rect.contains(rect.center()), "{control:?}");
         assert_eq!(
             layout.hit(rect.center(), false),

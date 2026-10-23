@@ -7,6 +7,7 @@ use super::{Chip, ChoiceRow, SettingControl, SettingLine, Stepper};
 
 pub(super) const CAPTION_HEIGHT: f32 = 22.0;
 pub(super) const LINE_HEIGHT: f32 = 28.0;
+pub(super) const SECTION_GAP: f32 = 8.0;
 
 const LINE_INSET: f32 = 6.0;
 const VALUE_WIDTH: f32 = 44.0;
@@ -40,8 +41,13 @@ impl Column<'_> {
         }
     }
 
-    pub(super) fn skip(&mut self, gap: f32) {
-        self.y += self.metrics.px(gap);
+    pub(super) fn caption(&mut self, label: &str) -> SettingLine {
+        self.line(label, CAPTION_HEIGHT, self.metrics.caption())
+    }
+
+    pub(super) fn section(&mut self, label: &str) -> SettingLine {
+        self.y += self.metrics.px(SECTION_GAP);
+        self.caption(label)
     }
 
     pub(super) fn toggle(&self, line: &SettingLine) -> Rect {

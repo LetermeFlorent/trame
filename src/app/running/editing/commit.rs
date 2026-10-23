@@ -6,6 +6,10 @@ use super::{EditMode, Running, TextPurpose};
 
 impl Running {
     pub(super) fn commit_edit(&mut self) {
+        if let Some(field) = self.command_field.take() {
+            let next = self.preferences.with_startup_command(field.text());
+            return self.set_preferences(next);
+        }
         let Some(editing) = self.editing.take() else {
             return;
         };
@@ -27,6 +31,7 @@ impl Running {
     }
 
     pub(super) fn cancel_edit(&mut self) {
+        self.command_field = None;
         self.editing = None;
     }
 

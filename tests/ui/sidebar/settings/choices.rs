@@ -49,13 +49,11 @@ fn the_window_speaks_the_chosen_language() {
 fn steppers_stop_at_their_limits() {
     let smallest = Preferences {
         font_size: MIN_TERMINAL_FONT_SIZE,
-        restore_text: false,
         interface_size: MIN_INTERFACE_SIZE,
         ..Preferences::default()
     };
     let layout = english(&smallest);
     let settings = panel(&layout);
-    assert!(!settings.restores_text);
     for stepper in [&settings.text_size, &settings.interface_size] {
         assert!(!stepper.can_shrink && stepper.can_grow);
     }

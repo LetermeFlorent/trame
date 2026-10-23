@@ -9,21 +9,36 @@ pub(super) fn size_steppers(
     strings: &Strings,
     preferences: &Preferences,
 ) -> [Stepper; 2] {
-    let can_step = |step: fn(&Preferences, i32) -> Preferences| {
-        [-1, 1].map(|steps| step(preferences, steps) != *preferences)
-    };
     [
         column.stepper(
             strings.text_size,
             &format!("{:.0}", preferences.font_size),
-            can_step(Preferences::step_font_size),
+            can_step(preferences, Preferences::step_font_size),
         ),
         column.stepper(
             strings.interface_size,
             &format!("{}%", preferences.interface_size),
-            can_step(Preferences::step_interface_size),
+            can_step(preferences, Preferences::step_interface_size),
         ),
     ]
+}
+
+pub(super) fn can_step(
+    preferences: &Preferences,
+    step: fn(&Preferences, i32) -> Preferences,
+) -> [bool; 2] {
+    [-1, 1].map(|steps| step(preferences, steps) != *preferences)
+}
+
+pub(super) fn picker_row(
+    column: &mut Column,
+    label: &str,
+    value: Option<&str>,
+    empty: &str,
+    [pick, clear]: [SettingControl; 2],
+) -> ChoiceRow {
+    let chip = (value.unwrap_or(empty), pick, false);
+    column.choice_row(label, &[chip], value.map(|_| clear))
 }
 
 pub(super) fn language_row(
@@ -43,19 +58,18 @@ pub(super) fn folder_row(
     strings: &Strings,
     preferences: &Preferences,
 ) -> ChoiceRow {
-    let folder = preferences.default_folder.as_deref();
-    let name = folder.map(|path| {
+    let name = preferences.default_folder.as_deref().map(|path| {
         path.file_name()
             .unwrap_or(path.as_os_str())
             .to_string_lossy()
     });
-    let chip = (
-        name.as_deref().unwrap_or(strings.choose),
-        SettingControl::DefaultFolder,
-        false,
-    );
-    let clear = folder.map(|_| SettingControl::ClearFolder);
-    column.choice_row(strings.default_folder, &[chip], clear)
+    picker_row(
+        column,
+        strings.default_folder,
+        name.as_deref(),
+        strings.choose,
+        [SettingControl::DefaultFolder, SettingControl::ClearFolder],
+    )
 }
 
 pub(super) fn host_rows(column: &mut Column, preferences: &Preferences) -> Vec<ChoiceRow> {

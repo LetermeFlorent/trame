@@ -17,6 +17,7 @@ use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
 use trame::geometry::Point;
+use trame::input::TextField;
 use trame::locale::Strings;
 use trame::preferences::Preferences;
 use trame::render::Scene;
@@ -57,6 +58,7 @@ pub struct Running {
     pointer: Pointer,
     drag: Option<Drag>,
     editing: Option<Editing>,
+    command_field: Option<TextField>,
     menu: Option<Menu>,
     settings_open: bool,
     selecting: Selecting,

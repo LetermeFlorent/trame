@@ -10,13 +10,15 @@ use crate::app::running::keyboard::is_escape;
 
 impl Running {
     pub(in super::super) fn editing_key(&mut self, event: &KeyEvent) -> bool {
-        let Some(editing) = &self.editing else {
-            return false;
+        let typing = match &self.editing {
+            _ if self.command_field.is_some() => true,
+            Some(editing) => matches!(editing.mode, EditMode::Text { .. }),
+            None => return false,
         };
-        match editing.mode {
-            EditMode::Text { .. } => self.edit_key(event),
-            _ if is_escape(event) => self.cancel_edit(),
-            _ => {}
+        match typing {
+            true => self.edit_key(event),
+            false if is_escape(event) => self.cancel_edit(),
+            false => {}
         }
         self.changed();
         true
@@ -69,12 +71,17 @@ impl Running {
     }
 
     fn with_field(&mut self, change: impl FnOnce(&mut TextField)) {
-        if let Some(Editing {
-            mode: EditMode::Text { field, .. },
-            ..
-        }) = &mut self.editing
-        {
-            change(field);
-        }
+        let field = match (&mut self.command_field, &mut self.editing) {
+            (Some(field), _)
+            | (
+                None,
+                Some(Editing {
+                    mode: EditMode::Text { field, .. },
+                    ..
+                }),
+            ) => field,
+            _ => return,
+        };
+        change(field);
     }
 }

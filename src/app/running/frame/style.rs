@@ -1,6 +1,6 @@
 use std::mem;
 
-use trame::preferences::Preferences;
+use trame::preferences::{Preferences, Recall};
 use trame::text::DEFAULT_LINE_HEIGHT;
 use trame::theme::{Appearance, Theme};
 use trame::ui::UiMetrics;
@@ -20,7 +20,7 @@ impl Running {
         }
         let previous = mem::replace(&mut self.preferences, preferences);
         let current = &self.preferences;
-        if previous.restore_text && !current.restore_text {
+        if previous.recalls(Recall::Text) && !current.recalls(Recall::Text) {
             self.transcripts.clear();
         }
         self.saver.touch();

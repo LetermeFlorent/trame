@@ -115,6 +115,7 @@ impl Running {
             pointer: Pointer::default(),
             drag: None,
             editing: None,
+            command_field: None,
             menu: None,
             settings_open: false,
             selecting: Selecting::default(),

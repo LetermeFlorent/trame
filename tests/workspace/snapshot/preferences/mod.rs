@@ -1,3 +1,6 @@
+mod launch;
+mod ssh_hosts;
+
 use std::path::PathBuf;
 
 use trame::locale::LanguageChoice;
@@ -69,14 +72,6 @@ fn interface_size_rounds_to_its_step_and_stays_in_range() {
 }
 
 #[test]
-fn restore_toggle_flips_only_itself() {
-    let base = Preferences::default();
-    let off = base.toggle_restore_text();
-    assert!(!off.restore_text);
-    assert_eq!(off.toggle_restore_text(), base);
-}
-
-#[test]
 fn preferences_and_text_keys_survive_json() {
     let tab = TabSnapshot {
         transcript: Some("abc-1".to_owned()),
@@ -89,6 +84,10 @@ fn preferences_and_text_keys_survive_json() {
     snapshot.preferences = Preferences {
         font_size: 18.0,
         restore_text: false,
+        restore_instances: false,
+        restore_tabs: false,
+        instance_tabs: 3,
+        startup_command: Some("cd work".to_owned()),
         interface_size: 120,
         language: LanguageChoice::French,
         default_folder: Some(PathBuf::from("projects")),

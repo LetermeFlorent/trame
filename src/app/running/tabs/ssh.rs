@@ -17,21 +17,20 @@ impl Running {
             EditTarget::Tab(id) => self.workspace.activate_tab(id),
             EditTarget::Instance(id) => self.activate_instance(id),
         }
-        match self.open(Placement::Tab) {
-            Ok(id) => {
-                self.workspace.rename_tab(id, &host.label());
-                self.workspace.set_tab_host(id, Some(host.clone()));
-                self.dial(id);
-            }
-            Err(error) => eprintln!("trame: the SSH tab could not start: {error}"),
+        let cwd = self.start_folder(Placement::Tab);
+        if let Err(error) = self.open_in(Placement::Tab, cwd.as_deref(), Some(host.clone())) {
+            eprintln!("trame: the SSH tab could not start: {error}");
         }
         self.set_preferences(self.preferences.remember_host(host));
     }
 
-    pub(super) fn dial(&self, id: SessionId) {
-        let host = self.workspace.tab_host(id);
-        if let (Some(host), Some(session)) = (host, self.sessions.get(id)) {
-            session.write(host.command());
+    pub(super) fn greet(&self, id: SessionId) {
+        let line = match self.workspace.tab_host(id) {
+            Some(host) => Some(host.command()),
+            None => self.preferences.startup_line(),
+        };
+        if let (Some(line), Some(session)) = (line, self.sessions.get(id)) {
+            session.write(line);
         }
     }
 }

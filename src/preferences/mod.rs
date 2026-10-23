@@ -1,3 +1,4 @@
+mod launch;
 mod ssh;
 
 use std::path::PathBuf;
@@ -6,6 +7,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::locale::LanguageChoice;
 use crate::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
+pub use launch::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Recall};
+use launch::{clamp_instance_tabs, sanitized_command};
 use ssh::sanitized_hosts;
 pub use ssh::{MAX_SSH_HOSTS, SshHost};
 
@@ -20,8 +23,16 @@ const PERCENT: f32 = 100.0;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Preferences {
     pub font_size: f32,
-    #[serde(default = "restores_text")]
+    #[serde(default = "enabled")]
     pub restore_text: bool,
+    #[serde(default = "enabled")]
+    pub restore_instances: bool,
+    #[serde(default = "enabled")]
+    pub restore_tabs: bool,
+    #[serde(default = "instance_tabs")]
+    pub instance_tabs: u8,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub startup_command: Option<String>,
     #[serde(default = "interface_size")]
     pub interface_size: u16,
     #[serde(default)]
@@ -36,7 +47,11 @@ impl Default for Preferences {
     fn default() -> Self {
         Self {
             font_size: TERMINAL_FONT_SIZE,
-            restore_text: restores_text(),
+            restore_text: true,
+            restore_instances: true,
+            restore_tabs: true,
+            instance_tabs: MIN_INSTANCE_TABS,
+            startup_command: None,
             interface_size: INTERFACE_SIZE,
             language: LanguageChoice::Auto,
             default_folder: None,
@@ -50,6 +65,8 @@ impl Preferences {
         Self {
             font_size: clamp_font_size(self.font_size),
             interface_size: clamp_interface_size(self.interface_size),
+            instance_tabs: clamp_instance_tabs(self.instance_tabs),
+            startup_command: sanitized_command(self.startup_command),
             ssh_hosts: sanitized_hosts(self.ssh_hosts),
             ..self
         }
@@ -75,13 +92,6 @@ impl Preferences {
         }
     }
 
-    pub fn toggle_restore_text(&self) -> Self {
-        Self {
-            restore_text: !self.restore_text,
-            ..self.clone()
-        }
-    }
-
     pub fn ui_scale(&self, window_scale: f32) -> f32 {
         window_scale * f32::from(self.interface_size) / PERCENT
     }
@@ -91,8 +101,12 @@ impl Preferences {
     }
 }
 
-fn restores_text() -> bool {
+fn enabled() -> bool {
     true
+}
+
+fn instance_tabs() -> u8 {
+    MIN_INSTANCE_TABS
 }
 
 fn interface_size() -> u16 {

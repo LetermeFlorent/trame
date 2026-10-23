@@ -18,7 +18,7 @@ pub struct FieldFrame {
     pub caret: Rect,
 }
 
-pub(super) fn place_field(
+pub(in crate::ui::frame) fn place_field(
     text: &mut TextSystem,
     metrics: &UiMetrics,
     anchor: Rect,

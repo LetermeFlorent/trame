@@ -1,23 +1,41 @@
 use crate::geometry::Rect;
 use crate::theme::Rgba;
 use crate::ui::chrome::{Icon, Painter};
-use crate::ui::frame::{Chip, ChoiceRow, SettingControl, SettingsFrame, Stepper};
+use crate::ui::frame::{Chip, ChoiceRow, SettingControl, SettingsFrame, Stepper, ToggleRow};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
+
+use super::super::editor::draw_field;
 
 const KNOB_INSET: f32 = 2.0;
 const ON_ACCENT: Rgba = Rgba::hex(0xFFFFFF);
 const DISABLED_OPACITY: f32 = 0.35;
 const CHIP_STROKE: f32 = 1.0;
 
-pub(super) fn draw_restore(painter: &mut Painter, settings: &SettingsFrame) {
-    let theme = painter.theme;
-    let hit = Hit::Setting(SettingControl::RestoreText);
+pub(super) fn draw_toggle_row(painter: &mut Painter, row: &ToggleRow) {
     let radius = painter.metrics.px(UiMetrics::RADIUS);
-    let line = &settings.restore;
-    painter.press_fill(line.rect, hit, radius);
-    painter.label(&line.label, line.label_x, line.rect, theme.text);
-    draw_toggle(painter, settings.toggle, settings.restores_text);
+    let line = &row.line;
+    faded(painter, row.enabled, |painter| {
+        painter.press_fill(line.rect, Hit::Setting(row.control), radius);
+        painter.label(&line.label, line.label_x, line.rect, painter.theme.text);
+        draw_toggle(painter, row.switch, row.on);
+    });
+}
+
+pub(super) fn draw_command(painter: &mut Painter, settings: &SettingsFrame) {
+    let Some(field) = &settings.command_field else {
+        return draw_choices(painter, &settings.command);
+    };
+    let line = &settings.command.line;
+    painter.label(&line.label, line.label_x, line.rect, painter.theme.text);
+    draw_field(painter, field);
+}
+
+fn faded(painter: &mut Painter, enabled: bool, draw: impl FnOnce(&mut Painter)) {
+    let opacity = if enabled { 1.0 } else { DISABLED_OPACITY };
+    painter.scene.push_opacity(opacity);
+    draw(painter);
+    painter.scene.pop_opacity();
 }
 
 fn draw_toggle(painter: &mut Painter, rect: Rect, on: bool) {
@@ -67,10 +85,9 @@ pub(super) fn draw_stepper(
 }
 
 fn step_button(painter: &mut Painter, rect: Rect, hit: Hit, icon: Icon, enabled: bool) {
-    let opacity = if enabled { 1.0 } else { DISABLED_OPACITY };
-    painter.scene.push_opacity(opacity);
-    painter.small_button(rect, hit, icon);
-    painter.scene.pop_opacity();
+    faded(painter, enabled, |painter| {
+        painter.small_button(rect, hit, icon)
+    });
 }
 
 pub(super) fn draw_choices(painter: &mut Painter, row: &ChoiceRow) {

@@ -1,6 +1,7 @@
 mod capture;
 mod error;
 mod model;
+mod recall;
 mod restore;
 
 pub use capture::DescribeTab;

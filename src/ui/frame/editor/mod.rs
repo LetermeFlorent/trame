@@ -15,7 +15,7 @@ pub use anchor::EditAnchor;
 pub use emblems::EmblemSlot;
 use emblems::{emblem_row, emblem_slots};
 pub use field::FieldFrame;
-use field::place_field;
+pub(in crate::ui::frame) use field::place_field;
 pub use menu::{MenuEntry, MenuFrame, MenuRequest, MenuRow};
 pub use row::SwatchSlot;
 use row::{RowSize, swatch_row, swatch_slots};
