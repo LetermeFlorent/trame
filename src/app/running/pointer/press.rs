@@ -28,6 +28,7 @@ impl Running {
                 return report(self.window.drag_resize_window(direction), "resize");
             }
             Hit::TitleBar => return report(self.window.drag_window(), "move"),
+            Hit::Backdrop if self.settings.is_some() => return self.toggle_settings(),
             Hit::Tab(_, id) | Hit::Row(SidebarItem::Tab(id)) => self.workspace.activate_tab(id),
             Hit::Row(SidebarItem::Instance(instance)) | Hit::RailInstance(instance) => {
                 self.activate_instance(instance)
