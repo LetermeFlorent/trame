@@ -49,12 +49,29 @@ fn the_loader_covers_everything_below_the_title_bar() {
 }
 
 #[test]
+fn the_loader_hides_the_title_and_the_sidebar_button_but_not_the_window_buttons() {
+    let mut text = text_system();
+    let theme = Theme::new(Appearance::Dark);
+    let layout = frame(&mut text, &workspace());
+    let scene = paint(&mut text, &layout, &theme, &waiting(1.0));
+    let bar = layout.title_bar.rect;
+    let cover = scene.quads()[1].rect;
+    assert_eq!(scene.quads()[1].color, theme.chrome.to_array());
+    assert_eq!([cover[0], cover[1]], [bar.x, bar.y]);
+    assert!(cover[3] < bar.height);
+    assert!(cover[0] + cover[2] >= layout.title_bar.toggle.right());
+    if let Some(controls) = layout.title_bar.controls {
+        assert!(cover[0] + cover[2] <= controls.minimize.x);
+    }
+}
+
+#[test]
 fn the_logo_ring_and_message_are_centered() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
     let layout = frame(&mut text, &workspace());
     let scene = paint(&mut text, &layout, &theme, &waiting(1.0));
-    let content = &scene.quads()[1..];
+    let content = &scene.quads()[2..];
     let left = content
         .iter()
         .map(|quad| quad.rect[0])

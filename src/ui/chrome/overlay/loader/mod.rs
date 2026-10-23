@@ -40,9 +40,22 @@ pub fn draw_loader(
         return;
     }
     let frame = input.frame;
-    let (_, area) = frame.bounds.split_top(frame.title_bar.rect.height);
+    let bar = frame.title_bar.rect;
+    let (_, area) = frame.bounds.split_top(bar.height);
+    let controls = frame
+        .title_bar
+        .controls
+        .as_ref()
+        .map_or(bar.right(), |controls| controls.minimize.x);
+    let title = Rect::new(
+        bar.x,
+        bar.y,
+        controls - bar.x,
+        bar.height - frame.metrics.line(),
+    );
     scene.push_opacity(loader.opacity);
     scene.fill(area, input.theme.chrome, 0.0);
+    scene.fill(title, input.theme.chrome, 0.0);
     draw_column(scene, text, input, loader, area);
     scene.pop_opacity();
 }
