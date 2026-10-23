@@ -34,8 +34,12 @@ fn tip(text: &mut TextSystem, frame: &FrameLayout, hover: Hit) -> Option<(Arc<Te
             Some((text.layout(&slot.name, frame.metrics.label()), slot.rect))
         }
         Hit::Settings if frame.sidebar.is_none() => {
-            let footer = &frame.footer;
-            Some((footer.label.clone(), footer.settings))
+            let settings = &frame.footer.settings;
+            Some((settings.label.clone(), settings.rect))
+        }
+        Hit::Update if frame.sidebar.is_none() => {
+            let update = frame.footer.update.as_ref()?;
+            Some((update.label.clone(), update.rect))
         }
         _ => None,
     }

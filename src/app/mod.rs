@@ -68,6 +68,12 @@ impl App {
                     UpdateStatus::Done
                 }
             },
+            UpdateStatus::Available(version) => {
+                if let Some(running) = &mut self.running {
+                    running.offer_update(version);
+                }
+                return;
+            }
             status => status,
         };
         if let Some(running) = &mut self.running {

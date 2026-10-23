@@ -19,6 +19,15 @@ pub struct FrameView {
     pub window_focused: bool,
 }
 
+impl FrameView {
+    pub fn focused() -> Self {
+        Self {
+            window_focused: true,
+            ..Self::default()
+        }
+    }
+}
+
 pub struct FrameSources<'a> {
     pub theme: &'a Theme,
     pub frame: &'a FrameLayout,

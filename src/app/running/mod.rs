@@ -64,6 +64,7 @@ pub struct Running {
     modifiers: ModifiersState,
     visibility: Visibility,
     loader: Option<Loader>,
+    update_offer: Option<String>,
     strings: &'static Strings,
 }
 

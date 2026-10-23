@@ -5,7 +5,7 @@ use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::theme::{Emblem, Rgba};
 use emblems::emblem;
-use panels::{gear, sidebar, split, terminal};
+use panels::{gear, sidebar, split, terminal, update};
 
 const PLUS_REACH: f32 = 0.36;
 const CROSS_REACH: f32 = 0.28;
@@ -24,6 +24,7 @@ pub enum Icon {
     Restore,
     Terminal,
     Gear,
+    Update,
     Emblem(Emblem),
 }
 
@@ -67,6 +68,7 @@ pub fn draw_icon(pen: &mut Pen, icon: Icon, rect: Rect) {
         Icon::Restore => restore(pen, rect.snapped(), size),
         Icon::Terminal => terminal(pen, rect, size),
         Icon::Gear => gear(pen, rect, size),
+        Icon::Update => update(pen, rect, size),
         Icon::Emblem(kind) => emblem(pen, kind, rect, size),
     }
 }

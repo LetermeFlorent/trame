@@ -110,7 +110,7 @@ fn a_click_beside_the_window_reaches_nothing_but_the_title_bar_still_works() {
         settings.popup.rect.right() + 10.0,
         settings.popup.rect.center().y,
     );
-    for point in [row.center(), content, layout.footer.settings.center()] {
+    for point in [row.center(), content, layout.footer.settings.rect.center()] {
         assert_eq!(layout.hit(point, false), Some(Hit::Backdrop));
     }
     let controls = layout.title_bar.controls.expect("window buttons");

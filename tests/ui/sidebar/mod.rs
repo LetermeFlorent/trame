@@ -1,5 +1,6 @@
 mod footer;
 mod settings;
+mod update;
 
 use trame::geometry::Point;
 use trame::theme::Swatch;

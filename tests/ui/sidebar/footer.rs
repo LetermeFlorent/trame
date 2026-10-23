@@ -16,9 +16,9 @@ fn the_settings_button_sits_at_the_bottom_of_the_side() {
     let footer = &layout.footer;
     let shown = layout.side.bottom() - layout.metrics.hidden_bottom(false);
     assert_eq!(footer.rect.bottom(), shown);
-    assert!(footer.rect.contains(footer.settings.center()));
+    assert!(footer.rect.contains(footer.settings.rect.center()));
     assert_eq!(
-        layout.hit(footer.settings.center(), false),
+        layout.hit(footer.settings.rect.center(), false),
         Some(Hit::Settings)
     );
     assert!(layout.settings.is_none());
@@ -34,7 +34,7 @@ fn sidebar_and_rail_end_above_the_footer() {
     let rail = collapsed.rail.as_ref().expect("the rail");
     assert!(rail.rect.bottom() <= collapsed.footer.rect.y);
     assert_eq!(
-        collapsed.hit(collapsed.footer.settings.center(), false),
+        collapsed.hit(collapsed.footer.settings.rect.center(), false),
         Some(Hit::Settings)
     );
 }
@@ -43,16 +43,17 @@ fn sidebar_and_rail_end_above_the_footer() {
 fn the_open_sidebar_widens_the_button_to_hold_its_name() {
     let mut text = text_system();
     let open = frame(&mut text, &workspace());
-    let footer = &open.footer;
-    assert!(footer.settings.width > footer.icon.width);
-    assert!(footer.settings.right() <= open.side.right());
-    assert!(footer.label_x >= footer.icon.right());
-    assert!(footer.label_x + footer.label.width <= footer.settings.right());
-    let on_name = footer.settings.center();
-    assert!(!footer.icon.contains(on_name));
+    let button = &open.footer.settings;
+    assert!(button.rect.width > button.icon.width);
+    assert!(button.rect.right() <= open.side.right());
+    assert!(button.label_x >= button.icon.right());
+    assert!(button.label_x + button.label.width <= button.rect.right());
+    let on_name = button.rect.center();
+    assert!(!button.icon.contains(on_name));
     assert_eq!(open.hit(on_name, false), Some(Hit::Settings));
     let collapsed = frame(&mut text, &closed_sidebar());
-    assert_eq!(collapsed.footer.settings, collapsed.footer.icon);
+    let settings = &collapsed.footer.settings;
+    assert_eq!(settings.rect, settings.icon);
 }
 
 fn on(platform: Platform, scale: f32) -> UiMetrics {
@@ -71,8 +72,8 @@ fn the_settings_button_has_as_much_visible_room_above_as_below() {
             let layout = frame_in(&mut text, &workspace(), metrics);
             let footer = &layout.footer;
             let visible = layout.side.bottom() - metrics.hidden_bottom(false);
-            let above = footer.settings.y - footer.rect.y - metrics.line();
-            let below = visible - footer.settings.bottom();
+            let above = footer.settings.rect.y - footer.rect.y - metrics.line();
+            let below = visible - footer.settings.rect.bottom();
             assert_eq!(above, below, "scale {scale} border {border}");
             assert!(above > 0.0, "scale {scale} border {border}");
         }

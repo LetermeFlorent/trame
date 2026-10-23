@@ -1,6 +1,7 @@
 mod saved;
 mod surface;
 mod text;
+mod update;
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -108,10 +109,7 @@ impl Running {
             labels: HashMap::new(),
             frame,
             motion,
-            view: FrameView {
-                window_focused: true,
-                ..FrameView::default()
-            },
+            view: FrameView::focused(),
             pointer: Pointer::default(),
             drag: None,
             editing: None,
@@ -122,6 +120,7 @@ impl Running {
             modifiers: ModifiersState::empty(),
             visibility: Visibility::default(),
             loader: None,
+            update_offer: None,
             strings,
         }
     }
@@ -139,6 +138,7 @@ fn first_frame(
         window: &surface.window,
         metrics,
         folder: None,
+        update: None,
         strings,
     };
     frame::compute(&mut surface.text, &layout_input, motion, &|_| String::new())

@@ -13,9 +13,9 @@ pub use editor::{
 pub use label::{fit_label, fit_label_start, fit_text_start};
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{
-    Chip, ChoiceRow, FooterFrame, PopupFrame, RailFrame, RailSlot, SettingControl, SettingLine,
-    SettingsFrame, SidebarFrame, SidebarItem, SidebarRow, Stepper, ToggleRow, dragged_width,
-    shown_width,
+    Chip, ChoiceRow, FooterButton, FooterFrame, PopupFrame, RailFrame, RailSlot, SettingControl,
+    SettingLine, SettingsFrame, SidebarFrame, SidebarItem, SidebarRow, Stepper, ToggleRow,
+    dragged_width, shown_width,
 };
 pub use titlebar::{TitleBarFrame, WindowControls};
 
@@ -37,6 +37,7 @@ pub struct FrameInput<'a> {
     pub maximized: bool,
     pub title: &'a dyn Fn(SessionId) -> String,
     pub folder: Option<&'a Path>,
+    pub update: Option<&'a str>,
     pub strings: &'static Strings,
 }
 

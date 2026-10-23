@@ -55,6 +55,7 @@ pub enum Hit {
     FormField(FormField),
     FormConnect,
     Settings,
+    Update,
     SettingsPanel,
     Setting(SettingControl),
     Menu,
@@ -107,10 +108,7 @@ impl FrameLayout {
             return Some(Hit::SidebarEdge);
         }
         if self.footer.rect.contains(point) {
-            return Some(match self.footer.settings.contains(point) {
-                true => Hit::Settings,
-                false => Hit::Sidebar,
-            });
+            return Some(self.footer.hit(point));
         }
         if let Some(sidebar) = self
             .sidebar

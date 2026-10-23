@@ -24,6 +24,7 @@ pub(super) struct LayoutInput<'a> {
     pub(super) window: &'a Window,
     pub(super) metrics: UiMetrics,
     pub(super) folder: Option<&'a Path>,
+    pub(super) update: Option<&'a str>,
     pub(super) strings: &'static Strings,
 }
 
@@ -42,6 +43,7 @@ pub(super) fn compute(
         maximized: layout.window.is_maximized(),
         title,
         folder: layout.folder,
+        update: layout.update,
         strings: layout.strings,
     };
     let frame = FrameLayout::compute_with(text, &input, motion);
@@ -82,6 +84,7 @@ impl Running {
             window: &self.window,
             metrics: self.metrics,
             folder: folder.as_deref(),
+            update: self.update_offer.as_deref(),
             strings: self.strings,
         };
         self.motion.tick(Instant::now());

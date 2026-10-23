@@ -29,48 +29,65 @@ fn an_explicit_choice_ignores_the_system() {
     assert_eq!(LanguageChoice::Auto.resolve(), system_language());
 }
 
+fn differ(pick: fn(&Strings) -> &'static str) {
+    let english = pick(Language::English.strings());
+    let french = pick(Language::French.strings());
+    assert_ne!(english, french);
+}
+
 #[test]
-fn each_language_has_its_own_texts() {
-    let english = Language::English.strings();
-    let french = Language::French.strings();
-    let pairs = [
-        (english.checking_updates, french.checking_updates),
-        (english.downloading_version, french.downloading_version),
-        (english.installing_version, french.installing_version),
-        (english.rename, french.rename),
-        (english.change_color, french.change_color),
-        (english.change_icon, french.change_icon),
-        (english.settings, french.settings),
-        (english.at_launch, french.at_launch),
-        (english.remember_instances, french.remember_instances),
-        (english.remember_tabs, french.remember_tabs),
-        (english.restore_text, french.restore_text),
-        (english.terminals, french.terminals),
-        (english.startup_command, french.startup_command),
-        (english.instance_tabs, french.instance_tabs),
-        (english.add, french.add),
-        (english.display, french.display),
-        (english.text_size, french.text_size),
-        (english.interface_size, french.interface_size),
-        (english.language, french.language),
-        (english.change_folder, french.change_folder),
-        (english.folders, french.folders),
-        (english.default_folder, french.default_folder),
-        (english.choose, french.choose),
-        (english.pick_folder, french.pick_folder),
-        (english.ssh_connection, french.ssh_connection),
-        (english.servers, french.servers),
-        (english.new_connection, french.new_connection),
-        (english.connections, french.connections),
-        (english.no_connections, french.no_connections),
-        (english.ssh_address, french.ssh_address),
-        (english.ssh_user, french.ssh_user),
-        (english.ssh_password, french.ssh_password),
-        (english.connect, french.connect),
+fn each_language_has_its_own_update_and_menu_texts() {
+    let picks: [fn(&Strings) -> &'static str; 8] = [
+        |s| s.checking_updates,
+        |s| s.downloading_version,
+        |s| s.installing_version,
+        |s| s.update_to,
+        |s| s.rename,
+        |s| s.change_color,
+        |s| s.change_icon,
+        |s| s.change_folder,
     ];
-    for (english, french) in pairs {
-        assert_ne!(english, french);
-    }
+    picks.into_iter().for_each(differ);
+}
+
+#[test]
+fn each_language_has_its_own_settings_texts() {
+    let picks: [fn(&Strings) -> &'static str; 19] = [
+        |s| s.settings,
+        |s| s.at_launch,
+        |s| s.remember_instances,
+        |s| s.remember_tabs,
+        |s| s.restore_text,
+        |s| s.terminals,
+        |s| s.startup_command,
+        |s| s.instance_tabs,
+        |s| s.add,
+        |s| s.display,
+        |s| s.text_size,
+        |s| s.interface_size,
+        |s| s.language,
+        |s| s.folders,
+        |s| s.default_folder,
+        |s| s.choose,
+        |s| s.pick_folder,
+        |s| s.connections,
+        |s| s.no_connections,
+    ];
+    picks.into_iter().for_each(differ);
+}
+
+#[test]
+fn each_language_has_its_own_ssh_texts() {
+    let picks: [fn(&Strings) -> &'static str; 7] = [
+        |s| s.ssh_connection,
+        |s| s.servers,
+        |s| s.new_connection,
+        |s| s.ssh_address,
+        |s| s.ssh_user,
+        |s| s.ssh_password,
+        |s| s.connect,
+    ];
+    picks.into_iter().for_each(differ);
 }
 
 #[test]

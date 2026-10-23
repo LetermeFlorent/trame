@@ -1,7 +1,9 @@
 mod fetch;
+mod launch;
 mod progress;
 mod swap;
 mod version;
+mod watch;
 
 use std::env;
 use std::fs;
@@ -9,6 +11,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::thread;
 
+pub use launch::{relaunch, restart};
 use version::Version;
 
 const RELEASES: &str = "https://github.com/LetermeFlorent/trame/releases";
@@ -28,6 +31,7 @@ pub enum UpdateStatus {
     Installing(String),
     Done,
     Installed(PathBuf),
+    Available(String),
 }
 
 pub fn start(notify: impl Fn(UpdateStatus) + Send + 'static) -> UpdateStatus {
@@ -35,14 +39,16 @@ pub fn start(notify: impl Fn(UpdateStatus) + Send + 'static) -> UpdateStatus {
         return UpdateStatus::Done;
     };
     swap::remove_leftover(&exe);
-    let Some(asset) = ASSET.filter(|_| enabled()) else {
+    let Some(asset) = ASSET.filter(|_| allowed()) else {
         return UpdateStatus::Done;
     };
+    let installs = !just_updated();
     let spawned = thread::Builder::new()
         .name("trame-update".into())
-        .spawn(move || notify(check(asset, exe, &notify)));
+        .spawn(move || follow(installs.then_some(asset), exe, &notify));
     match spawned {
-        Ok(_) => UpdateStatus::Checking,
+        Ok(_) if installs => UpdateStatus::Checking,
+        Ok(_) => UpdateStatus::Done,
         Err(error) => {
             eprintln!("trame: the update check did not start: {error}");
             UpdateStatus::Done
@@ -50,23 +56,30 @@ pub fn start(notify: impl Fn(UpdateStatus) + Send + 'static) -> UpdateStatus {
     }
 }
 
-pub fn relaunch(exe: &Path) -> io::Result<()> {
-    swap::relaunch(exe)
+fn allowed() -> bool {
+    !cfg!(debug_assertions) && env::var_os(SKIP_VARIABLE).is_none()
 }
 
-fn enabled() -> bool {
-    !cfg!(debug_assertions)
-        && env::var_os(SKIP_VARIABLE).is_none()
-        && !env::args_os().any(|arg| arg == UPDATED_FLAG)
+fn just_updated() -> bool {
+    env::args_os().any(|arg| arg == UPDATED_FLAG)
+}
+
+fn follow(asset: Option<&str>, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) {
+    if let Some(asset) = asset {
+        let status = check(asset, exe, notify);
+        let installed = matches!(status, UpdateStatus::Installed(_));
+        notify(status);
+        if installed {
+            return;
+        }
+    }
+    watch::watch(notify);
 }
 
 fn check(asset: &str, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) -> UpdateStatus {
-    let Some(latest) = fetch::latest() else {
+    let Some(latest) = watch::newer_release() else {
         return UpdateStatus::Done;
     };
-    if Version::current().is_none_or(|current| latest <= current) {
-        return UpdateStatus::Done;
-    }
     match install(latest, asset, &exe, notify) {
         Ok(()) => UpdateStatus::Installed(exe),
         Err(error) => {

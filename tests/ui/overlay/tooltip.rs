@@ -101,7 +101,7 @@ fn the_rail_gear_names_the_settings_beside_it() {
     let theme = Theme::new(Appearance::Dark);
     let layout = frame(&mut text, &collapsed());
     let rail = layout.rail.as_ref().expect("the rail");
-    let gear = layout.footer.settings;
+    let gear = layout.footer.settings.rect;
     let scene = paint(&mut text, &layout, &theme, Some(Hit::Settings));
     let bubble = scene
         .quads()
@@ -111,7 +111,7 @@ fn the_rail_gear_names_the_settings_beside_it() {
     let [x, y, width, height] = bubble.rect;
     assert!(x >= rail.rect.right());
     assert!(y <= gear.center().y && y + height >= gear.center().y);
-    assert!(width >= layout.footer.label.width);
+    assert!(width >= layout.footer.settings.label.width);
     let open = frame(&mut text, &workspace());
     assert!(
         paint(&mut text, &open, &theme, Some(Hit::Settings))

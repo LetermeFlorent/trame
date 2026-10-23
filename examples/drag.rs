@@ -56,6 +56,7 @@ fn layout(text: &mut TextSystem, workspace: &Workspace, scale: f32) -> FrameLayo
         maximized: false,
         title: &title,
         folder: None,
+        update: None,
         strings: Language::English.strings(),
     };
     FrameLayout::compute(text, &input)

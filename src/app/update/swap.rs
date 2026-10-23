@@ -1,12 +1,8 @@
-use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::io::{self, ErrorKind, Read};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::thread;
 use std::time::Duration;
-
-use super::UPDATED_FLAG;
 
 const OLD_SUFFIX: &str = ".old";
 const SMALLEST_EXECUTABLE: u64 = 1024 * 1024;
@@ -67,18 +63,6 @@ pub fn replace(exe: &Path, fresh: &Path) -> io::Result<()> {
             "{error}, and the running version could not be put back: {back}"
         ))),
     }
-}
-
-pub fn relaunch(exe: &Path) -> io::Result<()> {
-    Command::new(exe)
-        .args(
-            std::env::args_os()
-                .skip(1)
-                .filter(|arg| arg != UPDATED_FLAG),
-        )
-        .arg(OsStr::new(UPDATED_FLAG))
-        .spawn()
-        .map(drop)
 }
 
 #[cfg(test)]

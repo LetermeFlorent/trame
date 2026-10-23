@@ -71,7 +71,9 @@ impl Running {
                 format!("{} {version}", strings.installing_version),
                 Some(Progress::new(FULL)),
             ),
-            UpdateStatus::Done | UpdateStatus::Installed(_) => return self.close_loader(),
+            UpdateStatus::Done | UpdateStatus::Installed(_) | UpdateStatus::Available(_) => {
+                return self.close_loader();
+            }
         };
         let now = Instant::now();
         let loader = self.loader.get_or_insert_with(|| Loader {
