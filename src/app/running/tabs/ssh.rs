@@ -28,11 +28,11 @@ impl Running {
         self.set_preferences(self.preferences.remember_host(host));
     }
 
-    pub(super) fn greet(&mut self, id: SessionId) {
+    pub(super) fn greet(&mut self, id: SessionId, fresh: bool) {
         let host = self.workspace.tab_host(id).cloned();
         let line = match &host {
             Some(host) => Some(host.command()),
-            None => self.preferences.startup_line(),
+            None => self.preferences.startup_line().filter(|_| fresh),
         };
         if let (Some(line), Some(session)) = (line, self.sessions.get(id)) {
             session.write(line);

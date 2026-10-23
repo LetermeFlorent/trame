@@ -93,7 +93,7 @@ impl Running {
         }
         self.relayout();
         for id in fresh {
-            if let Err(error) = self.start_shell(id, Some(folder), &[]) {
+            if let Err(error) = self.start_shell(id, Some(folder), None) {
                 eprintln!("trame: the shell could not start in the new folder: {error}");
             }
         }

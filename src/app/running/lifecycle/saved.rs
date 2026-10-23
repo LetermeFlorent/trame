@@ -76,17 +76,16 @@ impl Running {
             let saved = tabs.remove(&id).unwrap_or_default();
             let cwd = existing_or_home(saved.cwd);
             let key = saved.transcript.as_deref().filter(|_| keeps_text);
-            let text = self.saved_text(key);
-            match self.start_shell(id, cwd.as_deref(), &text) {
+            let text = key.map(|key| self.saved_text(key));
+            match self.start_shell(id, cwd.as_deref(), text.as_deref()) {
                 Ok(()) => self.transcripts.adopt(id, saved.transcript.as_deref()),
                 Err(error) => eprintln!("trame: a saved shell could not start: {error}"),
             }
         }
     }
 
-    fn saved_text(&self, key: Option<&str>) -> Vec<u8> {
-        key.and_then(|key| self.transcripts.read(key))
-            .unwrap_or_default()
+    fn saved_text(&self, key: &str) -> Vec<u8> {
+        self.transcripts.read(key).unwrap_or_default()
     }
 }
 

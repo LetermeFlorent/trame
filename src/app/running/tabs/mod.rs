@@ -56,7 +56,7 @@ impl Running {
             self.workspace.set_tab_host(id, Some(host));
         }
         self.relayout();
-        let spawned = self.start_shell(id, cwd, &[]);
+        let spawned = self.start_shell(id, cwd, None);
         self.changed();
         spawned.map(|()| id)
     }
@@ -65,17 +65,17 @@ impl Running {
         &mut self,
         id: SessionId,
         cwd: Option<&Path>,
-        transcript: &[u8],
+        revived: Option<&[u8]>,
     ) -> io::Result<()> {
         let start = ShellStart {
             cwd,
             size: self.grid_size_of(id).unwrap_or(FALLBACK_GRID),
             colors: self.theme.reported_colors(),
-            transcript,
+            transcript: revived.unwrap_or_default(),
         };
         let spawned = self.sessions.spawn(id, &start);
         match spawned {
-            Ok(()) => self.greet(id),
+            Ok(()) => self.greet(id, revived.is_none()),
             Err(_) => {
                 self.workspace.close_tab(id);
             }
