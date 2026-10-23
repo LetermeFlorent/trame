@@ -7,6 +7,7 @@ use std::time::Instant;
 
 use winit::window::Window;
 
+use trame::locale::Strings;
 use trame::session::SessionId;
 use trame::text::TextSystem;
 use trame::ui::{FrameInput, FrameLayout, Motion, UiMetrics};
@@ -21,6 +22,7 @@ pub(super) struct LayoutInput<'a> {
     pub(super) workspace: &'a Workspace,
     pub(super) window: &'a Window,
     pub(super) metrics: UiMetrics,
+    pub(super) strings: &'static Strings,
 }
 
 pub(super) fn compute(
@@ -37,6 +39,7 @@ pub(super) fn compute(
         metrics: layout.metrics,
         maximized: layout.window.is_maximized(),
         title,
+        strings: layout.strings,
     };
     let frame = FrameLayout::compute_with(text, &input, motion);
     motion.finish_layout();
@@ -74,6 +77,7 @@ impl Running {
             workspace: &self.workspace,
             window: &self.window,
             metrics: self.metrics,
+            strings: self.strings,
         };
         self.motion.tick(Instant::now());
         self.frame = compute(&mut self.text, &layout, &mut self.motion, &title);

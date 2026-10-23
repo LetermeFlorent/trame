@@ -23,6 +23,7 @@ impl Running {
             self.transcripts.clear();
         }
         self.saver.touch();
+        self.strings = preferences.language.resolve().strings();
         let sizes = |kept: Preferences| (kept.font_size, kept.interface_size);
         match sizes(previous) == sizes(preferences) {
             true => self.changed(),

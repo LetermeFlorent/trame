@@ -40,8 +40,21 @@ fn each_language_has_its_own_texts() {
         (english.rename, french.rename),
         (english.change_color, french.change_color),
         (english.change_icon, french.change_icon),
+        (english.settings, french.settings),
+        (english.tab_text, french.tab_text),
+        (english.display, french.display),
+        (english.restore_text, french.restore_text),
+        (english.text_size, french.text_size),
+        (english.interface_size, french.interface_size),
+        (english.language, french.language),
     ];
     for (english, french) in pairs {
         assert_ne!(english, french);
     }
+}
+
+#[test]
+fn each_language_choice_is_named_in_its_own_language() {
+    let labels = LanguageChoice::ALL.map(LanguageChoice::label);
+    assert_eq!(labels, ["Auto", "Français", "English"]);
 }

@@ -6,6 +6,14 @@ pub struct Strings {
     pub rename: &'static str,
     pub change_color: &'static str,
     pub change_icon: &'static str,
+    pub instances: &'static str,
+    pub settings: &'static str,
+    pub tab_text: &'static str,
+    pub display: &'static str,
+    pub restore_text: &'static str,
+    pub text_size: &'static str,
+    pub interface_size: &'static str,
+    pub language: &'static str,
 }
 
 pub const ENGLISH: Strings = Strings {
@@ -15,6 +23,14 @@ pub const ENGLISH: Strings = Strings {
     rename: "Rename",
     change_color: "Change colour",
     change_icon: "Change icon",
+    instances: "INSTANCES",
+    settings: "Settings",
+    tab_text: "TAB TEXT",
+    display: "DISPLAY",
+    restore_text: "Restore tab text",
+    text_size: "Text size",
+    interface_size: "Interface size",
+    language: "Language",
 };
 
 pub const FRENCH: Strings = Strings {
@@ -24,4 +40,12 @@ pub const FRENCH: Strings = Strings {
     rename: "Renommer",
     change_color: "Changer de couleur",
     change_icon: "Changer d'icône",
+    instances: "INSTANCES",
+    settings: "Paramètres",
+    tab_text: "TEXTE DES ONGLETS",
+    display: "AFFICHAGE",
+    restore_text: "Restaurer le texte des onglets",
+    text_size: "Taille du texte",
+    interface_size: "Taille de l'interface",
+    language: "Langue",
 };

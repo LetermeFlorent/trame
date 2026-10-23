@@ -1,8 +1,9 @@
 use crate::geometry::Rect;
+use crate::locale::LanguageChoice;
 use crate::text::{TextStyle, TextSystem};
 use crate::ui::metrics::UiMetrics;
 
-use super::{SettingLine, Stepper};
+use super::{LanguageOption, SettingLine, Stepper};
 
 pub(super) const CAPTION_HEIGHT: f32 = 22.0;
 pub(super) const LINE_HEIGHT: f32 = 28.0;
@@ -11,6 +12,8 @@ const LINE_INSET: f32 = 6.0;
 const VALUE_WIDTH: f32 = 44.0;
 const TOGGLE_WIDTH: f32 = 28.0;
 const TOGGLE_HEIGHT: f32 = 16.0;
+const CHOICE_PAD: f32 = 8.0;
+const CHOICE_GAP: f32 = 2.0;
 
 pub(super) struct Column<'a> {
     pub(super) text: &'a mut TextSystem,
@@ -35,12 +38,22 @@ impl Column<'_> {
         }
     }
 
+    pub(super) fn skip(&mut self, gap: f32) {
+        self.y += self.metrics.px(gap);
+    }
+
     pub(super) fn toggle(&self, line: &SettingLine) -> Rect {
         let width = self.metrics.px(TOGGLE_WIDTH);
         let height = self.metrics.px(TOGGLE_HEIGHT);
         let right = line.rect.right() - self.metrics.px(LINE_INSET);
         let y = line.rect.y + (line.rect.height - height) / 2.0;
         Rect::new(right - width, y, width, height).snapped()
+    }
+
+    pub(super) fn end_button(&self, line: &SettingLine) -> Rect {
+        let button = self.metrics.px(UiMetrics::BUTTON);
+        let y = middle(line, button);
+        Rect::new(line.rect.right() - button, y, button, button)
     }
 
     pub(super) fn stepper(
@@ -50,17 +63,18 @@ impl Column<'_> {
         [can_shrink, can_grow]: [bool; 2],
     ) -> Stepper {
         let line = self.line(label, LINE_HEIGHT, self.metrics.label());
-        let button = self.metrics.px(UiMetrics::BUTTON);
+        let bigger = self.end_button(&line);
         let value_width = self.metrics.px(VALUE_WIDTH);
-        let y = (line.rect.y + (line.rect.height - button) / 2.0).round();
-        let bigger = Rect::new(line.rect.right() - button, y, button, button);
         let value_rect = Rect::new(
             bigger.x - value_width,
             line.rect.y,
             value_width,
             line.rect.height,
         );
-        let smaller = Rect::new(value_rect.x - button, y, button, button);
+        let smaller = Rect {
+            x: value_rect.x - bigger.width,
+            ..bigger
+        };
         Stepper {
             value: self.text.layout(value, self.metrics.label()),
             line,
@@ -71,4 +85,38 @@ impl Column<'_> {
             can_grow,
         }
     }
+
+    pub(super) fn choices(
+        &mut self,
+        line: &SettingLine,
+        chosen: LanguageChoice,
+    ) -> Vec<LanguageOption> {
+        let height = self.metrics.px(UiMetrics::BUTTON);
+        let pad = self.metrics.px(CHOICE_PAD);
+        let gap = self.metrics.px(CHOICE_GAP);
+        let y = middle(line, height);
+        let mut right = line.rect.right();
+        let mut options: Vec<LanguageOption> = LanguageChoice::ALL
+            .into_iter()
+            .rev()
+            .map(|choice| {
+                let label = self.text.layout(choice.label(), self.metrics.label());
+                let width = (label.width + 2.0 * pad).ceil();
+                let rect = Rect::new(right - width, y, width, height);
+                right = rect.x - gap;
+                LanguageOption {
+                    rect,
+                    choice,
+                    label,
+                    selected: choice == chosen,
+                }
+            })
+            .collect();
+        options.reverse();
+        options
+    }
+}
+
+fn middle(line: &SettingLine, height: f32) -> f32 {
+    (line.rect.y + (line.rect.height - height) / 2.0).round()
 }

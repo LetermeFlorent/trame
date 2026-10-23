@@ -33,7 +33,7 @@ The rest stays out of your way:
 - a double click on the empty part of a tab bar opens a new tab in that pane;
 - the light or dark theme follows the system and changes when the system does;
 - the default shell of the system opens in every new tab: PowerShell 7 when it is installed, Windows PowerShell otherwise, and `$SHELL` on Linux;
-- the gear at the bottom of the side bar opens the settings, where you can turn tab text restoring on or off and change the size of the terminal text and of the interface (80% to 150%);
+- the Settings button at the bottom of the side bar (a gear with a tooltip when the bar is folded) opens the settings window in the middle of the screen, where you can turn tab text restoring on or off, change the size of the terminal text and of the interface (80% to 150%), and pick the language: Auto follows the language of Windows, or force French or English. Escape or the cross closes it;
 - at launch, trame reopens the last layout with each shell in the folder it was in, and each tab shows again the text it held when trame closed. Only the text comes back: a program that was running in the tab is not started again.
 
 Drawing goes through the graphics card with [wgpu](https://wgpu.rs), on Vulkan first, with DirectX 12 on Windows and OpenGL on Linux when Vulkan is missing. Nothing is drawn while the window is hidden or minimized. The terminal itself, from the escape sequence parser to the screen grid and the scrollback, is written from scratch in Rust. On Windows 11 the program weighs 6.4 MB and uses around 65 MB of memory once open.

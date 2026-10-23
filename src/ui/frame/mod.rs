@@ -13,12 +13,13 @@ pub use editor::{
 pub use label::fit_label;
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{
-    FooterFrame, RailFrame, RailSlot, SettingControl, SettingLine, SettingsFrame, SidebarFrame,
-    SidebarItem, SidebarRow, Stepper, dragged_width, shown_width,
+    FooterFrame, LanguageOption, RailFrame, RailSlot, SettingControl, SettingLine, SettingsFrame,
+    SidebarFrame, SidebarItem, SidebarRow, Stepper, dragged_width, shown_width,
 };
 pub use titlebar::{TitleBarFrame, WindowControls};
 
 use crate::geometry::Rect;
+use crate::locale::Strings;
 use crate::session::SessionId;
 use crate::text::TextSystem;
 use crate::ui::metrics::UiMetrics;
@@ -32,6 +33,7 @@ pub struct FrameInput<'a> {
     pub metrics: UiMetrics,
     pub maximized: bool,
     pub title: &'a dyn Fn(SessionId) -> String,
+    pub strings: &'static Strings,
 }
 
 #[derive(Clone, Debug)]
@@ -66,7 +68,7 @@ impl FrameLayout {
         let reveal = motion.sidebar(input.workspace.sidebar_open);
         let columns = Columns::split(input, rest, reveal);
         let (side, content) = (columns.side, columns.content);
-        let footer = sidebar::layout_footer(&metrics, side);
+        let footer = sidebar::layout_footer(text, &metrics, side, input.strings.settings);
         let mut sidebar = (reveal > 0.0)
             .then(|| sidebar::layout_sidebar(text, input, footer.above(columns.sidebar)));
         let rail = (reveal < 1.0)

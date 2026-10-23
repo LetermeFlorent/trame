@@ -6,6 +6,7 @@ mod overlay;
 mod sidebar;
 mod tabbar;
 
+use trame::locale::Language;
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
 use trame::ui::{FrameInput, FrameLayout, Motion, UiMetrics};
@@ -44,6 +45,7 @@ pub fn frame_with(
         metrics: UiMetrics::new(1.0),
         maximized: false,
         title: &title,
+        strings: Language::English.strings(),
     };
     FrameLayout::compute_with(text, &input, motion)
 }

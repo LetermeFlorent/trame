@@ -50,7 +50,7 @@ impl Running {
     }
 
     pub(in crate::app::running) fn wheel(&mut self, delta: MouseScrollDelta) {
-        if self.frame.blocked {
+        if self.frame.blocked || self.settings_open {
             return;
         }
         let lines = match delta {

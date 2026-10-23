@@ -25,7 +25,7 @@ pub(super) fn draw_rail(painter: &mut Painter, rail: &RailFrame) {
     painter.scene.pop_clip();
 }
 
-pub(super) fn draw_footer(painter: &mut Painter, footer: &FooterFrame, open: bool) {
+pub(super) fn draw_footer(painter: &mut Painter, footer: &FooterFrame, open: bool, reveal: f32) {
     let theme = painter.theme;
     let line = painter.metrics.line();
     let rect = footer.rect;
@@ -41,7 +41,14 @@ pub(super) fn draw_footer(painter: &mut Painter, footer: &FooterFrame, open: boo
             .mix(theme.text, painter.glow(Hit::Settings)),
     };
     let size = painter.metrics.px(UiMetrics::ICON);
-    painter.icon(Icon::Gear, centered(footer.settings, size), color);
+    painter.icon(Icon::Gear, centered(footer.icon, size), color);
+    if reveal > 0.0 {
+        painter.scene.push_clip(footer.settings);
+        painter.scene.push_opacity(reveal);
+        painter.label(&footer.label, footer.label_x, footer.settings, color);
+        painter.scene.pop_opacity();
+        painter.scene.pop_clip();
+    }
 }
 
 fn draw_slot(painter: &mut Painter, slot: &RailSlot) {

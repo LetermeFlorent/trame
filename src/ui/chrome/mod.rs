@@ -50,7 +50,8 @@ pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
         painter.scene.pop_opacity();
         painter.scene.pop_clip();
     }
-    sidebar::draw_footer(&mut painter, &frame.footer, frame.settings.is_some());
+    let open = frame.settings.is_some();
+    sidebar::draw_footer(&mut painter, &frame.footer, open, frame.reveal);
     for pane in &frame.panes {
         tabbar::draw(&mut painter, pane);
     }

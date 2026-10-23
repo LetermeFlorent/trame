@@ -18,10 +18,9 @@ pub(super) use footer::layout_footer;
 pub(super) use rail::layout_rail;
 pub use rail::{RailFrame, RailSlot};
 use row::{RowSpec, layout_row, row_specs};
-pub use settings::{SettingControl, SettingLine, SettingsFrame, Stepper};
+pub use settings::{LanguageOption, SettingControl, SettingLine, SettingsFrame, Stepper};
 pub use width::{dragged_width, shown_width};
 
-const CAPTION: &str = "INSTANCES";
 const CAPTION_MARGIN: f32 = 14.0;
 const HEADER_BUTTON_MARGIN: f32 = 8.0;
 const ROW_SPACING: f32 = 1.0;
@@ -86,7 +85,7 @@ pub fn layout_sidebar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> 
     SidebarFrame {
         rect,
         header,
-        caption: text.layout(CAPTION, metrics.caption()),
+        caption: text.layout(input.strings.instances, metrics.caption()),
         caption_x: header.x + metrics.px(CAPTION_MARGIN),
         new_instance,
         rows,

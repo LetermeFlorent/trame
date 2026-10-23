@@ -30,13 +30,17 @@ impl RailFrame {
 
     pub fn beside(&self, metrics: &UiMetrics, id: InstanceId, width: f32) -> Option<Rect> {
         let slot = self.slots.iter().find(|slot| slot.id == id)?;
+        Some(self.next_to(metrics, slot.rect, width))
+    }
+
+    pub fn next_to(&self, metrics: &UiMetrics, anchor: Rect, width: f32) -> Rect {
         let height = metrics.px(UiMetrics::SIDEBAR_ROW);
-        Some(Rect::new(
+        Rect::new(
             self.rect.right() + metrics.px(BESIDE_GAP),
-            (slot.rect.center().y - height / 2.0).round(),
+            (anchor.center().y - height / 2.0).round(),
             width,
             height,
-        ))
+        )
     }
 }
 

@@ -32,6 +32,16 @@ pub enum LanguageChoice {
 }
 
 impl LanguageChoice {
+    pub const ALL: [Self; 3] = [Self::Auto, Self::French, Self::English];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            LanguageChoice::Auto => "Auto",
+            LanguageChoice::French => "Français",
+            LanguageChoice::English => "English",
+        }
+    }
+
     pub fn resolve(self) -> Language {
         match self {
             LanguageChoice::Auto => system_language(),

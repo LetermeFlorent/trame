@@ -9,6 +9,7 @@ use std::time::Instant;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 
+use trame::locale::Strings;
 use trame::preferences::Preferences;
 use trame::render::Scene;
 use trame::session::Transcripts;
@@ -88,7 +89,8 @@ impl Running {
         let metrics = UiMetrics::new(preferences.ui_scale(surface.window_scale));
         let workspace = Workspace::new();
         let mut motion = Motion::default();
-        let frame = first_frame(&mut surface, &workspace, metrics, &mut motion);
+        let strings = preferences.language.resolve().strings();
+        let frame = first_frame(&mut surface, &workspace, metrics, &mut motion, strings);
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
             window: surface.window,
@@ -118,7 +120,7 @@ impl Running {
             modifiers: ModifiersState::empty(),
             visibility: Visibility::default(),
             loader: None,
-            strings: preferences.language.resolve().strings(),
+            strings,
         }
     }
 }
@@ -128,11 +130,13 @@ fn first_frame(
     workspace: &Workspace,
     metrics: UiMetrics,
     motion: &mut Motion,
+    strings: &'static Strings,
 ) -> FrameLayout {
     let layout_input = frame::LayoutInput {
         workspace,
         window: &surface.window,
         metrics,
+        strings,
     };
     frame::compute(&mut surface.text, &layout_input, motion, &|_| String::new())
 }

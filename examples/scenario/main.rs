@@ -9,6 +9,7 @@ use std::time::{Duration, Instant};
 
 use common::{Args, Studio};
 use shells::{Scenario, build};
+use trame::locale::Language;
 use trame::render::Scene;
 use trame::session::{Session, SessionId};
 use trame::text::TextSystem;
@@ -87,6 +88,7 @@ fn layout(text: &mut TextSystem, scenario: &Scenario, scale: f32) -> FrameLayout
         metrics: UiMetrics::new(scale),
         maximized: false,
         title: &title,
+        strings: Language::English.strings(),
     };
     FrameLayout::compute(text, &input)
 }

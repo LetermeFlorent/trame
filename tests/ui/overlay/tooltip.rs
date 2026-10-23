@@ -92,3 +92,28 @@ fn the_name_hides_while_the_editor_is_open() {
             .is_empty()
     );
 }
+
+#[test]
+fn the_rail_gear_names_the_settings_beside_it() {
+    let mut text = text_system();
+    let theme = Theme::new(Appearance::Dark);
+    let layout = frame(&mut text, &collapsed());
+    let rail = layout.rail.as_ref().expect("the rail");
+    let gear = layout.footer.settings;
+    let scene = paint(&mut text, &layout, &theme, Some(Hit::Settings));
+    let bubble = scene
+        .quads()
+        .iter()
+        .find(|quad| quad.color == theme.chrome.to_array())
+        .expect("a bubble is drawn");
+    let [x, y, width, height] = bubble.rect;
+    assert!(x >= rail.rect.right());
+    assert!(y <= gear.center().y && y + height >= gear.center().y);
+    assert!(width >= layout.footer.label.width);
+    let open = frame(&mut text, &workspace());
+    assert!(
+        paint(&mut text, &open, &theme, Some(Hit::Settings))
+            .quads()
+            .is_empty()
+    );
+}

@@ -59,11 +59,14 @@ pub(super) fn hit_menu(menu: &MenuFrame, point: Point) -> Option<Hit> {
 }
 
 pub(super) fn hit_settings(panel: &SettingsFrame, point: Point) -> Option<Hit> {
-    panel.rect.contains(point).then(|| {
-        panel
-            .control_at(point)
-            .map_or(Hit::SettingsPanel, Hit::Setting)
-    })
+    match panel.rect.contains(point) {
+        true => Some(
+            panel
+                .control_at(point)
+                .map_or(Hit::SettingsPanel, Hit::Setting),
+        ),
+        false => panel.backdrop.contains(point).then_some(Hit::Backdrop),
+    }
 }
 
 pub(super) fn hit_pane(pane: &PaneFrame, point: Point) -> Hit {

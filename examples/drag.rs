@@ -5,6 +5,7 @@ use std::error::Error;
 
 use common::{Args, Studio};
 use trame::geometry::Point;
+use trame::locale::Language;
 use trame::render::Scene;
 use trame::session::SessionId;
 use trame::text::TextSystem;
@@ -54,6 +55,7 @@ fn layout(text: &mut TextSystem, workspace: &Workspace, scale: f32) -> FrameLayo
         metrics: UiMetrics::new(scale),
         maximized: false,
         title: &title,
+        strings: Language::English.strings(),
     };
     FrameLayout::compute(text, &input)
 }

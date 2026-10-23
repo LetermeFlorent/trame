@@ -1,3 +1,4 @@
+mod footer;
 mod settings;
 
 use trame::geometry::Point;
