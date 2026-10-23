@@ -73,15 +73,9 @@ impl Motion {
         let target = if open { 1.0 } else { 0.0 };
         let now = self.now;
         let animate = self.animate;
-        let tween = self
-            .sidebar
-            .get_or_insert_with(|| Tween::settled(target, now));
-        match animate {
-            true => tween.retarget(target, now),
-            false if tween.target() != target => tween.snap(target),
-            false => {}
-        }
-        tween.value(now)
+        self.sidebar
+            .get_or_insert_with(|| Tween::settled(target, now))
+            .steer(target, now, animate)
     }
 
     pub fn knows(&self, key: MotionKey) -> bool {
@@ -96,16 +90,13 @@ impl Motion {
         self.seen.insert(key);
         let now = self.now;
         let animate = self.animate;
-        let tween = self.rects.entry(key).or_insert_with(|| match entry {
-            Some(start) if animate => Tween::between(start, target, now),
-            _ => Tween::settled(target, now),
-        });
-        match animate {
-            true => tween.retarget(target, now),
-            false if tween.target() != target => tween.snap(target),
-            false => {}
-        }
-        tween.value(now)
+        self.rects
+            .entry(key)
+            .or_insert_with(|| match entry {
+                Some(start) if animate => Tween::between(start, target, now),
+                _ => Tween::settled(target, now),
+            })
+            .steer(target, now, animate)
     }
 
     pub fn finish_layout(&mut self) {

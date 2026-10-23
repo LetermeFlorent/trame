@@ -2,6 +2,8 @@ use winit::event::MouseScrollDelta;
 
 use trame::input::{WheelAction, arrow_keys, wheel_action};
 use trame::session::SessionId;
+use trame::term::Screen;
+use trame::ui::Motion;
 
 use crate::app::running::Running;
 
@@ -29,13 +31,7 @@ impl Running {
         match scroll {
             Scroll::Pages(pages) => {
                 let page = screen.rows().saturating_sub(1).max(1) as isize;
-                let before = screen.grid().display_offset();
-                screen.scroll_display(pages * page);
-                let after = screen.grid().display_offset();
-                let rows = screen.rows() as f32;
-                drop(terminal);
-                self.motion
-                    .scroll_by(id, before as f32 - after as f32, rows);
+                scroll_history(&mut self.motion, id, screen, pages * page);
             }
             Scroll::Top => {
                 let history = screen.grid().history_len() as isize;
@@ -84,14 +80,8 @@ impl Running {
         let modes = terminal.screen().modes();
         match wheel_action(lines, modes) {
             WheelAction::History(lines) => {
-                let screen = terminal.screen_mut();
-                let before = screen.grid().display_offset();
-                screen.scroll_display(lines);
-                let after = screen.grid().display_offset();
-                let rows = screen.rows() as f32;
+                scroll_history(&mut self.motion, id, terminal.screen_mut(), lines);
                 drop(terminal);
-                self.motion
-                    .scroll_by(id, before as f32 - after as f32, rows);
                 self.window.request_redraw();
             }
             WheelAction::Keys(count, up) => {
@@ -106,4 +96,11 @@ impl Running {
             WheelAction::Ignore => {}
         }
     }
+}
+
+fn scroll_history(motion: &mut Motion, id: SessionId, screen: &mut Screen, lines: isize) {
+    let before = screen.grid().display_offset();
+    screen.scroll_display(lines);
+    let after = screen.grid().display_offset();
+    motion.scroll_by(id, before as f32 - after as f32, screen.rows() as f32);
 }

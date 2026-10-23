@@ -53,12 +53,7 @@ impl Running {
             return;
         }
         if let Some(Hit::Terminal(pane)) = self.view.hover
-            && let Some(id) = self
-                .frame
-                .panes
-                .iter()
-                .find(|found| found.id == pane)
-                .and_then(|found| found.active)
+            && let Some(id) = self.frame.pane(pane).and_then(|found| found.active)
             && self.reports_mouse(id)
         {
             self.report_motion(id, None, point);
@@ -72,7 +67,7 @@ impl Running {
         let Some(Hit::Terminal(pane_id)) = self.frame.hit(point, self.resizable()) else {
             return false;
         };
-        let Some(pane) = self.frame.panes.iter().find(|pane| pane.id == pane_id) else {
+        let Some(pane) = self.frame.pane(pane_id) else {
             return false;
         };
         let Some(id) = pane.active else {

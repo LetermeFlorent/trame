@@ -1,6 +1,5 @@
 use super::Grid;
-use super::row::Row;
-use crate::term::cell::Flags;
+use super::row::printable;
 
 impl Grid {
     pub fn selected_text(&self) -> Option<String> {
@@ -20,7 +19,7 @@ impl Grid {
                 self.cols - 1
             };
             let joined = row.wrapped && line < end.line;
-            let piece = slice(row, from, to);
+            let piece = printable((from..=to).map(|col| row.cell(col)));
             text.push_str(if joined {
                 &piece
             } else {
@@ -32,12 +31,4 @@ impl Grid {
         }
         Some(text)
     }
-}
-
-fn slice(row: &Row, from: usize, to: usize) -> String {
-    (from..=to)
-        .map(|col| row.cell(col))
-        .filter(|cell| !cell.flags.contains(Flags::WIDE_SPACER))
-        .map(|cell| if cell.ch == '\0' { ' ' } else { cell.ch })
-        .collect()
 }

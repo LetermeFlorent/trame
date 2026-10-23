@@ -50,27 +50,20 @@ impl Workspace {
     }
 
     pub fn rename_instance(&mut self, id: InstanceId, name: &str) {
-        if let Some(instance) = self.instance_mut(id) {
-            instance.name = clean_name(name).unwrap_or_else(|| Instance::automatic_name(id));
-        }
+        let name = clean_name(name).unwrap_or_else(|| Instance::automatic_name(id));
+        self.edit_instance(id, |instance| instance.name = name);
     }
 
     pub fn set_instance_color(&mut self, id: InstanceId, color: Option<Swatch>) {
-        if let Some(instance) = self.instance_mut(id) {
-            instance.color = color;
-        }
+        self.edit_instance(id, |instance| instance.color = color);
     }
 
     pub fn set_instance_emblem(&mut self, id: InstanceId, emblem: Emblem) {
-        if let Some(instance) = self.instance_mut(id) {
-            instance.emblem = emblem;
-        }
+        self.edit_instance(id, |instance| instance.emblem = emblem);
     }
 
     pub fn set_instance_folder(&mut self, id: InstanceId, folder: Option<PathBuf>) {
-        if let Some(instance) = self.instance_mut(id) {
-            instance.folder = folder;
-        }
+        self.edit_instance(id, |instance| instance.folder = folder);
     }
 
     pub(super) fn restore_mark(&mut self, tab: SessionId, mark: TabMark) {
@@ -89,8 +82,10 @@ impl Workspace {
         self.instances.iter().find(|instance| instance.id == id)
     }
 
-    fn instance_mut(&mut self, id: InstanceId) -> Option<&mut Instance> {
-        self.instances.iter_mut().find(|instance| instance.id == id)
+    fn edit_instance(&mut self, id: InstanceId, change: impl FnOnce(&mut Instance)) {
+        if let Some(instance) = self.instances.iter_mut().find(|instance| instance.id == id) {
+            change(instance);
+        }
     }
 
     fn edit_mark(&mut self, tab: SessionId, change: impl FnOnce(&mut TabMark)) {

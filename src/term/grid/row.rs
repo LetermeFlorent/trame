@@ -107,14 +107,16 @@ impl Row {
     }
 
     pub fn text(&self) -> String {
-        let mut text: String = self
-            .cells
-            .iter()
-            .filter(|cell| !cell.flags.contains(Flags::WIDE_SPACER))
-            .map(|cell| if cell.ch == '\0' { ' ' } else { cell.ch })
-            .collect();
+        let mut text = printable(self.cells.iter().copied());
         let trimmed = text.trim_end().len();
         text.truncate(trimmed);
         text
     }
+}
+
+pub(super) fn printable(cells: impl Iterator<Item = Cell>) -> String {
+    cells
+        .filter(|cell| !cell.flags.contains(Flags::WIDE_SPACER))
+        .map(|cell| if cell.ch == '\0' { ' ' } else { cell.ch })
+        .collect()
 }

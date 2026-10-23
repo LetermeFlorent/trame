@@ -82,6 +82,15 @@ impl<T: Lerp> Tween<T> {
         self.to = to;
     }
 
+    pub fn steer(&mut self, to: T, now: Instant, animate: bool) -> T {
+        if animate {
+            self.retarget(to, now);
+        } else if to != self.to {
+            self.snap(to);
+        }
+        self.value(now)
+    }
+
     fn progress(&self, now: Instant) -> f32 {
         let elapsed = now.saturating_duration_since(self.start);
         elapsed.as_secs_f32() / DURATION.as_secs_f32()

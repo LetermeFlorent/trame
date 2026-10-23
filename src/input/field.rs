@@ -8,12 +8,9 @@ pub struct TextField {
 
 impl TextField {
     pub fn new(text: &str) -> Self {
-        let text: String = text.chars().filter(|ch| !ch.is_control()).collect();
-        let text: String = text.chars().take(MAX_CHARS).collect();
-        Self {
-            caret: text.len(),
-            text,
-        }
+        let mut field = Self::default();
+        field.insert(text);
+        field
     }
 
     pub fn text(&self) -> &str {
