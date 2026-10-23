@@ -66,7 +66,7 @@ pub struct SidebarFrame {
 pub fn layout_sidebar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> SidebarFrame {
     let metrics = &input.metrics;
     let workspace = input.workspace;
-    let (header, list) = rect.split_top(metrics.px(UiMetrics::SIDEBAR_HEADER));
+    let (header, list) = rect.split_top(metrics.spaced(UiMetrics::SIDEBAR_HEADER));
     let button = metrics.px(UiMetrics::BUTTON);
     let new_instance = Rect::new(
         header.right() - metrics.px(HEADER_BUTTON_MARGIN) - button,
@@ -74,7 +74,7 @@ pub fn layout_sidebar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> 
         button,
         button,
     );
-    let height = metrics.px(UiMetrics::SIDEBAR_ROW);
+    let height = metrics.spaced(UiMetrics::SIDEBAR_ROW);
     let step = height + metrics.px(ROW_SPACING);
     let specs: Vec<RowSpec> = workspace
         .instances

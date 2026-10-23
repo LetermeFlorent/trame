@@ -1,4 +1,5 @@
 use trame::geometry::Point;
+use trame::ui::PanelSide;
 use trame::ui::frame::dragged_width;
 
 use crate::app::running::Running;
@@ -18,7 +19,12 @@ impl Running {
     }
 
     pub(super) fn drag_sidebar(&mut self, drag: SidebarDrag, point: Point) {
-        let pointer = (point.x - self.frame.side.x) / self.metrics.scale;
+        let side = self.frame.side;
+        let reach = match self.metrics.panel {
+            PanelSide::Left => point.x - side.x,
+            PanelSide::Right => side.right() - point.x,
+        };
+        let pointer = reach / self.metrics.scale;
         let width = dragged_width(pointer);
         let open = width.is_some();
         if open != self.workspace.sidebar_open {

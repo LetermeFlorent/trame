@@ -39,7 +39,12 @@ fn draw_general(painter: &mut Painter, page: &GeneralPage) {
     for (stepper, controls) in page.steppers() {
         draw_stepper(painter, stepper, controls);
     }
-    for row in [&page.language, &page.folder] {
+    for row in [
+        &page.language,
+        &page.panel_side,
+        &page.density,
+        &page.folder,
+    ] {
         draw_choices(painter, row);
     }
 }

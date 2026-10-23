@@ -1,5 +1,6 @@
 mod footer;
 mod settings;
+mod side;
 mod update;
 
 use trame::geometry::Point;

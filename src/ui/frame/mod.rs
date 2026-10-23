@@ -28,6 +28,7 @@ use crate::geometry::Rect;
 use crate::locale::Strings;
 use crate::session::SessionId;
 use crate::text::TextSystem;
+use crate::ui::display::PanelSide;
 use crate::ui::metrics::UiMetrics;
 use crate::ui::motion::Motion;
 use crate::workspace::{Divider, PaneId, Workspace};
@@ -114,13 +115,11 @@ impl FrameLayout {
     pub fn sidebar_edge(&self) -> Rect {
         let line = self.metrics.line();
         let grab = self.metrics.px(UiMetrics::DIVIDER_GRAB);
-        Rect::new(
-            self.side.right() - line,
-            self.side.y,
-            line,
-            self.side.height,
-        )
-        .inset_by(-grab, 0.0)
+        let x = match self.metrics.panel {
+            PanelSide::Left => self.side.right() - line,
+            PanelSide::Right => self.side.x,
+        };
+        Rect::new(x, self.side.y, line, self.side.height).inset_by(-grab, 0.0)
     }
 
     pub fn pane(&self, id: PaneId) -> Option<&PaneFrame> {

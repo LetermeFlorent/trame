@@ -1,4 +1,5 @@
 use crate::geometry::Rect;
+use crate::ui::display::PanelSide;
 use crate::ui::frame::FrameInput;
 use crate::ui::metrics::UiMetrics;
 
@@ -26,16 +27,25 @@ impl Columns {
             .px(shown_width(input.workspace.sidebar_width))
             .round();
         let visible_width = (rail_width + (full_width - rail_width) * reveal).round();
-        let (side, _) = rest.split_left(visible_width);
         let shown = if input.workspace.sidebar_open {
             full_width
         } else {
             rail_width
         };
-        let (_, content) = rest.split_left(shown);
+        let (side, content) = match metrics.panel {
+            PanelSide::Left => (rest.split_left(visible_width).0, rest.split_left(shown).1),
+            PanelSide::Right => (
+                rest.split_left(rest.width - visible_width).1,
+                rest.split_left(rest.width - shown).0,
+            ),
+        };
+        let x = match metrics.panel {
+            PanelSide::Left => side.right() - full_width,
+            PanelSide::Right => side.x,
+        };
         Self {
             side,
-            sidebar: Rect::new(side.right() - full_width, side.y, full_width, side.height),
+            sidebar: Rect::new(x, side.y, full_width, side.height),
             content,
         }
     }

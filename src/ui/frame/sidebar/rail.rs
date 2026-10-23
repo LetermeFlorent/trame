@@ -1,5 +1,6 @@
 use crate::geometry::{Point, Rect};
 use crate::theme::{Emblem, Swatch};
+use crate::ui::display::PanelSide;
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{InstanceId, Workspace};
 
@@ -35,12 +36,12 @@ impl RailFrame {
 
     pub fn next_to(&self, metrics: &UiMetrics, anchor: Rect, width: f32) -> Rect {
         let height = metrics.px(UiMetrics::SIDEBAR_ROW);
-        Rect::new(
-            self.rect.right() + metrics.px(BESIDE_GAP),
-            (anchor.center().y - height / 2.0).round(),
-            width,
-            height,
-        )
+        let gap = metrics.px(BESIDE_GAP);
+        let x = match metrics.panel {
+            PanelSide::Left => self.rect.right() + gap,
+            PanelSide::Right => self.rect.x - gap - width,
+        };
+        Rect::new(x, (anchor.center().y - height / 2.0).round(), width, height)
     }
 }
 
@@ -48,7 +49,7 @@ pub(crate) fn layout_rail(metrics: &UiMetrics, workspace: &Workspace, rect: Rect
     let size = metrics.px(UiMetrics::BUTTON);
     let icon = metrics.px(UiMetrics::ICON);
     let rail = metrics.px(UiMetrics::RAIL_WIDTH);
-    let header = metrics.px(UiMetrics::SIDEBAR_HEADER);
+    let header = metrics.spaced(UiMetrics::SIDEBAR_HEADER);
     let step = size + metrics.px(SLOT_GAP);
     let x = rect.x + (rail - size) / 2.0;
     let top = rect.y + (header - size) / 2.0;

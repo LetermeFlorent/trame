@@ -68,6 +68,8 @@ impl Running {
             SettingControl::InterfaceSmaller => current.step_interface_size(-1),
             SettingControl::InterfaceBigger => current.step_interface_size(1),
             SettingControl::Language(language) => current.with(|next| next.language = language),
+            SettingControl::PanelSide(side) => current.with(|next| next.panel_side = side),
+            SettingControl::Density(density) => current.with(|next| next.density = density),
             SettingControl::DefaultFolder => {
                 let start = self.preferences.default_folder.clone();
                 return self.ask_folder(FolderTarget::Default, start);

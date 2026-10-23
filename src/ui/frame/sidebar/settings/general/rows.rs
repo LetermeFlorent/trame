@@ -3,6 +3,7 @@ use std::path::Path;
 use crate::files::{home_dir, short_path};
 use crate::locale::{LanguageChoice, Strings};
 use crate::preferences::Preferences;
+use crate::ui::display::{Density, PanelSide};
 use crate::ui::frame::fit_text_start;
 
 use super::{ChoiceRow, SettingControl, Stepper};
@@ -78,4 +79,37 @@ pub(super) fn folder_row(
         chip.faint = suggested;
     }
     row
+}
+
+pub(super) fn display_rows(
+    column: &mut Column,
+    strings: &Strings,
+    preferences: &Preferences,
+) -> [ChoiceRow; 2] {
+    let sides = PanelSide::ALL.map(|side| {
+        let label = match side {
+            PanelSide::Left => strings.left,
+            PanelSide::Right => strings.right,
+        };
+        (
+            label,
+            SettingControl::PanelSide(side),
+            side == preferences.panel_side,
+        )
+    });
+    let densities = Density::ALL.map(|density| {
+        let label = match density {
+            Density::Compact => strings.compact,
+            Density::Spacious => strings.spacious,
+        };
+        (
+            label,
+            SettingControl::Density(density),
+            density == preferences.density,
+        )
+    });
+    [
+        column.choice_row(strings.panel_side, &sides, None),
+        column.choice_row(strings.spacing, &densities, None),
+    ]
 }

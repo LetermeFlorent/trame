@@ -8,6 +8,7 @@ use trame::locale::LanguageChoice;
 use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences, SshHost};
 use trame::theme::Swatch;
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
+use trame::ui::{Density, PanelSide};
 use trame::workspace::{NodeSnapshot, PaneSnapshot, Snapshot, TabSnapshot};
 
 use super::{restore, single};
@@ -96,6 +97,8 @@ fn preferences_and_text_keys_survive_json() {
         ssh_hosts: SshHost::parse("me@box:2222").into_iter().collect(),
         confirm_close: false,
         custom_colors: vec![Swatch::custom(0x12ab34)],
+        panel_side: PanelSide::Right,
+        density: Density::Spacious,
     };
     let text = snapshot.to_json().expect("serializes");
     let parsed = Snapshot::from_json(&text).expect("parses");
@@ -110,6 +113,8 @@ fn preferences_saved_before_the_language_choice_follow_the_system() {
     let preferences: Preferences = serde_json::from_str(saved).expect("parses");
     assert_eq!(preferences.language, LanguageChoice::Auto);
     assert_eq!(preferences.interface_size, 110);
+    assert_eq!(preferences.panel_side, PanelSide::Left);
+    assert_eq!(preferences.density, Density::Compact);
 }
 
 #[test]

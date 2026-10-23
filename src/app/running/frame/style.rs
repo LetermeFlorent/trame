@@ -3,7 +3,6 @@ use std::mem;
 use trame::preferences::{Preferences, Recall};
 use trame::text::DEFAULT_LINE_HEIGHT;
 use trame::theme::{Appearance, Theme};
-use trame::ui::UiMetrics;
 
 use crate::app::running::Running;
 use crate::app::window;
@@ -26,16 +25,19 @@ impl Running {
         }
         self.saver.touch();
         self.strings = current.language.resolve().strings();
-        let sizes = |kept: &Preferences| (kept.font_size, kept.interface_size);
-        match sizes(&previous) == sizes(current) {
+        let layout = |kept: &Preferences| {
+            let sizes = (kept.font_size, kept.interface_size);
+            (sizes, kept.panel_side, kept.density)
+        };
+        match layout(&previous) == layout(current) {
             true => self.changed(),
             false => self.apply_scale(),
         }
     }
 
     fn apply_scale(&mut self) {
-        self.metrics = UiMetrics::new(self.preferences.ui_scale(self.window_scale))
-            .with_frame_border(window::frame_border(&self.window));
+        let border = window::frame_border(&self.window);
+        self.metrics = self.preferences.ui_metrics(self.window_scale, border);
         let font = self.preferences.font_pixels(self.window_scale);
         self.text.set_terminal_font(font, DEFAULT_LINE_HEIGHT);
         self.changed();

@@ -1,4 +1,5 @@
 use crate::text::{FontRole, REGULAR, SEMIBOLD, TextStyle};
+use crate::ui::display::{Density, PanelSide};
 
 pub const TERMINAL_FONT_SIZE: f32 = 14.0;
 pub const MIN_TERMINAL_FONT_SIZE: f32 = 8.0;
@@ -33,6 +34,8 @@ pub struct UiMetrics {
     pub scale: f32,
     pub platform: Platform,
     pub frame_border: f32,
+    pub panel: PanelSide,
+    pub density: Density,
 }
 
 impl UiMetrics {
@@ -66,6 +69,8 @@ impl UiMetrics {
             scale,
             platform: Platform::current(),
             frame_border: 0.0,
+            panel: PanelSide::Left,
+            density: Density::Compact,
         }
     }
 
@@ -74,6 +79,18 @@ impl UiMetrics {
             frame_border,
             ..self
         }
+    }
+
+    pub fn with_display(self, panel: PanelSide, density: Density) -> Self {
+        Self {
+            panel,
+            density,
+            ..self
+        }
+    }
+
+    pub fn spaced(&self, logical: f32) -> f32 {
+        self.px(logical * self.density.spacing())
     }
 
     pub fn hidden_bottom(&self, maximized: bool) -> f32 {

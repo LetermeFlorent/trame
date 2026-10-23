@@ -13,6 +13,7 @@ use crate::geometry::{Point, Rect};
 use crate::locale::{LanguageChoice, Strings};
 use crate::preferences::{Preferences, Recall};
 use crate::text::TextLayout;
+use crate::ui::display::{Density, PanelSide};
 pub(in crate::ui::frame) use column::{
     CAPTION_HEIGHT, Column, LINE_HEIGHT, LINE_INSET, SECTION_GAP,
 };
@@ -47,6 +48,8 @@ pub enum SettingControl {
     InterfaceSmaller,
     InterfaceBigger,
     Language(LanguageChoice),
+    PanelSide(PanelSide),
+    Density(Density),
     DefaultFolder,
     ClearFolder,
     AddHost,

@@ -51,7 +51,7 @@ pub(super) fn paint_ghost(
         (ghost.pointer.x + offset).round(),
         (ghost.pointer.y + offset).round(),
         (label.width + padding * 2.0).ceil(),
-        metrics.px(UiMetrics::TAB_BAR),
+        metrics.spaced(UiMetrics::TAB_BAR),
     );
     let radius = metrics.px(UiMetrics::RADIUS);
     scene.shadow(rect, theme.shadow, radius, metrics.px(GHOST_BLUR));
@@ -71,7 +71,7 @@ pub fn ghost_scene(text: &mut TextSystem, theme: &Theme, metrics: UiMetrics, lab
         (width + padding * 2.0 + margin)
             .ceil()
             .max(arrow_width(arrow)),
-        (metrics.px(UiMetrics::TAB_BAR) + margin)
+        (metrics.spaced(UiMetrics::TAB_BAR) + margin)
             .ceil()
             .max(arrow_height(arrow)),
     );

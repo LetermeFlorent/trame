@@ -1,4 +1,5 @@
 pub mod chrome;
+pub mod display;
 pub mod drop;
 pub mod frame;
 pub mod metrics;
@@ -6,6 +7,7 @@ pub mod motion;
 pub mod paint;
 pub mod terminal;
 
+pub use display::{Density, PanelSide};
 pub use frame::hit;
 pub use frame::{FrameInput, FrameLayout, PaneFrame};
 pub use hit::{Hit, ResizeEdge};

@@ -3,6 +3,7 @@ mod footer;
 use super::{Icon, Painter, Press};
 use crate::geometry::Rect;
 use crate::theme::{Rgba, Swatch, Theme};
+use crate::ui::display::PanelSide;
 use crate::ui::frame::{RailFrame, RailSlot, SidebarFrame, SidebarItem, SidebarRow};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
@@ -15,10 +16,11 @@ pub(super) fn draw_panel(painter: &mut Painter, rect: Rect) {
     let theme = painter.theme;
     let line = painter.metrics.line();
     painter.rule(rect, theme.chrome);
-    painter.rule(
-        Rect::new(rect.right() - line, rect.y, line, rect.height),
-        theme.border,
-    );
+    let x = match painter.metrics.panel {
+        PanelSide::Left => rect.right() - line,
+        PanelSide::Right => rect.x,
+    };
+    painter.rule(Rect::new(x, rect.y, line, rect.height), theme.border);
 }
 
 pub(super) fn draw_rail(painter: &mut Painter, rail: &RailFrame) {

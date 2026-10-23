@@ -1,5 +1,6 @@
 mod colors;
 mod launch;
+mod sizes;
 mod ssh;
 
 use std::path::PathBuf;
@@ -8,11 +9,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::locale::LanguageChoice;
 use crate::theme::Swatch;
-use crate::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
+use crate::ui::display::{Density, PanelSide};
+use crate::ui::metrics::TERMINAL_FONT_SIZE;
 pub use colors::MAX_CUSTOM_COLORS;
 use colors::sanitized_colors;
 pub use launch::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Recall};
 use launch::{clamp_instance_tabs, sanitized_command};
+use sizes::{clamp_font_size, clamp_interface_size, interface_size};
 use ssh::sanitized_hosts;
 pub use ssh::{
     ANSWER_WINDOW, ConnectForm, FormField, HostEntry, Prompt, SecretAnswer, SshConfig, SshHost,
@@ -53,6 +56,10 @@ pub struct Preferences {
     pub confirm_close: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub custom_colors: Vec<Swatch>,
+    #[serde(default)]
+    pub panel_side: PanelSide,
+    #[serde(default)]
+    pub density: Density,
 }
 
 impl Default for Preferences {
@@ -70,6 +77,8 @@ impl Default for Preferences {
             ssh_hosts: Vec::new(),
             confirm_close: true,
             custom_colors: Vec::new(),
+            panel_side: PanelSide::Left,
+            density: Density::Compact,
         }
     }
 }
@@ -130,21 +139,4 @@ fn enabled() -> bool {
 
 fn instance_tabs() -> u8 {
     MIN_INSTANCE_TABS
-}
-
-fn interface_size() -> u16 {
-    INTERFACE_SIZE
-}
-
-fn clamp_font_size(size: f32) -> f32 {
-    match size.is_finite() {
-        true => size.clamp(MIN_TERMINAL_FONT_SIZE, MAX_TERMINAL_FONT_SIZE),
-        false => TERMINAL_FONT_SIZE,
-    }
-}
-
-fn clamp_interface_size(size: u16) -> u16 {
-    let step = INTERFACE_SIZE_STEP;
-    let rounded = size.saturating_add(step / 2) / step * step;
-    rounded.clamp(MIN_INTERFACE_SIZE, MAX_INTERFACE_SIZE)
 }

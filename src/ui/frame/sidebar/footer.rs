@@ -45,7 +45,7 @@ pub(crate) fn layout_footer(text: &mut TextSystem, input: &FrameInput, side: Rec
     let line = metrics.line();
     let size = metrics.px(UiMetrics::BUTTON);
     let stack = metrics.px(STACK_GAP);
-    let gap = ((metrics.px(UiMetrics::SIDEBAR_HEADER) - line - size) / 2.0)
+    let gap = ((metrics.spaced(UiMetrics::SIDEBAR_HEADER) - line - size) / 2.0)
         .floor()
         .max(0.0);
     let extra = input.update.map_or(0.0, |_| size + stack);

@@ -89,9 +89,9 @@ fn pane_frame(
     placement: Placement,
 ) -> Option<PaneFrame> {
     let pane = instance.panes.get(&placement.id)?;
-    let bar_height = cx.metrics.px(UiMetrics::TAB_BAR);
-    let padding_x = cx.metrics.px(UiMetrics::TERMINAL_PAD_X);
-    let padding_y = cx.metrics.px(UiMetrics::TERMINAL_PAD_Y);
+    let bar_height = cx.metrics.spaced(UiMetrics::TAB_BAR);
+    let padding_x = cx.metrics.spaced(UiMetrics::TERMINAL_PAD_X);
+    let padding_y = cx.metrics.spaced(UiMetrics::TERMINAL_PAD_Y);
     let (bar, body) = placement.rect.split_top(bar_height);
     let (target_bar, target_body) = placement.target.split_top(bar_height);
     let strip_placement = tabs::StripPlacement {

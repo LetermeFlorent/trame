@@ -15,10 +15,10 @@ use crate::ui::metrics::UiMetrics;
 use super::column::{CAPTION_HEIGHT, Column, LINE_HEIGHT, SECTION_GAP};
 use super::{ChoiceRow, SettingControl, SettingLine};
 use launch::{close_toggle, command_row, instance_tabs_stepper, recall_toggles};
-use rows::{folder_row, language_row, size_steppers};
+use rows::{display_rows, folder_row, language_row, size_steppers};
 
 const CAPTIONS: f32 = 4.0;
-const LINES: f32 = 10.0;
+const LINES: f32 = 12.0;
 
 #[derive(Clone, Debug)]
 pub struct ToggleRow {
@@ -51,6 +51,8 @@ pub struct GeneralPage {
     pub text_size: Stepper,
     pub interface_size: Stepper,
     pub language: ChoiceRow,
+    pub panel_side: ChoiceRow,
+    pub density: ChoiceRow,
     pub folder: ChoiceRow,
 }
 
@@ -58,9 +60,15 @@ impl GeneralPage {
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
         let field = self.command_field.as_ref().map(|field| field.rect);
         let toggles = self.all_toggles().filter(|toggle| toggle.enabled);
-        let rows = [&self.command, &self.language, &self.folder]
-            .into_iter()
-            .flat_map(ChoiceRow::controls);
+        let rows = [
+            &self.command,
+            &self.language,
+            &self.panel_side,
+            &self.density,
+            &self.folder,
+        ]
+        .into_iter()
+        .flat_map(ChoiceRow::controls);
         field
             .map(|rect| (rect, SettingControl::StartupCommand))
             .into_iter()
@@ -115,6 +123,7 @@ pub(super) fn general_page(
     let display = column.section(strings.display);
     let [text_size, interface_size] = size_steppers(column, strings, preferences);
     let language = language_row(column, strings, preferences);
+    let [panel_side, density] = display_rows(column, strings, preferences);
     let folders = column.section(strings.folders);
     let folder = folder_row(column, strings, preferences, folder);
     GeneralPage {
@@ -127,6 +136,8 @@ pub(super) fn general_page(
         text_size,
         interface_size,
         language,
+        panel_side,
+        density,
         folder,
     }
 }
