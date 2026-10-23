@@ -1,3 +1,4 @@
+mod config;
 mod form;
 mod prompt;
 mod vault;

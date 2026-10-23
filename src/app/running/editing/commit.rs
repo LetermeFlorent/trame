@@ -3,6 +3,7 @@ use trame::theme::{Emblem, Swatch};
 use trame::ui::frame::EditTarget;
 
 use super::{EditMode, Running};
+use crate::app::persist;
 
 fn save_secret(host: &SshHost, secret: Option<&str>) {
     let Some(secret) = secret else {
@@ -14,6 +15,19 @@ fn save_secret(host: &SshHost, secret: Option<&str>) {
             host.label()
         );
     }
+}
+
+fn kept_in_config(host: SshHost) -> SshHost {
+    let Some(config) = persist::ssh_config() else {
+        return host;
+    };
+    config.keep(&host).unwrap_or_else(|error| {
+        eprintln!(
+            "trame: {} could not be added to the SSH config: {error}",
+            host.label()
+        );
+        host
+    })
 }
 
 impl Running {
@@ -31,6 +45,7 @@ impl Running {
             }
             EditMode::Form(form) => match form.host() {
                 Some(host) => {
+                    let host = kept_in_config(host);
                     save_secret(&host, form.secret());
                     self.connect(editing.target, host);
                 }

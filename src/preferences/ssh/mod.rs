@@ -1,3 +1,4 @@
+mod config;
 mod form;
 mod prompt;
 pub mod vault;
@@ -5,6 +6,7 @@ pub mod vault;
 use serde::{Deserialize, Serialize};
 
 use super::Preferences;
+pub use config::{SshConfig, aliases_in, appended, menu_hosts};
 pub use form::{ConnectForm, FormField};
 pub use prompt::{ANSWER_WINDOW, Prompt, SecretAnswer, prompt_in};
 

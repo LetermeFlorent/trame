@@ -11,8 +11,8 @@ pub use launch::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Recall};
 use launch::{clamp_instance_tabs, sanitized_command};
 use ssh::sanitized_hosts;
 pub use ssh::{
-    ANSWER_WINDOW, ConnectForm, FormField, MAX_SSH_HOSTS, Prompt, SecretAnswer, SshHost, prompt_in,
-    vault,
+    ANSWER_WINDOW, ConnectForm, FormField, MAX_SSH_HOSTS, Prompt, SecretAnswer, SshConfig, SshHost,
+    aliases_in, appended, menu_hosts, prompt_in, vault,
 };
 
 pub const FONT_SIZE_STEP: f32 = 1.0;
