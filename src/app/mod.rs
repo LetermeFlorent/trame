@@ -8,6 +8,7 @@ mod visibility;
 mod window;
 
 use std::error::Error;
+use std::path::PathBuf;
 
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
@@ -16,13 +17,14 @@ use winit::window::WindowId;
 
 use trame::session::SessionEvent;
 
-use running::Running;
+use running::{FolderTarget, Running};
 use update::UpdateStatus;
 
 #[derive(Clone, Debug)]
 pub enum UserEvent {
     Session(SessionEvent),
     Update(UpdateStatus),
+    Folder(FolderTarget, PathBuf),
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
@@ -96,6 +98,11 @@ impl ApplicationHandler<UserEvent> for App {
             UserEvent::Session(event) => {
                 if let Some(running) = &mut self.running {
                     running.session_event(event_loop, event);
+                }
+            }
+            UserEvent::Folder(target, folder) => {
+                if let Some(running) = &mut self.running {
+                    running.folder_picked(target, folder);
                 }
             }
         }

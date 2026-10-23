@@ -59,12 +59,12 @@ impl Running {
         let preferences = saved
             .as_ref()
             .map_or_else(Preferences::default, |snapshot| {
-                snapshot.preferences.sanitized()
+                snapshot.preferences.clone().sanitized()
             });
         let surface = Surface::open(event_loop, window, preferences)?;
         let mut running = Self::with_surface(surface, proxy);
         running.saver.remember_window(window);
-        if !preferences.restore_text {
+        if !running.preferences.restore_text {
             running.transcripts.clear();
         }
         Ok(Opened { running, saved })
@@ -85,7 +85,7 @@ impl Running {
     }
 
     fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>) -> Self {
-        let preferences = surface.preferences;
+        let preferences = &surface.preferences;
         let metrics = UiMetrics::new(preferences.ui_scale(surface.window_scale));
         let workspace = Workspace::new();
         let mut motion = Motion::default();
@@ -99,9 +99,10 @@ impl Running {
             scene: Scene::new(0.0, 0.0),
             metrics,
             window_scale: surface.window_scale,
-            preferences,
+            preferences: surface.preferences,
             workspace,
-            sessions: Sessions::new(proxy),
+            sessions: Sessions::new(proxy.clone()),
+            proxy,
             saver: Saver::new(),
             transcripts: Transcripts::new(persist::transcript_dir()),
             labels: HashMap::new(),

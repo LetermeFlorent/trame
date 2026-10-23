@@ -1,13 +1,14 @@
 use crate::geometry::Rect;
 use crate::theme::Rgba;
 use crate::ui::chrome::{Icon, Painter};
-use crate::ui::frame::{SettingControl, SettingsFrame, Stepper};
+use crate::ui::frame::{Chip, ChoiceRow, SettingControl, SettingsFrame, Stepper};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
 const KNOB_INSET: f32 = 2.0;
 const ON_ACCENT: Rgba = Rgba::hex(0xFFFFFF);
 const DISABLED_OPACITY: f32 = 0.35;
+const CHIP_STROKE: f32 = 1.0;
 
 pub(super) fn draw_restore(painter: &mut Painter, settings: &SettingsFrame) {
     let theme = painter.theme;
@@ -72,24 +73,34 @@ fn step_button(painter: &mut Painter, rect: Rect, hit: Hit, icon: Icon, enabled:
     painter.scene.pop_opacity();
 }
 
-pub(super) fn draw_languages(painter: &mut Painter, settings: &SettingsFrame) {
-    let theme = painter.theme;
-    let line = &settings.language;
-    painter.label(&line.label, line.label_x, line.rect, theme.text);
-    let radius = painter.metrics.px(UiMetrics::RADIUS);
-    for option in &settings.languages {
-        let color = match option.selected {
-            true => {
-                painter.scene.fill(option.rect, theme.accent, radius);
-                ON_ACCENT
-            }
-            false => {
-                let hit = Hit::Setting(SettingControl::Language(option.choice));
-                let glow = painter.press_fill(option.rect, hit, radius);
-                theme.text_muted.mix(theme.text, glow)
-            }
-        };
-        let x = option.rect.x + (option.rect.width - option.label.width) / 2.0;
-        painter.label(&option.label, x, option.rect, color);
+pub(super) fn draw_choices(painter: &mut Painter, row: &ChoiceRow) {
+    let line = &row.line;
+    painter.label(&line.label, line.label_x, line.rect, painter.theme.text);
+    for chip in &row.chips {
+        draw_chip(painter, chip);
     }
+    if let Some((rect, control)) = row.clear {
+        painter.small_button(rect, Hit::Setting(control), Icon::Close);
+    }
+}
+
+fn draw_chip(painter: &mut Painter, chip: &Chip) {
+    let theme = painter.theme;
+    let radius = painter.metrics.px(UiMetrics::RADIUS);
+    let color = match chip.selected {
+        true => {
+            painter.scene.fill(chip.rect, theme.accent, radius);
+            ON_ACCENT
+        }
+        false => {
+            let stroke = painter.metrics.px(CHIP_STROKE);
+            painter
+                .scene
+                .border(chip.rect, theme.border, radius, stroke);
+            let glow = painter.press_fill(chip.rect, Hit::Setting(chip.control), radius);
+            theme.text_muted.mix(theme.text, glow)
+        }
+    };
+    let x = chip.rect.x + (chip.rect.width - chip.label.width) / 2.0;
+    painter.label(&chip.label, x, chip.rect, color);
 }

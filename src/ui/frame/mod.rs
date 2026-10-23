@@ -13,7 +13,7 @@ pub use editor::{
 pub use label::fit_label;
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{
-    FooterFrame, LanguageOption, RailFrame, RailSlot, SettingControl, SettingLine, SettingsFrame,
+    Chip, ChoiceRow, FooterFrame, RailFrame, RailSlot, SettingControl, SettingLine, SettingsFrame,
     SidebarFrame, SidebarItem, SidebarRow, Stepper, dragged_width, shown_width,
 };
 pub use titlebar::{TitleBarFrame, WindowControls};

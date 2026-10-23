@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use serde::{Deserialize, Serialize};
 
 use crate::locale::LanguageChoice;
@@ -11,7 +13,7 @@ pub const INTERFACE_SIZE_STEP: u16 = 10;
 
 const PERCENT: f32 = 100.0;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Preferences {
     pub font_size: f32,
     #[serde(default = "restores_text")]
@@ -20,6 +22,8 @@ pub struct Preferences {
     pub interface_size: u16,
     #[serde(default)]
     pub language: LanguageChoice,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_folder: Option<PathBuf>,
 }
 
 impl Default for Preferences {
@@ -29,6 +33,7 @@ impl Default for Preferences {
             restore_text: restores_text(),
             interface_size: INTERFACE_SIZE,
             language: LanguageChoice::Auto,
+            default_folder: None,
         }
     }
 }
@@ -37,36 +42,35 @@ impl Preferences {
     pub fn sanitized(self) -> Self {
         Self {
             font_size: clamp_font_size(self.font_size),
-            restore_text: self.restore_text,
             interface_size: clamp_interface_size(self.interface_size),
-            language: self.language,
-        }
-    }
-
-    pub fn with_font_size(self, font_size: f32) -> Self {
-        Self {
-            font_size: clamp_font_size(font_size),
             ..self
         }
     }
 
-    pub fn step_font_size(self, steps: i32) -> Self {
+    pub fn with_font_size(&self, font_size: f32) -> Self {
+        Self {
+            font_size: clamp_font_size(font_size),
+            ..self.clone()
+        }
+    }
+
+    pub fn step_font_size(&self, steps: i32) -> Self {
         self.with_font_size(self.font_size + steps as f32 * FONT_SIZE_STEP)
     }
 
-    pub fn step_interface_size(self, steps: i32) -> Self {
+    pub fn step_interface_size(&self, steps: i32) -> Self {
         let wanted = i32::from(self.interface_size) + steps * i32::from(INTERFACE_SIZE_STEP);
         let size = wanted.clamp(0, i32::from(u16::MAX)) as u16;
         Self {
             interface_size: clamp_interface_size(size),
-            ..self
+            ..self.clone()
         }
     }
 
-    pub fn toggle_restore_text(self) -> Self {
+    pub fn toggle_restore_text(&self) -> Self {
         Self {
             restore_text: !self.restore_text,
-            ..self
+            ..self.clone()
         }
     }
 

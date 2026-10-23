@@ -73,18 +73,17 @@ impl Running {
             return;
         };
         let strings = self.strings;
-        let entries = [
+        let mut entries = vec![
             (MenuEntry::Rename, strings.rename),
             (MenuEntry::Color, strings.change_color),
-            (MenuEntry::Icon, strings.change_icon),
         ];
-        let shown = match menu.target {
-            EditTarget::Instance(_) => &entries[..],
-            EditTarget::Tab(_) => &entries[..2],
-        };
+        if let EditTarget::Instance(_) = menu.target {
+            entries.push((MenuEntry::Icon, strings.change_icon));
+        }
+        entries.push((MenuEntry::Folder, strings.change_folder));
         let request = MenuRequest {
             at: menu.at,
-            entries: shown,
+            entries: &entries,
         };
         self.frame.place_menu(&mut self.text, &request);
     }

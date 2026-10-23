@@ -50,6 +50,21 @@ impl Workspace {
         }
     }
 
+    pub fn replace_tab(&mut self, old: SessionId, new: SessionId) -> bool {
+        let Some(location) = self.locate(old) else {
+            return false;
+        };
+        let instance = &mut self.instances[location.instance];
+        let Some(pane) = instance.panes.get_mut(&location.pane) else {
+            return false;
+        };
+        pane.tabs[location.index] = new;
+        if let Some(mark) = self.marks.remove(&old) {
+            self.marks.insert(new, mark);
+        }
+        true
+    }
+
     pub fn close_tab(&mut self, tab: SessionId) -> bool {
         let Some(location) = self.locate(tab) else {
             return false;

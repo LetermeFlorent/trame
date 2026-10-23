@@ -6,10 +6,11 @@ use trame::workspace::Workspace;
 
 use crate::{HEIGHT, WIDTH, frame, text_system, workspace};
 
-const ENTRIES: [(MenuEntry, &str); 3] = [
+const ENTRIES: [(MenuEntry, &str); 4] = [
     (MenuEntry::Rename, "Rename"),
     (MenuEntry::Color, "Change colour"),
     (MenuEntry::Icon, "Change icon"),
+    (MenuEntry::Folder, "Change folder"),
 ];
 
 fn menu_at(text: &mut TextSystem, workspace: &Workspace, at: Point) -> FrameLayout {

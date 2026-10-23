@@ -47,6 +47,11 @@ fn each_language_has_its_own_texts() {
         (english.text_size, french.text_size),
         (english.interface_size, french.interface_size),
         (english.language, french.language),
+        (english.change_folder, french.change_folder),
+        (english.folders, french.folders),
+        (english.default_folder, french.default_folder),
+        (english.choose, french.choose),
+        (english.pick_folder, french.pick_folder),
     ];
     for (english, french) in pairs {
         assert_ne!(english, french);

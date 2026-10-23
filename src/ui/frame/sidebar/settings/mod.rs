@@ -16,6 +16,8 @@ pub enum SettingControl {
     InterfaceSmaller,
     InterfaceBigger,
     Language(LanguageChoice),
+    DefaultFolder,
+    ClearFolder,
 }
 
 #[derive(Clone, Debug)]
@@ -37,11 +39,27 @@ pub struct Stepper {
 }
 
 #[derive(Clone, Debug)]
-pub struct LanguageOption {
+pub struct Chip {
     pub rect: Rect,
-    pub choice: LanguageChoice,
     pub label: Arc<TextLayout>,
+    pub control: SettingControl,
     pub selected: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct ChoiceRow {
+    pub line: SettingLine,
+    pub chips: Vec<Chip>,
+    pub clear: Option<(Rect, SettingControl)>,
+}
+
+impl ChoiceRow {
+    pub fn controls(&self) -> impl Iterator<Item = (Rect, SettingControl)> + '_ {
+        self.chips
+            .iter()
+            .map(|chip| (chip.rect, chip.control))
+            .chain(self.clear)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -50,22 +68,21 @@ pub struct SettingsFrame {
     pub rect: Rect,
     pub title: SettingLine,
     pub close: Rect,
-    pub sections: [SettingLine; 2],
+    pub sections: [SettingLine; 3],
     pub restore: SettingLine,
     pub toggle: Rect,
     pub restores_text: bool,
     pub text_size: Stepper,
     pub interface_size: Stepper,
-    pub language: SettingLine,
-    pub languages: Vec<LanguageOption>,
+    pub language: ChoiceRow,
+    pub folder: ChoiceRow,
 }
 
 impl SettingsFrame {
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
-        let languages = self
-            .languages
-            .iter()
-            .map(|option| (option.rect, SettingControl::Language(option.choice)));
+        let rows = [&self.language, &self.folder]
+            .into_iter()
+            .flat_map(ChoiceRow::controls);
         [
             (self.close, SettingControl::Close),
             (self.restore.rect, SettingControl::RestoreText),
@@ -78,7 +95,7 @@ impl SettingsFrame {
             (self.interface_size.bigger, SettingControl::InterfaceBigger),
         ]
         .into_iter()
-        .chain(languages)
+        .chain(rows)
         .find(|(rect, _)| rect.contains(point))
         .map(|(_, control)| control)
     }

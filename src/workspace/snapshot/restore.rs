@@ -56,6 +56,7 @@ impl Restorer<'_> {
             name,
             color: item.color,
             emblem,
+            folder: item.folder.clone(),
             root,
             panes,
             active_pane,

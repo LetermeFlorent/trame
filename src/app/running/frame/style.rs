@@ -15,17 +15,18 @@ impl Running {
 
     pub(in crate::app::running) fn set_preferences(&mut self, preferences: Preferences) {
         let preferences = preferences.sanitized();
-        let previous = mem::replace(&mut self.preferences, preferences);
-        if previous == preferences {
+        if preferences == self.preferences {
             return;
         }
-        if previous.restore_text && !preferences.restore_text {
+        let previous = mem::replace(&mut self.preferences, preferences);
+        let current = &self.preferences;
+        if previous.restore_text && !current.restore_text {
             self.transcripts.clear();
         }
         self.saver.touch();
-        self.strings = preferences.language.resolve().strings();
-        let sizes = |kept: Preferences| (kept.font_size, kept.interface_size);
-        match sizes(previous) == sizes(preferences) {
+        self.strings = current.language.resolve().strings();
+        let sizes = |kept: &Preferences| (kept.font_size, kept.interface_size);
+        match sizes(&previous) == sizes(current) {
             true => self.changed(),
             false => self.apply_scale(),
         }

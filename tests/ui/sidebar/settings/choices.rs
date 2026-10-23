@@ -1,5 +1,6 @@
 use trame::locale::{Language, LanguageChoice};
 use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences};
+use trame::ui::frame::SettingControl;
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE};
 
 use super::{english, panel, with_settings};
@@ -12,20 +13,20 @@ fn the_language_row_offers_auto_french_and_english_and_marks_the_choice() {
             language: chosen,
             ..Preferences::default()
         });
-        let settings = panel(&layout);
-        let order: Vec<_> = settings
-            .languages
-            .iter()
-            .map(|option| option.choice)
-            .collect();
-        assert_eq!(order, LanguageChoice::ALL.to_vec());
-        for pair in settings.languages.windows(2) {
+        let row = &panel(&layout).language;
+        let order: Vec<_> = row.chips.iter().map(|chip| chip.control).collect();
+        assert_eq!(order, LanguageChoice::ALL.map(SettingControl::Language));
+        for pair in row.chips.windows(2) {
             assert!(pair[0].rect.right() <= pair[1].rect.x);
         }
-        for option in &settings.languages {
-            assert!(settings.language.rect.contains(option.rect.center()));
-            assert_eq!(option.selected, option.choice == chosen);
+        for chip in &row.chips {
+            assert!(row.line.rect.contains(chip.rect.center()));
+            assert_eq!(
+                chip.selected,
+                chip.control == SettingControl::Language(chosen)
+            );
         }
+        assert!(row.clear.is_none());
     }
 }
 

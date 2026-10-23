@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 use super::pane::Pane;
 use super::tree::{Edge, Node, PaneId};
@@ -14,6 +15,7 @@ pub struct Instance {
     pub name: String,
     pub color: Option<Swatch>,
     pub emblem: Emblem,
+    pub folder: Option<PathBuf>,
     pub root: Node,
     pub panes: BTreeMap<PaneId, Pane>,
     pub active_pane: PaneId,
@@ -30,6 +32,7 @@ impl Instance {
             name,
             color: None,
             emblem: Emblem::default(),
+            folder: None,
             root: Node::Pane(pane),
             panes: BTreeMap::from([(pane, Pane::new(tab))]),
             active_pane: pane,

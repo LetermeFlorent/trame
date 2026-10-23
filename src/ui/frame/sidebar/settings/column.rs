@@ -1,9 +1,9 @@
 use crate::geometry::Rect;
-use crate::locale::LanguageChoice;
 use crate::text::{TextStyle, TextSystem};
+use crate::ui::frame::fit_label;
 use crate::ui::metrics::UiMetrics;
 
-use super::{LanguageOption, SettingLine, Stepper};
+use super::{Chip, ChoiceRow, SettingControl, SettingLine, Stepper};
 
 pub(super) const CAPTION_HEIGHT: f32 = 22.0;
 pub(super) const LINE_HEIGHT: f32 = 28.0;
@@ -86,34 +86,38 @@ impl Column<'_> {
         }
     }
 
-    pub(super) fn choices(
+    pub(super) fn choice_row(
         &mut self,
-        line: &SettingLine,
-        chosen: LanguageChoice,
-    ) -> Vec<LanguageOption> {
+        label: &str,
+        choices: &[(&str, SettingControl, bool)],
+        clear: Option<SettingControl>,
+    ) -> ChoiceRow {
+        let line = self.line(label, LINE_HEIGHT, self.metrics.label());
+        let clear = clear.map(|control| (self.end_button(&line), control));
         let height = self.metrics.px(UiMetrics::BUTTON);
         let pad = self.metrics.px(CHOICE_PAD);
         let gap = self.metrics.px(CHOICE_GAP);
-        let y = middle(line, height);
-        let mut right = line.rect.right();
-        let mut options: Vec<LanguageOption> = LanguageChoice::ALL
-            .into_iter()
+        let widest = line.rect.width / 2.0 - 2.0 * pad;
+        let y = middle(&line, height);
+        let mut right = clear.map_or(line.rect.right(), |(rect, _)| rect.x - gap);
+        let mut chips: Vec<Chip> = choices
+            .iter()
             .rev()
-            .map(|choice| {
-                let label = self.text.layout(choice.label(), self.metrics.label());
+            .map(|&(text, control, selected)| {
+                let label = fit_label(self.text, text, self.metrics.label(), widest);
                 let width = (label.width + 2.0 * pad).ceil();
                 let rect = Rect::new(right - width, y, width, height);
                 right = rect.x - gap;
-                LanguageOption {
+                Chip {
                     rect,
-                    choice,
                     label,
-                    selected: choice == chosen,
+                    control,
+                    selected,
                 }
             })
             .collect();
-        options.reverse();
-        options
+        chips.reverse();
+        ChoiceRow { line, chips, clear }
     }
 }
 

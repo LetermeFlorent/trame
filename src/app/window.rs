@@ -75,13 +75,17 @@ pub fn has_area(window: &Window) -> bool {
     window.is_minimized() != Some(true) && size.width > 0 && size.height > 0
 }
 
-#[cfg(windows)]
-pub fn hwnd(window: &Window) -> Option<windows_sys::Win32::Foundation::HWND> {
+pub fn owner(window: &Window) -> Option<isize> {
     use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
     match window.window_handle().ok()?.as_raw() {
-        RawWindowHandle::Win32(handle) => Some(handle.hwnd.get() as _),
+        RawWindowHandle::Win32(handle) => Some(handle.hwnd.get()),
         _ => None,
     }
+}
+
+#[cfg(windows)]
+pub fn hwnd(window: &Window) -> Option<windows_sys::Win32::Foundation::HWND> {
+    owner(window).map(|handle| handle as _)
 }
 
 #[cfg(windows)]

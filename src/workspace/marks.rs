@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::{Instance, InstanceId, Workspace};
 use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
@@ -52,6 +54,12 @@ impl Workspace {
     pub fn set_instance_emblem(&mut self, id: InstanceId, emblem: Emblem) {
         if let Some(instance) = self.instance_mut(id) {
             instance.emblem = emblem;
+        }
+    }
+
+    pub fn set_instance_folder(&mut self, id: InstanceId, folder: Option<PathBuf>) {
+        if let Some(instance) = self.instance_mut(id) {
+            instance.folder = folder;
         }
     }
 

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use trame::locale::LanguageChoice;
 use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences};
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
@@ -26,6 +28,7 @@ fn older_files_get_the_default_preferences() {
         Preferences::default().with_font_size(16.0)
     );
     assert!(snapshot.preferences.restore_text);
+    assert_eq!(snapshot.preferences.default_folder, None);
 }
 
 #[test]
@@ -39,7 +42,7 @@ fn font_size_stays_finite_and_in_range() {
     assert_eq!(base.step_font_size(2).font_size, TERMINAL_FONT_SIZE + 2.0);
     let stored = Preferences {
         font_size: f32::NAN,
-        ..base
+        ..base.clone()
     };
     assert_eq!(stored.sanitized(), base);
 }
@@ -88,6 +91,7 @@ fn preferences_and_text_keys_survive_json() {
         restore_text: false,
         interface_size: 120,
         language: LanguageChoice::French,
+        default_folder: Some(PathBuf::from("projects")),
     };
     let text = snapshot.to_json().expect("serializes");
     let parsed = Snapshot::from_json(&text).expect("parses");

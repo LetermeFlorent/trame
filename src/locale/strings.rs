@@ -14,6 +14,11 @@ pub struct Strings {
     pub text_size: &'static str,
     pub interface_size: &'static str,
     pub language: &'static str,
+    pub change_folder: &'static str,
+    pub folders: &'static str,
+    pub default_folder: &'static str,
+    pub choose: &'static str,
+    pub pick_folder: &'static str,
 }
 
 pub const ENGLISH: Strings = Strings {
@@ -31,6 +36,11 @@ pub const ENGLISH: Strings = Strings {
     text_size: "Text size",
     interface_size: "Interface size",
     language: "Language",
+    change_folder: "Change folder",
+    folders: "FOLDERS",
+    default_folder: "Default folder",
+    choose: "Choose",
+    pick_folder: "Choose a folder",
 };
 
 pub const FRENCH: Strings = Strings {
@@ -48,4 +58,9 @@ pub const FRENCH: Strings = Strings {
     text_size: "Taille du texte",
     interface_size: "Taille de l'interface",
     language: "Langue",
+    change_folder: "Changer de dossier",
+    folders: "DOSSIERS",
+    default_folder: "Dossier par défaut",
+    choose: "Choisir",
+    pick_folder: "Choisir un dossier",
 };

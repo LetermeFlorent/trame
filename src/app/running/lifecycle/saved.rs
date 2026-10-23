@@ -6,8 +6,6 @@ use trame::session::SessionId;
 use trame::workspace::{Snapshot, TabSnapshot, Workspace};
 
 use crate::app::running::Running;
-use crate::app::running::tabs::FALLBACK_GRID;
-use crate::app::sessions::ShellStart;
 use crate::app::{persist, window};
 
 type SavedTabs = HashMap<SessionId, TabSnapshot>;
@@ -36,7 +34,7 @@ impl Running {
                 .map(str::to_owned),
             ..TabSnapshot::default()
         };
-        let mut snapshot = self.workspace.snapshot(self.preferences, &describe);
+        let mut snapshot = self.workspace.snapshot(self.preferences.clone(), &describe);
         snapshot.window = self.saver.remember_window(window::snapshot(&self.window));
         self.saver.save(&snapshot);
     }
@@ -74,18 +72,9 @@ impl Running {
             let saved = tabs.remove(&id).unwrap_or_default();
             let cwd = existing_or_home(saved.cwd);
             let text = self.saved_text(saved.transcript.as_deref());
-            let start = ShellStart {
-                cwd: cwd.as_deref(),
-                size: self.grid_size_of(id).unwrap_or(FALLBACK_GRID),
-                colors: self.theme.reported_colors(),
-                transcript: &text,
-            };
-            match self.sessions.spawn(id, &start) {
+            match self.start_shell(id, cwd.as_deref(), &text) {
                 Ok(()) => self.transcripts.adopt(id, saved.transcript.as_deref()),
-                Err(error) => {
-                    eprintln!("trame: a saved shell could not start: {error}");
-                    self.workspace.close_tab(id);
-                }
+                Err(error) => eprintln!("trame: a saved shell could not start: {error}"),
             }
         }
     }

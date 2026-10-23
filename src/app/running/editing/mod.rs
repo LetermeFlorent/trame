@@ -54,6 +54,7 @@ impl Running {
             }
             MenuEntry::Color => EditMode::Color,
             MenuEntry::Icon => EditMode::Emblem,
+            MenuEntry::Folder => return self.ask_folder(target.into()),
         };
         self.editing = Some(Editing {
             target,

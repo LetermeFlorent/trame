@@ -38,6 +38,8 @@ pub struct InstanceSnapshot {
     pub color: Option<Swatch>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub emblem: Option<Emblem>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub folder: Option<PathBuf>,
     pub active_pane: usize,
     pub root: NodeSnapshot,
 }

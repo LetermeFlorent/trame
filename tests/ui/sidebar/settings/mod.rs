@@ -1,10 +1,11 @@
 mod choices;
+mod folders;
 
 use trame::geometry::Point;
 use trame::locale::{Language, Strings};
 use trame::preferences::Preferences;
 use trame::text::TextSystem;
-use trame::ui::frame::{SettingControl, SettingsFrame};
+use trame::ui::frame::{ChoiceRow, SettingControl, SettingsFrame};
 use trame::ui::{FrameLayout, Hit};
 
 use super::footer::closed_sidebar;
@@ -44,10 +45,9 @@ fn the_window_opens_in_the_middle_over_everything_below_the_title_bar() {
 fn every_control_answers_where_it_is_drawn() {
     let layout = english(&Preferences::default());
     let settings = panel(&layout);
-    let languages = settings
-        .languages
-        .iter()
-        .map(|option| (option.rect, SettingControl::Language(option.choice)));
+    let rows = [&settings.language, &settings.folder]
+        .into_iter()
+        .flat_map(ChoiceRow::controls);
     let controls = [
         (settings.close, SettingControl::Close),
         (settings.restore.rect, SettingControl::RestoreText),
@@ -62,18 +62,14 @@ fn every_control_answers_where_it_is_drawn() {
             SettingControl::InterfaceBigger,
         ),
     ];
-    for (rect, control) in controls.into_iter().chain(languages) {
+    for (rect, control) in controls.into_iter().chain(rows) {
         assert!(settings.rect.contains(rect.center()), "{control:?}");
         assert_eq!(
             layout.hit(rect.center(), false),
             Some(Hit::Setting(control))
         );
     }
-    for line in [
-        &settings.title,
-        &settings.sections[0],
-        &settings.sections[1],
-    ] {
+    for line in [&settings.title].into_iter().chain(&settings.sections) {
         assert_eq!(
             layout.hit(line.rect.center(), false),
             Some(Hit::SettingsPanel)

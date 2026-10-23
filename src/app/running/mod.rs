@@ -12,7 +12,7 @@ use std::sync::Arc;
 
 use winit::dpi::PhysicalSize;
 use winit::event::WindowEvent;
-use winit::event_loop::ActiveEventLoop;
+use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
@@ -30,10 +30,11 @@ use super::graphics::Graphics;
 use super::saver::Saver;
 use super::sessions::Sessions;
 use super::visibility::Visibility;
-use super::window;
+use super::{UserEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
 use pointer::{Drag, Pointer, Selecting};
+pub use tabs::FolderTarget;
 
 pub struct Running {
     window: Arc<Window>,
@@ -46,6 +47,7 @@ pub struct Running {
     preferences: Preferences,
     workspace: Workspace,
     sessions: Sessions,
+    proxy: EventLoopProxy<UserEvent>,
     saver: Saver,
     transcripts: Transcripts,
     labels: HashMap<SessionId, String>,

@@ -15,6 +15,7 @@ pub enum MenuEntry {
     Rename,
     Color,
     Icon,
+    Folder,
 }
 
 pub struct MenuRequest<'a> {

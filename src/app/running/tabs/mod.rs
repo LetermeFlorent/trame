@@ -1,12 +1,16 @@
+mod folder;
+
 use std::io;
+use std::path::Path;
 
 use winit::event_loop::ActiveEventLoop;
 
-use trame::session::{Session, SessionId};
+use trame::session::SessionId;
 use trame::workspace::{Edge, InstanceId, PaneId};
 
 use super::Running;
 use crate::app::sessions::ShellStart;
+pub use folder::FolderTarget;
 
 pub(super) const FALLBACK_GRID: (usize, usize) = (24, 80);
 
@@ -19,11 +23,7 @@ pub(super) enum Placement {
 
 impl Running {
     pub(super) fn open(&mut self, placement: Placement) -> io::Result<()> {
-        let cwd = self
-            .workspace
-            .active_tab()
-            .and_then(|id| self.sessions.get(id))
-            .and_then(Session::cwd);
+        let cwd = self.start_folder(placement);
         let id = self.sessions.reserve();
         match placement {
             Placement::Tab => self.workspace.add_tab(id),
@@ -33,17 +33,27 @@ impl Running {
             }
         }
         self.relayout();
+        let spawned = self.start_shell(id, cwd.as_deref(), &[]);
+        self.changed();
+        spawned
+    }
+
+    pub(super) fn start_shell(
+        &mut self,
+        id: SessionId,
+        cwd: Option<&Path>,
+        transcript: &[u8],
+    ) -> io::Result<()> {
         let start = ShellStart {
-            cwd: cwd.as_deref(),
+            cwd,
             size: self.grid_size_of(id).unwrap_or(FALLBACK_GRID),
             colors: self.theme.reported_colors(),
-            transcript: &[],
+            transcript,
         };
         let spawned = self.sessions.spawn(id, &start);
         if spawned.is_err() {
             self.workspace.close_tab(id);
         }
-        self.changed();
         spawned
     }
 

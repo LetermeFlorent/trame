@@ -35,6 +35,10 @@ fn capture_instance(
         name: instance.name.clone(),
         color: instance.color,
         emblem: Some(instance.emblem),
+        folder: instance
+            .folder
+            .clone()
+            .filter(|path| path.to_str().is_some()),
         active_pane: order
             .iter()
             .position(|id| *id == instance.active_pane)

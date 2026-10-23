@@ -3,8 +3,8 @@ use winit::event::KeyEvent;
 use trame::preferences::Preferences;
 use trame::ui::frame::SettingControl;
 
-use super::Running;
 use super::keyboard::is_escape;
+use super::{FolderTarget, Running};
 
 impl Running {
     pub(super) fn place_settings(&mut self) {
@@ -30,7 +30,7 @@ impl Running {
     }
 
     pub(super) fn apply_setting(&mut self, control: SettingControl) {
-        let current = self.preferences;
+        let current = &self.preferences;
         let next = match control {
             SettingControl::Close => return self.toggle_settings(),
             SettingControl::RestoreText => current.toggle_restore_text(),
@@ -40,7 +40,12 @@ impl Running {
             SettingControl::InterfaceBigger => current.step_interface_size(1),
             SettingControl::Language(language) => Preferences {
                 language,
-                ..current
+                ..current.clone()
+            },
+            SettingControl::DefaultFolder => return self.ask_folder(FolderTarget::Default),
+            SettingControl::ClearFolder => Preferences {
+                default_folder: None,
+                ..current.clone()
             },
         };
         self.set_preferences(next);
