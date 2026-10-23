@@ -1,7 +1,7 @@
 use trame::ui::Hit;
 use trame::workspace::Workspace;
 
-use crate::{frame, text_system, workspace};
+use crate::{frame, frame_at, text_system, workspace};
 
 pub fn closed_sidebar() -> Workspace {
     let mut workspace = workspace();
@@ -52,4 +52,18 @@ fn the_open_sidebar_widens_the_button_to_hold_its_name() {
     assert_eq!(open.hit(on_name, false), Some(Hit::Settings));
     let collapsed = frame(&mut text, &closed_sidebar());
     assert_eq!(collapsed.footer.settings, collapsed.footer.icon);
+}
+
+#[test]
+fn the_settings_button_has_as_much_room_above_as_below() {
+    let mut text = text_system();
+    for scale in [1.0, 1.25, 1.5, 1.75, 2.0] {
+        let layout = frame_at(&mut text, &workspace(), scale);
+        let footer = &layout.footer;
+        let below_rule = footer.rect.y + layout.metrics.line();
+        let above = footer.settings.y - below_rule;
+        let below = footer.rect.bottom() - footer.settings.bottom();
+        assert_eq!(above, below, "scale {scale}");
+        assert!(above > 0.0, "scale {scale}");
+    }
 }

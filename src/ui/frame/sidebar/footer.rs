@@ -27,11 +27,15 @@ pub(crate) fn layout_footer(
     side: Rect,
     label: &str,
 ) -> FooterFrame {
-    let height = metrics.px(UiMetrics::SIDEBAR_HEADER).min(side.height);
-    let rect = Rect::new(side.x, side.bottom() - height, side.width, height);
+    let line = metrics.line();
     let size = metrics.px(UiMetrics::BUTTON);
+    let gap = ((metrics.px(UiMetrics::SIDEBAR_HEADER) - line - size) / 2.0)
+        .floor()
+        .max(0.0);
+    let height = (line + size + 2.0 * gap).min(side.height);
+    let rect = Rect::new(side.x, side.bottom() - height, side.width, height);
     let inset = (metrics.px(UiMetrics::RAIL_WIDTH) - size) / 2.0;
-    let y = rect.y + (height - size) / 2.0;
+    let y = rect.bottom() - gap - size;
     let width = (side.width - 2.0 * inset).max(size);
     let settings = Rect::new(side.x + inset, y, width, size).snapped();
     let icon = Rect::new(settings.x, settings.y, size, size);

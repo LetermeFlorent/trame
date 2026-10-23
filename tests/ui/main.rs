@@ -38,11 +38,24 @@ pub fn frame_with(
     workspace: &Workspace,
     motion: &mut Motion,
 ) -> FrameLayout {
+    frame_scaled(text, workspace, motion, 1.0)
+}
+
+pub fn frame_at(text: &mut TextSystem, workspace: &Workspace, scale: f32) -> FrameLayout {
+    frame_scaled(text, workspace, &mut Motion::default(), scale)
+}
+
+fn frame_scaled(
+    text: &mut TextSystem,
+    workspace: &Workspace,
+    motion: &mut Motion,
+    scale: f32,
+) -> FrameLayout {
     let input = FrameInput {
         workspace,
         width: WIDTH,
         height: HEIGHT,
-        metrics: UiMetrics::new(1.0),
+        metrics: UiMetrics::new(scale),
         maximized: false,
         title: &title,
         strings: Language::English.strings(),
