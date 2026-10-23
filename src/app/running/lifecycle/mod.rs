@@ -43,6 +43,9 @@ impl Opened {
         if !running.restore_session(saved.as_ref()) {
             running.open(Placement::Instance)?;
         }
+        if !running.preferences.restore_text {
+            running.transcripts.clear();
+        }
         running.draw();
         running.window.set_visible(true);
         Ok(running)
@@ -64,9 +67,6 @@ impl Running {
         let surface = Surface::open(event_loop, window, preferences)?;
         let mut running = Self::with_surface(surface, proxy);
         running.saver.remember_window(window);
-        if !running.preferences.restore_text {
-            running.transcripts.clear();
-        }
         Ok(Opened { running, saved })
     }
 
@@ -121,6 +121,7 @@ impl Running {
             visibility: Visibility::default(),
             loader: None,
             update_offer: None,
+            restarting: false,
             strings,
         }
     }

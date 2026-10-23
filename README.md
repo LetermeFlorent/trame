@@ -63,7 +63,7 @@ The Linux build passes the whole test suite and is opened under a virtual displa
 
 ## Updates
 
-On Windows, trame looks for a newer release on GitHub every time it starts. The window opens right away on an update screen while your shells start behind it, and the check gives up after one second, so a slow or missing connection never holds you back. When a newer version exists, a bar under the message fills with the download percentage, then trame swaps its own executable and restarts. Your layout and the text of your tabs come back as they were. Until the screen fades out, only the window itself can be moved, resized or closed.
+On Windows, trame looks for a newer release on GitHub every time it starts. The window opens right away on an update screen while your shells start behind it, and the check gives up after one second, so a slow or missing connection never holds you back. When a newer version exists, a bar under the message fills with the download percentage, then trame swaps its own executable and restarts. Your layout and the text of your tabs come back as they were. Until the screen fades out, only the window itself can be moved, resized or closed. A release that comes out while trame is open shows an Update button at the bottom of the side bar: clicking it restarts on the new version and reopens every instance and tab with its text, exactly as you left them, even when the launch settings say to forget them.
 
 To turn this off, set the environment variable `TRAME_NO_UPDATE` to any value. Debug builds never update themselves.
 

@@ -66,6 +66,7 @@ pub struct Running {
     visibility: Visibility,
     loader: Option<Loader>,
     update_offer: Option<String>,
+    restarting: bool,
     strings: &'static Strings,
 }
 

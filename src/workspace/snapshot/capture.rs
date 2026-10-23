@@ -11,6 +11,7 @@ impl Workspace {
     pub fn snapshot(&self, preferences: Preferences, describe: DescribeTab) -> Snapshot {
         Snapshot {
             version: SNAPSHOT_VERSION,
+            resume: false,
             sidebar_open: self.sidebar_open,
             sidebar_width: self.sidebar_width,
             preferences,

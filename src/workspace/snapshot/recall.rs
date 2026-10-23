@@ -3,6 +3,9 @@ use crate::preferences::Recall;
 
 impl Snapshot {
     pub fn recalled(&self) -> Option<Snapshot> {
+        if self.resume {
+            return Some(self.clone());
+        }
         let preferences = &self.preferences;
         if !preferences.recalls(Recall::Instances) {
             return None;

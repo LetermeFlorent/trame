@@ -10,19 +10,29 @@ impl Running {
             return None;
         }
         if self.transcripts.due() <= Instant::now() {
-            self.save_transcripts();
+            self.save_transcripts(false);
         }
         Some(self.transcripts.due())
     }
 
     pub fn save_on_exit(&mut self) {
-        self.save_transcripts();
-        self.save_session();
+        if !self.restarting {
+            self.save_everything(false);
+        }
     }
 
-    fn save_transcripts(&mut self) {
+    pub fn save_for_restart(&mut self) {
+        self.save_everything(true);
+    }
+
+    fn save_everything(&mut self, resume: bool) {
+        self.save_transcripts(resume);
+        self.save_session(resume);
+    }
+
+    fn save_transcripts(&mut self, every_tab: bool) {
         self.transcripts.schedule();
-        if !self.preferences.restore_text {
+        if !every_tab && !self.preferences.restore_text {
             return;
         }
         let tabs = self.workspace.tabs();

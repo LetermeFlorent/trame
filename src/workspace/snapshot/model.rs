@@ -13,6 +13,8 @@ pub const SNAPSHOT_VERSION: u32 = 1;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Snapshot {
     pub version: u32,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub resume: bool,
     pub sidebar_open: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sidebar_width: Option<f32>,

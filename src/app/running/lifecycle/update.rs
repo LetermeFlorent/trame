@@ -10,9 +10,12 @@ impl Running {
     }
 
     pub(in crate::app::running) fn restart_for_update(&mut self, event_loop: &ActiveEventLoop) {
-        self.save_on_exit();
+        self.save_for_restart();
         match update::restart() {
-            Ok(()) => event_loop.exit(),
+            Ok(()) => {
+                self.restarting = true;
+                event_loop.exit();
+            }
             Err(error) => eprintln!("trame: the update restart did not start: {error}"),
         }
     }

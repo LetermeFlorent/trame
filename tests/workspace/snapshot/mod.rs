@@ -74,6 +74,7 @@ pub fn pane(tabs: usize) -> NodeSnapshot {
 pub fn single(root: NodeSnapshot) -> Snapshot {
     Snapshot {
         version: SNAPSHOT_VERSION,
+        resume: false,
         sidebar_open: true,
         sidebar_width: None,
         preferences: Preferences::default(),

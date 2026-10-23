@@ -77,3 +77,25 @@ fn forgotten_terminals_keep_the_instances_with_fresh_terminals() {
     );
     assert!(seen.iter().all(|tab| tab.transcript.is_none()));
 }
+
+#[test]
+fn a_restart_for_an_update_comes_back_whole_whatever_is_remembered() {
+    let forgetful = Preferences::default()
+        .toggle(Recall::Instances)
+        .toggle(Recall::Tabs)
+        .toggle(Recall::Text);
+    let mut snapshot = saved(forgetful);
+    snapshot.resume = true;
+    assert_eq!(snapshot.recalled(), Some(snapshot.clone()));
+}
+
+#[test]
+fn the_restart_mark_is_written_only_when_set() {
+    let mut snapshot = saved(Preferences::default());
+    let plain = snapshot.to_json().expect("json");
+    assert!(!plain.contains("resume"));
+    assert!(!Snapshot::from_json(&plain).expect("read back").resume);
+    snapshot.resume = true;
+    let marked = snapshot.to_json().expect("json");
+    assert_eq!(Snapshot::from_json(&marked).expect("read back"), snapshot);
+}

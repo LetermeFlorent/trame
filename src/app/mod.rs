@@ -7,7 +7,8 @@ mod visibility;
 mod window;
 
 use std::error::Error;
-use std::path::PathBuf;
+use std::io;
+use std::path::{Path, PathBuf};
 
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
@@ -55,9 +56,16 @@ impl App {
         Running::open_window(event_loop, self.proxy.clone())?.show(&self.update)
     }
 
+    fn relaunch(&mut self, exe: &Path) -> io::Result<()> {
+        if let Some(running) = &mut self.running {
+            running.save_for_restart();
+        }
+        update::relaunch(exe)
+    }
+
     fn updated(&mut self, event_loop: &ActiveEventLoop, status: UpdateStatus) {
         let status = match status {
-            UpdateStatus::Installed(exe) => match update::relaunch(&exe) {
+            UpdateStatus::Installed(exe) => match self.relaunch(&exe) {
                 Ok(()) => {
                     self.running = None;
                     event_loop.exit();
