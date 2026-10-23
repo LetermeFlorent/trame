@@ -33,11 +33,7 @@ pub(super) fn sidebar(pen: &mut Pen, rect: Rect, size: f32, open: bool) {
     if open {
         let panel = Rect::from_edges(frame.x, frame.y, split, frame.bottom());
         let radius = size * FRAME_RADIUS;
-        pen.scene.fill(
-            panel,
-            pen.color.with_alpha(pen.color.a * PANEL_ALPHA),
-            radius,
-        );
+        pen.scene.fill(panel, pen.color.faded(PANEL_ALPHA), radius);
     }
     pen.frame(frame, size * FRAME_RADIUS);
     pen.line(

@@ -77,7 +77,7 @@ fn sidebar_toggle(metrics: &UiMetrics, rect: Rect) -> Rect {
     let button = metrics.px(UiMetrics::BUTTON);
     Rect::new(
         rect.x + inset + metrics.px(TOGGLE_MARGIN),
-        (rect.y + (rect.height - button) / 2.0).round(),
+        rect.centered_y(button).round(),
         button,
         button,
     )
@@ -91,7 +91,7 @@ fn window_controls(metrics: &UiMetrics, rect: Rect) -> WindowControls {
             (size, size, metrics.px(ROUND_GAP), metrics.px(ROUND_MARGIN))
         }
     };
-    let y = (rect.y + (rect.height - height) / 2.0).round();
+    let y = rect.centered_y(height).round();
     let close = Rect::new(rect.right() - margin - width, y, width, height);
     let maximize = Rect::new(close.x - gap - width, y, width, height);
     let minimize = Rect::new(maximize.x - gap - width, y, width, height);

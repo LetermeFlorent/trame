@@ -111,7 +111,7 @@ fn panel_rect(metrics: &UiMetrics, backdrop: Rect, lines: usize) -> Rect {
         + CAPTIONS * metrics.px(CAPTION_HEIGHT)
         + lines as f32 * metrics.px(LINE_HEIGHT)
         + (CAPTIONS - 1.0) * metrics.px(SECTION_GAP);
-    let x = backdrop.x + (backdrop.width - width) / 2.0;
-    let y = (backdrop.y + (backdrop.height - height) / 2.0).max(backdrop.y);
+    let x = backdrop.centered_x(width);
+    let y = backdrop.centered_y(height).max(backdrop.y);
     Rect::new(x, y, width, height).snapped()
 }

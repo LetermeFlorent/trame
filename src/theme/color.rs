@@ -27,6 +27,10 @@ impl Rgba {
         Self { a, ..self }
     }
 
+    pub fn faded(self, factor: f32) -> Self {
+        self.with_alpha(self.a * factor)
+    }
+
     pub fn mix(self, other: Rgba, amount: f32) -> Self {
         let lerp = |from: f32, to: f32| from + (to - from) * amount;
         Self::new(

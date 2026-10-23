@@ -36,30 +36,24 @@ impl Preferences {
     }
 
     pub fn toggle(&self, recall: Recall) -> Self {
-        let mut next = self.clone();
-        let flag = match recall {
-            Recall::Instances => &mut next.restore_instances,
-            Recall::Tabs => &mut next.restore_tabs,
-            Recall::Text => &mut next.restore_text,
-        };
-        *flag = !*flag;
-        next
+        self.with(|next| {
+            let flag = match recall {
+                Recall::Instances => &mut next.restore_instances,
+                Recall::Tabs => &mut next.restore_tabs,
+                Recall::Text => &mut next.restore_text,
+            };
+            *flag = !*flag;
+        })
     }
 
     pub fn step_instance_tabs(&self, steps: i32) -> Self {
         let wanted = i32::from(self.instance_tabs) + steps;
         let count = wanted.clamp(0, i32::from(u8::MAX)) as u8;
-        Self {
-            instance_tabs: clamp_instance_tabs(count),
-            ..self.clone()
-        }
+        self.with(|next| next.instance_tabs = clamp_instance_tabs(count))
     }
 
     pub fn with_startup_command(&self, text: &str) -> Self {
-        Self {
-            startup_command: sanitized_command(Some(text.to_owned())),
-            ..self.clone()
-        }
+        self.with(|next| next.startup_command = sanitized_command(Some(text.to_owned())))
     }
 
     pub fn startup_line(&self) -> Option<String> {

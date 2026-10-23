@@ -3,7 +3,7 @@ use std::fs::{self, File};
 use std::io::BufWriter;
 use std::path::PathBuf;
 
-use trame::render::{Gpu, read_texture};
+use trame::render::{Gpu, into_rgba, read_texture};
 
 const DIRECTORY_VARIABLE: &str = "TRAME_CAPTURE";
 const LATEST: &str = "latest.png";
@@ -29,14 +29,8 @@ impl Capture {
     fn write(&self, gpu: &Gpu, texture: &wgpu::Texture) -> Result<(), Box<dyn Error>> {
         let (width, height) = (texture.width(), texture.height());
         let mut pixels = read_texture(gpu, texture, width, height)?;
-        let swap = matches!(
-            texture.format(),
-            wgpu::TextureFormat::Bgra8Unorm | wgpu::TextureFormat::Bgra8UnormSrgb
-        );
+        into_rgba(&mut pixels, texture.format());
         for pixel in pixels.chunks_exact_mut(4) {
-            if swap {
-                pixel.swap(0, 2);
-            }
             pixel[3] = OPAQUE;
         }
         let partial = self.directory.join(PARTIAL);

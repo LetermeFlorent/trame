@@ -32,7 +32,7 @@ pub(super) fn draw_ring(
         let y = center.y + radius * angle.sin();
         let alpha = 1.0 - behind * (1.0 - FAINTEST_DOT);
         let rect = Rect::new(x - dot, y - dot, 2.0 * dot, 2.0 * dot);
-        scene.fill(rect, color.with_alpha(color.a * alpha), dot);
+        scene.fill(rect, color.faded(alpha), dot);
     }
 }
 

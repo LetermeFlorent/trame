@@ -17,7 +17,7 @@ pub(super) fn draw_toggle_row(painter: &mut Painter, row: &ToggleRow) {
     let line = &row.line;
     faded(painter, row.enabled, |painter| {
         painter.press_fill(line.rect, Hit::Setting(row.control), radius);
-        painter.label(&line.label, line.label_x, line.rect, painter.theme.text);
+        painter.setting_line(line, painter.theme.text);
         draw_toggle(painter, row.switch, row.on);
     });
 }
@@ -27,7 +27,7 @@ pub(super) fn draw_command(painter: &mut Painter, settings: &SettingsFrame) {
         return draw_choices(painter, &settings.command);
     };
     let line = &settings.command.line;
-    painter.label(&line.label, line.label_x, line.rect, painter.theme.text);
+    painter.setting_line(line, painter.theme.text);
     draw_field(painter, field);
 }
 
@@ -62,7 +62,7 @@ pub(super) fn draw_stepper(
 ) {
     let theme = painter.theme;
     let line = &stepper.line;
-    painter.label(&line.label, line.label_x, line.rect, theme.text);
+    painter.setting_line(line, theme.text);
     let smaller = Hit::Setting(shrink);
     step_button(
         painter,
@@ -72,7 +72,7 @@ pub(super) fn draw_stepper(
         stepper.can_shrink,
     );
     let value = &stepper.value;
-    let value_x = stepper.value_rect.x + (stepper.value_rect.width - value.width) / 2.0;
+    let value_x = stepper.value_rect.centered_x(value.width);
     painter.label(value, value_x, stepper.value_rect, theme.text_muted);
     let bigger = Hit::Setting(grow);
     step_button(
@@ -92,7 +92,7 @@ fn step_button(painter: &mut Painter, rect: Rect, hit: Hit, icon: Icon, enabled:
 
 pub(super) fn draw_choices(painter: &mut Painter, row: &ChoiceRow) {
     let line = &row.line;
-    painter.label(&line.label, line.label_x, line.rect, painter.theme.text);
+    painter.setting_line(line, painter.theme.text);
     for chip in &row.chips {
         draw_chip(painter, chip);
     }
@@ -115,9 +115,9 @@ fn draw_chip(painter: &mut Painter, chip: &Chip) {
                 .scene
                 .border(chip.rect, theme.border, radius, stroke);
             let glow = painter.press_fill(chip.rect, Hit::Setting(chip.control), radius);
-            theme.text_muted.mix(theme.text, glow)
+            theme.muted_text(glow)
         }
     };
-    let x = chip.rect.x + (chip.rect.width - chip.label.width) / 2.0;
+    let x = chip.rect.centered_x(chip.label.width);
     painter.label(&chip.label, x, chip.rect, color);
 }

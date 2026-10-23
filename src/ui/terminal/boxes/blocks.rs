@@ -29,7 +29,7 @@ pub fn draw_block(scene: &mut Scene, ch: char, rect: Rect, color: Rgba) -> bool 
         }
         0x2591..=0x2593 => {
             let alpha = (code - 0x2590) as f32 * SHADE_STEP;
-            scene.fill(rect, color.with_alpha(color.a * alpha), 0.0);
+            scene.fill(rect, color.faded(alpha), 0.0);
             return true;
         }
         0x2594 => Rect::new(rect.x, rect.y, rect.width, eighths(rect.height, 1)),

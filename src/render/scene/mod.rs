@@ -90,7 +90,7 @@ impl Scene {
 
     fn push_within(&mut self, shape: Shape, reach: Rect, color: Rgba) {
         let clip = self.clip();
-        let color = color.with_alpha(color.a * self.opacity());
+        let color = color.faded(self.opacity());
         if color.a <= 0.0 || shape.rect.is_empty() || reach.intersect(clip).is_empty() {
             return;
         }

@@ -3,8 +3,8 @@ use super::icons::{Icon, Pen, draw_icon};
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::text::{TextLayout, TextSystem};
-use crate::theme::Rgba;
-use crate::theme::Theme;
+use crate::theme::{Rgba, Theme};
+use crate::ui::frame::SettingLine;
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 use crate::ui::motion::Motion;
@@ -80,7 +80,7 @@ impl<'a> Painter<'a> {
     fn icon_button(&mut self, rect: Rect, hit: Hit, icon: Icon, radius: f32) {
         let glow = self.press_fill(rect, hit, radius);
         let size = self.metrics.px(UiMetrics::ICON);
-        let color = self.theme.text_muted.mix(self.theme.text, glow);
+        let color = self.theme.muted_text(glow);
         self.icon(icon, centered(rect, size), color);
     }
 
@@ -90,7 +90,7 @@ impl<'a> Painter<'a> {
             Press::Pressed => (theme.pressed, 1.0),
             _ => {
                 let glow = self.glow(hit);
-                (theme.hover.with_alpha(theme.hover.a * glow), glow)
+                (theme.hover.faded(glow), glow)
             }
         };
         self.scene.fill(rect, fill, radius);
@@ -108,9 +108,12 @@ impl<'a> Painter<'a> {
     }
 
     pub(super) fn label(&mut self, layout: &TextLayout, x: f32, rect: Rect, color: Rgba) {
-        let baseline = (rect.y + (rect.height + layout.ascent - layout.descent) / 2.0).round();
-        let pen = Point::new(x.round(), baseline);
+        let pen = Point::new(x.round(), layout.baseline_in(rect));
         self.text.draw_layout(self.scene, layout, pen, color);
+    }
+
+    pub(super) fn setting_line(&mut self, line: &SettingLine, color: Rgba) {
+        self.label(&line.label, line.label_x, line.rect, color);
     }
 
     pub(super) fn rule(&mut self, rect: Rect, color: Rgba) {
@@ -120,8 +123,8 @@ impl<'a> Painter<'a> {
 
 pub(super) fn centered(rect: Rect, size: f32) -> Rect {
     Rect::new(
-        (rect.x + (rect.width - size) / 2.0).round(),
-        (rect.y + (rect.height - size) / 2.0).round(),
+        rect.centered_x(size).round(),
+        rect.centered_y(size).round(),
         size,
         size,
     )

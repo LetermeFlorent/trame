@@ -46,6 +46,11 @@ pub fn render_in_format(
     let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
     renderer.render(gpu, &view, scene, clear);
     let mut pixels = read_texture(gpu, &texture, width, height)?;
+    into_rgba(&mut pixels, format);
+    Ok(pixels)
+}
+
+pub fn into_rgba(pixels: &mut [u8], format: wgpu::TextureFormat) {
     if matches!(
         format,
         wgpu::TextureFormat::Bgra8Unorm | wgpu::TextureFormat::Bgra8UnormSrgb
@@ -54,7 +59,6 @@ pub fn render_in_format(
             .chunks_exact_mut(4)
             .for_each(|pixel| pixel.swap(0, 2));
     }
-    Ok(pixels)
 }
 
 pub fn read_texture(

@@ -1,4 +1,6 @@
 use super::font::Face;
+use super::layout::TextLayout;
+use crate::geometry::Rect;
 
 pub const DEFAULT_LINE_HEIGHT: f32 = 1.2;
 
@@ -47,5 +49,11 @@ impl CellMetrics {
             strike_position: (baseline - strike_offset).round(),
             strike_thickness: thickness,
         }
+    }
+}
+
+impl TextLayout {
+    pub fn baseline_in(&self, rect: Rect) -> f32 {
+        (rect.y + (rect.height + self.ascent - self.descent) / 2.0).round()
     }
 }

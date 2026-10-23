@@ -44,6 +44,14 @@ impl Rect {
         Point::new(self.x + self.width / 2.0, self.y + self.height / 2.0)
     }
 
+    pub fn centered_x(&self, width: f32) -> f32 {
+        self.x + (self.width - width) / 2.0
+    }
+
+    pub fn centered_y(&self, height: f32) -> f32 {
+        self.y + (self.height - height) / 2.0
+    }
+
     pub fn is_empty(&self) -> bool {
         self.width <= 0.0 || self.height <= 0.0
     }

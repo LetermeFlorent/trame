@@ -67,21 +67,15 @@ impl Preferences {
             .collect();
         ssh_hosts.insert(0, host);
         ssh_hosts.truncate(MAX_SSH_HOSTS);
-        Self {
-            ssh_hosts,
-            ..self.clone()
-        }
+        self.with(|next| next.ssh_hosts = ssh_hosts)
     }
 
     pub fn forget_host(&self, index: usize) -> Self {
-        let mut ssh_hosts = self.ssh_hosts.clone();
-        if index < ssh_hosts.len() {
-            ssh_hosts.remove(index);
-        }
-        Self {
-            ssh_hosts,
-            ..self.clone()
-        }
+        self.with(|next| {
+            if index < next.ssh_hosts.len() {
+                next.ssh_hosts.remove(index);
+            }
+        })
     }
 }
 

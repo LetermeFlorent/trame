@@ -40,7 +40,7 @@ impl TabSizing {
     pub(super) fn close_rect(&self, tab: Rect) -> Rect {
         Rect::new(
             tab.right() - self.close_margin - self.close,
-            (tab.y + (tab.height - self.close) / 2.0).round(),
+            tab.centered_y(self.close).round(),
             self.close,
             self.close,
         )

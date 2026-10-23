@@ -50,6 +50,10 @@ impl Theme {
         }
     }
 
+    pub fn muted_text(&self, glow: f32) -> Rgba {
+        self.text_muted.mix(self.text, glow)
+    }
+
     pub fn terminal_color(&self, color: Color) -> Rgba {
         match color {
             Color::Foreground => self.foreground,

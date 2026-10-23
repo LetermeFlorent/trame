@@ -36,9 +36,7 @@ pub(super) fn draw_footer(painter: &mut Painter, footer: &FooterFrame, open: boo
     draw_backdrop(painter, footer.settings, Hit::Settings, open, None);
     let color = match open {
         true => theme.text,
-        false => theme
-            .text_muted
-            .mix(theme.text, painter.glow(Hit::Settings)),
+        false => theme.muted_text(painter.glow(Hit::Settings)),
     };
     let size = painter.metrics.px(UiMetrics::ICON);
     painter.icon(Icon::Gear, centered(footer.icon, size), color);
@@ -130,7 +128,7 @@ fn draw_row(painter: &mut Painter, row: &SidebarRow) {
     painter.icon(icon, row.icon, icon_color(theme, row.color, row.active));
     let text_color = match row.active {
         true => theme.text,
-        false => theme.text_muted.mix(theme.text, glow),
+        false => theme.muted_text(glow),
     };
     painter.label(&row.label, row.label_x, row.rect, text_color);
     draw_row_end(painter, row, glow);

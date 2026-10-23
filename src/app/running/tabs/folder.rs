@@ -1,7 +1,6 @@
 use std::path::{Path, PathBuf};
 
 use trame::files::{FolderRequest, pick_folder};
-use trame::preferences::Preferences;
 use trame::session::SessionId;
 use trame::ui::frame::EditTarget;
 use trame::workspace::{Instance, InstanceId};
@@ -41,10 +40,12 @@ impl Running {
 
     pub fn folder_picked(&mut self, target: FolderTarget, folder: PathBuf) {
         match target {
-            FolderTarget::Default => self.set_preferences(Preferences {
-                default_folder: Some(folder),
-                ..self.preferences.clone()
-            }),
+            FolderTarget::Default => {
+                let next = self
+                    .preferences
+                    .with(|next| next.default_folder = Some(folder));
+                self.set_preferences(next);
+            }
             FolderTarget::Instance(id) => {
                 self.workspace.set_instance_folder(id, Some(folder.clone()));
                 let tabs = self.workspace.instance(id).map(Instance::tabs);

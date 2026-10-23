@@ -42,7 +42,7 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
     }
     let color = match tab.active {
         true => theme.text,
-        false => theme.text_muted.mix(theme.text, glow),
+        false => theme.muted_text(glow),
     };
     painter.label(&tab.label, tab.label_x, rect, color);
     let close_opacity = if tab.active { 1.0 } else { glow };
@@ -60,7 +60,7 @@ fn draw_tab_fill(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, glow: 
         painter.scene.fill_top(rect, theme.tab_active, radius);
     } else {
         let line = painter.metrics.line();
-        let hover = theme.hover.with_alpha(theme.hover.a * glow);
+        let hover = theme.hover.faded(glow);
         let above_rule = Rect::new(rect.x, rect.y, rect.width, rect.height - line);
         painter.scene.fill_top(above_rule, hover, radius);
     }

@@ -57,8 +57,7 @@ pub(super) fn paint_ghost(
     scene.shadow(rect, theme.shadow, radius, metrics.px(GHOST_BLUR));
     scene.fill(rect, theme.tab_active.with_alpha(GHOST_ALPHA), radius);
     scene.border(rect, theme.border_strong, radius, metrics.line());
-    let baseline = (rect.y + (rect.height + label.ascent - label.descent) / 2.0).round();
-    let pen = Point::new((rect.x + padding).round(), baseline);
+    let pen = Point::new((rect.x + padding).round(), label.baseline_in(rect));
     text.draw_layout(scene, &label, pen, theme.text);
 }
 

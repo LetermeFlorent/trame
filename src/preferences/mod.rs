@@ -72,11 +72,14 @@ impl Preferences {
         }
     }
 
+    pub fn with(&self, change: impl FnOnce(&mut Self)) -> Self {
+        let mut next = self.clone();
+        change(&mut next);
+        next
+    }
+
     pub fn with_font_size(&self, font_size: f32) -> Self {
-        Self {
-            font_size: clamp_font_size(font_size),
-            ..self.clone()
-        }
+        self.with(|next| next.font_size = clamp_font_size(font_size))
     }
 
     pub fn step_font_size(&self, steps: i32) -> Self {
@@ -86,10 +89,7 @@ impl Preferences {
     pub fn step_interface_size(&self, steps: i32) -> Self {
         let wanted = i32::from(self.interface_size) + steps * i32::from(INTERFACE_SIZE_STEP);
         let size = wanted.clamp(0, i32::from(u16::MAX)) as u16;
-        Self {
-            interface_size: clamp_interface_size(size),
-            ..self.clone()
-        }
+        self.with(|next| next.interface_size = clamp_interface_size(size))
     }
 
     pub fn ui_scale(&self, window_scale: f32) -> f32 {

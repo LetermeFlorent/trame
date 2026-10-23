@@ -1,7 +1,6 @@
 use winit::event::KeyEvent;
 
 use trame::input::TextField;
-use trame::preferences::Preferences;
 use trame::ui::frame::SettingControl;
 
 use super::keyboard::is_escape;
@@ -47,15 +46,9 @@ impl Running {
             SettingControl::TextBigger => current.step_font_size(1),
             SettingControl::InterfaceSmaller => current.step_interface_size(-1),
             SettingControl::InterfaceBigger => current.step_interface_size(1),
-            SettingControl::Language(language) => Preferences {
-                language,
-                ..current.clone()
-            },
+            SettingControl::Language(language) => current.with(|next| next.language = language),
             SettingControl::DefaultFolder => return self.ask_folder(FolderTarget::Default),
-            SettingControl::ClearFolder => Preferences {
-                default_folder: None,
-                ..current.clone()
-            },
+            SettingControl::ClearFolder => current.with(|next| next.default_folder = None),
             SettingControl::ForgetHost(index) => current.forget_host(index),
         };
         self.set_preferences(next);

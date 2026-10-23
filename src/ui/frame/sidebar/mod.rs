@@ -64,7 +64,7 @@ pub fn layout_sidebar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> 
     let button = metrics.px(UiMetrics::BUTTON);
     let new_instance = Rect::new(
         header.right() - metrics.px(HEADER_BUTTON_MARGIN) - button,
-        (header.y + (header.height - button) / 2.0).round(),
+        header.centered_y(button).round(),
         button,
         button,
     );

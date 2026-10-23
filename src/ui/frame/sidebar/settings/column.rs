@@ -54,7 +54,7 @@ impl Column<'_> {
         let width = self.metrics.px(TOGGLE_WIDTH);
         let height = self.metrics.px(TOGGLE_HEIGHT);
         let right = line.rect.right() - self.metrics.px(LINE_INSET);
-        let y = line.rect.y + (line.rect.height - height) / 2.0;
+        let y = line.rect.centered_y(height);
         Rect::new(right - width, y, width, height).snapped()
     }
 
@@ -130,5 +130,5 @@ impl Column<'_> {
 }
 
 fn middle(line: &SettingLine, height: f32) -> f32 {
-    (line.rect.y + (line.rect.height - height) / 2.0).round()
+    line.rect.centered_y(height).round()
 }

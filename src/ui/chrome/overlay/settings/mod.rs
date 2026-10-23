@@ -29,7 +29,7 @@ pub fn draw_settings(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInp
     }
     if let Some(hint) = &settings.hosts_hint {
         let muted = painter.theme.text_muted;
-        painter.label(&hint.label, hint.label_x, hint.rect, muted);
+        painter.setting_line(hint, muted);
     }
 }
 
@@ -65,15 +65,10 @@ fn draw_panel(painter: &mut Painter, settings: &SettingsFrame) {
     painter.scene.fill(settings.backdrop, shade, 0.0);
     painter.panel(settings.rect, PANEL_BLUR);
     let title = &settings.title;
-    painter.label(&title.label, title.label_x, title.rect, theme.text);
+    painter.setting_line(title, theme.text);
     let close = Hit::Setting(SettingControl::Close);
     painter.button(settings.close, close, Icon::Close);
     for section in &settings.sections {
-        painter.label(
-            &section.label,
-            section.label_x,
-            section.rect,
-            theme.text_faint,
-        );
+        painter.setting_line(section, theme.text_faint);
     }
 }

@@ -91,5 +91,5 @@ pub(super) fn layout_row(
 }
 
 fn square_in(row: Rect, x: f32, size: f32) -> Rect {
-    Rect::new(x, (row.y + (row.height - size) / 2.0).round(), size, size)
+    Rect::new(x, row.centered_y(size).round(), size, size)
 }
