@@ -12,7 +12,7 @@ use trame::preferences::Preferences;
 use trame::render::Scene;
 use trame::session::Transcripts;
 use trame::theme::Theme;
-use trame::ui::{FrameView, Motion, UiMetrics};
+use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
 use trame::workspace::{Snapshot, Workspace};
 
 use super::tabs::Placement;
@@ -20,6 +20,7 @@ use super::{Pointer, Running, Selecting, frame};
 use crate::app::persist;
 use crate::app::saver::Saver;
 use crate::app::sessions::Sessions;
+use crate::app::update::UpdateStatus;
 use crate::app::visibility::Visibility;
 use crate::app::{UserEvent, window};
 use surface::Surface;
@@ -30,8 +31,13 @@ pub struct Opened {
 }
 
 impl Opened {
-    pub fn show(self) -> Result<Running, Box<dyn Error>> {
+    pub fn show(self, update: &UpdateStatus) -> Result<Running, Box<dyn Error>> {
         let Opened { mut running, saved } = self;
+        running.set_update(update);
+        if running.loader.is_some() {
+            running.draw();
+            running.window.set_visible(true);
+        }
         if !running.restore_session(saved.as_ref()) {
             running.open(Placement::Instance)?;
         }
@@ -75,13 +81,7 @@ impl Running {
         let metrics = UiMetrics::new(preferences.ui_scale(surface.window_scale));
         let workspace = Workspace::new();
         let mut motion = Motion::default();
-        let layout_input = frame::LayoutInput {
-            workspace: &workspace,
-            window: &surface.window,
-            metrics,
-        };
-        let empty_title = |_| String::new();
-        let frame = frame::compute(&mut surface.text, &layout_input, &mut motion, &empty_title);
+        let frame = first_frame(&mut surface, &workspace, metrics, &mut motion);
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
             window: surface.window,
@@ -109,6 +109,22 @@ impl Running {
             selecting: Selecting::default(),
             modifiers: ModifiersState::empty(),
             visibility: Visibility::default(),
+            loader: None,
+            strings: preferences.language.resolve().strings(),
         }
     }
+}
+
+fn first_frame(
+    surface: &mut Surface,
+    workspace: &Workspace,
+    metrics: UiMetrics,
+    motion: &mut Motion,
+) -> FrameLayout {
+    let layout_input = frame::LayoutInput {
+        workspace,
+        window: &surface.window,
+        metrics,
+    };
+    frame::compute(&mut surface.text, &layout_input, motion, &|_| String::new())
 }

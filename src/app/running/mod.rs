@@ -17,6 +17,7 @@ use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
 use trame::geometry::Point;
+use trame::locale::Strings;
 use trame::preferences::Preferences;
 use trame::render::Scene;
 use trame::session::{SessionEvent, SessionId, Transcripts};
@@ -29,8 +30,9 @@ use super::graphics::Graphics;
 use super::saver::Saver;
 use super::sessions::Sessions;
 use super::visibility::Visibility;
-use super::{UserEvent, window};
+use super::window;
 use editing::Editing;
+use frame::Loader;
 use pointer::{Drag, Pointer, Selecting};
 
 pub struct Running {
@@ -57,13 +59,15 @@ pub struct Running {
     selecting: Selecting,
     modifiers: ModifiersState,
     visibility: Visibility,
+    loader: Option<Loader>,
+    strings: &'static Strings,
 }
 
 impl Running {
-    pub fn user_event(&mut self, event_loop: &ActiveEventLoop, event: UserEvent) {
+    pub fn session_event(&mut self, event_loop: &ActiveEventLoop, event: SessionEvent) {
         match event {
-            UserEvent::Session(SessionEvent::Output(id)) => self.output(id),
-            UserEvent::Session(SessionEvent::Exited(id)) => self.close_tab(event_loop, id),
+            SessionEvent::Output(id) => self.output(id),
+            SessionEvent::Exited(id) => self.close_tab(event_loop, id),
         }
     }
 

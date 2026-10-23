@@ -50,6 +50,9 @@ impl Running {
     }
 
     pub(in crate::app::running) fn wheel(&mut self, delta: MouseScrollDelta) {
+        if self.frame.blocked {
+            return;
+        }
         let lines = match delta {
             MouseScrollDelta::LineDelta(_, y) => y * WHEEL_LINES,
             MouseScrollDelta::PixelDelta(position) => {

@@ -17,19 +17,24 @@ use winit::window::WindowId;
 use trame::session::SessionEvent;
 
 use running::Running;
-use update::Update;
+use update::UpdateStatus;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum UserEvent {
     Session(SessionEvent),
+    Update(UpdateStatus),
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
-    let update = Update::start();
     let event_loop = EventLoop::<UserEvent>::with_user_event().build()?;
+    let proxy = event_loop.create_proxy();
+    let notifier = proxy.clone();
+    let update = update::start(move |status| {
+        let _ = notifier.send_event(UserEvent::Update(status));
+    });
     let mut app = App {
-        proxy: event_loop.create_proxy(),
-        update: Some(update),
+        proxy,
+        update,
         running: None,
         failure: None,
     };
@@ -39,18 +44,35 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
 struct App {
     proxy: EventLoopProxy<UserEvent>,
-    update: Option<Update>,
+    update: UpdateStatus,
     running: Option<Running>,
     failure: Option<Box<dyn Error>>,
 }
 
 impl App {
-    fn launch(&mut self, event_loop: &ActiveEventLoop) -> Result<Option<Running>, Box<dyn Error>> {
-        let opened = Running::open_window(event_loop, self.proxy.clone())?;
-        if self.update.take().is_some_and(Update::relaunched) {
-            return Ok(None);
+    fn launch(&mut self, event_loop: &ActiveEventLoop) -> Result<Running, Box<dyn Error>> {
+        Running::open_window(event_loop, self.proxy.clone())?.show(&self.update)
+    }
+
+    fn updated(&mut self, event_loop: &ActiveEventLoop, status: UpdateStatus) {
+        let status = match status {
+            UpdateStatus::Installed(exe) => match update::relaunch(&exe) {
+                Ok(()) => {
+                    self.running = None;
+                    event_loop.exit();
+                    return;
+                }
+                Err(error) => {
+                    eprintln!("trame: the new version did not start: {error}");
+                    UpdateStatus::Done
+                }
+            },
+            status => status,
+        };
+        if let Some(running) = &mut self.running {
+            running.set_update(&status);
         }
-        opened.show().map(Some)
+        self.update = status;
     }
 }
 
@@ -60,8 +82,7 @@ impl ApplicationHandler<UserEvent> for App {
             return;
         }
         match self.launch(event_loop) {
-            Ok(Some(running)) => self.running = Some(running),
-            Ok(None) => event_loop.exit(),
+            Ok(running) => self.running = Some(running),
             Err(error) => {
                 self.failure = Some(error);
                 event_loop.exit();
@@ -70,8 +91,13 @@ impl ApplicationHandler<UserEvent> for App {
     }
 
     fn user_event(&mut self, event_loop: &ActiveEventLoop, event: UserEvent) {
-        if let Some(running) = &mut self.running {
-            running.user_event(event_loop, event);
+        match event {
+            UserEvent::Update(status) => self.updated(event_loop, status),
+            UserEvent::Session(event) => {
+                if let Some(running) = &mut self.running {
+                    running.session_event(event_loop, event);
+                }
+            }
         }
     }
 

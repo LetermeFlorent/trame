@@ -65,7 +65,7 @@ The Linux build passes the whole test suite and is opened under a virtual displa
 
 ## Updates
 
-On Windows, trame looks for a newer release on GitHub every time it starts. The check runs while the window is being built and gives up after one second, so a slow or missing connection never delays the launch. When a newer version exists, trame downloads it, swaps its own executable and restarts before any shell is opened. Your layout is saved and comes back as it was.
+On Windows, trame looks for a newer release on GitHub every time it starts. The window opens right away on an update screen while your shells start behind it, and the check gives up after one second, so a slow or missing connection never holds you back. When a newer version exists, the screen shows its download, then trame swaps its own executable and restarts. Your layout and the text of your tabs come back as they were. Until the screen fades out, only the window itself can be moved, resized or closed.
 
 To turn this off, set the environment variable `TRAME_NO_UPDATE` to any value. Debug builds never update themselves.
 

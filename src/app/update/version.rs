@@ -25,6 +25,10 @@ impl Version {
         parts.next().is_none().then_some(version)
     }
 
+    pub fn number(&self) -> String {
+        format!("{}.{}.{}", self.major, self.minor, self.patch)
+    }
+
     pub fn released(location: &str) -> Option<Self> {
         let tag = location
             .trim()
@@ -36,7 +40,7 @@ impl Version {
 
 impl fmt::Display for Version {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "v{}.{}.{}", self.major, self.minor, self.patch)
+        write!(formatter, "v{}", self.number())
     }
 }
 
@@ -57,6 +61,7 @@ mod tests {
     fn a_tag_reads_with_or_without_its_v() {
         assert_eq!(version("v1.2.3"), version("1.2.3"));
         assert_eq!(version("v0.10.7").to_string(), "v0.10.7");
+        assert_eq!(version("v0.10.7").number(), "0.10.7");
     }
 
     #[test]

@@ -1,3 +1,4 @@
+mod loader;
 mod paint;
 mod style;
 
@@ -14,6 +15,7 @@ use trame::workspace::{Instance, Workspace};
 use super::Running;
 use crate::app::sessions::Sessions;
 use crate::app::window;
+pub(super) use loader::Loader;
 
 pub(super) struct LayoutInput<'a> {
     pub(super) workspace: &'a Workspace,
@@ -75,6 +77,7 @@ impl Running {
         };
         self.motion.tick(Instant::now());
         self.frame = compute(&mut self.text, &layout, &mut self.motion, &title);
+        self.frame.blocked = self.loader.is_some();
         self.place_editor();
         self.place_settings();
         self.sync_sizes();

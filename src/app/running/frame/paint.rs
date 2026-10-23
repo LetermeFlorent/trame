@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use trame::session::SessionId;
 use trame::ui::{FrameSources, draw_frame};
 
@@ -16,13 +18,38 @@ impl Running {
     }
 
     pub(in crate::app::running) fn draw(&mut self) {
+        let now = Instant::now();
         self.sessions.clear_output();
+        if self
+            .loader
+            .as_ref()
+            .is_some_and(|loader| loader.is_gone(now))
+        {
+            self.loader = None;
+        }
         self.relayout();
         if !window::has_area(&self.window) {
             return;
         }
+        self.paint(now);
+        let clear = self.theme.chrome;
+        let presented =
+            self.graphics
+                .present(&self.window, &self.scene, self.text.atlas_mut(), clear);
+        if presented {
+            self.visibility.drawn();
+        } else {
+            self.visibility.missed();
+        }
+        if self.motion.is_busy() || self.loader.is_some() {
+            self.window.request_redraw();
+        }
+    }
+
+    fn paint(&mut self, now: Instant) {
         let size = self.window.inner_size();
         let drag = self.drag_view();
+        let loader = self.loader.as_ref().map(|loader| loader.view(now));
         self.motion.hover(self.view.hover);
         for _ in 0..ATLAS_ATTEMPTS {
             self.scene.reset(size.width as f32, size.height as f32);
@@ -33,24 +60,12 @@ impl Running {
                 sessions: self.sessions.map(),
                 motion: &self.motion,
                 drag: drag.as_ref(),
-                loader: None,
+                loader: loader.as_ref(),
             };
             draw_frame(&mut self.scene, &mut self.text, &sources);
             if !self.text.end_frame() {
                 break;
             }
-        }
-        let clear = self.theme.chrome;
-        let presented =
-            self.graphics
-                .present(&self.window, &self.scene, self.text.atlas_mut(), clear);
-        if presented {
-            self.visibility.drawn();
-        } else {
-            self.visibility.missed();
-        }
-        if self.motion.is_busy() {
-            self.window.request_redraw();
         }
     }
 
