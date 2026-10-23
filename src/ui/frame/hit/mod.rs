@@ -1,6 +1,7 @@
 mod zones;
 
 use crate::geometry::Point;
+use crate::preferences::FormField;
 use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
 use crate::ui::frame::{FrameLayout, MenuEntry, SettingControl, SidebarItem};
@@ -48,6 +49,8 @@ pub enum Hit {
     EditStrip,
     EditSwatch(Option<Swatch>),
     EditEmblem(Emblem),
+    FormField(FormField),
+    FormConnect,
     Settings,
     SettingsPanel,
     Setting(SettingControl),

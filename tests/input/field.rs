@@ -122,3 +122,16 @@ fn inserting_an_empty_string_changes_nothing() {
     field.insert("");
     assert_eq!(field, typed("ab"));
 }
+
+#[test]
+fn a_masked_field_hides_each_character_and_keeps_the_caret_in_place() {
+    let mut field = typed("pé5s");
+    field.left();
+    let masked = field.masked('*');
+    assert_eq!(masked.text(), "****");
+    assert_eq!(masked.before_caret(), "***");
+    let bullets = field.masked('\u{2022}');
+    assert_eq!(bullets.text().chars().count(), 4);
+    assert_eq!(bullets.before_caret().chars().count(), 3);
+    assert_eq!(TextField::default().masked('*').text(), "");
+}

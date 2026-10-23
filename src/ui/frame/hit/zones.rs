@@ -35,6 +35,17 @@ pub(super) fn hit_sidebar(sidebar: &SidebarFrame, point: Point) -> Hit {
 }
 
 pub(super) fn hit_editor(editor: &EditorFrame, point: Point) -> Option<Hit> {
+    if let Some(form) = editor
+        .form
+        .as_ref()
+        .filter(|form| form.rect.contains(point))
+    {
+        return Some(match form.field_at(point) {
+            Some(field) => Hit::FormField(field),
+            None if form.connect.contains(point) => Hit::FormConnect,
+            None => Hit::EditStrip,
+        });
+    }
     if let Some(slot) = editor.slot_at(point) {
         return Some(Hit::EditSwatch(slot.color));
     }

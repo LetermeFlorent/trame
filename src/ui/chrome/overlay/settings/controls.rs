@@ -1,14 +1,13 @@
 use crate::geometry::Rect;
-use crate::theme::Rgba;
 use crate::ui::chrome::{Icon, Painter};
 use crate::ui::frame::{Chip, ChoiceRow, SettingControl, SettingsFrame, Stepper, ToggleRow};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
+use super::super::ON_ACCENT;
 use super::super::editor::draw_field;
 
 const KNOB_INSET: f32 = 2.0;
-const ON_ACCENT: Rgba = Rgba::hex(0xFFFFFF);
 const DISABLED_OPACITY: f32 = 0.35;
 const CHIP_STROKE: f32 = 1.0;
 
@@ -28,7 +27,7 @@ pub(super) fn draw_command(painter: &mut Painter, settings: &SettingsFrame) {
     };
     let line = &settings.command.line;
     painter.setting_line(line, painter.theme.text);
-    draw_field(painter, field);
+    draw_field(painter, field, true);
 }
 
 fn faded(painter: &mut Painter, enabled: bool, draw: impl FnOnce(&mut Painter)) {

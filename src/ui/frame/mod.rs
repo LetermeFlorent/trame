@@ -8,7 +8,7 @@ mod titlebar;
 
 pub use editor::{
     EditAnchor, EditKind, EditTarget, EditorFrame, EditorRequest, EmblemSlot, FieldFrame,
-    MenuEntry, MenuFrame, MenuRequest, MenuRow, SwatchSlot,
+    FormFrame, FormRow, MenuEntry, MenuFrame, MenuRequest, MenuRow, SECRET_MASK, SwatchSlot,
 };
 pub use label::fit_label;
 pub use panes::{PaneFrame, TabFrame, TabStrip};

@@ -10,7 +10,10 @@ use crate::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINA
 pub use launch::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Recall};
 use launch::{clamp_instance_tabs, sanitized_command};
 use ssh::sanitized_hosts;
-pub use ssh::{MAX_SSH_HOSTS, SshHost};
+pub use ssh::{
+    ANSWER_WINDOW, ConnectForm, FormField, MAX_SSH_HOSTS, Prompt, SecretAnswer, SshHost, prompt_in,
+    vault,
+};
 
 pub const FONT_SIZE_STEP: f32 = 1.0;
 pub const INTERFACE_SIZE: u16 = 100;

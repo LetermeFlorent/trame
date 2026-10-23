@@ -4,6 +4,7 @@ mod menu;
 mod pointer;
 
 use trame::input::TextField;
+use trame::preferences::ConnectForm;
 use trame::theme::{Emblem, Swatch};
 use trame::ui::Hit;
 use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest, MenuEntry, SidebarItem};
@@ -12,17 +13,10 @@ use super::Running;
 pub(super) use menu::Menu;
 
 enum EditMode {
-    Text {
-        field: TextField,
-        purpose: TextPurpose,
-    },
+    Text { field: TextField, original: String },
+    Form(ConnectForm),
     Color,
     Emblem,
-}
-
-enum TextPurpose {
-    Rename(String),
-    Connect,
 }
 
 pub(super) struct Editing {
@@ -58,17 +52,14 @@ impl Running {
                 let original = self.name_of(target);
                 EditMode::Text {
                     field: TextField::new(&original),
-                    purpose: TextPurpose::Rename(original),
+                    original,
                 }
             }
             MenuEntry::Color => EditMode::Color,
             MenuEntry::Icon => EditMode::Emblem,
             MenuEntry::Folder => return self.ask_folder(target.into()),
             MenuEntry::Host(index) => return self.connect_saved(target, index),
-            MenuEntry::NewConnection => EditMode::Text {
-                field: TextField::new(""),
-                purpose: TextPurpose::Connect,
-            },
+            MenuEntry::NewConnection => EditMode::Form(ConnectForm::new()),
         };
         self.editing = Some(Editing {
             target,
@@ -84,6 +75,7 @@ impl Running {
         };
         let kind = match &editing.mode {
             EditMode::Text { field, .. } => EditKind::Name(field),
+            EditMode::Form(form) => EditKind::Form(form, self.strings),
             EditMode::Color => EditKind::Color(self.color_of(editing.target)),
             EditMode::Emblem => EditKind::Emblem(self.emblem_of(editing.target)),
         };

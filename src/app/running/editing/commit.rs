@@ -1,8 +1,20 @@
-use trame::preferences::SshHost;
+use trame::preferences::{SshHost, vault};
 use trame::theme::{Emblem, Swatch};
 use trame::ui::frame::EditTarget;
 
-use super::{EditMode, Running, TextPurpose};
+use super::{EditMode, Running};
+
+fn save_secret(host: &SshHost, secret: Option<&str>) {
+    let Some(secret) = secret else {
+        return;
+    };
+    if let Err(error) = vault::SSH.store(host, secret) {
+        eprintln!(
+            "trame: the password for {} could not be saved: {error}",
+            host.label()
+        );
+    }
+}
 
 impl Running {
     pub(super) fn commit_edit(&mut self) {
@@ -10,23 +22,36 @@ impl Running {
             let next = self.preferences.with_startup_command(field.text());
             return self.set_preferences(next);
         }
-        let Some(editing) = self.editing.take() else {
+        let Some(mut editing) = self.editing.take() else {
             return;
         };
-        let EditMode::Text { field, purpose } = &editing.mode else {
-            return;
-        };
-        let text = field.text();
-        match (purpose, editing.target) {
-            (TextPurpose::Rename(original), _) if text == original => {}
-            (TextPurpose::Rename(_), EditTarget::Tab(id)) => self.workspace.rename_tab(id, text),
-            (TextPurpose::Rename(_), EditTarget::Instance(id)) => {
-                self.workspace.rename_instance(id, text);
+        match &mut editing.mode {
+            EditMode::Text { field, original } => {
+                self.rename(editing.target, field.text(), original)
             }
-            (TextPurpose::Connect, target) => match SshHost::parse(text) {
-                Some(host) => self.connect(target, host),
-                None => self.editing = Some(editing),
+            EditMode::Form(form) => match form.host() {
+                Some(host) => {
+                    save_secret(&host, form.secret());
+                    self.connect(editing.target, host);
+                }
+                None => {
+                    if let Some(field) = form.first_invalid() {
+                        form.focus_on(field);
+                    }
+                    self.editing = Some(editing);
+                }
             },
+            EditMode::Color | EditMode::Emblem => {}
+        }
+    }
+
+    fn rename(&mut self, target: EditTarget, text: &str, original: &str) {
+        if text == original {
+            return;
+        }
+        match target {
+            EditTarget::Tab(id) => self.workspace.rename_tab(id, text),
+            EditTarget::Instance(id) => self.workspace.rename_instance(id, text),
         }
     }
 

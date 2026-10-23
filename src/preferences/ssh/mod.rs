@@ -1,6 +1,12 @@
+mod form;
+mod prompt;
+pub mod vault;
+
 use serde::{Deserialize, Serialize};
 
 use super::Preferences;
+pub use form::{ConnectForm, FormField};
+pub use prompt::{ANSWER_WINDOW, Prompt, SecretAnswer, prompt_in};
 
 pub const MAX_SSH_HOSTS: usize = 8;
 
@@ -22,6 +28,24 @@ impl SshHost {
         };
         let host = Self {
             target: target.to_owned(),
+            port: port.filter(|&port| port != DEFAULT_PORT),
+        };
+        host.is_valid().then_some(host)
+    }
+
+    pub fn from_parts(address: &str, user: &str, port: &str) -> Option<Self> {
+        let parsed = Self::parse(address)?;
+        let target = match user.trim() {
+            "" => parsed.target,
+            _ if parsed.target.contains('@') => return None,
+            user => format!("{user}@{}", parsed.target),
+        };
+        let port = match port.trim() {
+            "" => parsed.port,
+            port => Some(port.parse().ok()?),
+        };
+        let host = Self {
+            target,
             port: port.filter(|&port| port != DEFAULT_PORT),
         };
         host.is_valid().then_some(host)

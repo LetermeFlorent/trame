@@ -1,9 +1,10 @@
 use winit::event::ElementState;
 
+use trame::preferences::FormField;
 use trame::ui::Hit;
 use trame::ui::frame::SettingControl;
 
-use super::Running;
+use super::{EditMode, Editing, Running};
 
 impl Running {
     pub(in super::super) fn editing_button(&mut self, state: ElementState) -> bool {
@@ -18,9 +19,16 @@ impl Running {
         match hit {
             Some(Hit::EditSwatch(color)) if pressed => self.pick_color(color),
             Some(Hit::EditEmblem(emblem)) if pressed => self.pick_emblem(emblem),
-            Some(Hit::EditField | Hit::EditStrip | Hit::EditSwatch(_) | Hit::EditEmblem(_)) => {
-                return true;
-            }
+            Some(Hit::FormField(field)) if pressed => self.focus_form(field),
+            Some(Hit::FormConnect) if pressed => self.commit_edit(),
+            Some(
+                Hit::EditField
+                | Hit::EditStrip
+                | Hit::EditSwatch(_)
+                | Hit::EditEmblem(_)
+                | Hit::FormField(_)
+                | Hit::FormConnect,
+            ) => return true,
             _ if pressed => {
                 self.cancel_edit();
                 self.changed();
@@ -30,6 +38,16 @@ impl Running {
         }
         self.changed();
         true
+    }
+
+    fn focus_form(&mut self, field: FormField) {
+        if let Some(Editing {
+            mode: EditMode::Form(form),
+            ..
+        }) = &mut self.editing
+        {
+            form.focus_on(field);
+        }
     }
 
     fn command_button(&mut self, state: ElementState) -> bool {

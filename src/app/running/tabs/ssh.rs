@@ -1,4 +1,4 @@
-use trame::preferences::SshHost;
+use trame::preferences::{SshHost, vault};
 use trame::session::SessionId;
 use trame::ui::frame::EditTarget;
 
@@ -21,16 +21,25 @@ impl Running {
         if let Err(error) = self.open_in(Placement::Tab, cwd.as_deref(), Some(host.clone())) {
             eprintln!("trame: the SSH tab could not start: {error}");
         }
-        self.set_preferences(self.preferences.remember_host(host));
+        let next = self.preferences.remember_host(host);
+        let dropped = self.preferences.ssh_hosts.iter();
+        for host in dropped.filter(|host| !next.ssh_hosts.contains(host)) {
+            vault::SSH.forget(host);
+        }
+        self.set_preferences(next);
     }
 
-    pub(super) fn greet(&self, id: SessionId) {
-        let line = match self.workspace.tab_host(id) {
+    pub(super) fn greet(&mut self, id: SessionId) {
+        let host = self.workspace.tab_host(id).cloned();
+        let line = match &host {
             Some(host) => Some(host.command()),
             None => self.preferences.startup_line(),
         };
         if let (Some(line), Some(session)) = (line, self.sessions.get(id)) {
             session.write(line);
+        }
+        if let Some(secret) = host.as_ref().and_then(|host| vault::SSH.load(host)) {
+            self.sessions.expect_secret(id, secret);
         }
     }
 }

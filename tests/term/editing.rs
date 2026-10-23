@@ -82,3 +82,13 @@ fn repeat_prints_last_char() {
     let term = feed(1, 8, "x\x1b[3b");
     assert_eq!(lines(&term)[0], "xxxx");
 }
+
+#[test]
+fn the_cursor_line_joins_the_rows_it_wrapped_over() {
+    let term = feed(4, 6, "ok\r\nabcdefghij");
+    assert_eq!(term.screen().cursor_line(), "abcdefghij");
+    let term = feed(4, 6, "abcdefgh\r\nnext");
+    assert_eq!(term.screen().cursor_line(), "next");
+    let term = feed(2, 6, "");
+    assert_eq!(term.screen().cursor_line(), "");
+}

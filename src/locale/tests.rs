@@ -61,6 +61,10 @@ fn each_language_has_its_own_texts() {
         (english.new_connection, french.new_connection),
         (english.connections, french.connections),
         (english.no_connections, french.no_connections),
+        (english.ssh_address, french.ssh_address),
+        (english.ssh_user, french.ssh_user),
+        (english.ssh_password, french.ssh_password),
+        (english.connect, french.connect),
     ];
     for (english, french) in pairs {
         assert_ne!(english, french);

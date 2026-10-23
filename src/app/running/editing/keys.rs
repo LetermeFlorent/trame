@@ -11,7 +11,7 @@ impl Running {
     pub(in super::super) fn editing_key(&mut self, event: &KeyEvent) -> bool {
         let typing = match &self.editing {
             _ if self.command_field.is_some() => true,
-            Some(editing) => matches!(editing.mode, EditMode::Text { .. }),
+            Some(editing) => matches!(editing.mode, EditMode::Text { .. } | EditMode::Form(_)),
             None => return false,
         };
         match typing {
@@ -46,6 +46,7 @@ impl Running {
     fn edit_named(&mut self, key: NamedKey) -> bool {
         match key {
             NamedKey::Enter => self.commit_edit(),
+            NamedKey::Tab => return self.step_form(),
             NamedKey::Escape => self.cancel_edit(),
             NamedKey::Backspace => self.with_field(TextField::backspace),
             NamedKey::Delete => self.with_field(TextField::delete),
@@ -54,6 +55,22 @@ impl Running {
             NamedKey::Home => self.with_field(TextField::home),
             NamedKey::End => self.with_field(TextField::end),
             _ => return false,
+        }
+        true
+    }
+
+    fn step_form(&mut self) -> bool {
+        let backwards = self.modifiers.shift_key();
+        let Some(Editing {
+            mode: EditMode::Form(form),
+            ..
+        }) = &mut self.editing
+        else {
+            return false;
+        };
+        match backwards {
+            true => form.previous(),
+            false => form.next(),
         }
         true
     }
@@ -72,6 +89,13 @@ impl Running {
                     ..
                 }),
             ) => field,
+            (
+                None,
+                Some(Editing {
+                    mode: EditMode::Form(form),
+                    ..
+                }),
+            ) => form.focused_mut(),
             _ => return,
         };
         change(field);

@@ -58,6 +58,17 @@ impl Screen {
         }
     }
 
+    pub fn cursor_line(&self) -> String {
+        let grid = self.grid();
+        let last = self.cursor.row.min(grid.rows().saturating_sub(1));
+        let first = (0..last)
+            .rev()
+            .take_while(|&row| grid.row(row).wrapped)
+            .last()
+            .unwrap_or(last);
+        (first..=last).map(|row| grid.row(row).text()).collect()
+    }
+
     pub fn title(&self) -> Option<&str> {
         self.title.as_deref()
     }

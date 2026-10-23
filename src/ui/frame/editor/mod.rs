@@ -1,12 +1,15 @@
 mod anchor;
 mod emblems;
 mod field;
+mod form;
 mod menu;
 mod row;
 
 use super::FrameLayout;
 use crate::geometry::{Point, Rect};
 use crate::input::TextField;
+use crate::locale::Strings;
+use crate::preferences::ConnectForm;
 use crate::session::SessionId;
 use crate::text::TextSystem;
 use crate::theme::{Emblem, Swatch};
@@ -16,6 +19,8 @@ pub use emblems::EmblemSlot;
 use emblems::{emblem_row, emblem_slots};
 pub use field::FieldFrame;
 pub(in crate::ui::frame) use field::place_field;
+pub use form::{FormFrame, FormRow, SECRET_MASK};
+use form::{FormSpot, place_form};
 pub use menu::{MenuEntry, MenuFrame, MenuRequest, MenuRow};
 pub use row::SwatchSlot;
 use row::{RowSize, swatch_row, swatch_slots};
@@ -31,6 +36,7 @@ pub enum EditKind<'a> {
     Name(&'a TextField),
     Color(Option<Swatch>),
     Emblem(Option<Emblem>),
+    Form(&'a ConnectForm, &'static Strings),
 }
 
 pub struct EditorRequest<'a> {
@@ -48,6 +54,7 @@ pub struct EditorFrame {
     pub selected: Option<Swatch>,
     pub emblems: Vec<EmblemSlot>,
     pub emblem: Option<Emblem>,
+    pub form: Option<FormFrame>,
 }
 
 impl EditorFrame {
@@ -60,6 +67,7 @@ impl EditorFrame {
             selected: None,
             emblems: Vec::new(),
             emblem: None,
+            form: None,
         }
     }
 
@@ -99,6 +107,18 @@ impl FrameLayout {
                     strip,
                     slots,
                     selected,
+                    ..editor
+                }
+            }
+            EditKind::Form(form, strings) => {
+                let spot = FormSpot {
+                    anchor,
+                    bounds: self.bounds,
+                    form,
+                    strings,
+                };
+                EditorFrame {
+                    form: Some(place_form(text, metrics, &spot)),
                     ..editor
                 }
             }

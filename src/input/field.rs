@@ -1,3 +1,5 @@
+use std::iter;
+
 pub const MAX_CHARS: usize = 120;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -23,6 +25,14 @@ impl TextField {
 
     pub fn before_caret(&self) -> &str {
         &self.text[..self.caret]
+    }
+
+    pub fn masked(&self, mask: char) -> Self {
+        let count = |text: &str| text.chars().count();
+        Self {
+            text: iter::repeat_n(mask, count(&self.text)).collect(),
+            caret: mask.len_utf8() * count(self.before_caret()),
+        }
     }
 
     pub fn insert(&mut self, typed: &str) {

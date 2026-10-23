@@ -1,6 +1,7 @@
 use winit::event::KeyEvent;
 
 use trame::input::TextField;
+use trame::preferences::{Preferences, vault};
 use trame::ui::frame::SettingControl;
 
 use super::keys::is_escape;
@@ -49,9 +50,16 @@ impl Running {
             SettingControl::Language(language) => current.with(|next| next.language = language),
             SettingControl::DefaultFolder => return self.ask_folder(FolderTarget::Default),
             SettingControl::ClearFolder => current.with(|next| next.default_folder = None),
-            SettingControl::ForgetHost(index) => current.forget_host(index),
+            SettingControl::ForgetHost(index) => self.forget_host(index),
         };
         self.set_preferences(next);
+    }
+
+    fn forget_host(&self, index: usize) -> Preferences {
+        if let Some(host) = self.preferences.ssh_hosts.get(index) {
+            vault::SSH.forget(host);
+        }
+        self.preferences.forget_host(index)
     }
 
     fn edit_command(&mut self) {

@@ -2,9 +2,11 @@ use std::collections::HashMap;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
+use std::time::Instant;
 
 use winit::event_loop::EventLoopProxy;
 
+use trame::preferences::SecretAnswer;
 use trame::session::pty::{ShellCommand, default_shell};
 use trame::session::{Notifier, Session, SessionId, SessionOptions};
 use trame::term::ReportedColors;
@@ -22,6 +24,7 @@ pub struct ShellStart<'a> {
 pub struct Sessions {
     map: HashMap<SessionId, Session>,
     origins: HashMap<SessionId, PathBuf>,
+    answers: HashMap<SessionId, SecretAnswer>,
     next: u64,
     shell: ShellCommand,
     notify: Notifier,
@@ -37,6 +40,7 @@ impl Sessions {
         Self {
             map: HashMap::new(),
             origins: HashMap::new(),
+            answers: HashMap::new(),
             next: 0,
             shell: default_shell(),
             notify,
@@ -81,7 +85,27 @@ impl Sessions {
 
     pub fn remove(&mut self, id: SessionId) -> Option<Session> {
         self.origins.remove(&id);
+        self.answers.remove(&id);
         self.map.remove(&id)
+    }
+
+    pub fn expect_secret(&mut self, id: SessionId, secret: String) {
+        self.answers
+            .insert(id, SecretAnswer::new(secret, Instant::now()));
+    }
+
+    pub fn answer_prompt(&mut self, id: SessionId) {
+        let (Some(answer), Some(session)) = (self.answers.get_mut(&id), self.map.get(&id)) else {
+            return;
+        };
+        let now = Instant::now();
+        let line = session.terminal().screen().cursor_line();
+        if let Some(reply) = answer.reply(&line, now) {
+            session.write(reply);
+        }
+        if answer.is_over(now) {
+            self.answers.remove(&id);
+        }
     }
 
     pub fn cwd(&self, id: SessionId) -> Option<PathBuf> {

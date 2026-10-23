@@ -1,6 +1,10 @@
+mod form;
+mod prompt;
+mod vault;
+
 use trame::preferences::{MAX_SSH_HOSTS, Preferences, SshHost};
 
-fn host(target: &str, port: Option<u16>) -> SshHost {
+pub fn host(target: &str, port: Option<u16>) -> SshHost {
     SshHost {
         target: target.to_owned(),
         port,

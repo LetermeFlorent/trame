@@ -1,5 +1,5 @@
 mod launch;
-mod ssh_hosts;
+mod ssh;
 
 use std::path::PathBuf;
 

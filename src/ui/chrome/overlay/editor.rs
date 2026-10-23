@@ -7,7 +7,9 @@ use crate::ui::frame::{EditorFrame, EmblemSlot, FieldFrame, SwatchSlot};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
-const STRIP_BLUR: f32 = 8.0;
+use super::form::draw_form;
+
+pub(super) const STRIP_BLUR: f32 = 8.0;
 const RING_GAP: f32 = 2.0;
 const RING_RADIUS_EXTRA: f32 = 2.0;
 const SLASH_INSET: f32 = 3.0;
@@ -21,7 +23,10 @@ pub fn draw_editor(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
         draw_strip(&mut painter, editor);
     }
     if let Some(field) = &editor.field {
-        draw_field(&mut painter, field);
+        draw_field(&mut painter, field, true);
+    }
+    if let Some(form) = &editor.form {
+        draw_form(&mut painter, form);
     }
 }
 
@@ -87,14 +92,20 @@ fn draw_empty(painter: &mut Painter, rect: Rect) {
     painter.scene.line(from, to, line, theme.text_faint);
 }
 
-pub(super) fn draw_field(painter: &mut Painter, field: &FieldFrame) {
+pub(super) fn draw_field(painter: &mut Painter, field: &FieldFrame, focused: bool) {
     let theme = painter.theme;
     let radius = painter.metrics.px(UiMetrics::RADIUS);
     let line = painter.metrics.line();
+    let edge = match focused {
+        true => theme.accent,
+        false => theme.border_strong,
+    };
     painter.scene.fill(field.rect, theme.terminal, radius);
-    painter.scene.border(field.rect, theme.accent, radius, line);
+    painter.scene.border(field.rect, edge, radius, line);
     painter.scene.push_clip(field.text_area);
     painter.label(&field.label, field.text_x, field.rect, theme.text);
-    painter.scene.fill(field.caret, theme.text, 0.0);
+    if focused {
+        painter.scene.fill(field.caret, theme.text, 0.0);
+    }
     painter.scene.pop_clip();
 }

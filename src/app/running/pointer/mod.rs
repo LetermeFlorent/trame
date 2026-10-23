@@ -103,7 +103,7 @@ fn cursor_for(hit: Option<Hit>, frame: &FrameLayout) -> CursorIcon {
             None => CursorIcon::Default,
         },
         Some(Hit::SidebarEdge) => CursorIcon::ColResize,
-        Some(Hit::Terminal(_) | Hit::EditField) => CursorIcon::Text,
+        Some(Hit::Terminal(_) | Hit::EditField | Hit::FormField(_)) => CursorIcon::Text,
         _ => CursorIcon::Default,
     }
 }

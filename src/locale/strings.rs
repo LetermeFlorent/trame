@@ -28,6 +28,11 @@ pub struct Strings {
     pub new_connection: &'static str,
     pub connections: &'static str,
     pub no_connections: &'static str,
+    pub ssh_address: &'static str,
+    pub ssh_user: &'static str,
+    pub ssh_port: &'static str,
+    pub ssh_password: &'static str,
+    pub connect: &'static str,
 }
 
 pub const ENGLISH: Strings = Strings {
@@ -59,6 +64,11 @@ pub const ENGLISH: Strings = Strings {
     new_connection: "New SSH connection",
     connections: "SSH CONNECTIONS",
     no_connections: "Add one from the right-click menu",
+    ssh_address: "Address",
+    ssh_user: "User",
+    ssh_port: "Port",
+    ssh_password: "Password",
+    connect: "Connect",
 };
 
 pub const FRENCH: Strings = Strings {
@@ -90,4 +100,9 @@ pub const FRENCH: Strings = Strings {
     new_connection: "Nouvelle connexion SSH",
     connections: "CONNEXIONS SSH",
     no_connections: "Ajoutez-en une avec le clic droit",
+    ssh_address: "Adresse",
+    ssh_user: "Utilisateur",
+    ssh_port: "Port",
+    ssh_password: "Mot de passe",
+    connect: "Se connecter",
 };
