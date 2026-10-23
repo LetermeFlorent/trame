@@ -130,13 +130,12 @@ fn split_runs(
 }
 
 fn font_for(library: &mut FontLibrary, primary: FontKey, ch: char, style: TextStyle) -> FontKey {
-    if ch.is_control() || library.face(primary.id).covers(ch) {
+    if ch.is_control() {
         return primary;
     }
-    match library.fallback_for(ch) {
-        Some(id) => FontKey::synthesize(library, id, style.weight, style.italic),
-        None => primary,
-    }
+    library
+        .covering_font(primary, ch, style.weight, style.italic)
+        .unwrap_or(primary)
 }
 
 fn is_neutral(script: Script) -> bool {

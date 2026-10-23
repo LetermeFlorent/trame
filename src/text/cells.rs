@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::font::{BOLD, FontId, FontKey, REGULAR};
+use super::font::{BOLD, FontId, REGULAR};
 use super::metrics::CellMetrics;
 use super::raster::GlyphKey;
 use super::system::TextSystem;
@@ -83,7 +83,10 @@ impl TextSystem {
     fn place_cell_glyph(&mut self, key: CellText) -> Option<CellGlyph> {
         let weight = if key.bold { BOLD } else { REGULAR };
         let primary = self.terminal.resolve(&self.library, weight, key.italic)?;
-        let (font, glyph) = self.cell_font(primary, key.ch, weight, key.italic)?;
+        let font = self
+            .library
+            .covering_font(primary, key.ch, weight, key.italic)?;
+        let glyph = self.library.face(font.id).glyph(key.ch);
         let metrics = self.cells.metrics;
         let span = metrics.width * f32::from(key.columns);
         let mut size = metrics.font_size;
@@ -105,21 +108,5 @@ impl TextSystem {
             x: offset + raster.left as f32,
             y: metrics.baseline - raster.top as f32,
         })
-    }
-
-    fn cell_font(
-        &mut self,
-        primary: FontKey,
-        ch: char,
-        weight: u16,
-        italic: bool,
-    ) -> Option<(FontKey, u16)> {
-        let glyph = self.library.face(primary.id).glyph(ch);
-        if glyph != 0 {
-            return Some((primary, glyph));
-        }
-        let id = self.library.fallback_for(ch)?;
-        let font = FontKey::synthesize(&self.library, id, weight, italic);
-        Some((font, self.library.face(id).glyph(ch)))
     }
 }

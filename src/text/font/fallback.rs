@@ -4,7 +4,7 @@ use std::ops::RangeInclusive;
 use unicode_width::UnicodeWidthChar;
 
 use super::discovery::{self, FontSource};
-use super::{FontId, FontLibrary};
+use super::{FontId, FontKey, FontLibrary};
 
 const EMOJI_RANGES: [RangeInclusive<u32>; 2] = [0x2300..=0x2BFF, 0x1F000..=0x1FAFF];
 
@@ -58,6 +58,20 @@ impl Fallbacks {
 }
 
 impl FontLibrary {
+    pub fn covering_font(
+        &mut self,
+        primary: FontKey,
+        ch: char,
+        weight: u16,
+        italic: bool,
+    ) -> Option<FontKey> {
+        if self.face(primary.id).covers(ch) {
+            return Some(primary);
+        }
+        let id = self.fallback_for(ch)?;
+        Some(FontKey::synthesize(self, id, weight, italic))
+    }
+
     pub fn fallback_for(&mut self, ch: char) -> Option<FontId> {
         if let Some(found) = self.fallbacks.coverage.get(&ch) {
             return *found;
