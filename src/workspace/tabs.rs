@@ -70,11 +70,7 @@ impl Workspace {
             return false;
         };
         self.marks.remove(&tab);
-        let instance = &mut self.instances[location.instance];
-        instance.remove_tab(tab);
-        if instance.is_empty() {
-            self.remove_instance(location.instance);
-        }
+        self.detach(tab, location);
         true
     }
 }

@@ -95,7 +95,7 @@ impl Workspace {
         true
     }
 
-    fn detach(&mut self, tab: SessionId, source: TabLocation) {
+    pub(super) fn detach(&mut self, tab: SessionId, source: TabLocation) {
         let instance = &mut self.instances[source.instance];
         instance.remove_tab(tab);
         if instance.is_empty() {
