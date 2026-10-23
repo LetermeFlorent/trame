@@ -10,7 +10,7 @@ pub use editor::{
     EditAnchor, EditKind, EditTarget, EditorFrame, EditorRequest, EmblemSlot, FieldFrame,
     FormFrame, FormRow, MenuEntry, MenuFrame, MenuRequest, MenuRow, SECRET_MASK, SwatchSlot,
 };
-pub use label::fit_label;
+pub use label::{fit_label, fit_label_start, fit_text_start};
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{
     Chip, ChoiceRow, FooterFrame, PopupFrame, RailFrame, RailSlot, SettingControl, SettingLine,
@@ -18,6 +18,8 @@ pub use sidebar::{
     shown_width,
 };
 pub use titlebar::{TitleBarFrame, WindowControls};
+
+use std::path::Path;
 
 use crate::geometry::Rect;
 use crate::locale::Strings;
@@ -34,6 +36,7 @@ pub struct FrameInput<'a> {
     pub metrics: UiMetrics,
     pub maximized: bool,
     pub title: &'a dyn Fn(SessionId) -> String,
+    pub folder: Option<&'a Path>,
     pub strings: &'static Strings,
 }
 
@@ -67,7 +70,7 @@ impl FrameLayout {
         let (bar, rest) = bounds.split_top(metrics.px(UiMetrics::TITLE_BAR));
         let title_bar = titlebar::layout_title_bar(text, input, bar);
         let reveal = motion.sidebar(input.workspace.sidebar_open);
-        let columns = Columns::split(input, rest, reveal);
+        let columns = sidebar::Columns::split(input, rest, reveal);
         let (side, content) = (columns.side, columns.content);
         let footer = sidebar::layout_footer(text, input, side);
         let mut sidebar = (reveal > 0.0)
@@ -118,34 +121,5 @@ impl FrameLayout {
 
     pub fn pane(&self, id: PaneId) -> Option<&PaneFrame> {
         self.panes.iter().find(|pane| pane.id == id)
-    }
-}
-
-struct Columns {
-    side: Rect,
-    sidebar: Rect,
-    content: Rect,
-}
-
-impl Columns {
-    fn split(input: &FrameInput, rest: Rect, reveal: f32) -> Self {
-        let metrics = input.metrics;
-        let rail_width = metrics.px(UiMetrics::RAIL_WIDTH);
-        let full_width = metrics
-            .px(shown_width(input.workspace.sidebar_width))
-            .round();
-        let visible_width = (rail_width + (full_width - rail_width) * reveal).round();
-        let (side, _) = rest.split_left(visible_width);
-        let shown = if input.workspace.sidebar_open {
-            full_width
-        } else {
-            rail_width
-        };
-        let (_, content) = rest.split_left(shown);
-        Self {
-            side,
-            sidebar: Rect::new(side.right() - full_width, side.y, full_width, side.height),
-            content,
-        }
     }
 }

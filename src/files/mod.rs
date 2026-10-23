@@ -1,10 +1,12 @@
 mod folder;
+mod places;
 
 use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 pub use folder::{FolderRequest, pick_folder};
+pub use places::{home_dir, short_path};
 
 const TEMPORARY_SUFFIX: &str = ".tmp";
 

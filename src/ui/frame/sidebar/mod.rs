@@ -22,6 +22,7 @@ pub(super) use settings::{CAPTION_HEIGHT, LINE_HEIGHT, SECTION_GAP};
 pub use settings::{
     Chip, ChoiceRow, PopupFrame, SettingControl, SettingLine, SettingsFrame, Stepper, ToggleRow,
 };
+pub(super) use width::Columns;
 pub use width::{dragged_width, shown_width};
 
 const CAPTION_MARGIN: f32 = 14.0;

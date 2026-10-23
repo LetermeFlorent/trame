@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use super::FrameInput;
-use super::label::fit_label;
+use super::label::{fit_label, fit_label_start};
+use crate::files::{home_dir, short_path};
 use crate::geometry::Rect;
 use crate::text::{TextLayout, TextSystem};
 use crate::ui::metrics::{Platform, UiMetrics};
@@ -9,9 +10,14 @@ use crate::ui::metrics::{Platform, UiMetrics};
 const TOGGLE_MARGIN: f32 = 8.0;
 const TITLE_GAP: f32 = 10.0;
 const SUBTITLE_GAP: f32 = 8.0;
+const BRAND_GAP: f32 = 16.0;
+const HEADING_MIN: f32 = 180.0;
 const ROUND_BUTTON: f32 = 24.0;
 const ROUND_GAP: f32 = 8.0;
 const ROUND_MARGIN: f32 = 10.0;
+const APP_NAME: &str = concat!("trame ", env!("CARGO_PKG_VERSION"));
+
+type Placed = Option<(Arc<TextLayout>, f32)>;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WindowControls {
@@ -24,8 +30,9 @@ pub struct WindowControls {
 pub struct TitleBarFrame {
     pub rect: Rect,
     pub toggle: Rect,
-    pub title: Option<(Arc<TextLayout>, f32)>,
-    pub subtitle: Option<(Arc<TextLayout>, f32)>,
+    pub title: Placed,
+    pub subtitle: Placed,
+    pub brand: Placed,
     pub controls: Option<WindowControls>,
     pub maximized: bool,
 }
@@ -37,36 +44,63 @@ pub fn layout_title_bar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -
         .platform
         .draws_window_controls()
         .then(|| window_controls(metrics, rect));
-    let limit =
-        controls.map_or(rect.right(), |controls| controls.minimize.x) - metrics.px(TITLE_GAP);
-    let title_x = toggle.right() + metrics.px(TITLE_GAP);
-    let name = input
-        .workspace
-        .active_instance()
-        .map(|instance| fit_label(text, &instance.name, metrics.strong(), limit - title_x));
-    let subtitle_x = name.as_ref().map_or(title_x, |name| {
-        title_x + name.width + metrics.px(SUBTITLE_GAP)
-    });
-    let subtitle = input
-        .workspace
-        .active_tab()
-        .filter(|_| limit - subtitle_x > metrics.px(UiMetrics::TAB_MIN))
-        .map(|tab| {
-            fit_label(
-                text,
-                &(input.title)(tab),
-                metrics.label(),
-                limit - subtitle_x,
-            )
-        });
+    let start = toggle.right() + metrics.px(TITLE_GAP);
+    let end = controls.map_or(rect.right(), |controls| controls.minimize.x) - metrics.px(TITLE_GAP);
+    let brand = layout_brand(text, metrics, rect, start, end);
+    let limit = brand
+        .as_ref()
+        .map_or(end, |(_, x)| x - metrics.px(BRAND_GAP));
+    let (title, subtitle) = layout_heading(text, input, start, limit);
     TitleBarFrame {
         rect,
         toggle,
-        title: name.map(|layout| (layout, title_x)),
-        subtitle: subtitle.map(|layout| (layout, subtitle_x)),
+        title,
+        subtitle,
+        brand,
         controls,
         maximized: input.maximized,
     }
+}
+
+fn layout_brand(
+    text: &mut TextSystem,
+    metrics: &UiMetrics,
+    rect: Rect,
+    start: f32,
+    end: f32,
+) -> Placed {
+    let layout = text.layout(APP_NAME, metrics.label());
+    let x = rect.centered_x(layout.width).round();
+    let room = x - metrics.px(BRAND_GAP) - start;
+    let fits = room >= metrics.px(HEADING_MIN) && x + layout.width <= end;
+    fits.then_some((layout, x))
+}
+
+fn layout_heading(
+    text: &mut TextSystem,
+    input: &FrameInput,
+    start: f32,
+    limit: f32,
+) -> (Placed, Placed) {
+    let metrics = &input.metrics;
+    let name = input
+        .workspace
+        .active_instance()
+        .map(|instance| fit_label(text, &instance.name, metrics.strong(), limit - start));
+    let folder_x = name
+        .as_ref()
+        .map_or(start, |name| start + name.width + metrics.px(SUBTITLE_GAP));
+    let folder = input
+        .folder
+        .filter(|_| limit - folder_x > metrics.px(UiMetrics::TAB_MIN))
+        .map(|folder| {
+            let shown = short_path(folder, home_dir().as_deref());
+            fit_label_start(text, &shown, metrics.label(), limit - folder_x)
+        });
+    (
+        name.map(|layout| (layout, start)),
+        folder.map(|layout| (layout, folder_x)),
+    )
 }
 
 fn sidebar_toggle(metrics: &UiMetrics, rect: Rect) -> Rect {

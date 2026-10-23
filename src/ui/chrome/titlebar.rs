@@ -36,6 +36,9 @@ pub(super) fn draw(painter: &mut Painter, bar: &TitleBarFrame, sidebar_open: boo
     if let Some((layout, x)) = &bar.subtitle {
         painter.label(layout, *x, bar.rect, theme.text_faint);
     }
+    if let Some((layout, x)) = &bar.brand {
+        painter.label(layout, *x, bar.rect, theme.text_muted);
+    }
     if let Some(controls) = &bar.controls {
         draw_controls(painter, controls, bar.maximized);
     }

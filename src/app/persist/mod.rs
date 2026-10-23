@@ -5,7 +5,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use trame::files::write_atomic;
+use trame::files::{home_dir, write_atomic};
 use trame::preferences::SshConfig;
 use trame::workspace::Snapshot;
 
@@ -16,13 +16,6 @@ const FILE_NAME: &str = "session.json";
 const TRANSCRIPT_DIR: &str = "text";
 const SSH_DIR: &str = ".ssh";
 const SSH_CONFIG: &str = "config";
-
-pub fn home_dir() -> Option<PathBuf> {
-    let key = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
-    env::var_os(key)
-        .map(PathBuf::from)
-        .filter(|path| !path.as_os_str().is_empty())
-}
 
 pub fn ssh_config() -> Option<SshConfig> {
     home_dir().map(|home| SshConfig::at(home.join(SSH_DIR).join(SSH_CONFIG)))

@@ -138,6 +138,7 @@ fn first_frame(
         workspace,
         window: &surface.window,
         metrics,
+        folder: None,
         strings,
     };
     frame::compute(&mut surface.text, &layout_input, motion, &|_| String::new())

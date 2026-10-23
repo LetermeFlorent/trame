@@ -88,6 +88,7 @@ fn layout(text: &mut TextSystem, scenario: &Scenario, scale: f32) -> FrameLayout
         metrics: UiMetrics::new(scale),
         maximized: false,
         title: &title,
+        folder: None,
         strings: Language::English.strings(),
     };
     FrameLayout::compute(text, &input)

@@ -1,10 +1,10 @@
+mod bars;
 mod drop;
 mod editor;
 mod logo;
 mod motion;
 mod overlay;
 mod sidebar;
-mod tabbar;
 
 use trame::locale::Language;
 use trame::session::SessionId;
@@ -55,16 +55,20 @@ fn frame_measured(
     motion: &mut Motion,
     metrics: UiMetrics,
 ) -> FrameLayout {
-    let input = FrameInput {
+    FrameLayout::compute_with(text, &input(workspace, metrics), motion)
+}
+
+pub fn input(workspace: &Workspace, metrics: UiMetrics) -> FrameInput<'_> {
+    FrameInput {
         workspace,
         width: WIDTH,
         height: HEIGHT,
         metrics,
         maximized: false,
         title: &title,
+        folder: None,
         strings: Language::English.strings(),
-    };
-    FrameLayout::compute_with(text, &input, motion)
+    }
 }
 
 pub fn frame(text: &mut TextSystem, workspace: &Workspace) -> FrameLayout {

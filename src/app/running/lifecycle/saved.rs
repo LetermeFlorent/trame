@@ -2,12 +2,13 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Instant;
 
+use trame::files::home_dir;
 use trame::preferences::Recall;
 use trame::session::SessionId;
 use trame::workspace::{Snapshot, TabSnapshot, Workspace};
 
 use crate::app::running::Running;
-use crate::app::{persist, window};
+use crate::app::window;
 
 type SavedTabs = HashMap<SessionId, TabSnapshot>;
 
@@ -90,7 +91,7 @@ impl Running {
 fn existing_or_home(saved: Option<PathBuf>) -> Option<PathBuf> {
     match saved {
         Some(path) if path.is_dir() => Some(path),
-        Some(_) => persist::home_dir(),
+        Some(_) => home_dir(),
         None => None,
     }
 }

@@ -3,6 +3,7 @@ mod paint;
 mod style;
 
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use winit::window::Window;
@@ -22,6 +23,7 @@ pub(super) struct LayoutInput<'a> {
     pub(super) workspace: &'a Workspace,
     pub(super) window: &'a Window,
     pub(super) metrics: UiMetrics,
+    pub(super) folder: Option<&'a Path>,
     pub(super) strings: &'static Strings,
 }
 
@@ -39,6 +41,7 @@ pub(super) fn compute(
         metrics: layout.metrics,
         maximized: layout.window.is_maximized(),
         title,
+        folder: layout.folder,
         strings: layout.strings,
     };
     let frame = FrameLayout::compute_with(text, &input, motion);
@@ -73,10 +76,12 @@ impl Running {
             .map(|id| (id, self.sessions.label(id)))
             .collect();
         let title = |id: SessionId| title_of(&self.workspace, &self.labels, &self.sessions, id);
+        let folder = self.active_folder();
         let layout = LayoutInput {
             workspace: &self.workspace,
             window: &self.window,
             metrics: self.metrics,
+            folder: folder.as_deref(),
             strings: self.strings,
         };
         self.motion.tick(Instant::now());
@@ -87,6 +92,11 @@ impl Running {
         self.place_settings();
         self.sync_sizes();
         self.refresh_hover();
+    }
+
+    pub(super) fn active_folder(&self) -> Option<PathBuf> {
+        let tab = self.workspace.active_tab()?;
+        self.sessions.cwd(tab)
     }
 
     pub(super) fn tab_title(&self, id: SessionId) -> String {
