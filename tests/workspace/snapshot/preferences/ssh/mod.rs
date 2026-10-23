@@ -1,9 +1,12 @@
 mod config;
+mod edit;
 mod form;
 mod prompt;
 mod vault;
 
-use trame::preferences::{MAX_SSH_HOSTS, Preferences, SshHost};
+use trame::preferences::{Preferences, SshHost};
+
+const MANY: usize = 20;
 
 pub fn host(target: &str, port: Option<u16>) -> SshHost {
     SshHost {
@@ -66,23 +69,42 @@ fn the_command_names_the_port_only_when_it_is_not_the_usual_one() {
 }
 
 #[test]
-fn a_used_connection_moves_first_without_duplicates_and_the_list_stays_short() {
+fn a_used_connection_moves_first_without_duplicates_and_nothing_is_dropped() {
     let base = Preferences {
-        ssh_hosts: hosts(MAX_SSH_HOSTS),
+        ssh_hosts: hosts(MANY),
         ..Preferences::default()
     };
     let again = base.remember_host(host("user@host3", None));
-    assert_eq!(again.ssh_hosts.len(), MAX_SSH_HOSTS);
+    assert_eq!(again.ssh_hosts.len(), MANY);
     assert_eq!(again.ssh_hosts[0], host("user@host3", None));
     assert_eq!(again.ssh_hosts[4], host("user@host4", None));
     let fresh = base.remember_host(host("new@box", Some(2200)));
-    assert_eq!(fresh.ssh_hosts.len(), MAX_SSH_HOSTS);
+    assert_eq!(fresh.ssh_hosts.len(), MANY + 1);
     assert_eq!(fresh.ssh_hosts[0], host("new@box", Some(2200)));
-    assert!(
-        !fresh
-            .ssh_hosts
-            .contains(&hosts(MAX_SSH_HOSTS)[MAX_SSH_HOSTS - 1])
+    assert_eq!(fresh.ssh_hosts[MANY], hosts(MANY)[MANY - 1]);
+}
+
+#[test]
+fn a_changed_connection_keeps_its_place_and_merges_a_duplicate() {
+    let base = Preferences {
+        ssh_hosts: hosts(4),
+        ..Preferences::default()
+    };
+    let renamed = base.replace_host(&hosts(4)[2], host("me@other", Some(2200)));
+    assert_eq!(renamed.ssh_hosts.len(), 4);
+    assert_eq!(renamed.ssh_hosts[2], host("me@other", Some(2200)));
+    let merged = base.replace_host(&hosts(4)[2], hosts(4)[0].clone());
+    assert_eq!(
+        merged.ssh_hosts,
+        [
+            hosts(4)[1].clone(),
+            hosts(4)[0].clone(),
+            hosts(4)[3].clone()
+        ]
     );
+    let unknown = base.replace_host(&host("gone", None), host("fresh", None));
+    assert_eq!(unknown.ssh_hosts[0], host("fresh", None));
+    assert_eq!(unknown.ssh_hosts.len(), 5);
 }
 
 #[test]
@@ -117,10 +139,10 @@ fn saved_connections_survive_json_and_bad_ones_are_dropped_on_load() {
     let loaded: Preferences = serde_json::from_str(saved).expect("parses");
     assert_eq!(loaded.sanitized().ssh_hosts, [host("me@box", None)]);
     let many = Preferences {
-        ssh_hosts: hosts(MAX_SSH_HOSTS + 3),
+        ssh_hosts: hosts(MANY),
         ..Preferences::default()
     };
-    assert_eq!(many.sanitized().ssh_hosts, hosts(MAX_SSH_HOSTS));
+    assert_eq!(many.sanitized().ssh_hosts, hosts(MANY));
 }
 
 #[test]

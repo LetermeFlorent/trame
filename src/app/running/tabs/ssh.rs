@@ -25,12 +25,7 @@ impl Running {
         if let Err(error) = self.open_in(Placement::Tab, cwd.as_deref(), Some(host.clone())) {
             eprintln!("trame: the SSH tab could not start: {error}");
         }
-        let next = self.preferences.remember_host(host);
-        let dropped = self.preferences.ssh_hosts.iter();
-        for host in dropped.filter(|host| !next.ssh_hosts.contains(host)) {
-            vault::SSH.forget(host);
-        }
-        self.set_preferences(next);
+        self.set_preferences(self.preferences.remember_host(host));
     }
 
     pub(super) fn greet(&mut self, id: SessionId) {

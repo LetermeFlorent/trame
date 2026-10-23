@@ -1,4 +1,4 @@
-use trame::preferences::{ConnectForm, FormField, SshHost};
+use trame::preferences::{ConnectForm, FormField, HostEntry, SshHost};
 
 use super::host;
 
@@ -101,4 +101,21 @@ fn the_first_broken_field_is_the_one_to_fix() {
 fn the_debug_view_of_a_form_never_shows_the_secret() {
     let form = filled("box", "me", "", "hunter2");
     assert!(!format!("{form:?}").contains("hunter2"));
+}
+
+#[test]
+fn a_known_connection_fills_the_form_to_change_it() {
+    let entry = HostEntry {
+        address: "10.0.0.2".to_owned(),
+        user: Some("root".to_owned()),
+        port: Some(2222),
+    };
+    let form = ConnectForm::filled(&entry, Some("pass"));
+    assert_eq!(form.host(), Some(host("root@10.0.0.2", Some(2222))));
+    assert_eq!(form.secret(), Some("pass"));
+    assert_eq!(form.focus(), FormField::Address);
+    let bare = ConnectForm::filled(&HostEntry::of(&host("box", None)), None);
+    assert_eq!(bare.field(FormField::User).text(), "");
+    assert_eq!(bare.field(FormField::Port).text(), "");
+    assert_eq!(bare.secret(), None);
 }

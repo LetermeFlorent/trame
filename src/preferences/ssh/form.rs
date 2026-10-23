@@ -1,6 +1,6 @@
 use std::fmt;
 
-use super::SshHost;
+use super::{HostEntry, SshHost};
 use crate::input::TextField;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -37,6 +37,20 @@ impl fmt::Debug for ConnectForm {
 impl ConnectForm {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn filled(entry: &HostEntry, secret: Option<&str>) -> Self {
+        let port = entry.port.map(|port| port.to_string()).unwrap_or_default();
+        let texts = [
+            entry.address.as_str(),
+            entry.user.as_deref().unwrap_or_default(),
+            port.as_str(),
+            secret.unwrap_or_default(),
+        ];
+        Self {
+            fields: texts.map(TextField::new),
+            focus: 0,
+        }
     }
 
     pub fn field(&self, field: FormField) -> &TextField {

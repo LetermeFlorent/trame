@@ -25,7 +25,7 @@ The rest stays out of your way:
 - a tab can be dragged into another pane, onto the edge of a pane to split it, or onto an instance in the side bar;
 - the side bar can be resized with the mouse or folded into a thin rail of icons;
 - a double click on a tab or an instance renames it, and a right click opens a menu to rename it, change its colour, change its folder or, for an instance, its icon. The folder is picked in the system window; the shells already open in that tab or instance start again there, and new tabs of an instance open in its folder;
-- the same menu opens an SSH connection in a new tab: pick a saved one, or choose New SSH connection and type `user@host` or `user@host:port`, then Enter. trame types the system `ssh` command in the tab (OpenSSH, part of Windows 10 and 11), and the password is typed there as in any terminal. Each connection used goes first in the list, which keeps the last 8;
+- the same menu opens an SSH connection in a new tab: pick a saved one, or choose New SSH connection and type `user@host` or `user@host:port`, then Enter. trame types the system `ssh` command in the tab (OpenSSH, part of Windows 10 and 11), and the password is typed there as in any terminal. Each connection used goes first in the list, and none is dropped;
 - a double click on the empty part of a tab bar opens a new tab in that pane;
 - the light or dark theme follows the system and changes when the system does;
 - the default shell of the system opens in every new tab: PowerShell 7 when it is installed, Windows PowerShell otherwise, and `$SHELL` on Linux;

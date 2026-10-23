@@ -6,11 +6,11 @@ pub mod vault;
 use serde::{Deserialize, Serialize};
 
 use super::Preferences;
-pub use config::{SshConfig, aliases_in, appended, menu_hosts};
+pub use config::{
+    HostEntry, SshConfig, aliases_in, appended, entry_in, menu_hosts, with_host, without_host,
+};
 pub use form::{ConnectForm, FormField};
 pub use prompt::{ANSWER_WINDOW, Prompt, SecretAnswer, prompt_in};
-
-pub const MAX_SSH_HOSTS: usize = 8;
 
 const DEFAULT_PORT: u16 = 22;
 
@@ -92,7 +92,23 @@ impl Preferences {
             .cloned()
             .collect();
         ssh_hosts.insert(0, host);
-        ssh_hosts.truncate(MAX_SSH_HOSTS);
+        self.with(|next| next.ssh_hosts = ssh_hosts)
+    }
+
+    pub fn replace_host(&self, old: &SshHost, host: SshHost) -> Self {
+        let Some(at) = self.ssh_hosts.iter().position(|known| known == old) else {
+            return self.remember_host(host);
+        };
+        let ssh_hosts = self
+            .ssh_hosts
+            .iter()
+            .enumerate()
+            .filter(|&(index, known)| index == at || *known != host)
+            .map(|(index, known)| match index == at {
+                true => host.clone(),
+                false => known.clone(),
+            })
+            .collect();
         self.with(|next| next.ssh_hosts = ssh_hosts)
     }
 
@@ -112,7 +128,7 @@ pub(super) fn sanitized_hosts(hosts: Vec<SshHost>) -> Vec<SshHost> {
             port: host.port.filter(|&port| port != DEFAULT_PORT),
             ..host
         };
-        if host.is_valid() && !kept.contains(&host) && kept.len() < MAX_SSH_HOSTS {
+        if host.is_valid() && !kept.contains(&host) {
             kept.push(host);
         }
     }
