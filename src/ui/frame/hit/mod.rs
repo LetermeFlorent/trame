@@ -5,7 +5,7 @@ use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
 use crate::ui::frame::{FrameLayout, MenuEntry, SettingControl, SidebarItem};
 use crate::ui::metrics::UiMetrics;
-use crate::workspace::{Axis, InstanceId, PaneId};
+use crate::workspace::{InstanceId, PaneId};
 use zones::{
     hit_editor, hit_menu, hit_pane, hit_settings, hit_sidebar, hit_title_bar, resize_edge,
     through_backdrop,
@@ -135,12 +135,8 @@ impl FrameLayout {
 
     pub fn divider_at(&self, point: Point) -> Option<usize> {
         let grab = self.metrics.px(UiMetrics::DIVIDER_GRAB);
-        self.dividers.iter().position(|divider| {
-            let zone = match divider.axis {
-                Axis::Row => divider.rect.inset_by(-grab, 0.0),
-                Axis::Column => divider.rect.inset_by(0.0, -grab),
-            };
-            zone.contains(point)
-        })
+        self.dividers
+            .iter()
+            .position(|divider| divider.widened(grab).contains(point))
     }
 }

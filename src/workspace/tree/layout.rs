@@ -17,6 +17,13 @@ impl Divider {
             Axis::Column => to.y - from.y,
         }
     }
+
+    pub fn widened(&self, amount: f32) -> Rect {
+        match self.axis {
+            Axis::Row => self.rect.inset_by(-amount, 0.0),
+            Axis::Column => self.rect.inset_by(0.0, -amount),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]

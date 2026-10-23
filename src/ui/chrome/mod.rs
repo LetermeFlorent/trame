@@ -20,7 +20,6 @@ use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 use crate::ui::motion::Motion;
 use crate::ui::paint::FrameView;
-use crate::workspace::Axis;
 
 const ACTIVE_DIVIDER: f32 = 2.0;
 const SIDEBAR_SHOWN: f32 = 0.5;
@@ -74,10 +73,7 @@ pub fn draw_dividers(scene: &mut Scene, theme: &Theme, frame: &FrameLayout, view
             scene.fill(divider.rect, theme.border, 0.0);
             continue;
         }
-        let rect = match divider.axis {
-            Axis::Row => divider.rect.inset_by(-grow, 0.0),
-            Axis::Column => divider.rect.inset_by(0.0, -grow),
-        };
+        let rect = divider.widened(grow);
         scene.fill(rect, theme.accent, 0.0);
     }
 }
