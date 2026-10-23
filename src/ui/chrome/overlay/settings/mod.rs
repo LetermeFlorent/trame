@@ -2,13 +2,12 @@ mod controls;
 
 use crate::render::Scene;
 use crate::text::TextSystem;
-use crate::ui::chrome::{ChromeInput, Icon, Painter};
+use crate::ui::chrome::{ChromeInput, Painter};
 use crate::ui::frame::{SettingControl, SettingsFrame};
 use crate::ui::hit::Hit;
 use controls::{draw_choices, draw_command, draw_stepper, draw_toggle_row};
 
-const PANEL_BLUR: f32 = 8.0;
-const BACKDROP_ALPHA: f32 = 0.35;
+use super::popup::draw_popup;
 
 pub fn draw_settings(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput) {
     let Some(settings) = &input.frame.settings else {
@@ -60,15 +59,10 @@ fn draw_steppers(painter: &mut Painter, settings: &SettingsFrame) {
 }
 
 fn draw_panel(painter: &mut Painter, settings: &SettingsFrame) {
-    let theme = painter.theme;
-    let shade = theme.shadow.with_alpha(BACKDROP_ALPHA);
-    painter.scene.fill(settings.backdrop, shade, 0.0);
-    painter.panel(settings.rect, PANEL_BLUR);
-    let title = &settings.title;
-    painter.setting_line(title, theme.text);
     let close = Hit::Setting(SettingControl::Close);
-    painter.button(settings.close, close, Icon::Close);
+    draw_popup(painter, &settings.popup, close);
+    let faint = painter.theme.text_faint;
     for section in &settings.sections {
-        painter.setting_line(section, theme.text_faint);
+        painter.setting_line(section, faint);
     }
 }

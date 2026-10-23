@@ -1,11 +1,13 @@
 mod emblems;
 mod form;
 mod menu;
+mod servers;
 mod sidebar;
 mod swatches;
 
 use trame::geometry::Point;
 use trame::input::TextField;
+use trame::locale::Language;
 use trame::session::SessionId;
 use trame::text::TextSystem;
 use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest};
@@ -28,6 +30,7 @@ fn place(
             target,
             anchor,
             kind,
+            strings: Language::English.strings(),
         },
     );
     frame

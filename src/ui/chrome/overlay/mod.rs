@@ -2,6 +2,7 @@ mod editor;
 mod form;
 mod loader;
 mod menu;
+mod popup;
 mod settings;
 mod tooltip;
 

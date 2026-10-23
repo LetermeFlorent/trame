@@ -1,6 +1,7 @@
 mod column;
 mod launch;
 mod place;
+mod popup;
 mod rows;
 
 use std::sync::Arc;
@@ -10,6 +11,8 @@ use crate::locale::LanguageChoice;
 use crate::preferences::Recall;
 use crate::text::TextLayout;
 use crate::ui::frame::FieldFrame;
+pub(in crate::ui::frame) use column::{CAPTION_HEIGHT, LINE_HEIGHT, SECTION_GAP};
+pub use popup::PopupFrame;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SettingControl {
@@ -82,10 +85,7 @@ impl ChoiceRow {
 
 #[derive(Clone, Debug)]
 pub struct SettingsFrame {
-    pub backdrop: Rect,
-    pub rect: Rect,
-    pub title: SettingLine,
-    pub close: Rect,
+    pub popup: PopupFrame,
     pub sections: [SettingLine; 5],
     pub toggles: [ToggleRow; 3],
     pub command: ChoiceRow,
@@ -110,7 +110,7 @@ impl SettingsFrame {
         field
             .map(|rect| (rect, SettingControl::StartupCommand))
             .into_iter()
-            .chain([(self.close, SettingControl::Close)])
+            .chain([(self.popup.close, SettingControl::Close)])
             .chain(toggles.map(|toggle| (toggle.line.rect, toggle.control)))
             .chain([
                 (

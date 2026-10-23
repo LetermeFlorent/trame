@@ -1,4 +1,5 @@
 use trame::input::TextField;
+use trame::locale::Language;
 use trame::render::Scene;
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Theme};
@@ -83,6 +84,7 @@ fn the_name_hides_while_the_editor_is_open() {
         target: EditTarget::Instance(id),
         anchor: EditAnchor::Rail,
         kind: EditKind::Name(&field),
+        strings: Language::English.strings(),
     };
     layout.place_editor(&mut text, &request);
     assert!(layout.editor.is_some());

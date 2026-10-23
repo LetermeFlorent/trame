@@ -35,7 +35,7 @@ fn the_window_speaks_the_chosen_language() {
     let mut text = text_system();
     let french = Language::French.strings();
     let layout = with_settings(&mut text, &Preferences::default(), french);
-    let title = &panel(&layout).title.label;
+    let title = &panel(&layout).popup.title.label;
     let expected = text.layout(french.settings, layout.metrics.strong());
     assert_eq!(title.width, expected.width);
     let english = text.layout(

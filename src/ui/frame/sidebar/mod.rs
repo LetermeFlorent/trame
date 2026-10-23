@@ -18,8 +18,9 @@ pub(super) use footer::layout_footer;
 pub(super) use rail::layout_rail;
 pub use rail::{RailFrame, RailSlot};
 use row::{RowSpec, layout_row, row_specs};
+pub(super) use settings::{CAPTION_HEIGHT, LINE_HEIGHT, SECTION_GAP};
 pub use settings::{
-    Chip, ChoiceRow, SettingControl, SettingLine, SettingsFrame, Stepper, ToggleRow,
+    Chip, ChoiceRow, PopupFrame, SettingControl, SettingLine, SettingsFrame, Stepper, ToggleRow,
 };
 pub use width::{dragged_width, shown_width};
 

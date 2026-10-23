@@ -4,7 +4,7 @@ mod menu;
 mod pointer;
 
 use trame::input::TextField;
-use trame::preferences::ConnectForm;
+use trame::preferences::{ConnectForm, SshHost};
 use trame::theme::{Emblem, Swatch};
 use trame::ui::Hit;
 use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest, MenuEntry, SidebarItem};
@@ -14,7 +14,7 @@ pub(super) use menu::Menu;
 
 enum EditMode {
     Text { field: TextField, original: String },
-    Form(ConnectForm),
+    Form(ConnectForm, Vec<SshHost>),
     Color,
     Emblem,
 }
@@ -58,8 +58,7 @@ impl Running {
             MenuEntry::Color => EditMode::Color,
             MenuEntry::Icon => EditMode::Emblem,
             MenuEntry::Folder => return self.ask_folder(target.into()),
-            MenuEntry::Host(index) => return self.connect_saved(target, index),
-            MenuEntry::NewConnection => EditMode::Form(ConnectForm::new()),
+            MenuEntry::Ssh => EditMode::Form(ConnectForm::new(), self.known_hosts()),
         };
         self.editing = Some(Editing {
             target,
@@ -75,7 +74,7 @@ impl Running {
         };
         let kind = match &editing.mode {
             EditMode::Text { field, .. } => EditKind::Name(field),
-            EditMode::Form(form) => EditKind::Form(form, self.strings),
+            EditMode::Form(form, hosts) => EditKind::Form(form, hosts),
             EditMode::Color => EditKind::Color(self.color_of(editing.target)),
             EditMode::Emblem => EditKind::Emblem(self.emblem_of(editing.target)),
         };
@@ -83,6 +82,7 @@ impl Running {
             target: editing.target,
             anchor: editing.anchor,
             kind,
+            strings: self.strings,
         };
         self.frame.place_editor(&mut self.text, &request);
         if self.frame.editor.is_none() {

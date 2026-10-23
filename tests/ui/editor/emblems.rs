@@ -66,15 +66,20 @@ fn a_rail_icon_opens_the_rename_field_beside_the_rail() {
 }
 
 #[test]
-fn a_rail_icon_opens_its_icon_row_under_the_icon() {
+fn a_rail_icon_opens_the_same_icon_window_as_the_sidebar() {
     let mut text = text_system();
     let kind = EditKind::Emblem(Some(Emblem::Gear));
-    let frame = second_instance(&mut text, &collapsed(), EditAnchor::Rail, kind);
-    let rail = frame.rail.as_ref().expect("the rail");
-    let editor = frame.editor.as_ref().expect("an editor beside the rail");
-    assert!(editor.strip.x >= rail.rect.right());
-    assert!(editor.strip.y >= rail.slots[1].rect.center().y);
+    let from_rail = second_instance(&mut text, &collapsed(), EditAnchor::Rail, kind);
+    let editor = from_rail.editor.as_ref().expect("an editor from the rail");
+    let popup = editor.popup.as_ref().expect("a popup");
+    assert!(popup.rect.contains(editor.strip.center()));
     assert_eq!(editor.emblems.len(), Emblem::ALL.len());
+    let from_sidebar = second_instance(&mut text, &workspace(), EditAnchor::Sidebar, kind);
+    let other = from_sidebar
+        .editor
+        .as_ref()
+        .and_then(|editor| editor.popup.as_ref());
+    assert_eq!(other.map(|popup| popup.rect.width), Some(popup.rect.width));
 }
 
 #[test]

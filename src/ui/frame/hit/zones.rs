@@ -1,8 +1,6 @@
 use super::{Hit, ResizeEdge};
 use crate::geometry::{Point, Rect};
-use crate::ui::frame::{
-    EditorFrame, MenuFrame, PaneFrame, SettingsFrame, SidebarFrame, TitleBarFrame,
-};
+use crate::ui::frame::{MenuFrame, PaneFrame, SettingsFrame, SidebarFrame, TitleBarFrame};
 
 const CORNER_FACTOR: f32 = 2.0;
 
@@ -34,35 +32,6 @@ pub(super) fn hit_sidebar(sidebar: &SidebarFrame, point: Point) -> Hit {
     }
 }
 
-pub(super) fn hit_editor(editor: &EditorFrame, point: Point) -> Option<Hit> {
-    if let Some(form) = editor
-        .form
-        .as_ref()
-        .filter(|form| form.rect.contains(point))
-    {
-        return Some(match form.field_at(point) {
-            Some(field) => Hit::FormField(field),
-            None if form.connect.contains(point) => Hit::FormConnect,
-            None => Hit::EditStrip,
-        });
-    }
-    if let Some(slot) = editor.slot_at(point) {
-        return Some(Hit::EditSwatch(slot.color));
-    }
-    if let Some(slot) = editor.emblem_at(point) {
-        return Some(Hit::EditEmblem(slot.emblem));
-    }
-    let in_field = editor
-        .field
-        .as_ref()
-        .is_some_and(|field| field.rect.contains(point));
-    match () {
-        _ if in_field => Some(Hit::EditField),
-        _ if editor.strip.contains(point) => Some(Hit::EditStrip),
-        _ => None,
-    }
-}
-
 pub(super) fn hit_menu(menu: &MenuFrame, point: Point) -> Option<Hit> {
     menu.rect
         .contains(point)
@@ -70,13 +39,17 @@ pub(super) fn hit_menu(menu: &MenuFrame, point: Point) -> Option<Hit> {
 }
 
 pub(super) fn hit_settings(panel: &SettingsFrame, point: Point) -> Option<Hit> {
-    match panel.rect.contains(point) {
+    match panel.popup.rect.contains(point) {
         true => Some(
             panel
                 .control_at(point)
                 .map_or(Hit::SettingsPanel, Hit::Setting),
         ),
-        false => panel.backdrop.contains(point).then_some(Hit::Backdrop),
+        false => panel
+            .popup
+            .backdrop
+            .contains(point)
+            .then_some(Hit::Backdrop),
     }
 }
 

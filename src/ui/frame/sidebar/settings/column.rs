@@ -5,9 +5,9 @@ use crate::ui::metrics::UiMetrics;
 
 use super::{Chip, ChoiceRow, SettingControl, SettingLine, Stepper};
 
-pub(super) const CAPTION_HEIGHT: f32 = 22.0;
-pub(super) const LINE_HEIGHT: f32 = 28.0;
-pub(super) const SECTION_GAP: f32 = 8.0;
+pub(in crate::ui::frame) const CAPTION_HEIGHT: f32 = 22.0;
+pub(in crate::ui::frame) const LINE_HEIGHT: f32 = 28.0;
+pub(in crate::ui::frame) const SECTION_GAP: f32 = 8.0;
 
 const LINE_INSET: f32 = 6.0;
 const VALUE_WIDTH: f32 = 44.0;
@@ -16,15 +16,20 @@ const TOGGLE_HEIGHT: f32 = 16.0;
 const CHOICE_PAD: f32 = 8.0;
 const CHOICE_GAP: f32 = 2.0;
 
-pub(super) struct Column<'a> {
-    pub(super) text: &'a mut TextSystem,
-    pub(super) metrics: UiMetrics,
-    pub(super) inner: Rect,
-    pub(super) y: f32,
+pub(in crate::ui::frame) struct Column<'a> {
+    pub(in crate::ui::frame) text: &'a mut TextSystem,
+    pub(in crate::ui::frame) metrics: UiMetrics,
+    pub(in crate::ui::frame) inner: Rect,
+    pub(in crate::ui::frame) y: f32,
 }
 
 impl Column<'_> {
-    pub(super) fn line(&mut self, label: &str, height: f32, style: TextStyle) -> SettingLine {
+    pub(in crate::ui::frame) fn line(
+        &mut self,
+        label: &str,
+        height: f32,
+        style: TextStyle,
+    ) -> SettingLine {
         let rect = Rect::new(
             self.inner.x,
             self.y,
@@ -41,11 +46,11 @@ impl Column<'_> {
         }
     }
 
-    pub(super) fn caption(&mut self, label: &str) -> SettingLine {
+    pub(in crate::ui::frame) fn caption(&mut self, label: &str) -> SettingLine {
         self.line(label, CAPTION_HEIGHT, self.metrics.caption())
     }
 
-    pub(super) fn section(&mut self, label: &str) -> SettingLine {
+    pub(in crate::ui::frame) fn section(&mut self, label: &str) -> SettingLine {
         self.y += self.metrics.px(SECTION_GAP);
         self.caption(label)
     }

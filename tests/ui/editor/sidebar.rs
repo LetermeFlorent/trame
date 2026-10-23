@@ -1,4 +1,5 @@
 use trame::input::TextField;
+use trame::locale::Language;
 use trame::session::SessionId;
 use trame::text::TextSystem;
 use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest, SidebarItem};
@@ -61,21 +62,21 @@ fn an_editor_for_a_missing_target_is_dropped() {
 }
 
 #[test]
-fn near_the_bottom_edge_the_colours_open_above_the_row() {
+fn a_row_near_the_bottom_edge_still_gets_its_colours_inside_the_window() {
     let mut text = text_system();
     let workspace = workspace();
     let mut frame = crate::frame(&mut text, &workspace);
     let sidebar = frame.sidebar.as_mut().expect("the sidebar");
     let row = &mut sidebar.rows[0];
     row.rect.y = HEIGHT - row.rect.height;
-    let row_top = row.rect.y;
     let request = EditorRequest {
         target: EditTarget::Instance(workspace.instances[0].id),
         anchor: EditAnchor::Sidebar,
         kind: EditKind::Color(None),
+        strings: Language::English.strings(),
     };
     frame.place_editor(&mut text, &request);
     let editor = frame.editor.as_ref().expect("an editor");
-    assert!(editor.strip.bottom() <= row_top);
-    assert!(editor.strip.y >= 0.0);
+    assert!(editor.strip.y >= frame.title_bar.rect.bottom());
+    assert!(editor.strip.bottom() <= HEIGHT);
 }

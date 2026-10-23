@@ -43,7 +43,7 @@ impl Running {
             EditMode::Text { field, original } => {
                 self.rename(editing.target, field.text(), original)
             }
-            EditMode::Form(form) => match form.host() {
+            EditMode::Form(form, _) => match form.host() {
                 Some(host) => {
                     let host = kept_in_config(host);
                     save_secret(&host, form.secret());
@@ -67,6 +67,17 @@ impl Running {
         match target {
             EditTarget::Tab(id) => self.workspace.rename_tab(id, text),
             EditTarget::Instance(id) => self.workspace.rename_instance(id, text),
+        }
+    }
+
+    pub(super) fn connect_listed(&mut self, index: usize) {
+        let Some(editing) = self.editing.take() else {
+            return;
+        };
+        if let EditMode::Form(_, hosts) = editing.mode
+            && let Some(host) = hosts.into_iter().nth(index)
+        {
+            self.connect(editing.target, host);
         }
     }
 

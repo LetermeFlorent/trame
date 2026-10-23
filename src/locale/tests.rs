@@ -58,6 +58,8 @@ fn each_language_has_its_own_texts() {
         (english.default_folder, french.default_folder),
         (english.choose, french.choose),
         (english.pick_folder, french.pick_folder),
+        (english.ssh_connection, french.ssh_connection),
+        (english.servers, french.servers),
         (english.new_connection, french.new_connection),
         (english.connections, french.connections),
         (english.no_connections, french.no_connections),

@@ -35,10 +35,13 @@ pub fn panel(layout: &FrameLayout) -> &SettingsFrame {
 fn the_window_opens_in_the_middle_over_everything_below_the_title_bar() {
     let layout = english(&Preferences::default());
     let settings = panel(&layout);
-    assert_eq!(settings.backdrop.y, layout.title_bar.rect.bottom());
-    assert_eq!(settings.backdrop.bottom(), layout.bounds.bottom());
-    assert_eq!(settings.backdrop.width, layout.bounds.width);
-    let (panel, backdrop) = (settings.rect.center(), settings.backdrop.center());
+    assert_eq!(settings.popup.backdrop.y, layout.title_bar.rect.bottom());
+    assert_eq!(settings.popup.backdrop.bottom(), layout.bounds.bottom());
+    assert_eq!(settings.popup.backdrop.width, layout.bounds.width);
+    let (panel, backdrop) = (
+        settings.popup.rect.center(),
+        settings.popup.backdrop.center(),
+    );
     assert!((panel.x - backdrop.x).abs() <= 1.0);
     assert!((panel.y - backdrop.y).abs() <= 1.0);
 }
@@ -53,7 +56,7 @@ fn drawn_controls(settings: &SettingsFrame) -> Vec<(Rect, SettingControl)> {
         .iter()
         .map(|toggle: &ToggleRow| (toggle.line.rect, toggle.control));
     let controls = [
-        (settings.close, SettingControl::Close),
+        (settings.popup.close, SettingControl::Close),
         (
             settings.instance_tabs.smaller,
             SettingControl::InstanceTabsFewer,
@@ -81,13 +84,16 @@ fn every_control_answers_where_it_is_drawn() {
     let layout = english(&Preferences::default());
     let settings = panel(&layout);
     for (rect, control) in drawn_controls(settings) {
-        assert!(settings.rect.contains(rect.center()), "{control:?}");
+        assert!(settings.popup.rect.contains(rect.center()), "{control:?}");
         assert_eq!(
             layout.hit(rect.center(), false),
             Some(Hit::Setting(control))
         );
     }
-    for line in [&settings.title].into_iter().chain(&settings.sections) {
+    for line in [&settings.popup.title]
+        .into_iter()
+        .chain(&settings.sections)
+    {
         assert_eq!(
             layout.hit(line.rect.center(), false),
             Some(Hit::SettingsPanel)
@@ -100,7 +106,10 @@ fn a_click_beside_the_window_reaches_nothing_but_the_title_bar_still_works() {
     let layout = english(&Preferences::default());
     let settings = panel(&layout);
     let row = layout.sidebar.as_ref().expect("the sidebar").rows[0].rect;
-    let content = Point::new(settings.rect.right() + 10.0, settings.rect.center().y);
+    let content = Point::new(
+        settings.popup.rect.right() + 10.0,
+        settings.popup.rect.center().y,
+    );
     for point in [row.center(), content, layout.footer.settings.center()] {
         assert_eq!(layout.hit(point, false), Some(Hit::Backdrop));
     }
@@ -118,5 +127,5 @@ fn a_collapsed_sidebar_changes_nothing_to_the_window() {
         Language::English.strings(),
     );
     let open = english(&Preferences::default());
-    assert_eq!(panel(&layout).rect, panel(&open).rect);
+    assert_eq!(panel(&layout).popup.rect, panel(&open).popup.rect);
 }

@@ -1,15 +1,19 @@
-use trame::preferences::{SshHost, vault};
+use trame::preferences::{SshHost, menu_hosts, vault};
 use trame::session::SessionId;
 use trame::ui::frame::EditTarget;
 
 use super::Placement;
+use crate::app::persist;
 use crate::app::running::Running;
 
 impl Running {
-    pub(in crate::app::running) fn connect_saved(&mut self, target: EditTarget, index: usize) {
-        if let Some(host) = self.preferences.ssh_hosts.get(index).cloned() {
-            self.connect(target, host);
-        }
+    pub(in crate::app::running) fn known_hosts(&self) -> Vec<SshHost> {
+        let aliases = persist::ssh_config().map_or(Ok(Vec::new()), |config| config.aliases());
+        let aliases = aliases.unwrap_or_else(|error| {
+            eprintln!("trame: the SSH config could not be read: {error}");
+            Vec::new()
+        });
+        menu_hosts(&self.preferences.ssh_hosts, &aliases)
     }
 
     pub(in crate::app::running) fn connect(&mut self, target: EditTarget, host: SshHost) {

@@ -21,7 +21,7 @@ fn without_saved_connections_the_section_explains_how_to_add_one() {
     let settings = panel(&layout);
     assert!(settings.hosts.is_empty());
     let hint = settings.hosts_hint.as_ref().expect("a hint");
-    assert!(settings.rect.contains(hint.rect.center()));
+    assert!(settings.popup.rect.contains(hint.rect.center()));
     assert_eq!(
         layout.hit(hint.rect.center(), false),
         Some(Hit::SettingsPanel)
@@ -38,7 +38,7 @@ fn each_saved_connection_has_a_line_and_a_button_to_forget_it() {
         assert!(row.chips.is_empty());
         let (forget, control) = row.clear.expect("a forget button");
         assert_eq!(control, SettingControl::ForgetHost(index));
-        assert!(settings.rect.contains(forget.center()));
+        assert!(settings.popup.rect.contains(forget.center()));
         assert_eq!(
             layout.hit(forget.center(), false),
             Some(Hit::Setting(control))
@@ -53,13 +53,16 @@ fn each_saved_connection_has_a_line_and_a_button_to_forget_it() {
 fn the_window_grows_with_the_saved_connections_and_stays_centred() {
     let one = english(&with_hosts(&["a"]));
     let empty = english(&Preferences::default());
-    assert_eq!(panel(&one).rect.height, panel(&empty).rect.height);
+    assert_eq!(
+        panel(&one).popup.rect.height,
+        panel(&empty).popup.rect.height
+    );
     let three = english(&with_hosts(&["a", "b", "c"]));
     let (small, tall) = (panel(&one), panel(&three));
     let line = small.hosts[0].line.rect.height;
-    assert!((tall.rect.height - small.rect.height - 2.0 * line).abs() <= 1.0);
+    assert!((tall.popup.rect.height - small.popup.rect.height - 2.0 * line).abs() <= 1.0);
     let last = tall.hosts[2].line.rect;
-    assert!(last.bottom() <= tall.rect.bottom());
-    let (panel_mid, backdrop_mid) = (tall.rect.center(), tall.backdrop.center());
+    assert!(last.bottom() <= tall.popup.rect.bottom());
+    let (panel_mid, backdrop_mid) = (tall.popup.rect.center(), tall.popup.backdrop.center());
     assert!((panel_mid.y - backdrop_mid.y).abs() <= 1.0);
 }

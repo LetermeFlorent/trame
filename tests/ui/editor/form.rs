@@ -1,6 +1,5 @@
 use trame::geometry::Point;
-use trame::locale::Language;
-use trame::preferences::{ConnectForm, FormField};
+use trame::preferences::{ConnectForm, FormField, SshHost};
 use trame::text::TextSystem;
 use trame::ui::frame::{EditAnchor, EditKind, EditTarget, FormFrame, SECRET_MASK};
 use trame::ui::{FrameLayout, Hit, UiMetrics};
@@ -18,16 +17,19 @@ fn typed(entries: &[(FormField, &str)]) -> ConnectForm {
     form
 }
 
-fn on_sidebar(text: &mut TextSystem, workspace: &Workspace, form: &ConnectForm) -> FrameLayout {
+pub(super) fn with_hosts(
+    text: &mut TextSystem,
+    workspace: &Workspace,
+    form: &ConnectForm,
+    hosts: &[SshHost],
+) -> FrameLayout {
     let target = EditTarget::Instance(workspace.instances[0].id);
-    let strings = Language::French.strings();
-    place(
-        text,
-        workspace,
-        target,
-        EditAnchor::Sidebar,
-        EditKind::Form(form, strings),
-    )
+    let kind = EditKind::Form(form, hosts);
+    place(text, workspace, target, EditAnchor::Sidebar, kind)
+}
+
+fn on_sidebar(text: &mut TextSystem, workspace: &Workspace, form: &ConnectForm) -> FrameLayout {
+    with_hosts(text, workspace, form, &[])
 }
 
 fn form_of(frame: &FrameLayout) -> &FormFrame {
@@ -41,10 +43,13 @@ fn the_form_shows_four_labelled_fields_and_a_button_inside_the_window() {
     let workspace = workspace();
     let frame = on_sidebar(&mut text, &workspace, &ConnectForm::new());
     let form = form_of(&frame);
-    assert!(frame.bounds.contains(form.rect.center()));
-    assert!(
-        form.rect.right() <= frame.bounds.right() && form.rect.bottom() <= frame.bounds.bottom()
-    );
+    let popup = frame
+        .editor
+        .as_ref()
+        .and_then(|editor| editor.popup.as_ref());
+    let popup = popup.expect("the form sits in a popup").rect;
+    assert!(popup.contains(form.rect.center()));
+    assert!(form.rect.right() <= popup.right() && form.rect.bottom() <= popup.bottom());
     let fields: Vec<FormField> = form.rows.iter().map(|row| row.field).collect();
     assert_eq!(fields, FormField::ALL);
     for pair in form.rows.windows(2) {

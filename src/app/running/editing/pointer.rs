@@ -21,11 +21,15 @@ impl Running {
             Some(Hit::EditEmblem(emblem)) if pressed => self.pick_emblem(emblem),
             Some(Hit::FormField(field)) if pressed => self.focus_form(field),
             Some(Hit::FormConnect) if pressed => self.commit_edit(),
+            Some(Hit::EditHost(index)) if pressed => self.connect_listed(index),
+            Some(Hit::EditClose) if pressed => self.cancel_edit(),
             Some(
                 Hit::EditField
                 | Hit::EditStrip
                 | Hit::EditSwatch(_)
                 | Hit::EditEmblem(_)
+                | Hit::EditHost(_)
+                | Hit::EditClose
                 | Hit::FormField(_)
                 | Hit::FormConnect,
             ) => return true,
@@ -42,7 +46,7 @@ impl Running {
 
     fn focus_form(&mut self, field: FormField) {
         if let Some(Editing {
-            mode: EditMode::Form(form),
+            mode: EditMode::Form(form, _),
             ..
         }) = &mut self.editing
         {

@@ -7,9 +7,9 @@ use crate::ui::frame::{EditorFrame, EmblemSlot, FieldFrame, SwatchSlot};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
-use super::form::draw_form;
+use super::form::draw_connect_dialog;
+use super::popup::draw_popup;
 
-pub(super) const STRIP_BLUR: f32 = 8.0;
 const RING_GAP: f32 = 2.0;
 const RING_RADIUS_EXTRA: f32 = 2.0;
 const SLASH_INSET: f32 = 3.0;
@@ -19,19 +19,17 @@ pub fn draw_editor(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
         return;
     };
     let mut painter = Painter::new(scene, text, input);
-    if !editor.strip.is_empty() {
-        draw_strip(&mut painter, editor);
+    if let Some(popup) = &editor.popup {
+        draw_popup(&mut painter, popup, Hit::EditClose);
     }
+    draw_slots(&mut painter, editor);
     if let Some(field) = &editor.field {
         draw_field(&mut painter, field, true);
     }
-    if let Some(form) = &editor.form {
-        draw_form(&mut painter, form);
-    }
+    draw_connect_dialog(&mut painter, editor);
 }
 
-fn draw_strip(painter: &mut Painter, editor: &EditorFrame) {
-    painter.panel(editor.strip, STRIP_BLUR);
+fn draw_slots(painter: &mut Painter, editor: &EditorFrame) {
     for slot in &editor.slots {
         draw_slot(painter, slot, editor.selected);
     }

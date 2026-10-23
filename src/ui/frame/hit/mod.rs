@@ -1,3 +1,4 @@
+mod editor;
 mod zones;
 
 use crate::geometry::Point;
@@ -7,9 +8,9 @@ use crate::theme::{Emblem, Swatch};
 use crate::ui::frame::{FrameLayout, MenuEntry, SettingControl, SidebarItem};
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{InstanceId, PaneId};
+use editor::hit_editor;
 use zones::{
-    hit_editor, hit_menu, hit_pane, hit_settings, hit_sidebar, hit_title_bar, resize_edge,
-    through_backdrop,
+    hit_menu, hit_pane, hit_settings, hit_sidebar, hit_title_bar, resize_edge, through_backdrop,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -49,6 +50,8 @@ pub enum Hit {
     EditStrip,
     EditSwatch(Option<Swatch>),
     EditEmblem(Emblem),
+    EditHost(usize),
+    EditClose,
     FormField(FormField),
     FormConnect,
     Settings,

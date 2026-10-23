@@ -11,7 +11,7 @@ impl Running {
     pub(in super::super) fn editing_key(&mut self, event: &KeyEvent) -> bool {
         let typing = match &self.editing {
             _ if self.command_field.is_some() => true,
-            Some(editing) => matches!(editing.mode, EditMode::Text { .. } | EditMode::Form(_)),
+            Some(editing) => matches!(editing.mode, EditMode::Text { .. } | EditMode::Form(..)),
             None => return false,
         };
         match typing {
@@ -62,7 +62,7 @@ impl Running {
     fn step_form(&mut self) -> bool {
         let backwards = self.modifiers.shift_key();
         let Some(Editing {
-            mode: EditMode::Form(form),
+            mode: EditMode::Form(form, _),
             ..
         }) = &mut self.editing
         else {
@@ -92,7 +92,7 @@ impl Running {
             (
                 None,
                 Some(Editing {
-                    mode: EditMode::Form(form),
+                    mode: EditMode::Form(form, _),
                     ..
                 }),
             ) => form.focused_mut(),
