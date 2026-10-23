@@ -37,6 +37,13 @@ fn hit_dialog(editor: &EditorFrame, close: Rect, point: Point) -> Hit {
     if let Some(hit) = host_hit(editor.form.as_ref(), editor.list.as_ref(), point) {
         return hit;
     }
+    if editor
+        .field
+        .as_ref()
+        .is_some_and(|field| field.rect.contains(point))
+    {
+        return Hit::EditField;
+    }
     if let Some(part) = editor
         .picker
         .as_ref()

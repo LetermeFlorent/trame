@@ -52,4 +52,7 @@ pub const FRENCH: Strings = Strings {
     my_colors: "MES COULEURS",
     new_color: "Nouvelle couleur",
     edit_color: "Modifier la couleur",
+    letters_or_image: "LETTRES OU IMAGE",
+    image: "Image",
+    pick_image: "Choisir une image",
 };

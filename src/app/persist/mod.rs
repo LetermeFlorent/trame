@@ -14,6 +14,7 @@ pub use saver::Saver;
 const APP_DIR: &str = "trame";
 const FILE_NAME: &str = "session.json";
 const TRANSCRIPT_DIR: &str = "text";
+const ICON_DIR: &str = "icons";
 const SSH_DIR: &str = ".ssh";
 const SSH_CONFIG: &str = "config";
 
@@ -49,6 +50,10 @@ pub fn session_path() -> Option<PathBuf> {
 
 pub fn transcript_dir() -> Option<PathBuf> {
     app_dir().map(|dir| dir.join(TRANSCRIPT_DIR))
+}
+
+pub fn icon_dir() -> Option<PathBuf> {
+    app_dir().map(|dir| dir.join(ICON_DIR))
 }
 
 pub fn load() -> Option<Snapshot> {

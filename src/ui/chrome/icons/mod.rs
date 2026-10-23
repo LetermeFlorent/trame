@@ -1,4 +1,5 @@
 mod emblems;
+mod painting;
 mod panels;
 mod tools;
 

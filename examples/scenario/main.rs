@@ -9,6 +9,7 @@ use std::time::{Duration, Instant};
 
 use common::{Args, Studio};
 use shells::{Scenario, build};
+use trame::files::IconStore;
 use trame::locale::Language;
 use trame::render::Scene;
 use trame::session::{Session, SessionId};
@@ -73,6 +74,7 @@ fn paint(
         motion: &motion,
         drag: None,
         loader: None,
+        icons: &IconStore::default(),
     };
     let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
     draw_frame(&mut scene, text, &sources);

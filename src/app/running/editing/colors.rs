@@ -1,63 +1,9 @@
-use trame::input::TextField;
-use trame::theme::{Hsv, Rgba, Swatch, hex_code, parse_hex};
+use trame::theme::Swatch;
 use trame::ui::Hit;
-use trame::ui::frame::{EditTarget, ListControl, PickerPart, PickerView};
+use trame::ui::frame::{EditTarget, ListControl, PickerPart};
 
+use super::picker::{Picker, rgb_of};
 use super::{EditMode, Editing, Running};
-
-pub(super) struct Picker {
-    slot: Option<usize>,
-    hsv: Hsv,
-    field: TextField,
-    first: usize,
-}
-
-impl Picker {
-    fn new(slot: Option<usize>, rgb: u32, first: usize) -> Self {
-        let mut picker = Self {
-            slot,
-            hsv: Hsv::from_rgb(rgb),
-            field: TextField::new(""),
-            first,
-        };
-        picker.show_code();
-        picker.field.select_all();
-        picker
-    }
-
-    pub(super) fn view(&self) -> PickerView<'_> {
-        PickerView {
-            hsv: self.hsv,
-            field: &self.field,
-            editing: self.slot.is_some(),
-        }
-    }
-
-    pub(super) fn edit_code(&mut self, change: impl FnOnce(&mut TextField)) {
-        change(&mut self.field);
-        if let Some(rgb) = parse_hex(self.field.text()) {
-            self.hsv = Hsv::from_rgb(rgb);
-        }
-    }
-
-    fn show_code(&mut self) {
-        self.field = TextField::new(&hex_code(self.hsv.to_rgb()));
-    }
-}
-
-impl Editing {
-    pub(super) fn picker_mut(&mut self) -> Option<&mut Picker> {
-        match &mut self.mode {
-            EditMode::Picker(picker) => Some(picker),
-            _ => None,
-        }
-    }
-}
-
-fn rgb_of(color: Rgba) -> u32 {
-    let [r, g, b] = color.to_rgb8();
-    u32::from_be_bytes([0, r, g, b])
-}
 
 impl Running {
     pub(in crate::app::running) fn custom_control(&mut self, control: ListControl) -> bool {
@@ -140,6 +86,13 @@ impl Running {
         match picker.map(|picker| picker.first) {
             Some(first) => self.open_colors(first),
             None => self.cancel_edit(),
+        }
+    }
+
+    pub(super) fn color_of(&self, target: EditTarget) -> Option<Swatch> {
+        match target {
+            EditTarget::Tab(id) => self.workspace.tab_color(id),
+            EditTarget::Instance(id) => self.workspace.instance(id)?.color,
         }
     }
 

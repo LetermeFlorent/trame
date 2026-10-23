@@ -4,6 +4,7 @@ use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
 use trame::input::{Command, TextField};
 
+use super::icons::edit_letters;
 use super::{EditMode, Editing, Running};
 use crate::app::running::keys::{is_escape, read_clipboard};
 
@@ -13,7 +14,10 @@ impl Running {
             _ if self.command_field.is_some() || self.settings_form_open() => true,
             Some(editing) => matches!(
                 editing.mode,
-                EditMode::Text { .. } | EditMode::Form(..) | EditMode::Picker(..)
+                EditMode::Text { .. }
+                    | EditMode::Form(..)
+                    | EditMode::Picker(..)
+                    | EditMode::Emblem { .. }
             ),
             None => return false,
         };
@@ -96,6 +100,9 @@ impl Running {
         }
         if let Some(picker) = self.editing.as_mut().and_then(Editing::picker_mut) {
             return picker.edit_code(change);
+        }
+        if let Some(letters) = self.editing.as_mut().and_then(Editing::letters_mut) {
+            return edit_letters(letters, change);
         }
         if let Some(form) = self.connect_form_mut() {
             change(form.focused_mut());

@@ -121,6 +121,12 @@ fn each_language_has_its_own_custom_color_texts() {
 }
 
 #[test]
+fn each_language_has_its_own_custom_icon_texts() {
+    let picks: [fn(&Strings) -> &'static str; 2] = [|s| s.letters_or_image, |s| s.pick_image];
+    picks.into_iter().for_each(differ);
+}
+
+#[test]
 fn each_language_choice_is_named_in_its_own_language() {
     let labels = LanguageChoice::ALL.map(LanguageChoice::label);
     assert_eq!(labels, ["Auto", "Français", "English"]);

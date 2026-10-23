@@ -1,5 +1,6 @@
 use super::ChromeInput;
-use super::icons::{Icon, Pen, draw_icon};
+use super::icons::Icon;
+use crate::files::IconStore;
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::text::{TextLayout, TextSystem};
@@ -10,7 +11,6 @@ use crate::ui::metrics::UiMetrics;
 use crate::ui::motion::Motion;
 use crate::ui::paint::FrameView;
 
-const ICON_STROKE: f32 = 1.25;
 const SMALL_RADIUS: f32 = 3.0;
 const HOVER_SHADE: f32 = 0.12;
 const PRESSED_SHADE: f32 = 0.22;
@@ -31,6 +31,7 @@ pub(super) struct Painter<'a> {
     pub(super) view: &'a FrameView,
     pub(super) motion: &'a Motion,
     pub(super) editor: Option<&'a EditorFrame>,
+    pub(super) icons: &'a IconStore,
 }
 
 impl<'a> Painter<'a> {
@@ -47,6 +48,7 @@ impl<'a> Painter<'a> {
             view: input.view,
             motion: input.motion,
             editor: input.frame.editor.as_ref(),
+            icons: input.icons,
         }
     }
 
@@ -108,16 +110,6 @@ impl<'a> Painter<'a> {
             _ => HOVER_SHADE * self.glow(hit),
         };
         self.scene.fill(rect, base.mix(SHADE, shade), radius);
-    }
-
-    pub(super) fn icon(&mut self, icon: Icon, rect: Rect, color: Rgba) {
-        let stroke = (ICON_STROKE * self.metrics.scale).round().max(1.0);
-        let mut pen = Pen {
-            scene: self.scene,
-            color,
-            stroke,
-        };
-        draw_icon(&mut pen, icon, rect);
     }
 
     pub(super) fn renaming(&self, test: impl FnOnce(&EditorFrame) -> bool) -> bool {

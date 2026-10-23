@@ -2,7 +2,7 @@ use trame::input::TextField;
 use trame::session::SessionId;
 use trame::text::TextSystem;
 use trame::theme::Emblem;
-use trame::ui::frame::{EditAnchor, EditKind, EditTarget};
+use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EmblemView, FormAction};
 use trame::ui::{FrameLayout, Hit, UiMetrics};
 use trame::workspace::Workspace;
 
@@ -19,6 +19,13 @@ fn second_instance(
     place(text, workspace, target, anchor, kind)
 }
 
+fn icons(selected: Emblem, letters: &TextField) -> EditKind<'_> {
+    EditKind::Emblem(EmblemView {
+        selected: Some(selected),
+        letters,
+    })
+}
+
 fn collapsed() -> Workspace {
     let mut workspace = workspace();
     workspace.sidebar_open = false;
@@ -28,11 +35,12 @@ fn collapsed() -> Workspace {
 #[test]
 fn the_icon_row_offers_every_emblem_and_nothing_else() {
     let mut text = text_system();
-    let kind = EditKind::Emblem(Some(Emblem::Code));
+    let letters = TextField::new("");
+    let kind = icons(Emblem::Code, &letters);
     let frame = second_instance(&mut text, &workspace(), EditAnchor::Sidebar, kind);
     let editor = frame.editor.as_ref().expect("an editor");
     assert_eq!(editor.emblem, Some(Emblem::Code));
-    assert!(editor.field.is_none() && editor.slots.is_empty());
+    assert!(editor.slots.is_empty());
     let order: Vec<Emblem> = editor.emblems.iter().map(|slot| slot.emblem).collect();
     assert_eq!(order, Emblem::ALL.to_vec());
     for slot in &editor.emblems {
@@ -70,7 +78,8 @@ fn a_rail_icon_opens_the_rename_field_beside_the_rail() {
 #[test]
 fn a_rail_icon_opens_the_same_icon_window_as_the_sidebar() {
     let mut text = text_system();
-    let kind = EditKind::Emblem(Some(Emblem::Gear));
+    let letters = TextField::new("");
+    let kind = icons(Emblem::Gear, &letters);
     let from_rail = second_instance(&mut text, &collapsed(), EditAnchor::Rail, kind);
     let editor = from_rail.editor.as_ref().expect("an editor from the rail");
     let popup = editor.popup.as_ref().expect("a popup");
@@ -87,10 +96,35 @@ fn a_rail_icon_opens_the_same_icon_window_as_the_sidebar() {
 #[test]
 fn the_rail_anchor_needs_a_rail_and_an_instance() {
     let mut text = text_system();
-    let kind = EditKind::Emblem(Some(Emblem::Grid));
+    let letters = TextField::new("");
+    let kind = icons(Emblem::Grid, &letters);
     let open = second_instance(&mut text, &workspace(), EditAnchor::Rail, kind);
     assert!(open.editor.is_none());
     let tab = EditTarget::Tab(SessionId(1));
     let frame = place(&mut text, &collapsed(), tab, EditAnchor::Rail, kind);
     assert!(frame.editor.is_none());
+}
+
+#[test]
+fn the_icon_window_takes_letters_or_an_image_under_the_presets() {
+    let mut text = text_system();
+    let letters = TextField::new("TR");
+    let kind = icons(Emblem::Code, &letters);
+    let frame = second_instance(&mut text, &workspace(), EditAnchor::Sidebar, kind);
+    let editor = frame.editor.as_ref().expect("an editor");
+    let popup = editor.popup.as_ref().expect("a popup").rect;
+    assert_eq!(editor.sections.len(), 1);
+    assert!(editor.sections[0].rect.y >= editor.strip.bottom());
+    let field = editor.field.as_ref().expect("a letters field").rect;
+    assert!(field.y >= editor.sections[0].rect.bottom());
+    assert!(popup.contains(field.center()) && field.bottom() <= popup.bottom());
+    assert_eq!(frame.hit(field.center(), false), Some(Hit::EditField));
+    let buttons = &editor.form.as_ref().expect("the buttons").buttons;
+    let actions: Vec<FormAction> = buttons.iter().map(|button| button.action).collect();
+    assert_eq!(actions, [FormAction::Image, FormAction::Apply]);
+    for button in buttons {
+        assert!(button.rect.x >= field.right() && popup.contains(button.rect.center()));
+        let pressed = Some(Hit::FormButton(button.action));
+        assert_eq!(frame.hit(button.rect.center(), false), pressed);
+    }
 }

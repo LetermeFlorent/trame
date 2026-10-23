@@ -1,11 +1,13 @@
-mod folder;
+mod icons;
+mod picker;
 mod places;
 
 use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
-pub use folder::{FolderRequest, pick_folder};
+pub use icons::{ICON_SIZE, IconStore, fit, import_icon, load_icon};
+pub use picker::{PickRequest, pick_folder, pick_image};
 pub use places::{home_dir, short_path};
 
 const TEMPORARY_SUFFIX: &str = ".tmp";

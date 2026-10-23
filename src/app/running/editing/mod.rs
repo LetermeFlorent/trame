@@ -1,24 +1,25 @@
 mod colors;
 mod commit;
 mod folder;
+mod icons;
 mod keys;
 mod menu;
+mod picker;
 mod pointer;
 
 use std::path::PathBuf;
 
 use trame::input::TextField;
-use trame::theme::{Emblem, Swatch};
 use trame::ui::Hit;
 use trame::ui::frame::{
-    ColorsView, EditAnchor, EditKind, EditTarget, EditorRequest, MenuEntry, SidebarItem,
+    ColorsView, EditAnchor, EditKind, EditTarget, EditorRequest, EmblemView, MenuEntry, SidebarItem,
 };
 
 use super::Running;
 use super::settings::HostsPanel;
-use colors::Picker;
 use folder::shown_folder;
 pub(super) use menu::Menu;
+use picker::Picker;
 
 enum EditMode {
     Text {
@@ -30,7 +31,9 @@ enum EditMode {
         first: usize,
     },
     Picker(Picker),
-    Emblem,
+    Emblem {
+        letters: TextField,
+    },
     Folder {
         original: Option<PathBuf>,
         chosen: Option<PathBuf>,
@@ -82,7 +85,7 @@ impl Running {
                 EditMode::Text { field, original }
             }
             MenuEntry::Color => EditMode::Color { first: 0 },
-            MenuEntry::Icon => EditMode::Emblem,
+            MenuEntry::Icon => self.emblem_mode(target),
             MenuEntry::Folder => self.folder_mode(target),
             MenuEntry::Ssh => EditMode::Form(HostsPanel::connecting(self.known_hosts())),
         };
@@ -110,7 +113,10 @@ impl Running {
                 first: *first,
             }),
             EditMode::Picker(picker) => EditKind::Picker(picker.view()),
-            EditMode::Emblem => EditKind::Emblem(self.emblem_of(editing.target)),
+            EditMode::Emblem { letters } => EditKind::Emblem(EmblemView {
+                selected: self.emblem_of(editing.target),
+                letters,
+            }),
         };
         let request = EditorRequest {
             target: editing.target,
@@ -132,20 +138,6 @@ impl Running {
                 .instance(id)
                 .map(|instance| instance.name.clone())
                 .unwrap_or_default(),
-        }
-    }
-
-    fn color_of(&self, target: EditTarget) -> Option<Swatch> {
-        match target {
-            EditTarget::Tab(id) => self.workspace.tab_color(id),
-            EditTarget::Instance(id) => self.workspace.instance(id)?.color,
-        }
-    }
-
-    fn emblem_of(&self, target: EditTarget) -> Option<Emblem> {
-        match target {
-            EditTarget::Tab(_) => None,
-            EditTarget::Instance(id) => Some(self.workspace.instance(id)?.emblem),
         }
     }
 }

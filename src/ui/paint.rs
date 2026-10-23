@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::files::IconStore;
 use crate::geometry::Point;
 use crate::render::Scene;
 use crate::session::{Session, SessionId};
@@ -36,6 +37,7 @@ pub struct FrameSources<'a> {
     pub motion: &'a Motion,
     pub drag: Option<&'a DragView>,
     pub loader: Option<&'a LoaderView<'a>>,
+    pub icons: &'a IconStore,
 }
 
 pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSources) {
@@ -47,6 +49,7 @@ pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSourc
         frame,
         view,
         motion: sources.motion,
+        icons: sources.icons,
     };
     chrome::draw_chrome(scene, text, &input);
     for pane in &frame.panes {

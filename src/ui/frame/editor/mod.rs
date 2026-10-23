@@ -21,7 +21,9 @@ pub use form::{FormAction, FormButton, FormFrame, FormRow, SECRET_MASK};
 pub(in crate::ui::frame) use form::{FormSpec, button_form, form_height, form_title, place_form};
 pub use menu::{MenuEntry, MenuFrame, MenuRequest, MenuRow};
 use popups::ConnectDialog;
-pub use popups::{ColorsView, EmblemSlot, PickerFrame, PickerPart, PickerView, SwatchSlot};
+pub use popups::{
+    ColorsView, EmblemSlot, EmblemView, PickerFrame, PickerPart, PickerView, SwatchSlot,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum EditTarget {
@@ -34,7 +36,7 @@ pub enum EditKind<'a> {
     Name(&'a TextField),
     Color(ColorsView<'a>),
     Picker(PickerView<'a>),
-    Emblem(Option<Emblem>),
+    Emblem(EmblemView<'a>),
     Connect(HostsView<'a>),
 }
 
@@ -114,7 +116,7 @@ impl FrameLayout {
             },
             EditKind::Color(view) => self.color_popup(text, strings, view, editor),
             EditKind::Picker(view) => self.picker_popup(text, strings, view, editor),
-            EditKind::Emblem(emblem) => self.emblem_popup(text, strings, emblem, editor),
+            EditKind::Emblem(view) => self.emblem_popup(text, strings, view, editor),
             EditKind::Connect(view) => {
                 let dialog = ConnectDialog { view, strings };
                 self.connect_popup(text, &dialog, editor)

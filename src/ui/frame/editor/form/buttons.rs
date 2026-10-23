@@ -17,11 +17,12 @@ pub enum FormAction {
     Change,
     Apply,
     Add,
+    Image,
 }
 
 impl FormAction {
     pub fn is_primary(self) -> bool {
-        !matches!(self, Self::Cancel | Self::Change | Self::Add)
+        !matches!(self, Self::Cancel | Self::Change | Self::Add | Self::Image)
     }
 
     fn label(self, strings: &'static Strings) -> &'static str {
@@ -33,6 +34,7 @@ impl FormAction {
             Self::Change => strings.change,
             Self::Apply => strings.apply,
             Self::Add => strings.add,
+            Self::Image => strings.image,
         }
     }
 }

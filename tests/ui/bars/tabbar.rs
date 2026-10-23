@@ -1,3 +1,4 @@
+use trame::files::IconStore;
 use trame::geometry::Rect;
 use trame::render::Scene;
 use trame::session::SessionId;
@@ -28,6 +29,7 @@ fn paint(text: &mut TextSystem, frame: &FrameLayout, theme: &Theme) -> Scene {
         frame,
         view: &view,
         motion: &motion,
+        icons: &IconStore::default(),
     };
     let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
     draw_chrome(&mut scene, text, &input);

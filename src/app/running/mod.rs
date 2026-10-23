@@ -15,6 +15,7 @@ use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
+use trame::files::IconStore;
 use trame::geometry::Point;
 use trame::input::TextField;
 use trame::locale::Strings;
@@ -52,6 +53,7 @@ pub struct Running {
     proxy: EventLoopProxy<UserEvent>,
     saver: Saver,
     transcripts: Transcripts,
+    icons: IconStore,
     labels: HashMap<SessionId, String>,
     frame: FrameLayout,
     motion: Motion,

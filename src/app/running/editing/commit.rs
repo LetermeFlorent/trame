@@ -1,4 +1,4 @@
-use trame::theme::{Emblem, Swatch};
+use trame::theme::{Emblem, Letters, Swatch};
 use trame::ui::frame::{EditTarget, FormAction};
 
 use super::{EditMode, Running};
@@ -34,7 +34,11 @@ impl Running {
                 }
             }
             EditMode::Picker(picker) => self.apply_color(editing.target, picker),
-            EditMode::Color { .. } | EditMode::Emblem => {}
+            EditMode::Emblem { letters } => match Letters::parse(letters.text()) {
+                Some(letters) => self.set_emblem(editing.target, Emblem::Letters(letters)),
+                None => self.editing = Some(editing),
+            },
+            EditMode::Color { .. } => {}
         }
     }
 
@@ -43,6 +47,7 @@ impl Running {
             FormAction::Connect | FormAction::Save | FormAction::Apply => self.commit_edit(),
             FormAction::Change => self.change_chosen_folder(),
             FormAction::Add => self.add_color(),
+            FormAction::Image => self.ask_image(),
             FormAction::Cancel => self.step_back(),
             FormAction::Close => self.cancel_edit(),
         }
@@ -91,8 +96,8 @@ impl Running {
     }
 
     pub(super) fn pick_emblem(&mut self, emblem: Emblem) {
-        if let Some(EditTarget::Instance(id)) = self.editing.take().map(|editing| editing.target) {
-            self.workspace.set_instance_emblem(id, emblem);
+        if let Some(editing) = self.editing.take() {
+            self.set_emblem(editing.target, emblem);
         }
     }
 }

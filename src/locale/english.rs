@@ -52,4 +52,7 @@ pub const ENGLISH: Strings = Strings {
     my_colors: "MY COLOURS",
     new_color: "New colour",
     edit_color: "Edit colour",
+    letters_or_image: "LETTERS OR IMAGE",
+    image: "Image",
+    pick_image: "Choose an image",
 };

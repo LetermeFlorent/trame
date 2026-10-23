@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 use common::{Args, Studio};
+use trame::files::IconStore;
 use trame::geometry::Point;
 use trame::locale::Language;
 use trame::render::Scene;
@@ -75,6 +76,7 @@ fn paint(text: &mut TextSystem, frame: &FrameLayout, theme: &Theme, drag: &DragV
         motion: &Motion::default(),
         drag: Some(drag),
         loader: None,
+        icons: &IconStore::default(),
     };
     let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
     draw_frame(&mut scene, text, &sources);

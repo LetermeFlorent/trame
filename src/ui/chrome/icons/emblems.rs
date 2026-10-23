@@ -38,6 +38,7 @@ pub(super) fn emblem(pen: &mut Pen, emblem: Emblem, rect: Rect, size: f32) {
         Emblem::Globe => globe(pen, rect, size),
         Emblem::Database => database(pen, rect, size),
         Emblem::Gear => gear(pen, rect, size),
+        Emblem::Letters(_) | Emblem::Image(_) => grid(pen, rect, size),
     }
 }
 

@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use trame::files::{FolderRequest, pick_folder};
+use trame::files::{PickRequest, pick_folder};
 use trame::session::SessionId;
 use trame::ui::frame::EditTarget;
 use trame::workspace::{Instance, InstanceId};
@@ -27,7 +27,7 @@ impl From<EditTarget> for FolderTarget {
 
 impl Running {
     pub(in crate::app::running) fn ask_folder(&self, target: FolderTarget, start: Option<PathBuf>) {
-        let request = FolderRequest {
+        let request = PickRequest {
             owner: window::owner(&self.window),
             title: self.strings.pick_folder.to_owned(),
             start,

@@ -16,6 +16,7 @@ use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
 use winit::window::WindowId;
 
 use trame::session::SessionEvent;
+use trame::workspace::InstanceId;
 
 use running::{FolderTarget, Running};
 use update::UpdateStatus;
@@ -25,6 +26,7 @@ pub enum UserEvent {
     Session(SessionEvent),
     Update(UpdateStatus),
     Folder(FolderTarget, PathBuf),
+    Icon(InstanceId, u64),
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
@@ -116,6 +118,11 @@ impl ApplicationHandler<UserEvent> for App {
             UserEvent::Folder(target, folder) => {
                 if let Some(running) = &mut self.running {
                     running.folder_picked(target, folder);
+                }
+            }
+            UserEvent::Icon(id, image) => {
+                if let Some(running) = &mut self.running {
+                    running.icon_picked(id, image);
                 }
             }
         }

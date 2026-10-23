@@ -1,3 +1,5 @@
+mod images;
+
 use trame::text::{BOLD, CellText, DEFAULT_LINE_HEIGHT, FontRole, REGULAR, TextStyle, TextSystem};
 
 const SIZE: f32 = 14.0;

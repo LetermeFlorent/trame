@@ -2,6 +2,7 @@ mod ansi;
 mod color;
 mod emblems;
 mod hsv;
+mod letters;
 mod palettes;
 mod swatches;
 pub mod system;
@@ -9,6 +10,7 @@ pub mod system;
 pub use color::Rgba;
 pub use emblems::Emblem;
 pub use hsv::{Hsv, hex_code, parse_hex};
+pub use letters::{Letters, MAX_LETTERS};
 pub use swatches::Swatch;
 
 use crate::term::{Color, ReportedColors};

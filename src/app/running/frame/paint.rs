@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use trame::session::SessionId;
+use trame::theme::Emblem;
 use trame::ui::{FrameSources, draw_frame};
 
 use crate::app::running::Running;
@@ -47,6 +48,7 @@ impl Running {
     }
 
     fn paint(&mut self, now: Instant) {
+        self.load_icons();
         let size = self.window.inner_size();
         let drag = self.drag_view();
         let loader = self.loader.as_ref().map(|loader| loader.view(now));
@@ -61,10 +63,19 @@ impl Running {
                 motion: &self.motion,
                 drag: drag.as_ref(),
                 loader: loader.as_ref(),
+                icons: &self.icons,
             };
             draw_frame(&mut self.scene, &mut self.text, &sources);
             if !self.text.end_frame() {
                 break;
+            }
+        }
+    }
+
+    fn load_icons(&mut self) {
+        for instance in &self.workspace.instances {
+            if let Emblem::Image(id) = instance.emblem {
+                self.icons.load(id);
             }
         }
     }

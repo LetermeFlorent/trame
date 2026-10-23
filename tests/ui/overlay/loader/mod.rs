@@ -1,5 +1,6 @@
 mod bar;
 
+use trame::files::IconStore;
 use trame::geometry::Point;
 use trame::render::Scene;
 use trame::text::TextSystem;
@@ -29,6 +30,7 @@ fn paint(text: &mut TextSystem, layout: &FrameLayout, theme: &Theme, loader: &Lo
         frame: layout,
         view: &view,
         motion: &motion,
+        icons: &IconStore::default(),
     };
     let mut scene = Scene::new(layout.bounds.width, layout.bounds.height);
     draw_loader(&mut scene, text, &input, loader);

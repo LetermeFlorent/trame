@@ -13,6 +13,7 @@ pub use overlay::{
 };
 
 use self::painter::{Painter, Press, centered};
+use crate::files::IconStore;
 use crate::render::Scene;
 use crate::text::TextSystem;
 use crate::theme::Theme;
@@ -30,6 +31,7 @@ pub struct ChromeInput<'a> {
     pub frame: &'a FrameLayout,
     pub view: &'a FrameView,
     pub motion: &'a Motion,
+    pub icons: &'a IconStore,
 }
 
 pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput) {

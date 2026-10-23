@@ -1,3 +1,4 @@
+use trame::files::IconStore;
 use trame::render::Scene;
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Swatch, Theme};
@@ -36,6 +37,7 @@ fn paint(
         frame,
         view: &view,
         motion: &motion,
+        icons: &IconStore::default(),
     };
     let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
     draw(&mut scene, text, &input);

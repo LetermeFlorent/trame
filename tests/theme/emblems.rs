@@ -1,4 +1,4 @@
-use trame::theme::Emblem;
+use trame::theme::{Emblem, Letters};
 
 #[test]
 fn the_default_emblem_is_the_grid() {
@@ -61,4 +61,29 @@ fn emblems_are_saved_by_their_snake_case_name() {
     let back: Emblem = serde_json::from_str("\"gear\"").expect("parses");
     assert_eq!(back, Emblem::Gear);
     assert!(serde_json::from_str::<Emblem>("\"rocket\"").is_err());
+}
+
+#[test]
+fn custom_emblems_are_saved_with_their_letters_or_image() {
+    let letters = Emblem::Letters(Letters::parse("tr").expect("two letters"));
+    let image = Emblem::Image(0x00ab_cdef_0123_4567);
+    let saved = [letters, image].map(|emblem| serde_json::to_string(&emblem).expect("serializes"));
+    assert_eq!(saved, ["\"letters:tr\"", "\"image:00abcdef01234567\""]);
+    for (text, emblem) in saved.iter().zip([letters, image]) {
+        let back: Emblem = serde_json::from_str(text).expect("parses");
+        assert_eq!(back, emblem);
+    }
+    for wrong in ["\"letters:abc\"", "\"letters:\"", "\"image:xyz\""] {
+        assert!(serde_json::from_str::<Emblem>(wrong).is_err());
+    }
+}
+
+#[test]
+fn letters_hold_one_or_two_visible_characters() {
+    assert_eq!(Letters::parse(" \u{e9} ").map(Letters::count), Some(1));
+    let two = Letters::parse("AB").expect("two letters");
+    assert_eq!((two.count(), two.to_string()), (2, "AB".to_owned()));
+    for wrong in ["", "   ", "abc", "a\u{7}"] {
+        assert_eq!(Letters::parse(wrong), None);
+    }
 }

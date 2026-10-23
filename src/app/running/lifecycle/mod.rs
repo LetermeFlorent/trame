@@ -10,6 +10,7 @@ use std::time::Instant;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 
+use trame::files::IconStore;
 use trame::locale::Strings;
 use trame::preferences::Preferences;
 use trame::render::Scene;
@@ -85,12 +86,11 @@ impl Running {
     }
 
     fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>) -> Self {
-        let preferences = &surface.preferences;
-        let metrics = UiMetrics::new(preferences.ui_scale(surface.window_scale))
+        let metrics = UiMetrics::new(surface.preferences.ui_scale(surface.window_scale))
             .with_frame_border(window::frame_border(&surface.window));
         let workspace = Workspace::new();
         let mut motion = Motion::default();
-        let strings = preferences.language.resolve().strings();
+        let strings = surface.preferences.language.resolve().strings();
         let frame = first_frame(&mut surface, &workspace, metrics, &mut motion, strings);
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
@@ -106,6 +106,7 @@ impl Running {
             proxy,
             saver: Saver::new(),
             transcripts: Transcripts::new(persist::transcript_dir()),
+            icons: IconStore::new(persist::icon_dir()),
             labels: HashMap::new(),
             frame,
             motion,

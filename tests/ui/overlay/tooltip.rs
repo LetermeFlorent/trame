@@ -1,3 +1,4 @@
+use trame::files::IconStore;
 use trame::input::TextField;
 use trame::locale::Language;
 use trame::render::Scene;
@@ -29,6 +30,7 @@ fn paint(text: &mut TextSystem, frame: &FrameLayout, theme: &Theme, hover: Optio
         frame,
         view: &view,
         motion: &motion,
+        icons: &IconStore::default(),
     };
     let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
     draw_tooltip(&mut scene, text, &input);
