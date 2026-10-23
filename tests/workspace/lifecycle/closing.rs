@@ -136,3 +136,13 @@ fn instance_index_follows_ids_as_instances_shift() {
     assert_eq!(workspace.instance_index(InstanceId(3)), Some(1));
     assert_eq!(workspace.instance_index(InstanceId(1)), None);
 }
+
+#[test]
+fn only_the_last_tab_anywhere_is_the_only_tab() {
+    let mut workspace = three_instances();
+    assert!(!workspace.is_only_tab(tab(1)));
+    workspace.close_tab(tab(2));
+    workspace.close_tab(tab(3));
+    assert!(workspace.is_only_tab(tab(1)));
+    assert!(!workspace.is_only_tab(tab(9)));
+}

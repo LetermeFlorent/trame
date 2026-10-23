@@ -78,6 +78,10 @@ impl Workspace {
         self.instances.iter().flat_map(Instance::tabs).collect()
     }
 
+    pub fn is_only_tab(&self, tab: SessionId) -> bool {
+        self.tabs() == [tab]
+    }
+
     pub fn add_instance(&mut self, name: Option<String>, tab: SessionId) -> InstanceId {
         self.next_instance += 1;
         let id = InstanceId(self.next_instance);

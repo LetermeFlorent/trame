@@ -93,9 +93,18 @@ impl Running {
     }
 
     pub(super) fn close_tab(&mut self, event_loop: &ActiveEventLoop, id: SessionId) {
+        if self.workspace.is_only_tab(id) && !event_loop.exiting() {
+            self.replace_last_tab();
+        }
         if self.workspace.close_tab(id) {
             self.sessions.remove(id);
             self.after_close(event_loop);
+        }
+    }
+
+    fn replace_last_tab(&mut self) {
+        if let Err(error) = self.open(Placement::Tab) {
+            eprintln!("trame: a fresh tab could not start: {error}");
         }
     }
 
