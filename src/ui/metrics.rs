@@ -44,11 +44,11 @@ impl UiMetrics {
     pub const RAIL_WIDTH: f32 = 38.0;
     pub const SIDEBAR_HEADER: f32 = 30.0;
     pub const SIDEBAR_ROW: f32 = 26.0;
-    pub const TAB_BAR: f32 = 26.0;
-    pub const TAB_PADDING: f32 = 10.0;
+    pub const TAB_BAR: f32 = 22.0;
+    pub const TAB_PADDING: f32 = 7.0;
     pub const TAB_CLOSE: f32 = 16.0;
     pub const TAB_MIN: f32 = 64.0;
-    pub const TAB_MAX: f32 = 200.0;
+    pub const TAB_MAX: f32 = 160.0;
     pub const BUTTON: f32 = 22.0;
     pub const WINDOW_BUTTON: f32 = 46.0;
     pub const MAC_CONTROLS_INSET: f32 = 76.0;

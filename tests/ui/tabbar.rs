@@ -4,10 +4,10 @@ use trame::session::SessionId;
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Rgba, Swatch, Theme};
 use trame::ui::chrome::{ChromeInput, draw_chrome};
-use trame::ui::{FrameLayout, FrameView, Motion};
+use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
 use trame::workspace::Workspace;
 
-use crate::{frame, text_system, workspace};
+use crate::{frame, frame_in, text_system, workspace};
 
 fn coloured(first: Option<Swatch>, second: Option<Swatch>) -> Workspace {
     let mut workspace = workspace();
@@ -82,4 +82,20 @@ fn a_plain_tab_shows_no_line_until_it_is_open() {
     let tabs = &frame.panes[0].strip.tabs;
     assert!(!painted_at(&scene, tabs[0].rect, theme.accent));
     assert!(painted_at(&scene, tabs[1].rect, theme.accent));
+}
+
+#[test]
+fn the_bar_buttons_keep_room_above_and_below() {
+    let mut text = text_system();
+    let workspace = workspace();
+    for scale in [1.0, 1.25, 1.5, 2.0] {
+        let frame = frame_in(&mut text, &workspace, UiMetrics::new(scale));
+        let strip = &frame.panes[0].strip;
+        for button in [strip.new_tab, strip.split] {
+            let above = button.y - strip.rect.y;
+            let below = strip.rect.bottom() - button.bottom();
+            assert!(above >= 1.0 && below >= 1.0, "{scale}: {above} {below}");
+            assert!((above - below).abs() <= 1.0, "{scale}: {above} {below}");
+        }
+    }
 }

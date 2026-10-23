@@ -13,6 +13,7 @@ use crate::workspace::{Pane, PaneId};
 
 const BUTTON_GAP: f32 = 2.0;
 const BUTTON_MARGIN: f32 = 6.0;
+const STRIP_BUTTON: f32 = 18.0;
 
 #[derive(Clone, Debug)]
 pub struct TabFrame {
@@ -72,7 +73,7 @@ pub(super) fn layout_strip(cx: &mut PaneContext, placement: StripPlacement) -> T
 }
 
 fn controls(metrics: &UiMetrics, rect: Rect) -> Controls {
-    let button = metrics.px(UiMetrics::BUTTON);
+    let button = metrics.px(STRIP_BUTTON);
     let margin = metrics.px(BUTTON_MARGIN);
     let button_y = rect.centered_y(button).round();
     let split = Rect::new(rect.right() - margin - button, button_y, button, button);
