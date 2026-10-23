@@ -12,6 +12,9 @@ use crate::ui::paint::FrameView;
 
 const ICON_STROKE: f32 = 1.25;
 const SMALL_RADIUS: f32 = 3.0;
+const HOVER_SHADE: f32 = 0.12;
+const PRESSED_SHADE: f32 = 0.22;
+const SHADE: Rgba = Rgba::hex(0x000000);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Press {
@@ -97,6 +100,14 @@ impl<'a> Painter<'a> {
         };
         self.scene.fill(rect, fill, radius);
         glow
+    }
+
+    pub(super) fn shaded_fill(&mut self, rect: Rect, hit: Hit, base: Rgba, radius: f32) {
+        let shade = match self.state(hit) {
+            Press::Pressed => PRESSED_SHADE,
+            _ => HOVER_SHADE * self.glow(hit),
+        };
+        self.scene.fill(rect, base.mix(SHADE, shade), radius);
     }
 
     pub(super) fn icon(&mut self, icon: Icon, rect: Rect, color: Rgba) {

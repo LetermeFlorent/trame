@@ -1,14 +1,12 @@
 use super::draw_backdrop;
 use crate::geometry::Rect;
 use crate::theme::{Rgba, Swatch};
-use crate::ui::chrome::{Icon, Painter, Press, centered};
+use crate::ui::chrome::{Icon, Painter, centered};
 use crate::ui::frame::{FooterButton, FooterFrame};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
 const ON_UPDATE: Rgba = Rgba::hex(0x1b1b1b);
-const UPDATE_HOVER_SHADE: f32 = 0.12;
-const UPDATE_PRESSED_SHADE: f32 = 0.22;
 
 pub(in crate::ui::chrome) fn draw_footer(
     painter: &mut Painter,
@@ -37,13 +35,8 @@ pub(in crate::ui::chrome) fn draw_footer(
 
 fn draw_update(painter: &mut Painter, button: &FooterButton, reveal: f32) {
     let radius = painter.metrics.px(UiMetrics::RADIUS);
-    let shade = match painter.state(Hit::Update) {
-        Press::Pressed => UPDATE_PRESSED_SHADE,
-        _ => UPDATE_HOVER_SHADE * painter.glow(Hit::Update),
-    };
     let orange = painter.theme.swatch(Swatch::Orange);
-    let fill = orange.mix(Rgba::hex(0x000000), shade);
-    painter.scene.fill(button.rect, fill, radius);
+    painter.shaded_fill(button.rect, Hit::Update, orange, radius);
     draw_content(painter, button, Icon::Update, ON_UPDATE, reveal);
 }
 

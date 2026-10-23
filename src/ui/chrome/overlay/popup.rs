@@ -32,18 +32,20 @@ pub(super) fn draw_label_button(painter: &mut Painter, button: &LabelButton) {
     let theme = painter.theme;
     let radius = painter.metrics.px(UiMetrics::RADIUS);
     let rect = button.rect;
-    match button.filled {
-        true => painter.scene.fill(rect, theme.accent, radius),
+    let color = match button.filled {
+        true => {
+            painter.shaded_fill(rect, button.hit, theme.accent, radius);
+            ON_ACCENT
+        }
         false => {
             let stroke = painter.metrics.px(BUTTON_STROKE);
             painter.scene.border(rect, theme.border, radius, stroke);
+            let glow = painter.press_fill(rect, button.hit, radius);
+            match button.faint && glow == 0.0 {
+                true => theme.text_faint,
+                false => theme.muted_text(glow),
+            }
         }
-    }
-    let glow = painter.press_fill(rect, button.hit, radius);
-    let color = match () {
-        _ if button.filled => ON_ACCENT,
-        _ if button.faint && glow == 0.0 => theme.text_faint,
-        _ => theme.muted_text(glow),
     };
     let x = rect.centered_x(button.label.width);
     painter.label(button.label, x, rect, color);
