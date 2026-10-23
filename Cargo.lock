@@ -1968,7 +1968,7 @@ checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
 
 [[package]]
 name = "trame"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "arboard",
  "bytemuck",
