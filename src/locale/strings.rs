@@ -48,4 +48,7 @@ pub struct Strings {
     pub close: &'static str,
     pub change: &'static str,
     pub apply: &'static str,
+    pub my_colors: &'static str,
+    pub new_color: &'static str,
+    pub edit_color: &'static str,
 }

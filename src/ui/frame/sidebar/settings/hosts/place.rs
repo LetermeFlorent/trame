@@ -1,5 +1,4 @@
 use crate::geometry::Rect;
-use crate::preferences::SshHost;
 use crate::ui::frame::sidebar::settings::column::{BUTTON_GAP, Column, LINE_HEIGHT};
 use crate::ui::metrics::UiMetrics;
 
@@ -10,15 +9,16 @@ const BAR_GAP: f32 = 4.0;
 const MIN_THUMB: f32 = 18.0;
 
 pub(in crate::ui::frame) struct ListSpec<'a> {
-    pub(in crate::ui::frame) hosts: &'a [SshHost],
+    pub(in crate::ui::frame) labels: &'a [String],
     pub(in crate::ui::frame) first: usize,
     pub(in crate::ui::frame) shown: usize,
-    pub(in crate::ui::frame) manage: bool,
+    pub(in crate::ui::frame) pickable: bool,
+    pub(in crate::ui::frame) forgets: bool,
 }
 
 impl Column<'_> {
     pub(in crate::ui::frame) fn host_list(&mut self, spec: &ListSpec) -> HostList {
-        let count = spec.hosts.len();
+        let count = spec.labels.len();
         let shown = spec.shown.min(count);
         let last_first = count - shown;
         let first = spec.first.min(last_first);
@@ -35,27 +35,27 @@ impl Column<'_> {
             self.inner.width -= self.metrics.px(BAR_WIDTH + BAR_GAP);
         }
         let rows = (first..first + shown)
-            .map(|index| self.host_row(index, &spec.hosts[index], spec.manage))
+            .map(|index| self.host_row(index, &spec.labels[index], spec.forgets))
             .collect();
         self.inner = inner;
         HostList {
             rect,
             rows,
             bar,
-            pickable: !spec.manage,
+            pickable: spec.pickable,
         }
     }
 
-    fn host_row(&mut self, index: usize, host: &SshHost, manage: bool) -> HostRow {
-        let buttons = if manage { 2.0 } else { 1.0 };
+    fn host_row(&mut self, index: usize, label: &str, forgets: bool) -> HostRow {
+        let buttons = if forgets { 2.0 } else { 1.0 };
         let style = self.metrics.label();
-        let line = self.line_beside(&host.label(), LINE_HEIGHT, style, buttons);
+        let line = self.line_beside(label, LINE_HEIGHT, style, buttons);
         let end = self.end_button(&line);
         let before = Rect {
             x: end.x - end.width - self.metrics.px(BUTTON_GAP),
             ..end
         };
-        let (change, forget) = match manage {
+        let (change, forget) = match forgets {
             true => (before, Some(end)),
             false => (end, None),
         };

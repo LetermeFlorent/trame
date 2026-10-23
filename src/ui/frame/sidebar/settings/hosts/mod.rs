@@ -10,6 +10,10 @@ pub use page::ConnectionsPage;
 pub(super) use page::connections_page;
 pub(in crate::ui::frame) use place::ListSpec;
 
+pub(in crate::ui::frame) fn host_labels(hosts: &[SshHost]) -> Vec<String> {
+    hosts.iter().map(SshHost::label).collect()
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ListControl {
     Pick(usize),

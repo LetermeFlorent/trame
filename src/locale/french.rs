@@ -49,4 +49,7 @@ pub const FRENCH: Strings = Strings {
     close: "Fermer",
     change: "Modifier",
     apply: "Valider",
+    my_colors: "MES COULEURS",
+    new_color: "Nouvelle couleur",
+    edit_color: "Modifier la couleur",
 };

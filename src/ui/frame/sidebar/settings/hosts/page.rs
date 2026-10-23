@@ -7,7 +7,7 @@ use crate::ui::frame::editor::{
 use crate::ui::frame::sidebar::settings::column::{Column, LINE_HEIGHT};
 use crate::ui::frame::sidebar::settings::{ChoiceRow, SettingControl, SettingLine};
 
-use super::{HostList, HostsView, ListSpec};
+use super::{HostList, HostsView, ListSpec, host_labels};
 
 const FORM_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Save];
 
@@ -88,11 +88,13 @@ fn list_page(
         return page;
     }
     let room = (bottom - column.y) / column.metrics.px(LINE_HEIGHT);
+    let labels = host_labels(view.hosts);
     let spec = ListSpec {
-        hosts: view.hosts,
+        labels: &labels,
         first: view.first,
         shown: room.floor().max(1.0) as usize,
-        manage: true,
+        pickable: false,
+        forgets: true,
     };
     page.list = Some(column.host_list(&spec));
     page

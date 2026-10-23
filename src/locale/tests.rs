@@ -114,6 +114,13 @@ fn each_language_has_its_own_folder_window_texts() {
 }
 
 #[test]
+fn each_language_has_its_own_custom_color_texts() {
+    let picks: [fn(&Strings) -> &'static str; 3] =
+        [|s| s.my_colors, |s| s.new_color, |s| s.edit_color];
+    picks.into_iter().for_each(differ);
+}
+
+#[test]
 fn each_language_choice_is_named_in_its_own_language() {
     let labels = LanguageChoice::ALL.map(LanguageChoice::label);
     assert_eq!(labels, ["Auto", "Français", "English"]);

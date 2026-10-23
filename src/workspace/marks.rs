@@ -58,6 +58,17 @@ impl Workspace {
         self.edit_instance(id, |instance| instance.color = color);
     }
 
+    pub fn replace_color(&mut self, old: Swatch, new: Swatch) {
+        let colors = self.marks.values_mut().map(|mark| &mut mark.color);
+        let instances = self
+            .instances
+            .iter_mut()
+            .map(|instance| &mut instance.color);
+        for color in colors.chain(instances).filter(|color| **color == Some(old)) {
+            *color = Some(new);
+        }
+    }
+
     pub fn set_instance_emblem(&mut self, id: InstanceId, emblem: Emblem) {
         self.edit_instance(id, |instance| instance.emblem = emblem);
     }

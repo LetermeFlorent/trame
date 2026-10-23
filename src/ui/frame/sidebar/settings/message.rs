@@ -1,7 +1,7 @@
 use crate::geometry::{Point, Rect};
 use crate::locale::Strings;
 use crate::text::TextSystem;
-use crate::ui::frame::editor::{FormAction, FormFrame, place_buttons};
+use crate::ui::frame::editor::{FormAction, FormFrame, button_form};
 use crate::ui::frame::{FrameLayout, fit_label_start};
 use crate::ui::metrics::UiMetrics;
 
@@ -38,18 +38,13 @@ impl FrameLayout {
         let room = line.rect.width - 2.0 * metrics.px(LINE_INSET);
         line.label = fit_label_start(column.text, request.line, metrics.label(), room);
         let area = Rect::new(column.inner.x, column.y, column.inner.width, actions);
-        let buttons = place_buttons(
+        let form = button_form(
             column.text,
             &metrics,
             area,
             request.actions,
             request.strings,
         );
-        let form = FormFrame {
-            rect: area,
-            rows: Vec::new(),
-            buttons,
-        };
         self.message = Some(MessageFrame { popup, line, form });
     }
 }

@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 use trame::locale::LanguageChoice;
 use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences, SshHost};
+use trame::theme::Swatch;
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
 use trame::workspace::{NodeSnapshot, PaneSnapshot, Snapshot, TabSnapshot};
 
@@ -94,6 +95,7 @@ fn preferences_and_text_keys_survive_json() {
         default_folder: Some(PathBuf::from("projects")),
         ssh_hosts: SshHost::parse("me@box:2222").into_iter().collect(),
         confirm_close: false,
+        custom_colors: vec![Swatch::custom(0x12ab34)],
     };
     let text = snapshot.to_json().expect("serializes");
     let parsed = Snapshot::from_json(&text).expect("parses");

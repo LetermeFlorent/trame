@@ -1,12 +1,14 @@
 mod ansi;
 mod color;
 mod emblems;
+mod hsv;
 mod palettes;
 mod swatches;
 pub mod system;
 
 pub use color::Rgba;
 pub use emblems::Emblem;
+pub use hsv::{Hsv, hex_code, parse_hex};
 pub use swatches::Swatch;
 
 use crate::term::{Color, ReportedColors};

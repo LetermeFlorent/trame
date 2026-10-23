@@ -49,4 +49,7 @@ pub const ENGLISH: Strings = Strings {
     close: "Close",
     change: "Change",
     apply: "Apply",
+    my_colors: "MY COLOURS",
+    new_color: "New colour",
+    edit_color: "Edit colour",
 };

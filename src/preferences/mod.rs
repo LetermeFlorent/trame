@@ -1,3 +1,4 @@
+mod colors;
 mod launch;
 mod ssh;
 
@@ -6,7 +7,10 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use crate::locale::LanguageChoice;
+use crate::theme::Swatch;
 use crate::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
+pub use colors::MAX_CUSTOM_COLORS;
+use colors::sanitized_colors;
 pub use launch::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Recall};
 use launch::{clamp_instance_tabs, sanitized_command};
 use ssh::sanitized_hosts;
@@ -47,6 +51,8 @@ pub struct Preferences {
     pub ssh_hosts: Vec<SshHost>,
     #[serde(default = "enabled")]
     pub confirm_close: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub custom_colors: Vec<Swatch>,
 }
 
 impl Default for Preferences {
@@ -63,6 +69,7 @@ impl Default for Preferences {
             default_folder: None,
             ssh_hosts: Vec::new(),
             confirm_close: true,
+            custom_colors: Vec::new(),
         }
     }
 }
@@ -75,6 +82,7 @@ impl Preferences {
             instance_tabs: clamp_instance_tabs(self.instance_tabs),
             startup_command: sanitized_command(self.startup_command),
             ssh_hosts: sanitized_hosts(self.ssh_hosts),
+            custom_colors: sanitized_colors(self.custom_colors),
             ..self
         }
     }

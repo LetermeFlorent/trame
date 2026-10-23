@@ -1,10 +1,8 @@
 mod anchor;
-mod dialogs;
-mod emblems;
 mod field;
 mod form;
 mod menu;
-mod row;
+mod popups;
 
 use super::{FrameLayout, HostList, HostsView, PopupFrame, SettingLine};
 use crate::geometry::{Point, Rect};
@@ -16,15 +14,14 @@ use crate::theme::{Emblem, Swatch};
 use crate::workspace::InstanceId;
 use anchor::AnchorSpot;
 pub use anchor::EditAnchor;
-use dialogs::ConnectDialog;
-pub use emblems::EmblemSlot;
 pub use field::FieldFrame;
 pub(in crate::ui::frame) use field::place_field;
 use field::place_inline;
 pub use form::{FormAction, FormButton, FormFrame, FormRow, SECRET_MASK};
-pub(in crate::ui::frame) use form::{FormSpec, form_height, form_title, place_buttons, place_form};
+pub(in crate::ui::frame) use form::{FormSpec, button_form, form_height, form_title, place_form};
 pub use menu::{MenuEntry, MenuFrame, MenuRequest, MenuRow};
-pub use row::SwatchSlot;
+use popups::ConnectDialog;
+pub use popups::{EmblemSlot, SwatchSlot};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum EditTarget {

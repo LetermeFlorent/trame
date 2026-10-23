@@ -6,7 +6,7 @@ use crate::locale::Strings;
 use crate::preferences::{ConnectForm, FormField};
 use crate::text::TextSystem;
 use crate::ui::metrics::UiMetrics;
-pub(in crate::ui::frame) use buttons::place_buttons;
+use buttons::place_buttons;
 pub use buttons::{FormAction, FormButton};
 use rows::form_rows;
 pub use rows::{FormRow, SECRET_MASK};
@@ -54,6 +54,20 @@ pub(in crate::ui::frame) fn form_height(metrics: &UiMetrics) -> f32 {
     FormField::ALL.len() as f32 * metrics.px(UiMetrics::SIDEBAR_ROW)
         + metrics.px(FORM_PAD)
         + metrics.px(UiMetrics::BUTTON)
+}
+
+pub(in crate::ui::frame) fn button_form(
+    text: &mut TextSystem,
+    metrics: &UiMetrics,
+    area: Rect,
+    actions: &[FormAction],
+    strings: &'static Strings,
+) -> FormFrame {
+    FormFrame {
+        rect: area,
+        rows: Vec::new(),
+        buttons: place_buttons(text, metrics, area, actions, strings),
+    }
 }
 
 pub(in crate::ui::frame) fn place_form(
