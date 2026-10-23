@@ -1,9 +1,7 @@
 use std::env;
 use std::path::PathBuf;
 
-use super::{FontSource, SystemFonts, existing, first_family};
-
-const TERMINAL: &[&[&str]] = &[
+pub(super) const TERMINAL: &[&[&str]] = &[
     &["CascadiaMono.ttf", "CascadiaMonoItalic.ttf"],
     &[
         "consola.ttf",
@@ -14,15 +12,15 @@ const TERMINAL: &[&[&str]] = &[
     &["cour.ttf", "courbd.ttf", "couri.ttf", "courbi.ttf"],
 ];
 
-const INTERFACE: &[&[&str]] = &[
+pub(super) const INTERFACE: &[&[&str]] = &[
     &["segoeui.ttf", "seguisb.ttf", "segoeuib.ttf", "segoeuii.ttf"],
     &["tahoma.ttf", "tahomabd.ttf"],
     &["arial.ttf", "arialbd.ttf", "ariali.ttf"],
 ];
 
-const EMOJI: &[&str] = &["seguiemj.ttf"];
+pub(super) const EMOJI: &[&str] = &["seguiemj.ttf"];
 
-const FALLBACK: &[&str] = &[
+pub(super) const FALLBACK: &[&str] = &[
     "seguisym.ttf",
     "consola.ttf",
     "segoeui.ttf",
@@ -48,21 +46,7 @@ const FALLBACK: &[&str] = &[
     "cambria.ttc",
 ];
 
-pub fn system_fonts() -> SystemFonts {
-    let dirs = font_dirs();
-    SystemFonts {
-        terminal: first_family(&dirs, TERMINAL),
-        interface: first_family(&dirs, INTERFACE),
-        emoji: existing(&dirs, EMOJI),
-        fallback: existing(&dirs, FALLBACK),
-    }
-}
-
-pub fn fallback_for(_: char, _: bool) -> Option<FontSource> {
-    None
-}
-
-fn font_dirs() -> Vec<PathBuf> {
+pub(super) fn font_dirs() -> Vec<PathBuf> {
     let mut dirs = Vec::new();
     if let Some(local) = env::var_os("LOCALAPPDATA") {
         dirs.push(

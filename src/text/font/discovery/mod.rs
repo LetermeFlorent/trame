@@ -30,12 +30,23 @@ pub struct SystemFonts {
     pub fallback: Vec<FontSource>,
 }
 
+#[cfg(all(unix, not(target_os = "macos")))]
+pub use platform::{fallback_for, system_fonts};
+
+#[cfg(any(windows, target_os = "macos"))]
 pub fn system_fonts() -> SystemFonts {
-    platform::system_fonts()
+    let dirs = platform::font_dirs();
+    SystemFonts {
+        terminal: first_family(&dirs, platform::TERMINAL),
+        interface: first_family(&dirs, platform::INTERFACE),
+        emoji: existing(&dirs, platform::EMOJI),
+        fallback: existing(&dirs, platform::FALLBACK),
+    }
 }
 
-pub fn fallback_for(ch: char, emoji: bool) -> Option<FontSource> {
-    platform::fallback_for(ch, emoji)
+#[cfg(any(windows, target_os = "macos"))]
+pub fn fallback_for(_: char, _: bool) -> Option<FontSource> {
+    None
 }
 
 #[cfg(any(windows, target_os = "macos"))]
