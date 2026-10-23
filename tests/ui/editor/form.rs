@@ -1,7 +1,9 @@
 use trame::geometry::Point;
 use trame::preferences::{ConnectForm, FormField, SshHost};
 use trame::text::TextSystem;
-use trame::ui::frame::{EditAnchor, EditKind, EditTarget, FormFrame, SECRET_MASK};
+use trame::ui::frame::{
+    EditAnchor, EditKind, EditTarget, FormAction, FormFrame, HostsView, SECRET_MASK,
+};
 use trame::ui::{FrameLayout, Hit, UiMetrics};
 use trame::workspace::Workspace;
 
@@ -24,7 +26,13 @@ pub(super) fn with_hosts(
     hosts: &[SshHost],
 ) -> FrameLayout {
     let target = EditTarget::Instance(workspace.instances[0].id);
-    let kind = EditKind::Form(form, hosts);
+    let view = HostsView {
+        hosts,
+        first: 0,
+        form: Some(form),
+        changing: false,
+    };
+    let kind = EditKind::Connect(view);
     place(text, workspace, target, EditAnchor::Sidebar, kind)
 }
 
@@ -60,8 +68,12 @@ fn the_form_shows_four_labelled_fields_and_a_button_inside_the_window() {
         assert!(row.input.rect.right() <= form.rect.right());
     }
     let last = form.rows.last().expect("a row");
-    assert!(form.connect.y >= last.rect.bottom());
-    assert!(form.connect.bottom() <= form.rect.bottom());
+    let [connect] = form.buttons.as_slice() else {
+        panic!("one button");
+    };
+    assert_eq!(connect.action, FormAction::Connect);
+    assert!(connect.rect.y >= last.rect.bottom());
+    assert!(connect.rect.bottom() <= form.rect.bottom());
 }
 
 #[test]
@@ -113,8 +125,9 @@ fn each_part_of_the_form_answers_the_pointer() {
         let on_label = Point::new(label, row.rect.center().y);
         assert_eq!(frame.hit(on_label, false), Some(Hit::EditStrip));
     }
+    let connect = form.buttons[0].rect.center();
     assert_eq!(
-        frame.hit(form.connect.center(), false),
-        Some(Hit::FormConnect)
+        frame.hit(connect, false),
+        Some(Hit::FormButton(FormAction::Connect))
     );
 }

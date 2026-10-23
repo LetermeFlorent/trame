@@ -1,3 +1,4 @@
+use super::editor::host_hit;
 use super::{Hit, ResizeEdge};
 use crate::geometry::{Point, Rect};
 use crate::ui::frame::{MenuFrame, PaneFrame, SettingsFrame, SidebarFrame, TitleBarFrame};
@@ -42,8 +43,10 @@ pub(super) fn hit_settings(panel: &SettingsFrame, point: Point) -> Option<Hit> {
     match panel.popup.rect.contains(point) {
         true => Some(
             panel
-                .control_at(point)
-                .map_or(Hit::SettingsPanel, Hit::Setting),
+                .connections()
+                .and_then(|page| host_hit(page.form.as_ref(), page.list.as_ref(), point))
+                .or_else(|| panel.control_at(point).map(Hit::Setting))
+                .unwrap_or(Hit::SettingsPanel),
         ),
         false => panel
             .popup

@@ -4,7 +4,7 @@ use trame::preferences::FormField;
 use trame::ui::Hit;
 use trame::ui::frame::SettingControl;
 
-use super::{EditMode, Editing, Running};
+use super::Running;
 
 impl Running {
     pub(in super::super) fn editing_button(&mut self, state: ElementState) -> bool {
@@ -14,24 +14,28 @@ impl Running {
         if self.editing.is_none() {
             return false;
         }
-        let hit = self.hit_under_pointer();
         let pressed = state == ElementState::Pressed;
+        if !pressed && self.drag_released() {
+            self.changed();
+            return true;
+        }
+        let hit = self.hit_under_pointer();
         match hit {
             Some(Hit::EditSwatch(color)) if pressed => self.pick_color(color),
             Some(Hit::EditEmblem(emblem)) if pressed => self.pick_emblem(emblem),
             Some(Hit::FormField(field)) if pressed => self.focus_form(field),
-            Some(Hit::FormConnect) if pressed => self.commit_edit(),
-            Some(Hit::EditHost(index)) if pressed => self.connect_listed(index),
+            Some(Hit::FormButton(action)) if pressed => self.form_action(action),
+            Some(Hit::List(control)) if pressed => self.list_control(control),
             Some(Hit::EditClose) if pressed => self.cancel_edit(),
             Some(
                 Hit::EditField
                 | Hit::EditStrip
                 | Hit::EditSwatch(_)
                 | Hit::EditEmblem(_)
-                | Hit::EditHost(_)
                 | Hit::EditClose
                 | Hit::FormField(_)
-                | Hit::FormConnect,
+                | Hit::FormButton(_)
+                | Hit::List(_),
             ) => return true,
             _ if pressed => {
                 self.cancel_edit();
@@ -44,12 +48,8 @@ impl Running {
         true
     }
 
-    fn focus_form(&mut self, field: FormField) {
-        if let Some(Editing {
-            mode: EditMode::Form(form, _),
-            ..
-        }) = &mut self.editing
-        {
+    pub(in crate::app::running) fn focus_form(&mut self, field: FormField) {
+        if let Some(form) = self.connect_form_mut() {
             form.focus_on(field);
         }
     }

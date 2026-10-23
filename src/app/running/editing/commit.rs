@@ -1,40 +1,16 @@
-use trame::preferences::{SshHost, vault};
 use trame::theme::{Emblem, Swatch};
-use trame::ui::frame::EditTarget;
+use trame::ui::frame::{EditTarget, FormAction};
 
 use super::{EditMode, Running};
-use crate::app::persist;
-
-fn save_secret(host: &SshHost, secret: Option<&str>) {
-    let Some(secret) = secret else {
-        return;
-    };
-    if let Err(error) = vault::SSH.store(host, secret) {
-        eprintln!(
-            "trame: the password for {} could not be saved: {error}",
-            host.label()
-        );
-    }
-}
-
-fn kept_in_config(host: SshHost) -> SshHost {
-    let Some(config) = persist::ssh_config() else {
-        return host;
-    };
-    config.keep(&host).unwrap_or_else(|error| {
-        eprintln!(
-            "trame: {} could not be added to the SSH config: {error}",
-            host.label()
-        );
-        host
-    })
-}
 
 impl Running {
     pub(super) fn commit_edit(&mut self) {
         if let Some(field) = self.command_field.take() {
             let next = self.preferences.with_startup_command(field.text());
             return self.set_preferences(next);
+        }
+        if self.settings_form_open() {
+            return self.save_settings_form();
         }
         let Some(mut editing) = self.editing.take() else {
             return;
@@ -43,20 +19,20 @@ impl Running {
             EditMode::Text { field, original } => {
                 self.rename(editing.target, field.text(), original)
             }
-            EditMode::Form(form, _) => match form.host() {
-                Some(host) => {
-                    let host = kept_in_config(host);
-                    save_secret(&host, form.secret());
-                    self.connect(editing.target, host);
+            EditMode::Form(panel) => {
+                match panel.form.as_mut().and_then(|entry| self.store_host(entry)) {
+                    Some(host) => self.connect(editing.target, host),
+                    None => self.editing = Some(editing),
                 }
-                None => {
-                    if let Some(field) = form.first_invalid() {
-                        form.focus_on(field);
-                    }
-                    self.editing = Some(editing);
-                }
-            },
+            }
             EditMode::Color | EditMode::Emblem => {}
+        }
+    }
+
+    pub(in crate::app::running) fn form_action(&mut self, action: FormAction) {
+        match action {
+            FormAction::Connect | FormAction::Save => self.commit_edit(),
+            FormAction::Cancel => self.cancel_edit(),
         }
     }
 
@@ -70,12 +46,12 @@ impl Running {
         }
     }
 
-    pub(super) fn connect_listed(&mut self, index: usize) {
+    pub(in crate::app::running) fn connect_listed(&mut self, index: usize) {
         let Some(editing) = self.editing.take() else {
             return;
         };
-        if let EditMode::Form(_, hosts) = editing.mode
-            && let Some(host) = hosts.into_iter().nth(index)
+        if let EditMode::Form(panel) = editing.mode
+            && let Some(host) = panel.hosts.into_iter().nth(index)
         {
             self.connect(editing.target, host);
         }
@@ -83,6 +59,9 @@ impl Running {
 
     pub(super) fn cancel_edit(&mut self) {
         self.command_field = None;
+        if self.close_settings_form() {
+            return;
+        }
         self.editing = None;
     }
 

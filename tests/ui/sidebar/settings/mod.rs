@@ -2,25 +2,45 @@ mod choices;
 mod connections;
 mod folders;
 mod launch;
+mod tabs;
 
 use trame::geometry::{Point, Rect};
 use trame::locale::{Language, Strings};
 use trame::preferences::Preferences;
 use trame::text::TextSystem;
-use trame::ui::frame::{ChoiceRow, SettingControl, SettingsFrame, ToggleRow};
+use trame::ui::frame::{
+    ChoiceRow, GeneralPage, SettingControl, SettingsFrame, SettingsRequest, SettingsTab, ToggleRow,
+};
 use trame::ui::{FrameLayout, Hit};
 
 use super::footer::closed_sidebar;
 use crate::{frame, text_system, workspace};
 
+pub fn general_request<'a>(
+    preferences: &'a Preferences,
+    strings: &'static Strings,
+) -> SettingsRequest<'a> {
+    SettingsRequest {
+        preferences,
+        strings,
+        folder: None,
+        tab: SettingsTab::General,
+        hosts: None,
+    }
+}
+
+pub fn placed(text: &mut TextSystem, request: &SettingsRequest) -> FrameLayout {
+    let mut layout = frame(text, &workspace());
+    layout.place_settings(text, request);
+    layout
+}
+
 pub fn with_settings(
     text: &mut TextSystem,
     preferences: &Preferences,
-    strings: &Strings,
+    strings: &'static Strings,
 ) -> FrameLayout {
-    let mut layout = frame(text, &workspace());
-    layout.place_settings(text, preferences, strings, None);
-    layout
+    placed(text, &general_request(preferences, strings))
 }
 
 pub fn english(preferences: &Preferences) -> FrameLayout {
@@ -29,6 +49,10 @@ pub fn english(preferences: &Preferences) -> FrameLayout {
 
 pub fn panel(layout: &FrameLayout) -> &SettingsFrame {
     layout.settings.as_ref().expect("the settings window")
+}
+
+pub fn page(layout: &FrameLayout) -> &GeneralPage {
+    panel(layout).general().expect("the general page")
 }
 
 #[test]
@@ -47,36 +71,26 @@ fn the_window_opens_in_the_middle_over_everything_below_the_title_bar() {
 }
 
 fn drawn_controls(settings: &SettingsFrame) -> Vec<(Rect, SettingControl)> {
-    let rows = [&settings.command, &settings.language, &settings.folder]
+    let page = settings.general().expect("the general page");
+    let rows = [&page.command, &page.language, &page.folder]
         .into_iter()
-        .chain(&settings.hosts)
         .flat_map(ChoiceRow::controls);
-    let toggles = settings
+    let toggles = page
         .toggles
         .iter()
         .map(|toggle: &ToggleRow| (toggle.line.rect, toggle.control));
-    let controls = [
-        (settings.popup.close, SettingControl::Close),
-        (
-            settings.instance_tabs.smaller,
-            SettingControl::InstanceTabsFewer,
-        ),
-        (
-            settings.instance_tabs.bigger,
-            SettingControl::InstanceTabsMore,
-        ),
-        (settings.text_size.smaller, SettingControl::TextSmaller),
-        (settings.text_size.bigger, SettingControl::TextBigger),
-        (
-            settings.interface_size.smaller,
-            SettingControl::InterfaceSmaller,
-        ),
-        (
-            settings.interface_size.bigger,
-            SettingControl::InterfaceBigger,
-        ),
-    ];
-    controls.into_iter().chain(toggles).chain(rows).collect()
+    let steppers = page
+        .steppers()
+        .into_iter()
+        .flat_map(|(stepper, [shrink, grow])| [(stepper.smaller, shrink), (stepper.bigger, grow)]);
+    let tabs = settings.tabs.iter().map(|chip| (chip.rect, chip.control));
+    [(settings.popup.close, SettingControl::Close)]
+        .into_iter()
+        .chain(tabs)
+        .chain(steppers)
+        .chain(toggles)
+        .chain(rows)
+        .collect()
 }
 
 #[test]
@@ -92,7 +106,7 @@ fn every_control_answers_where_it_is_drawn() {
     }
     for line in [&settings.popup.title]
         .into_iter()
-        .chain(&settings.sections)
+        .chain(&page(&layout).sections)
     {
         assert_eq!(
             layout.hit(line.rect.center(), false),
@@ -121,12 +135,9 @@ fn a_click_beside_the_window_reaches_nothing_but_the_title_bar_still_works() {
 fn a_collapsed_sidebar_changes_nothing_to_the_window() {
     let mut text = text_system();
     let mut layout = frame(&mut text, &closed_sidebar());
-    layout.place_settings(
-        &mut text,
-        &Preferences::default(),
-        Language::English.strings(),
-        None,
-    );
+    let preferences = Preferences::default();
+    let request = general_request(&preferences, Language::English.strings());
+    layout.place_settings(&mut text, &request);
     let open = english(&Preferences::default());
     assert_eq!(panel(&layout).popup.rect, panel(&open).popup.rect);
 }

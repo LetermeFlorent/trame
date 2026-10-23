@@ -10,7 +10,7 @@ use crate::app::running::keys::{is_escape, read_clipboard};
 impl Running {
     pub(in super::super) fn editing_key(&mut self, event: &KeyEvent) -> bool {
         let typing = match &self.editing {
-            _ if self.command_field.is_some() => true,
+            _ if self.command_field.is_some() || self.settings_form_open() => true,
             Some(editing) => matches!(editing.mode, EditMode::Text { .. } | EditMode::Form(..)),
             None => return false,
         };
@@ -61,11 +61,7 @@ impl Running {
 
     fn step_form(&mut self) -> bool {
         let backwards = self.modifiers.shift_key();
-        let Some(Editing {
-            mode: EditMode::Form(form, _),
-            ..
-        }) = &mut self.editing
-        else {
+        let Some(form) = self.connect_form_mut() else {
             return false;
         };
         match backwards {
@@ -80,7 +76,7 @@ impl Running {
     }
 
     fn with_field(&mut self, change: impl FnOnce(&mut TextField)) {
-        let field = match (&mut self.command_field, &mut self.editing) {
+        let text = match (&mut self.command_field, &mut self.editing) {
             (Some(field), _)
             | (
                 None,
@@ -88,16 +84,14 @@ impl Running {
                     mode: EditMode::Text { field, .. },
                     ..
                 }),
-            ) => field,
-            (
-                None,
-                Some(Editing {
-                    mode: EditMode::Form(form, _),
-                    ..
-                }),
-            ) => form.focused_mut(),
-            _ => return,
+            ) => Some(field),
+            _ => None,
         };
-        change(field);
+        if let Some(field) = text {
+            return change(field);
+        }
+        if let Some(form) = self.connect_form_mut() {
+            change(form.focused_mut());
+        }
     }
 }

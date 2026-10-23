@@ -78,8 +78,13 @@ fn each_language_has_its_own_settings_texts() {
 
 #[test]
 fn each_language_has_its_own_ssh_texts() {
-    let picks: [fn(&Strings) -> &'static str; 7] = [
+    let picks: [fn(&Strings) -> &'static str; 12] = [
         |s| s.ssh_connection,
+        |s| s.general,
+        |s| s.connections_tab,
+        |s| s.change_connection,
+        |s| s.save,
+        |s| s.cancel,
         |s| s.servers,
         |s| s.new_connection,
         |s| s.ssh_address,

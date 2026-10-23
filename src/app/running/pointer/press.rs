@@ -76,6 +76,9 @@ impl Running {
             Hit::Settings => self.toggle_settings(),
             Hit::Update => self.restart_for_update(event_loop),
             Hit::Setting(control) => self.apply_setting(control),
+            Hit::List(control) => self.list_control(control),
+            Hit::FormField(field) => self.focus_form(field),
+            Hit::FormButton(action) => self.form_action(action),
             Hit::RowClose(SidebarItem::Instance(id)) => self.close_instance(event_loop, id),
             Hit::RowClose(SidebarItem::Tab(id)) | Hit::TabClose(_, id) => {
                 self.close_tab(event_loop, id)

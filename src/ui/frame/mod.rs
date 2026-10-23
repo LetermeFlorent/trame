@@ -8,14 +8,16 @@ mod titlebar;
 
 pub use editor::{
     EditAnchor, EditKind, EditTarget, EditorFrame, EditorRequest, EmblemSlot, FieldFrame,
-    FormFrame, FormRow, MenuEntry, MenuFrame, MenuRequest, MenuRow, SECRET_MASK, SwatchSlot,
+    FormAction, FormButton, FormFrame, FormRow, MenuEntry, MenuFrame, MenuRequest, MenuRow,
+    SECRET_MASK, SwatchSlot,
 };
 pub use label::{fit_label, fit_label_start, fit_text_start};
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{
-    Chip, ChoiceRow, FooterButton, FooterFrame, PopupFrame, RailFrame, RailSlot, SettingControl,
-    SettingLine, SettingsFrame, SidebarFrame, SidebarItem, SidebarRow, Stepper, ToggleRow,
-    dragged_width, shown_width,
+    Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, GeneralPage, HostList, HostRow,
+    HostsView, ListControl, PopupFrame, RailFrame, RailSlot, ScrollBar, SettingControl,
+    SettingLine, SettingsFrame, SettingsPage, SettingsRequest, SettingsTab, SidebarFrame,
+    SidebarItem, SidebarRow, Stepper, ToggleRow, dragged_width, shown_width,
 };
 pub use titlebar::{TitleBarFrame, WindowControls};
 

@@ -7,7 +7,7 @@ use crate::ui::frame::{EditorFrame, EmblemSlot, FieldFrame, SwatchSlot};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
-use super::form::draw_connect_dialog;
+use super::connect::draw_connect_dialog;
 use super::popup::draw_popup;
 
 const RING_GAP: f32 = 2.0;

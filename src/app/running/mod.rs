@@ -34,6 +34,7 @@ use super::{UserEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
 use pointer::{Drag, Pointer, Selecting};
+use settings::SettingsState;
 pub use tabs::FolderTarget;
 
 pub struct Running {
@@ -59,7 +60,7 @@ pub struct Running {
     editing: Option<Editing>,
     command_field: Option<TextField>,
     menu: Option<Menu>,
-    settings_open: bool,
+    settings: Option<SettingsState>,
     selecting: Selecting,
     modifiers: ModifiersState,
     visibility: Visibility,

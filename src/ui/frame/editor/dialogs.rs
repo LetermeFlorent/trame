@@ -1,19 +1,19 @@
 use super::EditorFrame;
 use super::emblems::{emblem_row, emblem_slots};
-use super::form::{form_height, place_form};
+use super::form::{FormAction, FormSpec, form_height, form_title, place_form};
 use super::row::{RowSize, swatch_row, swatch_slots};
 use crate::geometry::Rect;
 use crate::locale::Strings;
-use crate::preferences::{ConnectForm, SshHost};
 use crate::text::TextSystem;
 use crate::theme::{Emblem, Swatch};
-use crate::ui::frame::sidebar::{CAPTION_HEIGHT, LINE_HEIGHT, SECTION_GAP};
-use crate::ui::frame::{FrameLayout, PopupFrame};
+use crate::ui::frame::sidebar::{CAPTION_HEIGHT, LINE_HEIGHT, ListSpec, SECTION_GAP};
+use crate::ui::frame::{FrameLayout, HostsView, PopupFrame};
 use crate::ui::metrics::UiMetrics;
 
+const MAX_LISTED: usize = 6;
+
 pub(super) struct ConnectDialog<'a> {
-    pub(super) form: &'a ConnectForm,
-    pub(super) hosts: &'a [SshHost],
+    pub(super) view: HostsView<'a>,
     pub(super) strings: &'static Strings,
 }
 
@@ -65,30 +65,39 @@ impl FrameLayout {
         editor: EditorFrame,
     ) -> EditorFrame {
         let metrics = self.metrics;
-        let strings = dialog.strings;
+        let ConnectDialog { view, strings } = *dialog;
         let form_space = form_height(&metrics);
-        let listed = self.listed_hosts(dialog.hosts.len(), form_space);
-        let (popup, mut column) = self.open_popup(
-            text,
-            strings.ssh_connection,
-            list_height(&metrics, listed) + form_space,
-        );
+        let shown = self.listed_hosts(view.hosts.len(), form_space);
+        let content = list_height(&metrics, shown) + form_space;
+        let (popup, mut column) = self.open_popup(text, strings.ssh_connection, content);
         let mut sections = Vec::new();
-        let mut hosts = Vec::new();
-        if listed > 0 {
+        let mut list = None;
+        if shown > 0 {
             sections.push(column.caption(strings.servers));
-            for host in &dialog.hosts[..listed] {
-                hosts.push(column.line(&host.label(), LINE_HEIGHT, metrics.label()));
-            }
-            sections.push(column.section(strings.new_connection));
+            let spec = ListSpec {
+                hosts: view.hosts,
+                first: view.first,
+                shown,
+                manage: false,
+            };
+            list = Some(column.host_list(&spec));
+            sections.push(column.section(form_title(strings, view.changing)));
         }
-        let area = Rect::new(column.inner.x, column.y, column.inner.width, form_space);
-        let form = place_form(column.text, &metrics, area, dialog.form, strings);
+        let form = view.form.map(|form| {
+            let area = Rect::new(column.inner.x, column.y, column.inner.width, form_space);
+            let spec = FormSpec {
+                area,
+                form,
+                actions: &[FormAction::Connect],
+                strings,
+            };
+            place_form(column.text, &metrics, &spec)
+        });
         EditorFrame {
             popup: Some(popup),
             sections,
-            hosts,
-            form: Some(form),
+            list,
+            form,
             ..editor
         }
     }
@@ -99,7 +108,7 @@ impl FrameLayout {
         }
         let room = self.popup_room() - form_space - list_chrome(&self.metrics);
         let fits = (room / self.metrics.px(LINE_HEIGHT)).floor().max(0.0) as usize;
-        fits.min(count)
+        fits.min(count).min(MAX_LISTED)
     }
 }
 

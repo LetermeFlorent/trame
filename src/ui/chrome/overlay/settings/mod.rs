@@ -1,11 +1,13 @@
+mod connections;
 mod controls;
 
 use crate::render::Scene;
 use crate::text::TextSystem;
 use crate::ui::chrome::{ChromeInput, Painter};
-use crate::ui::frame::{SettingControl, SettingsFrame};
+use crate::ui::frame::{GeneralPage, SettingControl, SettingsPage};
 use crate::ui::hit::Hit;
-use controls::{draw_choices, draw_command, draw_stepper, draw_toggle_row};
+use connections::draw_connections;
+use controls::{draw_chip, draw_choices, draw_command, draw_stepper, draw_toggle_row};
 
 use super::popup::draw_popup;
 
@@ -14,55 +16,30 @@ pub fn draw_settings(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInp
         return;
     };
     let mut painter = Painter::new(scene, text, input);
-    draw_panel(&mut painter, settings);
-    for toggle in &settings.toggles {
-        draw_toggle_row(&mut painter, toggle);
+    let close = Hit::Setting(SettingControl::Close);
+    draw_popup(&mut painter, &settings.popup, close);
+    for tab in &settings.tabs {
+        draw_chip(&mut painter, tab);
     }
-    draw_command(&mut painter, settings);
-    draw_steppers(&mut painter, settings);
-    let rows = [&settings.language, &settings.folder]
-        .into_iter()
-        .chain(&settings.hosts);
-    for row in rows {
-        draw_choices(&mut painter, row);
-    }
-    if let Some(hint) = &settings.hosts_hint {
-        let muted = painter.theme.text_muted;
-        painter.setting_line(hint, muted);
+    match &settings.page {
+        SettingsPage::General(page) => draw_general(&mut painter, page),
+        SettingsPage::Connections(page) => draw_connections(&mut painter, page),
     }
 }
 
-fn draw_steppers(painter: &mut Painter, settings: &SettingsFrame) {
-    let steppers = [
-        (
-            &settings.instance_tabs,
-            [
-                SettingControl::InstanceTabsFewer,
-                SettingControl::InstanceTabsMore,
-            ],
-        ),
-        (
-            &settings.text_size,
-            [SettingControl::TextSmaller, SettingControl::TextBigger],
-        ),
-        (
-            &settings.interface_size,
-            [
-                SettingControl::InterfaceSmaller,
-                SettingControl::InterfaceBigger,
-            ],
-        ),
-    ];
-    for (stepper, controls) in steppers {
+fn draw_general(painter: &mut Painter, page: &GeneralPage) {
+    let faint = painter.theme.text_faint;
+    for section in &page.sections {
+        painter.setting_line(section, faint);
+    }
+    for toggle in &page.toggles {
+        draw_toggle_row(painter, toggle);
+    }
+    draw_command(painter, page);
+    for (stepper, controls) in page.steppers() {
         draw_stepper(painter, stepper, controls);
     }
-}
-
-fn draw_panel(painter: &mut Painter, settings: &SettingsFrame) {
-    let close = Hit::Setting(SettingControl::Close);
-    draw_popup(painter, &settings.popup, close);
-    let faint = painter.theme.text_faint;
-    for section in &settings.sections {
-        painter.setting_line(section, faint);
+    for row in [&page.language, &page.folder] {
+        draw_choices(painter, row);
     }
 }

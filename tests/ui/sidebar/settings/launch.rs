@@ -4,13 +4,13 @@ use trame::preferences::{MAX_INSTANCE_TABS, Preferences, Recall};
 use trame::ui::Hit;
 use trame::ui::frame::SettingControl;
 
-use super::{english, panel, with_settings};
+use super::{english, page, with_settings};
 use crate::text_system;
 
 #[test]
 fn the_three_switches_follow_the_preferences_in_order() {
     let layout = english(&Preferences::default());
-    let toggles = &panel(&layout).toggles;
+    let toggles = &page(&layout).toggles;
     let controls = toggles.each_ref().map(|toggle| toggle.control);
     assert_eq!(controls, Recall::ALL.map(SettingControl::Recall));
     for toggle in toggles {
@@ -26,7 +26,7 @@ fn the_three_switches_follow_the_preferences_in_order() {
 fn a_switch_that_depends_on_one_turned_off_is_greyed_and_ignores_clicks() {
     let preferences = Preferences::default().toggle(Recall::Instances);
     let layout = english(&preferences);
-    let [instances, tabs, text] = &panel(&layout).toggles;
+    let [instances, tabs, text] = &page(&layout).toggles;
     assert!(!instances.on && instances.enabled);
     for toggle in [tabs, text] {
         assert!(!toggle.on && !toggle.enabled);
@@ -37,7 +37,7 @@ fn a_switch_that_depends_on_one_turned_off_is_greyed_and_ignores_clicks() {
     }
     let preferences = Preferences::default().toggle(Recall::Tabs);
     let layout = english(&preferences);
-    let [instances, tabs, text] = &panel(&layout).toggles;
+    let [instances, tabs, text] = &page(&layout).toggles;
     assert!(instances.on && instances.enabled);
     assert!(!tabs.on && tabs.enabled);
     assert!(!text.on && !text.enabled);
@@ -48,7 +48,7 @@ fn without_a_command_the_row_offers_to_add_one() {
     let mut text = text_system();
     let french = Language::French.strings();
     let layout = with_settings(&mut text, &Preferences::default(), french);
-    let row = &panel(&layout).command;
+    let row = &page(&layout).command;
     assert_eq!(row.chips.len(), 1);
     assert_eq!(row.chips[0].control, SettingControl::StartupCommand);
     let expected = text.layout(french.add, layout.metrics.label());
@@ -62,7 +62,7 @@ fn a_saved_command_shows_itself_and_a_button_to_remove_it() {
     let preferences = Preferences::default().with_startup_command("cd work");
     let strings = Language::English.strings();
     let layout = with_settings(&mut text, &preferences, strings);
-    let row = &panel(&layout).command;
+    let row = &page(&layout).command;
     let expected = text.layout("cd work", layout.metrics.label());
     assert_eq!(row.chips[0].label.width, expected.width);
     let (clear, control) = row.clear.expect("a button to remove it");
@@ -76,7 +76,7 @@ fn the_command_field_sits_in_its_row_and_keeps_the_clicks() {
     let preferences = Preferences::default().with_startup_command("cd work");
     let mut layout = with_settings(&mut text, &preferences, Language::English.strings());
     layout.place_command_field(&mut text, &TextField::new("cd work"));
-    let settings = panel(&layout);
+    let settings = page(&layout);
     let field = settings.command_field.as_ref().expect("the field");
     let line = settings.command.line.rect;
     assert!(line.contains(field.rect.center()));
@@ -93,10 +93,10 @@ fn the_command_field_sits_in_its_row_and_keeps_the_clicks() {
 #[test]
 fn the_terminal_count_stepper_stops_at_its_limits() {
     let layout = english(&Preferences::default());
-    let stepper = &panel(&layout).instance_tabs;
+    let stepper = &page(&layout).instance_tabs;
     assert!(!stepper.can_shrink && stepper.can_grow);
     let most = Preferences::default().step_instance_tabs(i32::from(MAX_INSTANCE_TABS));
     let layout = english(&most);
-    let stepper = &panel(&layout).instance_tabs;
+    let stepper = &page(&layout).instance_tabs;
     assert!(stepper.can_shrink && !stepper.can_grow);
 }

@@ -5,8 +5,8 @@ use crate::locale::{LanguageChoice, Strings};
 use crate::preferences::Preferences;
 use crate::ui::frame::fit_text_start;
 
-use super::column::Column;
 use super::{ChoiceRow, SettingControl, Stepper};
+use crate::ui::frame::sidebar::settings::column::Column;
 
 pub(super) fn size_steppers(
     column: &mut Column,
@@ -78,14 +78,4 @@ pub(super) fn folder_row(
         chip.faint = suggested;
     }
     row
-}
-
-pub(super) fn host_rows(column: &mut Column, preferences: &Preferences) -> Vec<ChoiceRow> {
-    let hosts = preferences.ssh_hosts.iter().enumerate();
-    hosts
-        .map(|(index, host)| {
-            let forget = SettingControl::ForgetHost(index);
-            column.choice_row(&host.label(), &[], Some(forget))
-        })
-        .collect()
 }

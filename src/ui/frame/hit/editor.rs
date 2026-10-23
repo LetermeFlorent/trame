@@ -1,6 +1,6 @@
 use super::Hit;
 use crate::geometry::{Point, Rect};
-use crate::ui::frame::EditorFrame;
+use crate::ui::frame::{EditorFrame, FormFrame, HostList};
 
 pub(super) fn hit_editor(editor: &EditorFrame, point: Point) -> Option<Hit> {
     let Some(popup) = &editor.popup else {
@@ -19,22 +19,26 @@ fn hit_dialog(editor: &EditorFrame, close: Rect, point: Point) -> Hit {
     if close.contains(point) {
         return Hit::EditClose;
     }
-    if let Some(form) = editor
-        .form
-        .as_ref()
-        .filter(|form| form.rect.contains(point))
-    {
-        return match form.field_at(point) {
-            Some(field) => Hit::FormField(field),
-            None if form.connect.contains(point) => Hit::FormConnect,
-            None => Hit::EditStrip,
-        };
+    if let Some(hit) = host_hit(editor.form.as_ref(), editor.list.as_ref(), point) {
+        return hit;
     }
     if let Some(slot) = editor.slot_at(point) {
         return Hit::EditSwatch(slot.color);
     }
-    if let Some(slot) = editor.emblem_at(point) {
-        return Hit::EditEmblem(slot.emblem);
-    }
-    editor.host_at(point).map_or(Hit::EditStrip, Hit::EditHost)
+    editor
+        .emblem_at(point)
+        .map_or(Hit::EditStrip, |slot| Hit::EditEmblem(slot.emblem))
+}
+
+pub(super) fn host_hit(
+    form: Option<&FormFrame>,
+    list: Option<&HostList>,
+    point: Point,
+) -> Option<Hit> {
+    let form_hit = form.and_then(|form| {
+        form.field_at(point)
+            .map(Hit::FormField)
+            .or_else(|| form.button_at(point).map(Hit::FormButton))
+    });
+    form_hit.or_else(|| list?.control_at(point).map(Hit::List))
 }

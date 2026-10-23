@@ -1,89 +1,79 @@
-use std::path::Path;
-
 use crate::geometry::Rect;
 use crate::input::TextField;
-use crate::locale::Strings;
-use crate::preferences::Preferences;
 use crate::text::TextSystem;
 use crate::ui::frame::FrameLayout;
 use crate::ui::frame::editor::place_field;
 use crate::ui::metrics::UiMetrics;
 
-use super::column::{CAPTION_HEIGHT, Column, LINE_HEIGHT, SECTION_GAP};
-use super::launch::{command_row, instance_tabs_stepper, recall_toggles};
-use super::rows::{folder_row, host_rows, language_row, size_steppers};
-use super::{PopupFrame, SettingsFrame};
+use super::chips::Choice;
+use super::column::{Column, LINE_HEIGHT, SECTION_GAP};
+use super::general::{general_height, general_page};
+use super::hosts::connections_page;
+use super::{
+    Chip, HostsView, SettingControl, SettingsFrame, SettingsPage, SettingsRequest, SettingsTab,
+};
 
-const CAPTIONS: f32 = 5.0;
-const FIXED_LINES: usize = 9;
+const NO_HOSTS: HostsView<'static> = HostsView {
+    hosts: &[],
+    first: 0,
+    form: None,
+    changing: false,
+};
 
 impl FrameLayout {
-    pub fn place_settings(
-        &mut self,
-        text: &mut TextSystem,
-        preferences: &Preferences,
-        strings: &Strings,
-        folder: Option<&Path>,
-    ) {
-        let lines = FIXED_LINES + preferences.ssh_hosts.len().max(1);
-        let content = content_height(&self.metrics, lines);
-        let (popup, mut column) = self.open_popup(text, strings.settings, content);
-        let frame = settings_frame(&mut column, strings, preferences, popup, folder);
-        self.settings = Some(frame);
+    pub fn place_settings(&mut self, text: &mut TextSystem, request: &SettingsRequest) {
+        let page_height = general_height(&self.metrics);
+        let content = page_height + tabs_height(&self.metrics);
+        let (popup, mut column) = self.open_popup(text, request.strings.settings, content);
+        let tabs = settings_tabs(&mut column, request);
+        column.y += column.metrics.px(SECTION_GAP);
+        let page = settings_page(&mut column, request, page_height);
+        self.settings = Some(SettingsFrame { popup, tabs, page });
     }
 
     pub fn place_command_field(&mut self, text: &mut TextSystem, field: &TextField) {
         let metrics = self.metrics;
-        let Some(settings) = &mut self.settings else {
+        let Some(SettingsPage::General(page)) = self.settings.as_mut().map(|frame| &mut frame.page)
+        else {
             return;
         };
-        let line = settings.command.line.rect;
+        let line = page.command.line.rect;
         let anchor = Rect::from_edges(line.center().x, line.y, line.right(), line.bottom());
-        settings.command_field = Some(place_field(text, &metrics, anchor, line, field));
+        page.command_field = Some(place_field(text, &metrics, anchor, line, field));
     }
 }
 
-fn settings_frame(
-    column: &mut Column,
-    strings: &Strings,
-    preferences: &Preferences,
-    popup: PopupFrame,
-    folder: Option<&Path>,
-) -> SettingsFrame {
-    let metrics = column.metrics;
-    let at_launch = column.caption(strings.at_launch);
-    let toggles = recall_toggles(column, strings, preferences);
-    let terminals = column.section(strings.terminals);
-    let command = command_row(column, strings, preferences);
-    let instance_tabs = instance_tabs_stepper(column, strings, preferences);
-    let display = column.section(strings.display);
-    let [text_size, interface_size] = size_steppers(column, strings, preferences);
-    let language = language_row(column, strings, preferences);
-    let folders = column.section(strings.folders);
-    let folder = folder_row(column, strings, preferences, folder);
-    let connections = column.section(strings.connections);
-    let hosts = host_rows(column, preferences);
-    let hint = hosts
-        .is_empty()
-        .then(|| column.line(strings.no_connections, LINE_HEIGHT, metrics.label()));
-    SettingsFrame {
-        popup,
-        sections: [at_launch, terminals, display, folders, connections],
-        toggles,
-        command,
-        command_field: None,
-        instance_tabs,
-        text_size,
-        interface_size,
-        language,
+fn tabs_height(metrics: &UiMetrics) -> f32 {
+    metrics.px(LINE_HEIGHT) + metrics.px(SECTION_GAP)
+}
+
+fn settings_tabs(column: &mut Column, request: &SettingsRequest) -> [Chip; 2] {
+    let strings = request.strings;
+    let choice = |tab: SettingsTab| -> Choice {
+        let label = match tab {
+            SettingsTab::General => strings.general,
+            SettingsTab::Connections => strings.connections_tab,
+        };
+        (label, SettingControl::Tab(tab), tab == request.tab)
+    };
+    column.tab_row(SettingsTab::ALL.map(choice))
+}
+
+fn settings_page(column: &mut Column, request: &SettingsRequest, height: f32) -> SettingsPage {
+    let SettingsRequest {
+        preferences,
+        strings,
         folder,
-        hosts,
-        hosts_hint: hint,
+        ..
+    } = *request;
+    match request.tab {
+        SettingsTab::General => {
+            let page = general_page(column, strings, preferences, folder);
+            SettingsPage::General(Box::new(page))
+        }
+        SettingsTab::Connections => {
+            let view = request.hosts.unwrap_or(NO_HOSTS);
+            SettingsPage::Connections(Box::new(connections_page(column, strings, view, height)))
+        }
     }
-}
-
-fn content_height(metrics: &UiMetrics, lines: usize) -> f32 {
-    CAPTIONS * metrics.px(CAPTION_HEIGHT)
-        + lines as f32 * metrics.px(LINE_HEIGHT)
-        + (CAPTIONS - 1.0) * metrics.px(SECTION_GAP)
 }

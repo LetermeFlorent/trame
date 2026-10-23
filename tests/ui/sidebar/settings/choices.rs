@@ -3,7 +3,7 @@ use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences};
 use trame::ui::frame::SettingControl;
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE};
 
-use super::{english, panel, with_settings};
+use super::{english, page, panel, with_settings};
 use crate::text_system;
 
 #[test]
@@ -13,7 +13,7 @@ fn the_language_row_offers_auto_french_and_english_and_marks_the_choice() {
             language: chosen,
             ..Preferences::default()
         });
-        let row = &panel(&layout).language;
+        let row = &page(&layout).language;
         let order: Vec<_> = row.chips.iter().map(|chip| chip.control).collect();
         assert_eq!(order, LanguageChoice::ALL.map(SettingControl::Language));
         for pair in row.chips.windows(2) {
@@ -53,7 +53,7 @@ fn steppers_stop_at_their_limits() {
         ..Preferences::default()
     };
     let layout = english(&smallest);
-    let settings = panel(&layout);
+    let settings = page(&layout);
     for stepper in [&settings.text_size, &settings.interface_size] {
         assert!(!stepper.can_shrink && stepper.can_grow);
     }
@@ -63,7 +63,7 @@ fn steppers_stop_at_their_limits() {
         ..Preferences::default()
     };
     let layout = english(&largest);
-    for stepper in [&panel(&layout).text_size, &panel(&layout).interface_size] {
+    for stepper in [&page(&layout).text_size, &page(&layout).interface_size] {
         assert!(stepper.can_shrink && !stepper.can_grow);
     }
 }

@@ -18,9 +18,11 @@ pub use footer::{FooterButton, FooterFrame};
 pub(super) use rail::layout_rail;
 pub use rail::{RailFrame, RailSlot};
 use row::{RowSpec, layout_row, row_specs};
-pub(super) use settings::{CAPTION_HEIGHT, LINE_HEIGHT, SECTION_GAP};
+pub(super) use settings::{CAPTION_HEIGHT, LINE_HEIGHT, LINE_INSET, ListSpec, SECTION_GAP};
 pub use settings::{
-    Chip, ChoiceRow, PopupFrame, SettingControl, SettingLine, SettingsFrame, Stepper, ToggleRow,
+    Chip, ChoiceRow, ConnectionsPage, GeneralPage, HostList, HostRow, HostsView, ListControl,
+    PopupFrame, ScrollBar, SettingControl, SettingLine, SettingsFrame, SettingsPage,
+    SettingsRequest, SettingsTab, Stepper, ToggleRow,
 };
 pub(super) use width::Columns;
 pub use width::{dragged_width, shown_width};

@@ -1,18 +1,17 @@
 use std::sync::Arc;
 
-use super::{FieldFrame, place_field};
-use crate::geometry::{Point, Rect};
+use crate::geometry::Rect;
 use crate::input::TextField;
 use crate::locale::Strings;
 use crate::preferences::{ConnectForm, FormField};
 use crate::text::{TextLayout, TextSystem};
+use crate::ui::frame::editor::{FieldFrame, place_field};
+use crate::ui::frame::sidebar::LINE_INSET;
 use crate::ui::metrics::UiMetrics;
 
 pub const SECRET_MASK: char = '\u{2022}';
 
-const FORM_PAD: f32 = 8.0;
 const LABEL_GAP: f32 = 10.0;
-const BUTTON_PAD_X: f32 = 12.0;
 
 #[derive(Clone, Debug)]
 pub struct FormRow {
@@ -24,26 +23,10 @@ pub struct FormRow {
     pub focused: bool,
 }
 
-#[derive(Clone, Debug)]
-pub struct FormFrame {
-    pub rect: Rect,
-    pub rows: Vec<FormRow>,
-    pub connect: Rect,
-    pub connect_label: Arc<TextLayout>,
-}
-
-impl FormFrame {
-    pub fn field_at(&self, point: Point) -> Option<FormField> {
-        self.rows
-            .iter()
-            .find(|row| row.input.rect.contains(point))
-            .map(|row| row.field)
-    }
-}
-
 #[derive(Clone, Copy)]
 struct FormGrid {
     area: Rect,
+    label_x: f32,
     field_x: f32,
 }
 
@@ -63,52 +46,37 @@ fn shown(form: &ConnectForm, field: FormField) -> TextField {
     }
 }
 
-pub(super) fn form_height(metrics: &UiMetrics) -> f32 {
-    FormField::ALL.len() as f32 * metrics.px(UiMetrics::SIDEBAR_ROW)
-        + metrics.px(FORM_PAD)
-        + metrics.px(UiMetrics::BUTTON)
-}
-
-pub(super) fn place_form(
+pub(super) fn form_rows(
     text: &mut TextSystem,
     metrics: &UiMetrics,
     area: Rect,
     form: &ConnectForm,
     strings: &'static Strings,
-) -> FormFrame {
+) -> Vec<FormRow> {
     let labels = FormField::ALL.map(|field| text.layout(label_of(strings, field), metrics.label()));
     let label_width = labels
         .iter()
         .map(|label| label.width)
         .fold(0.0, f32::max)
         .ceil();
+    let label_x = area.x + metrics.px(LINE_INSET);
     let grid = FormGrid {
         area,
-        field_x: area.x + label_width + metrics.px(LABEL_GAP),
+        label_x,
+        field_x: label_x + label_width + metrics.px(LABEL_GAP),
     };
-    let rows = form_rows(text, metrics, form, grid, labels);
-    let connect_label = text.layout(strings.connect, metrics.label());
-    let connect_width = connect_label.width.ceil() + 2.0 * metrics.px(BUTTON_PAD_X);
-    let button_height = metrics.px(UiMetrics::BUTTON);
-    let connect = Rect::new(
-        area.right() - connect_width,
-        area.bottom() - button_height,
-        connect_width,
-        button_height,
-    );
-    FormFrame {
-        rect: area,
-        rows,
-        connect,
-        connect_label,
-    }
+    placed_rows(text, metrics, form, grid, labels)
 }
 
-fn form_rows(
+fn placed_rows(
     text: &mut TextSystem,
     metrics: &UiMetrics,
     form: &ConnectForm,
-    FormGrid { area, field_x }: FormGrid,
+    FormGrid {
+        area,
+        label_x,
+        field_x,
+    }: FormGrid,
     labels: [Arc<TextLayout>; FormField::ALL.len()],
 ) -> Vec<FormRow> {
     let row_height = metrics.px(UiMetrics::SIDEBAR_ROW);
@@ -119,7 +87,7 @@ fn form_rows(
         FormRow {
             field,
             label,
-            label_x: rect.x,
+            label_x,
             rect,
             input: place_field(text, metrics, slot, area, &shown(form, field)),
             focused: form.focus() == field,

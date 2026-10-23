@@ -5,7 +5,9 @@ use crate::geometry::Point;
 use crate::preferences::FormField;
 use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
-use crate::ui::frame::{FrameLayout, MenuEntry, SettingControl, SidebarItem};
+use crate::ui::frame::{
+    FormAction, FrameLayout, ListControl, MenuEntry, SettingControl, SidebarItem,
+};
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{InstanceId, PaneId};
 use editor::hit_editor;
@@ -50,10 +52,10 @@ pub enum Hit {
     EditStrip,
     EditSwatch(Option<Swatch>),
     EditEmblem(Emblem),
-    EditHost(usize),
     EditClose,
     FormField(FormField),
-    FormConnect,
+    FormButton(FormAction),
+    List(ListControl),
     Settings,
     Update,
     SettingsPanel,

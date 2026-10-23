@@ -3,18 +3,13 @@ use crate::text::{TextStyle, TextSystem};
 use crate::ui::frame::fit_label;
 use crate::ui::metrics::UiMetrics;
 
-use super::{Chip, ChoiceRow, SettingControl, SettingLine, Stepper};
+use super::SettingLine;
 
 pub(in crate::ui::frame) const CAPTION_HEIGHT: f32 = 22.0;
 pub(in crate::ui::frame) const LINE_HEIGHT: f32 = 28.0;
 pub(in crate::ui::frame) const SECTION_GAP: f32 = 8.0;
-
-const LINE_INSET: f32 = 6.0;
-const VALUE_WIDTH: f32 = 44.0;
-const TOGGLE_WIDTH: f32 = 28.0;
-const TOGGLE_HEIGHT: f32 = 16.0;
-const CHOICE_PAD: f32 = 8.0;
-const CHOICE_GAP: f32 = 2.0;
+pub(in crate::ui::frame) const LINE_INSET: f32 = 6.0;
+pub(super) const BUTTON_GAP: f32 = 2.0;
 
 pub(in crate::ui::frame) struct Column<'a> {
     pub(in crate::ui::frame) text: &'a mut TextSystem,
@@ -30,6 +25,16 @@ impl Column<'_> {
         height: f32,
         style: TextStyle,
     ) -> SettingLine {
+        self.line_beside(label, height, style, 1.0)
+    }
+
+    pub(super) fn line_beside(
+        &mut self,
+        label: &str,
+        height: f32,
+        style: TextStyle,
+        buttons: f32,
+    ) -> SettingLine {
         let rect = Rect::new(
             self.inner.x,
             self.y,
@@ -38,7 +43,7 @@ impl Column<'_> {
         );
         self.y = rect.bottom();
         let inset = self.metrics.px(LINE_INSET);
-        let widest = rect.width - self.metrics.px(UiMetrics::BUTTON) - 2.0 * inset;
+        let widest = rect.width - buttons * self.metrics.px(UiMetrics::BUTTON) - 2.0 * inset;
         SettingLine {
             rect,
             label: fit_label(self.text, label, style, widest),
@@ -55,90 +60,13 @@ impl Column<'_> {
         self.caption(label)
     }
 
-    pub(super) fn toggle(&self, line: &SettingLine) -> Rect {
-        let width = self.metrics.px(TOGGLE_WIDTH);
-        let height = self.metrics.px(TOGGLE_HEIGHT);
-        let right = line.rect.right() - self.metrics.px(LINE_INSET);
-        let y = line.rect.centered_y(height);
-        Rect::new(right - width, y, width, height).snapped()
-    }
-
-    pub(super) fn chip_room(&self) -> f32 {
-        self.inner.width / 2.0 - 2.0 * self.metrics.px(CHOICE_PAD)
-    }
-
     pub(super) fn end_button(&self, line: &SettingLine) -> Rect {
         let button = self.metrics.px(UiMetrics::BUTTON);
         let y = middle(line, button);
         Rect::new(line.rect.right() - button, y, button, button)
     }
-
-    pub(super) fn stepper(
-        &mut self,
-        label: &str,
-        value: &str,
-        [can_shrink, can_grow]: [bool; 2],
-    ) -> Stepper {
-        let line = self.line(label, LINE_HEIGHT, self.metrics.label());
-        let bigger = self.end_button(&line);
-        let value_width = self.metrics.px(VALUE_WIDTH);
-        let value_rect = Rect::new(
-            bigger.x - value_width,
-            line.rect.y,
-            value_width,
-            line.rect.height,
-        );
-        let smaller = Rect {
-            x: value_rect.x - bigger.width,
-            ..bigger
-        };
-        Stepper {
-            value: self.text.layout(value, self.metrics.label()),
-            line,
-            smaller,
-            bigger,
-            value_rect,
-            can_shrink,
-            can_grow,
-        }
-    }
-
-    pub(super) fn choice_row(
-        &mut self,
-        label: &str,
-        choices: &[(&str, SettingControl, bool)],
-        clear: Option<SettingControl>,
-    ) -> ChoiceRow {
-        let line = self.line(label, LINE_HEIGHT, self.metrics.label());
-        let clear = clear.map(|control| (self.end_button(&line), control));
-        let height = self.metrics.px(UiMetrics::BUTTON);
-        let pad = self.metrics.px(CHOICE_PAD);
-        let gap = self.metrics.px(CHOICE_GAP);
-        let widest = self.chip_room();
-        let y = middle(&line, height);
-        let mut right = clear.map_or(line.rect.right(), |(rect, _)| rect.x - gap);
-        let mut chips: Vec<Chip> = choices
-            .iter()
-            .rev()
-            .map(|&(text, control, selected)| {
-                let label = fit_label(self.text, text, self.metrics.label(), widest);
-                let width = (label.width + 2.0 * pad).ceil();
-                let rect = Rect::new(right - width, y, width, height);
-                right = rect.x - gap;
-                Chip {
-                    rect,
-                    label,
-                    control,
-                    selected,
-                    faint: false,
-                }
-            })
-            .collect();
-        chips.reverse();
-        ChoiceRow { line, chips, clear }
-    }
 }
 
-fn middle(line: &SettingLine, height: f32) -> f32 {
+pub(super) fn middle(line: &SettingLine, height: f32) -> f32 {
     line.rect.centered_y(height).round()
 }

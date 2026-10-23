@@ -6,11 +6,10 @@ mod form;
 mod menu;
 mod row;
 
-use super::{FrameLayout, PopupFrame, SettingLine};
+use super::{FrameLayout, HostList, HostsView, PopupFrame, SettingLine};
 use crate::geometry::{Point, Rect};
 use crate::input::TextField;
 use crate::locale::Strings;
-use crate::preferences::{ConnectForm, SshHost};
 use crate::session::SessionId;
 use crate::text::TextSystem;
 use crate::theme::{Emblem, Swatch};
@@ -22,7 +21,8 @@ pub use emblems::EmblemSlot;
 pub use field::FieldFrame;
 pub(in crate::ui::frame) use field::place_field;
 use field::place_inline;
-pub use form::{FormFrame, FormRow, SECRET_MASK};
+pub use form::{FormAction, FormButton, FormFrame, FormRow, SECRET_MASK};
+pub(in crate::ui::frame) use form::{FormSpec, form_height, form_title, place_form};
 pub use menu::{MenuEntry, MenuFrame, MenuRequest, MenuRow};
 pub use row::SwatchSlot;
 
@@ -37,7 +37,7 @@ pub enum EditKind<'a> {
     Name(&'a TextField),
     Color(Option<Swatch>),
     Emblem(Option<Emblem>),
-    Form(&'a ConnectForm, &'a [SshHost]),
+    Connect(HostsView<'a>),
 }
 
 pub struct EditorRequest<'a> {
@@ -59,7 +59,7 @@ pub struct EditorFrame {
     pub emblems: Vec<EmblemSlot>,
     pub emblem: Option<Emblem>,
     pub sections: Vec<SettingLine>,
-    pub hosts: Vec<SettingLine>,
+    pub list: Option<HostList>,
     pub form: Option<FormFrame>,
 }
 
@@ -76,7 +76,7 @@ impl EditorFrame {
             emblems: Vec::new(),
             emblem: None,
             sections: Vec::new(),
-            hosts: Vec::new(),
+            list: None,
             form: None,
         }
     }
@@ -87,10 +87,6 @@ impl EditorFrame {
 
     pub fn emblem_at(&self, point: Point) -> Option<&EmblemSlot> {
         self.emblems.iter().find(|slot| slot.rect.contains(point))
-    }
-
-    pub fn host_at(&self, point: Point) -> Option<usize> {
-        self.hosts.iter().position(|line| line.rect.contains(point))
     }
 }
 
@@ -116,12 +112,8 @@ impl FrameLayout {
             },
             EditKind::Color(selected) => self.color_popup(text, strings, selected, editor),
             EditKind::Emblem(emblem) => self.emblem_popup(text, strings, emblem, editor),
-            EditKind::Form(form, hosts) => {
-                let dialog = ConnectDialog {
-                    form,
-                    hosts,
-                    strings,
-                };
+            EditKind::Connect(view) => {
+                let dialog = ConnectDialog { view, strings };
                 self.connect_popup(text, &dialog, editor)
             }
         }

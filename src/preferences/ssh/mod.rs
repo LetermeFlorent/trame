@@ -60,6 +60,11 @@ impl SshHost {
         }
     }
 
+    pub fn alias(&self) -> Option<&str> {
+        let bare = self.port.is_none() && !self.target.contains('@');
+        bare.then_some(self.target.as_str())
+    }
+
     pub fn command(&self) -> String {
         match self.port {
             Some(port) => format!("ssh -p {port} {}\r", self.target),
@@ -112,12 +117,8 @@ impl Preferences {
         self.with(|next| next.ssh_hosts = ssh_hosts)
     }
 
-    pub fn forget_host(&self, index: usize) -> Self {
-        self.with(|next| {
-            if index < next.ssh_hosts.len() {
-                next.ssh_hosts.remove(index);
-            }
-        })
+    pub fn forget_host(&self, host: &SshHost) -> Self {
+        self.with(|next| next.ssh_hosts.retain(|known| known != host))
     }
 }
 

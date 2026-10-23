@@ -1,22 +1,38 @@
+mod chips;
 mod column;
-mod launch;
+mod general;
+mod hosts;
 mod place;
 mod popup;
-mod rows;
 
+use std::path::Path;
 use std::sync::Arc;
 
 use crate::geometry::{Point, Rect};
-use crate::locale::LanguageChoice;
-use crate::preferences::Recall;
+use crate::locale::{LanguageChoice, Strings};
+use crate::preferences::{Preferences, Recall};
 use crate::text::TextLayout;
-use crate::ui::frame::FieldFrame;
-pub(in crate::ui::frame) use column::{CAPTION_HEIGHT, LINE_HEIGHT, SECTION_GAP};
+pub(in crate::ui::frame) use column::{CAPTION_HEIGHT, LINE_HEIGHT, LINE_INSET, SECTION_GAP};
+pub use general::{GeneralPage, Stepper, ToggleRow};
+pub(in crate::ui::frame) use hosts::ListSpec;
+pub use hosts::{ConnectionsPage, HostList, HostRow, HostsView, ListControl, ScrollBar};
 pub use popup::PopupFrame;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum SettingsTab {
+    #[default]
+    General,
+    Connections,
+}
+
+impl SettingsTab {
+    pub const ALL: [Self; 2] = [Self::General, Self::Connections];
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SettingControl {
     Close,
+    Tab(SettingsTab),
     Recall(Recall),
     StartupCommand,
     ClearStartupCommand,
@@ -29,7 +45,7 @@ pub enum SettingControl {
     Language(LanguageChoice),
     DefaultFolder,
     ClearFolder,
-    ForgetHost(usize),
+    AddHost,
 }
 
 #[derive(Clone, Debug)]
@@ -37,26 +53,6 @@ pub struct SettingLine {
     pub rect: Rect,
     pub label: Arc<TextLayout>,
     pub label_x: f32,
-}
-
-#[derive(Clone, Debug)]
-pub struct ToggleRow {
-    pub line: SettingLine,
-    pub switch: Rect,
-    pub on: bool,
-    pub enabled: bool,
-    pub control: SettingControl,
-}
-
-#[derive(Clone, Debug)]
-pub struct Stepper {
-    pub line: SettingLine,
-    pub smaller: Rect,
-    pub bigger: Rect,
-    pub value: Arc<TextLayout>,
-    pub value_rect: Rect,
-    pub can_shrink: bool,
-    pub can_grow: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -84,51 +80,54 @@ impl ChoiceRow {
     }
 }
 
+#[derive(Clone, Copy)]
+pub struct SettingsRequest<'a> {
+    pub preferences: &'a Preferences,
+    pub strings: &'static Strings,
+    pub folder: Option<&'a Path>,
+    pub tab: SettingsTab,
+    pub hosts: Option<HostsView<'a>>,
+}
+
+#[derive(Clone, Debug)]
+pub enum SettingsPage {
+    General(Box<GeneralPage>),
+    Connections(Box<ConnectionsPage>),
+}
+
 #[derive(Clone, Debug)]
 pub struct SettingsFrame {
     pub popup: PopupFrame,
-    pub sections: [SettingLine; 5],
-    pub toggles: [ToggleRow; 3],
-    pub command: ChoiceRow,
-    pub command_field: Option<FieldFrame>,
-    pub instance_tabs: Stepper,
-    pub text_size: Stepper,
-    pub interface_size: Stepper,
-    pub language: ChoiceRow,
-    pub folder: ChoiceRow,
-    pub hosts: Vec<ChoiceRow>,
-    pub hosts_hint: Option<SettingLine>,
+    pub tabs: [Chip; 2],
+    pub page: SettingsPage,
 }
 
 impl SettingsFrame {
+    pub fn general(&self) -> Option<&GeneralPage> {
+        match &self.page {
+            SettingsPage::General(page) => Some(page),
+            SettingsPage::Connections(_) => None,
+        }
+    }
+
+    pub fn connections(&self) -> Option<&ConnectionsPage> {
+        match &self.page {
+            SettingsPage::Connections(page) => Some(page),
+            SettingsPage::General(_) => None,
+        }
+    }
+
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
-        let field = self.command_field.as_ref().map(|field| field.rect);
-        let toggles = self.toggles.iter().filter(|toggle| toggle.enabled);
-        let rows = [&self.command, &self.language, &self.folder]
+        let page = match &self.page {
+            SettingsPage::General(page) => page.control_at(point),
+            SettingsPage::Connections(page) => page.control_at(point),
+        };
+        let tabs = self.tabs.iter().map(|chip| (chip.rect, chip.control));
+        [(self.popup.close, SettingControl::Close)]
             .into_iter()
-            .chain(&self.hosts)
-            .flat_map(ChoiceRow::controls);
-        field
-            .map(|rect| (rect, SettingControl::StartupCommand))
-            .into_iter()
-            .chain([(self.popup.close, SettingControl::Close)])
-            .chain(toggles.map(|toggle| (toggle.line.rect, toggle.control)))
-            .chain([
-                (
-                    self.instance_tabs.smaller,
-                    SettingControl::InstanceTabsFewer,
-                ),
-                (self.instance_tabs.bigger, SettingControl::InstanceTabsMore),
-                (self.text_size.smaller, SettingControl::TextSmaller),
-                (self.text_size.bigger, SettingControl::TextBigger),
-                (
-                    self.interface_size.smaller,
-                    SettingControl::InterfaceSmaller,
-                ),
-                (self.interface_size.bigger, SettingControl::InterfaceBigger),
-            ])
-            .chain(rows)
+            .chain(tabs)
             .find(|(rect, _)| rect.contains(point))
             .map(|(_, control)| control)
+            .or(page)
     }
 }

@@ -1,15 +1,15 @@
 use crate::geometry::Rect;
 use crate::ui::chrome::{Icon, Painter};
-use crate::ui::frame::{Chip, ChoiceRow, SettingControl, SettingsFrame, Stepper, ToggleRow};
+use crate::ui::frame::{Chip, ChoiceRow, GeneralPage, SettingControl, Stepper, ToggleRow};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
 use super::super::ON_ACCENT;
 use super::super::editor::draw_field;
+use super::super::popup::{LabelButton, draw_label_button};
 
 const KNOB_INSET: f32 = 2.0;
 const DISABLED_OPACITY: f32 = 0.35;
-const CHIP_STROKE: f32 = 1.0;
 
 pub(super) fn draw_toggle_row(painter: &mut Painter, row: &ToggleRow) {
     let radius = painter.metrics.px(UiMetrics::RADIUS);
@@ -21,11 +21,11 @@ pub(super) fn draw_toggle_row(painter: &mut Painter, row: &ToggleRow) {
     });
 }
 
-pub(super) fn draw_command(painter: &mut Painter, settings: &SettingsFrame) {
-    let Some(field) = &settings.command_field else {
-        return draw_choices(painter, &settings.command);
+pub(super) fn draw_command(painter: &mut Painter, page: &GeneralPage) {
+    let Some(field) = &page.command_field else {
+        return draw_choices(painter, &page.command);
     };
-    let line = &settings.command.line;
+    let line = &page.command.line;
     painter.setting_line(line, painter.theme.text);
     draw_field(painter, field, true);
 }
@@ -100,26 +100,13 @@ pub(super) fn draw_choices(painter: &mut Painter, row: &ChoiceRow) {
     }
 }
 
-fn draw_chip(painter: &mut Painter, chip: &Chip) {
-    let theme = painter.theme;
-    let radius = painter.metrics.px(UiMetrics::RADIUS);
-    let color = match chip.selected {
-        true => {
-            painter.scene.fill(chip.rect, theme.accent, radius);
-            ON_ACCENT
-        }
-        false => {
-            let stroke = painter.metrics.px(CHIP_STROKE);
-            painter
-                .scene
-                .border(chip.rect, theme.border, radius, stroke);
-            let glow = painter.press_fill(chip.rect, Hit::Setting(chip.control), radius);
-            match chip.faint && glow == 0.0 {
-                true => theme.text_faint,
-                false => theme.muted_text(glow),
-            }
-        }
+pub(super) fn draw_chip(painter: &mut Painter, chip: &Chip) {
+    let button = LabelButton {
+        rect: chip.rect,
+        label: &chip.label,
+        hit: Hit::Setting(chip.control),
+        filled: chip.selected,
+        faint: chip.faint,
     };
-    let x = chip.rect.centered_x(chip.label.width);
-    painter.label(&chip.label, x, chip.rect, color);
+    draw_label_button(painter, &button);
 }

@@ -36,6 +36,11 @@ pub struct Strings {
     pub ssh_port: &'static str,
     pub ssh_password: &'static str,
     pub connect: &'static str,
+    pub general: &'static str,
+    pub connections_tab: &'static str,
+    pub change_connection: &'static str,
+    pub save: &'static str,
+    pub cancel: &'static str,
 }
 
 pub const ENGLISH: Strings = Strings {
@@ -69,12 +74,17 @@ pub const ENGLISH: Strings = Strings {
     servers: "SERVERS",
     new_connection: "NEW CONNECTION",
     connections: "SSH CONNECTIONS",
-    no_connections: "Add one from the right-click menu",
+    no_connections: "No saved connection yet",
     ssh_address: "Address",
     ssh_user: "User",
     ssh_port: "Port",
     ssh_password: "Password",
     connect: "Connect",
+    general: "General",
+    connections_tab: "Connections",
+    change_connection: "EDIT CONNECTION",
+    save: "Save",
+    cancel: "Cancel",
 };
 
 pub const FRENCH: Strings = Strings {
@@ -108,10 +118,15 @@ pub const FRENCH: Strings = Strings {
     servers: "SERVEURS",
     new_connection: "NOUVELLE CONNEXION",
     connections: "CONNEXIONS SSH",
-    no_connections: "Ajoutez-en une avec le clic droit",
+    no_connections: "Aucune connexion enregistrée",
     ssh_address: "Adresse",
     ssh_user: "Utilisateur",
     ssh_port: "Port",
     ssh_password: "Mot de passe",
     connect: "Se connecter",
+    general: "Général",
+    connections_tab: "Connexions",
+    change_connection: "MODIFIER LA CONNEXION",
+    save: "Enregistrer",
+    cancel: "Annuler",
 };

@@ -8,6 +8,7 @@ use winit::window::{Cursor, CursorIcon};
 use trame::geometry::Point;
 use trame::session::SessionId;
 use trame::ui::Hit;
+use trame::ui::frame::ListControl;
 use trame::workspace::{Axis, Divider, Node, resized};
 
 use crate::app::running::Running;
@@ -27,6 +28,7 @@ pub(in crate::app::running) enum Drag {
     Tab(SessionId, Point),
     Divider(DividerDrag),
     Sidebar(SidebarDrag),
+    List(f32),
 }
 
 impl Running {
@@ -38,6 +40,7 @@ impl Running {
             Hit::Tab(_, tab) => Some(Drag::Pending(tab, origin)),
             Hit::Divider(index) => self.divider_drag(index, origin).map(Drag::Divider),
             Hit::SidebarEdge => Some(Drag::Sidebar(self.sidebar_drag())),
+            Hit::List(ListControl::Thumb) => self.list_grab(origin).map(Drag::List),
             _ => None,
         };
     }
@@ -74,6 +77,10 @@ impl Running {
             Some(Drag::Sidebar(drag)) => {
                 self.drag_sidebar(drag, point);
                 Drag::Sidebar(drag)
+            }
+            Some(Drag::List(grab)) => {
+                self.drag_list(point.y - grab);
+                Drag::List(grab)
             }
         };
         self.drag = Some(next);

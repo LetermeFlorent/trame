@@ -1,9 +1,9 @@
 use crate::locale::Strings;
 use crate::preferences::{Preferences, Recall};
 
-use super::column::{Column, LINE_HEIGHT};
 use super::rows::{can_step, picker_row};
 use super::{ChoiceRow, SettingControl, Stepper, ToggleRow};
+use crate::ui::frame::sidebar::settings::column::{Column, LINE_HEIGHT};
 
 pub(super) fn recall_toggles(
     column: &mut Column,

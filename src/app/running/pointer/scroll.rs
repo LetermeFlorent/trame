@@ -42,7 +42,8 @@ impl Running {
     }
 
     pub(in crate::app::running) fn wheel(&mut self, delta: MouseScrollDelta) {
-        if self.frame.blocked || self.settings_open {
+        let list = self.list_under_pointer();
+        if list.is_none() && (self.frame.blocked || self.settings.is_some()) {
             return;
         }
         let lines = match delta {
@@ -54,6 +55,9 @@ impl Running {
         self.pointer.wheel += lines;
         let whole = self.pointer.wheel.trunc();
         self.pointer.wheel -= whole;
+        if let Some(bar) = list {
+            return self.scroll_list_to(bar.scrolled(-(whole as isize)));
+        }
         if let Some(id) = self.session_under_pointer() {
             self.scroll_session(id, whole as isize);
         }

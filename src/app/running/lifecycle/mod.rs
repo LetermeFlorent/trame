@@ -115,7 +115,7 @@ impl Running {
             editing: None,
             command_field: None,
             menu: None,
-            settings_open: false,
+            settings: None,
             selecting: Selecting::default(),
             modifiers: ModifiersState::empty(),
             visibility: Visibility::default(),
