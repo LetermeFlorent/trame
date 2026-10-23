@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 
 use trame::workspace::{Snapshot, WindowSnapshot, Workspace};
 
-use super::persist::{session_path, write};
+use super::{session_path, write};
 
 const SAVE_INTERVAL: Duration = Duration::from_secs(1);
 

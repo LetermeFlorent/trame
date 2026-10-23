@@ -1,3 +1,5 @@
+mod saver;
+
 use std::env;
 use std::fs;
 use std::io;
@@ -5,6 +7,8 @@ use std::path::{Path, PathBuf};
 
 use trame::files::write_atomic;
 use trame::workspace::Snapshot;
+
+pub use saver::Saver;
 
 const APP_DIR: &str = "trame";
 const FILE_NAME: &str = "session.json";

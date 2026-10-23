@@ -28,7 +28,7 @@ use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
-use super::saver::Saver;
+use super::persist::Saver;
 use super::sessions::Sessions;
 use super::visibility::Visibility;
 use super::{UserEvent, window};

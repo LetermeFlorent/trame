@@ -1,7 +1,6 @@
 mod graphics;
 mod persist;
 mod running;
-mod saver;
 mod sessions;
 mod update;
 mod visibility;

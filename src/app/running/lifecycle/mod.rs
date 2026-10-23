@@ -19,8 +19,7 @@ use trame::workspace::{Snapshot, Workspace};
 
 use super::tabs::Placement;
 use super::{Pointer, Running, Selecting, frame};
-use crate::app::persist;
-use crate::app::saver::Saver;
+use crate::app::persist::{self, Saver};
 use crate::app::sessions::Sessions;
 use crate::app::update::UpdateStatus;
 use crate::app::visibility::Visibility;
