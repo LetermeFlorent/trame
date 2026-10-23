@@ -32,7 +32,7 @@ fn draw_general(painter: &mut Painter, page: &GeneralPage) {
     for section in &page.sections {
         painter.setting_line(section, faint);
     }
-    for toggle in &page.toggles {
+    for toggle in page.all_toggles() {
         draw_toggle_row(painter, toggle);
     }
     draw_command(painter, page);

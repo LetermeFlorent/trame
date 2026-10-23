@@ -2,14 +2,30 @@ use crate::geometry::Rect;
 use crate::ui::frame::sidebar::settings::SettingLine;
 use crate::ui::frame::sidebar::settings::column::{Column, LINE_HEIGHT, LINE_INSET};
 
-use super::Stepper;
+use super::{SettingControl, Stepper, ToggleRow};
 
 const VALUE_WIDTH: f32 = 44.0;
 const TOGGLE_WIDTH: f32 = 28.0;
 const TOGGLE_HEIGHT: f32 = 16.0;
 
 impl Column<'_> {
-    pub(super) fn toggle(&self, line: &SettingLine) -> Rect {
+    pub(super) fn toggle_row(
+        &mut self,
+        label: &str,
+        [on, enabled]: [bool; 2],
+        control: SettingControl,
+    ) -> ToggleRow {
+        let line = self.line(label, LINE_HEIGHT, self.metrics.label());
+        ToggleRow {
+            switch: self.toggle(&line),
+            on,
+            enabled,
+            control,
+            line,
+        }
+    }
+
+    fn toggle(&self, line: &SettingLine) -> Rect {
         let width = self.metrics.px(TOGGLE_WIDTH);
         let height = self.metrics.px(TOGGLE_HEIGHT);
         let right = line.rect.right() - self.metrics.px(LINE_INSET);

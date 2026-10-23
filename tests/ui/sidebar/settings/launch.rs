@@ -100,3 +100,18 @@ fn the_terminal_count_stepper_stops_at_its_limits() {
     let stepper = &page(&layout).instance_tabs;
     assert!(stepper.can_shrink && !stepper.can_grow);
 }
+
+#[test]
+fn the_close_switch_sits_below_the_terminal_count_and_follows_its_preference() {
+    let layout = english(&Preferences::default());
+    let general = page(&layout);
+    let switch = &general.confirm_close;
+    assert_eq!(switch.control, SettingControl::ConfirmClose);
+    assert!(switch.on && switch.enabled);
+    assert!(general.instance_tabs.line.rect.bottom() <= switch.line.rect.y);
+    let center = switch.line.rect.center();
+    let hit = Some(Hit::Setting(SettingControl::ConfirmClose));
+    assert_eq!(layout.hit(center, false), hit);
+    let off = english(&Preferences::default().toggle_confirm_close());
+    assert!(!page(&off).confirm_close.on);
+}

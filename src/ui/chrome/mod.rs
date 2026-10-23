@@ -8,7 +8,8 @@ mod titlebar;
 
 pub use icons::{Icon, Pen, draw_icon};
 pub use overlay::{
-    LoaderProgress, LoaderView, draw_editor, draw_loader, draw_menu, draw_settings, draw_tooltip,
+    LoaderProgress, LoaderView, draw_confirm, draw_editor, draw_loader, draw_menu, draw_settings,
+    draw_tooltip,
 };
 
 use self::painter::{Painter, Press, centered};

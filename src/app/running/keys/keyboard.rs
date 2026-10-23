@@ -16,6 +16,7 @@ impl Running {
     pub(in crate::app::running) fn key(&mut self, event_loop: &ActiveEventLoop, event: &KeyEvent) {
         if self.frame.blocked
             || event.state != ElementState::Pressed
+            || self.closing_key(event_loop, event)
             || self.drag_key(&event.logical_key)
             || self.menu_key(event)
             || self.editing_key(event)

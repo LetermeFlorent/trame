@@ -6,7 +6,7 @@ use crate::locale::Strings;
 use crate::preferences::{ConnectForm, FormField};
 use crate::text::TextSystem;
 use crate::ui::metrics::UiMetrics;
-use buttons::place_buttons;
+pub(in crate::ui::frame) use buttons::place_buttons;
 pub use buttons::{FormAction, FormButton};
 use rows::form_rows;
 pub use rows::{FormRow, SECRET_MASK};

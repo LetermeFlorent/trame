@@ -32,7 +32,7 @@ impl Running {
     pub(in crate::app::running) fn form_action(&mut self, action: FormAction) {
         match action {
             FormAction::Connect | FormAction::Save => self.commit_edit(),
-            FormAction::Cancel => self.cancel_edit(),
+            FormAction::Cancel | FormAction::Close => self.cancel_edit(),
         }
     }
 

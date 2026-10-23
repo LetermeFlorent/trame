@@ -20,9 +20,9 @@ pub use rail::{RailFrame, RailSlot};
 use row::{RowSpec, layout_row, row_specs};
 pub(super) use settings::{CAPTION_HEIGHT, LINE_HEIGHT, LINE_INSET, ListSpec, SECTION_GAP};
 pub use settings::{
-    Chip, ChoiceRow, ConnectionsPage, GeneralPage, HostList, HostRow, HostsView, ListControl,
-    PopupFrame, ScrollBar, SettingControl, SettingLine, SettingsFrame, SettingsPage,
-    SettingsRequest, SettingsTab, Stepper, ToggleRow,
+    Chip, ChoiceRow, ConfirmFrame, ConfirmRequest, ConnectionsPage, GeneralPage, HostList, HostRow,
+    HostsView, ListControl, PopupFrame, ScrollBar, SettingControl, SettingLine, SettingsFrame,
+    SettingsPage, SettingsRequest, SettingsTab, Stepper, ToggleRow,
 };
 pub(super) use width::Columns;
 pub use width::{dragged_width, shown_width};

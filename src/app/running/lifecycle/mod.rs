@@ -122,6 +122,7 @@ impl Running {
             loader: None,
             update_offer: None,
             restarting: false,
+            closing: None,
             strings,
         }
     }

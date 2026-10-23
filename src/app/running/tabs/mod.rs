@@ -1,3 +1,4 @@
+mod closing;
 mod folder;
 mod ssh;
 
@@ -12,6 +13,7 @@ use trame::workspace::{Edge, InstanceId, PaneId};
 
 use super::Running;
 use crate::app::sessions::ShellStart;
+pub(super) use closing::Closing;
 pub use folder::FolderTarget;
 
 pub(super) const FALLBACK_GRID: (usize, usize) = (24, 80);
@@ -106,16 +108,6 @@ impl Running {
         if let Err(error) = self.open(Placement::Tab) {
             eprintln!("trame: a fresh tab could not start: {error}");
         }
-    }
-
-    pub(super) fn close_instance(&mut self, event_loop: &ActiveEventLoop, instance: InstanceId) {
-        let Some(index) = self.workspace.instance_index(instance) else {
-            return;
-        };
-        for id in self.workspace.remove_instance(index) {
-            self.sessions.remove(id);
-        }
-        self.after_close(event_loop);
     }
 
     pub(super) fn focus_pane(&mut self, pane: PaneId) {

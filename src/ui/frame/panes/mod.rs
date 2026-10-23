@@ -52,8 +52,11 @@ struct Placement {
 pub(super) fn layout_panes(
     cx: &mut PaneContext,
     content: Rect,
-    instance: &Instance,
+    instance: Option<&Instance>,
 ) -> (Vec<PaneFrame>, Vec<Divider>) {
+    let Some(instance) = instance else {
+        return (Vec::new(), Vec::new());
+    };
     let layout = PaneLayout::compute(&instance.root, content, cx.metrics.line());
     let entries = entry::entries(&layout, cx.motion);
     let mut shown = HashMap::new();

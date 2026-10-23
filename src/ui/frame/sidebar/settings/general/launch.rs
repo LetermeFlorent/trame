@@ -3,7 +3,7 @@ use crate::preferences::{Preferences, Recall};
 
 use super::rows::{can_step, picker_row};
 use super::{ChoiceRow, SettingControl, Stepper, ToggleRow};
-use crate::ui::frame::sidebar::settings::column::{Column, LINE_HEIGHT};
+use crate::ui::frame::sidebar::settings::column::Column;
 
 pub(super) fn recall_toggles(
     column: &mut Column,
@@ -16,15 +16,18 @@ pub(super) fn recall_toggles(
             Recall::Tabs => strings.remember_tabs,
             Recall::Text => strings.restore_text,
         };
-        let line = column.line(label, LINE_HEIGHT, column.metrics.label());
-        ToggleRow {
-            switch: column.toggle(&line),
-            on: preferences.recalls(recall),
-            enabled: preferences.can_recall(recall),
-            control: SettingControl::Recall(recall),
-            line,
-        }
+        let state = [preferences.recalls(recall), preferences.can_recall(recall)];
+        column.toggle_row(label, state, SettingControl::Recall(recall))
     })
+}
+
+pub(super) fn close_toggle(
+    column: &mut Column,
+    strings: &Strings,
+    preferences: &Preferences,
+) -> ToggleRow {
+    let state = [preferences.confirm_close, true];
+    column.toggle_row(strings.confirm_close, state, SettingControl::ConfirmClose)
 }
 
 pub(super) fn command_row(

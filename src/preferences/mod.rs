@@ -20,6 +20,7 @@ pub const INTERFACE_SIZE: u16 = 100;
 pub const MIN_INTERFACE_SIZE: u16 = 80;
 pub const MAX_INTERFACE_SIZE: u16 = 150;
 pub const INTERFACE_SIZE_STEP: u16 = 10;
+pub const CONFIRM_FROM_TABS: usize = 2;
 
 const PERCENT: f32 = 100.0;
 
@@ -44,6 +45,8 @@ pub struct Preferences {
     pub default_folder: Option<PathBuf>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ssh_hosts: Vec<SshHost>,
+    #[serde(default = "enabled")]
+    pub confirm_close: bool,
 }
 
 impl Default for Preferences {
@@ -59,6 +62,7 @@ impl Default for Preferences {
             language: LanguageChoice::Auto,
             default_folder: None,
             ssh_hosts: Vec::new(),
+            confirm_close: true,
         }
     }
 }
@@ -93,6 +97,14 @@ impl Preferences {
         let wanted = i32::from(self.interface_size) + steps * i32::from(INTERFACE_SIZE_STEP);
         let size = wanted.clamp(0, i32::from(u16::MAX)) as u16;
         self.with(|next| next.interface_size = clamp_interface_size(size))
+    }
+
+    pub fn toggle_confirm_close(&self) -> Self {
+        self.with(|next| next.confirm_close = !next.confirm_close)
+    }
+
+    pub fn confirms_closing(&self, tabs: usize) -> bool {
+        self.confirm_close && tabs >= CONFIRM_FROM_TABS
     }
 
     pub fn ui_scale(&self, window_scale: f32) -> f32 {

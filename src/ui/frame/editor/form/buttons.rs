@@ -13,6 +13,7 @@ pub enum FormAction {
     Connect,
     Save,
     Cancel,
+    Close,
 }
 
 impl FormAction {
@@ -25,6 +26,7 @@ impl FormAction {
             Self::Connect => strings.connect,
             Self::Save => strings.save,
             Self::Cancel => strings.cancel,
+            Self::Close => strings.close,
         }
     }
 }
@@ -36,7 +38,7 @@ pub struct FormButton {
     pub action: FormAction,
 }
 
-pub(super) fn place_buttons(
+pub(in crate::ui::frame) fn place_buttons(
     text: &mut TextSystem,
     metrics: &UiMetrics,
     area: Rect,

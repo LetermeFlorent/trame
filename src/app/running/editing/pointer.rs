@@ -65,7 +65,7 @@ impl Running {
         false
     }
 
-    fn hit_under_pointer(&self) -> Option<Hit> {
+    pub(in crate::app::running) fn hit_under_pointer(&self) -> Option<Hit> {
         self.pointer
             .position
             .and_then(|point| self.frame.hit(point, false))

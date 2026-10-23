@@ -6,7 +6,7 @@ use trame::input::Command;
 use trame::ui::Hit;
 use trame::ui::frame::SidebarItem;
 
-use crate::app::running::Running;
+use crate::app::running::{Closing, Running};
 use crate::app::window;
 
 const DOUBLE_CLICK: Duration = Duration::from_millis(500);
@@ -72,7 +72,7 @@ impl Running {
             Hit::SidebarToggle => self.command(event_loop, Command::ToggleSidebar),
             Hit::Minimize => self.window.set_minimized(true),
             Hit::Maximize => self.toggle_maximized(),
-            Hit::Close => event_loop.exit(),
+            Hit::Close => self.ask_close(event_loop, Closing::Window),
             Hit::NewInstance => self.command(event_loop, Command::NewInstance),
             Hit::Settings => self.toggle_settings(),
             Hit::Update => self.restart_for_update(event_loop),
@@ -80,7 +80,9 @@ impl Running {
             Hit::List(control) => self.list_control(control),
             Hit::FormField(field) => self.focus_form(field),
             Hit::FormButton(action) => self.form_action(action),
-            Hit::RowClose(SidebarItem::Instance(id)) => self.close_instance(event_loop, id),
+            Hit::RowClose(SidebarItem::Instance(id)) => {
+                self.ask_close(event_loop, Closing::Instance(id))
+            }
             Hit::RowClose(SidebarItem::Tab(id)) | Hit::TabClose(_, id) => {
                 self.close_tab(event_loop, id)
             }

@@ -1,5 +1,6 @@
 mod chips;
 mod column;
+mod confirm;
 mod general;
 mod hosts;
 mod place;
@@ -13,6 +14,7 @@ use crate::locale::{LanguageChoice, Strings};
 use crate::preferences::{Preferences, Recall};
 use crate::text::TextLayout;
 pub(in crate::ui::frame) use column::{CAPTION_HEIGHT, LINE_HEIGHT, LINE_INSET, SECTION_GAP};
+pub use confirm::{ConfirmFrame, ConfirmRequest};
 pub use general::{GeneralPage, Stepper, ToggleRow};
 pub(in crate::ui::frame) use hosts::ListSpec;
 pub use hosts::{ConnectionsPage, HostList, HostRow, HostsView, ListControl, ScrollBar};
@@ -46,6 +48,7 @@ pub enum SettingControl {
     DefaultFolder,
     ClearFolder,
     AddHost,
+    ConfirmClose,
 }
 
 #[derive(Clone, Debug)]

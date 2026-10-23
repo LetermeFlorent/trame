@@ -1,3 +1,4 @@
+mod closing;
 mod launch;
 mod ssh;
 
@@ -92,6 +93,7 @@ fn preferences_and_text_keys_survive_json() {
         language: LanguageChoice::French,
         default_folder: Some(PathBuf::from("projects")),
         ssh_hosts: SshHost::parse("me@box:2222").into_iter().collect(),
+        confirm_close: false,
     };
     let text = snapshot.to_json().expect("serializes");
     let parsed = Snapshot::from_json(&text).expect("parses");

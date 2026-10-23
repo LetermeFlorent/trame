@@ -1,11 +1,13 @@
 use crate::geometry::Rect;
-use crate::text::TextLayout;
-use crate::ui::chrome::{Icon, Painter};
+use crate::render::Scene;
+use crate::text::{TextLayout, TextSystem};
+use crate::ui::chrome::{ChromeInput, Icon, Painter};
 use crate::ui::frame::PopupFrame;
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
 use super::ON_ACCENT;
+use super::connect::draw_form;
 
 const PANEL_BLUR: f32 = 8.0;
 const BACKDROP_ALPHA: f32 = 0.35;
@@ -49,4 +51,14 @@ pub(super) fn draw_label_button(painter: &mut Painter, button: &LabelButton) {
     };
     let x = rect.centered_x(button.label.width);
     painter.label(button.label, x, rect, color);
+}
+
+pub fn draw_confirm(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput) {
+    let Some(confirm) = &input.frame.confirm else {
+        return;
+    };
+    let mut painter = Painter::new(scene, text, input);
+    draw_popup(&mut painter, &confirm.popup, Hit::EditClose);
+    painter.setting_line(&confirm.message, painter.theme.text_muted);
+    draw_form(&mut painter, &confirm.form);
 }

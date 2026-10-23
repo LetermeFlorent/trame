@@ -14,11 +14,11 @@ use crate::ui::metrics::UiMetrics;
 
 use super::column::{CAPTION_HEIGHT, Column, LINE_HEIGHT, SECTION_GAP};
 use super::{ChoiceRow, SettingControl, SettingLine};
-use launch::{command_row, instance_tabs_stepper, recall_toggles};
+use launch::{close_toggle, command_row, instance_tabs_stepper, recall_toggles};
 use rows::{folder_row, language_row, size_steppers};
 
 const CAPTIONS: f32 = 4.0;
-const LINES: f32 = 9.0;
+const LINES: f32 = 10.0;
 
 #[derive(Clone, Debug)]
 pub struct ToggleRow {
@@ -44,6 +44,7 @@ pub struct Stepper {
 pub struct GeneralPage {
     pub sections: [SettingLine; 4],
     pub toggles: [ToggleRow; 3],
+    pub confirm_close: ToggleRow,
     pub command: ChoiceRow,
     pub command_field: Option<FieldFrame>,
     pub instance_tabs: Stepper,
@@ -56,7 +57,7 @@ pub struct GeneralPage {
 impl GeneralPage {
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
         let field = self.command_field.as_ref().map(|field| field.rect);
-        let toggles = self.toggles.iter().filter(|toggle| toggle.enabled);
+        let toggles = self.all_toggles().filter(|toggle| toggle.enabled);
         let rows = [&self.command, &self.language, &self.folder]
             .into_iter()
             .flat_map(ChoiceRow::controls);
@@ -74,6 +75,10 @@ impl GeneralPage {
             .chain(rows)
             .find(|(rect, _)| rect.contains(point))
             .map(|(_, control)| control)
+    }
+
+    pub fn all_toggles(&self) -> impl Iterator<Item = &ToggleRow> {
+        self.toggles.iter().chain([&self.confirm_close])
     }
 
     pub fn steppers(&self) -> [(&Stepper, [SettingControl; 2]); 3] {
@@ -106,6 +111,7 @@ pub(super) fn general_page(
     let terminals = column.section(strings.terminals);
     let command = command_row(column, strings, preferences);
     let instance_tabs = instance_tabs_stepper(column, strings, preferences);
+    let confirm_close = close_toggle(column, strings, preferences);
     let display = column.section(strings.display);
     let [text_size, interface_size] = size_steppers(column, strings, preferences);
     let language = language_row(column, strings, preferences);
@@ -114,6 +120,7 @@ pub(super) fn general_page(
     GeneralPage {
         sections: [at_launch, terminals, display, folders],
         toggles,
+        confirm_close,
         command,
         command_field: None,
         instance_tabs,

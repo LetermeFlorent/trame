@@ -10,7 +10,7 @@ use crate::ui::frame::{
 };
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{InstanceId, PaneId};
-use editor::hit_editor;
+use editor::{hit_confirm, hit_editor};
 use zones::{
     hit_menu, hit_pane, hit_settings, hit_sidebar, hit_title_bar, resize_edge, through_backdrop,
 };
@@ -62,6 +62,7 @@ pub enum Hit {
     Setting(SettingControl),
     Menu,
     MenuEntry(MenuEntry),
+    Dialog,
     Backdrop,
 }
 
@@ -85,19 +86,13 @@ impl FrameLayout {
     }
 
     fn overlay_hit(&self, point: Point) -> Option<Hit> {
-        let editor = || {
-            self.editor
-                .as_ref()
-                .and_then(|editor| hit_editor(editor, point))
-        };
-        let settings = || {
-            self.settings
-                .as_ref()
-                .and_then(|panel| hit_settings(panel, point))
-        };
-        self.menu
-            .as_ref()
-            .and_then(|menu| hit_menu(menu, point))
+        let confirm = self.confirm.as_ref();
+        let menu = || hit_menu(self.menu.as_ref()?, point);
+        let editor = || hit_editor(self.editor.as_ref()?, point);
+        let settings = || hit_settings(self.settings.as_ref()?, point);
+        confirm
+            .and_then(|confirm| hit_confirm(confirm, point))
+            .or_else(menu)
             .or_else(editor)
             .or_else(settings)
     }

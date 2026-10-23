@@ -1,6 +1,6 @@
 use super::Hit;
 use crate::geometry::{Point, Rect};
-use crate::ui::frame::{EditorFrame, FormFrame, HostList};
+use crate::ui::frame::{ConfirmFrame, EditorFrame, FormFrame, HostList};
 
 pub(super) fn hit_editor(editor: &EditorFrame, point: Point) -> Option<Hit> {
     let Some(popup) = &editor.popup else {
@@ -13,6 +13,21 @@ pub(super) fn hit_editor(editor: &EditorFrame, point: Point) -> Option<Hit> {
         true => Some(hit_dialog(editor, popup.close, point)),
         false => popup.backdrop.contains(point).then_some(Hit::Backdrop),
     }
+}
+
+pub(super) fn hit_confirm(confirm: &ConfirmFrame, point: Point) -> Option<Hit> {
+    let popup = &confirm.popup;
+    if !popup.rect.contains(point) {
+        return popup.backdrop.contains(point).then_some(Hit::Backdrop);
+    }
+    if popup.close.contains(point) {
+        return Some(Hit::EditClose);
+    }
+    Some(
+        confirm
+            .button_at(point)
+            .map_or(Hit::Dialog, Hit::FormButton),
+    )
 }
 
 fn hit_dialog(editor: &EditorFrame, close: Rect, point: Point) -> Hit {

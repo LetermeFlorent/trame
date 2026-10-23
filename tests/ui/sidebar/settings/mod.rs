@@ -1,4 +1,5 @@
 mod choices;
+mod confirm;
 mod connections;
 mod folders;
 mod launch;
@@ -76,8 +77,7 @@ fn drawn_controls(settings: &SettingsFrame) -> Vec<(Rect, SettingControl)> {
         .into_iter()
         .flat_map(ChoiceRow::controls);
     let toggles = page
-        .toggles
-        .iter()
+        .all_toggles()
         .map(|toggle: &ToggleRow| (toggle.line.rect, toggle.control));
     let steppers = page
         .steppers()

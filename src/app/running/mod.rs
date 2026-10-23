@@ -35,6 +35,7 @@ use editing::{Editing, Menu};
 use frame::Loader;
 use pointer::{Drag, Pointer, Selecting};
 use settings::SettingsState;
+use tabs::Closing;
 pub use tabs::FolderTarget;
 
 pub struct Running {
@@ -67,6 +68,7 @@ pub struct Running {
     loader: Option<Loader>,
     update_offer: Option<String>,
     restarting: bool,
+    closing: Option<Closing>,
     strings: &'static Strings,
 }
 
@@ -80,7 +82,7 @@ impl Running {
 
     pub fn window_event(&mut self, event_loop: &ActiveEventLoop, event: WindowEvent) {
         match event {
-            WindowEvent::CloseRequested => event_loop.exit(),
+            WindowEvent::CloseRequested => self.ask_close(event_loop, Closing::Window),
             WindowEvent::RedrawRequested => self.redraw(),
             WindowEvent::Resized(size) => self.resized(size),
             WindowEvent::Occluded(occluded) => self.visibility.set_occluded(occluded),

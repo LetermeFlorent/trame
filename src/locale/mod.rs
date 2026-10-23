@@ -1,4 +1,6 @@
 mod detect;
+mod english;
+mod french;
 mod strings;
 #[cfg(test)]
 mod tests;
@@ -17,8 +19,8 @@ pub enum Language {
 impl Language {
     pub fn strings(self) -> &'static Strings {
         match self {
-            Language::English => &strings::ENGLISH,
-            Language::French => &strings::FRENCH,
+            Language::English => &english::ENGLISH,
+            Language::French => &french::FRENCH,
         }
     }
 }

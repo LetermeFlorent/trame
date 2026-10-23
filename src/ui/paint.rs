@@ -56,6 +56,7 @@ pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSourc
     chrome::draw_editor(scene, text, &input);
     chrome::draw_settings(scene, text, &input);
     chrome::draw_menu(scene, text, &input);
+    chrome::draw_confirm(scene, text, &input);
     match sources.drag {
         Some(drag) => draw_drag(scene, text, &input, drag),
         None if frame.menu.is_none() => chrome::draw_tooltip(scene, text, &input),

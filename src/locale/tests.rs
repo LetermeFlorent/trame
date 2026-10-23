@@ -96,6 +96,18 @@ fn each_language_has_its_own_ssh_texts() {
 }
 
 #[test]
+fn each_language_has_its_own_closing_texts() {
+    let picks: [fn(&Strings) -> &'static str; 5] = [
+        |s| s.confirm_close,
+        |s| s.close_window,
+        |s| s.close_instance,
+        |s| s.tabs_will_close,
+        |s| s.close,
+    ];
+    picks.into_iter().for_each(differ);
+}
+
+#[test]
 fn each_language_choice_is_named_in_its_own_language() {
     let labels = LanguageChoice::ALL.map(LanguageChoice::label);
     assert_eq!(labels, ["Auto", "Français", "English"]);
