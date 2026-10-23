@@ -19,7 +19,7 @@ pub fn with_settings(
     strings: &Strings,
 ) -> FrameLayout {
     let mut layout = frame(text, &workspace());
-    layout.place_settings(text, preferences, strings);
+    layout.place_settings(text, preferences, strings, None);
     layout
 }
 
@@ -125,6 +125,7 @@ fn a_collapsed_sidebar_changes_nothing_to_the_window() {
         &mut text,
         &Preferences::default(),
         Language::English.strings(),
+        None,
     );
     let open = english(&Preferences::default());
     assert_eq!(panel(&layout).popup.rect, panel(&open).popup.rect);

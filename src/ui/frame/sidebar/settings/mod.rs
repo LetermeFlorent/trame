@@ -65,6 +65,7 @@ pub struct Chip {
     pub label: Arc<TextLayout>,
     pub control: SettingControl,
     pub selected: bool,
+    pub faint: bool,
 }
 
 #[derive(Clone, Debug)]

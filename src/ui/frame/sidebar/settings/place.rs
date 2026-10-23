@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::geometry::Rect;
 use crate::input::TextField;
 use crate::locale::Strings;
@@ -21,11 +23,13 @@ impl FrameLayout {
         text: &mut TextSystem,
         preferences: &Preferences,
         strings: &Strings,
+        folder: Option<&Path>,
     ) {
         let lines = FIXED_LINES + preferences.ssh_hosts.len().max(1);
         let content = content_height(&self.metrics, lines);
         let (popup, mut column) = self.open_popup(text, strings.settings, content);
-        self.settings = Some(settings_frame(&mut column, strings, preferences, popup));
+        let frame = settings_frame(&mut column, strings, preferences, popup, folder);
+        self.settings = Some(frame);
     }
 
     pub fn place_command_field(&mut self, text: &mut TextSystem, field: &TextField) {
@@ -44,6 +48,7 @@ fn settings_frame(
     strings: &Strings,
     preferences: &Preferences,
     popup: PopupFrame,
+    folder: Option<&Path>,
 ) -> SettingsFrame {
     let metrics = column.metrics;
     let at_launch = column.caption(strings.at_launch);
@@ -55,7 +60,7 @@ fn settings_frame(
     let [text_size, interface_size] = size_steppers(column, strings, preferences);
     let language = language_row(column, strings, preferences);
     let folders = column.section(strings.folders);
-    let folder = folder_row(column, strings, preferences);
+    let folder = folder_row(column, strings, preferences, folder);
     let connections = column.section(strings.connections);
     let hosts = host_rows(column, preferences);
     let hint = hosts

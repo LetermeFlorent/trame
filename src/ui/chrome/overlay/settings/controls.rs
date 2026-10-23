@@ -114,7 +114,10 @@ fn draw_chip(painter: &mut Painter, chip: &Chip) {
                 .scene
                 .border(chip.rect, theme.border, radius, stroke);
             let glow = painter.press_fill(chip.rect, Hit::Setting(chip.control), radius);
-            theme.muted_text(glow)
+            match chip.faint && glow == 0.0 {
+                true => theme.text_faint,
+                false => theme.muted_text(glow),
+            }
         }
     };
     let x = chip.rect.centered_x(chip.label.width);

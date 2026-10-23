@@ -10,8 +10,11 @@ use super::{FolderTarget, Running};
 impl Running {
     pub(super) fn place_settings(&mut self) {
         if self.settings_open {
+            let folder = self.active_folder();
             let (text, preferences) = (&mut self.text, &self.preferences);
-            self.frame.place_settings(text, preferences, self.strings);
+            let strings = self.strings;
+            self.frame
+                .place_settings(text, preferences, strings, folder.as_deref());
         }
         if let Some(field) = &self.command_field {
             self.frame.place_command_field(&mut self.text, field);

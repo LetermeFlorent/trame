@@ -1,18 +1,29 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use trame::locale::Language;
 use trame::preferences::Preferences;
+use trame::text::TextSystem;
+use trame::ui::FrameLayout;
 use trame::ui::Hit;
-use trame::ui::frame::SettingControl;
+use trame::ui::frame::{SettingControl, fit_text_start};
 
 use super::{english, panel, with_settings};
-use crate::text_system;
+use crate::{frame, text_system, workspace};
+
+const CURRENT: &str = "D:/shell/here";
 
 fn with_folder(folder: &str) -> Preferences {
     Preferences {
         default_folder: Some(PathBuf::from(folder)),
         ..Preferences::default()
     }
+}
+
+fn opened_in(text: &mut TextSystem, preferences: &Preferences, current: &str) -> FrameLayout {
+    let mut layout = frame(text, &workspace());
+    let english = Language::English.strings();
+    layout.place_settings(text, preferences, english, Some(Path::new(current)));
+    layout
 }
 
 #[test]
@@ -35,14 +46,15 @@ fn without_a_default_folder_the_row_only_offers_to_choose_one() {
 }
 
 #[test]
-fn a_chosen_folder_shows_its_name_and_a_button_to_forget_it() {
+fn a_chosen_folder_shows_its_path_and_a_button_to_forget_it() {
     let mut text = text_system();
     let preferences = with_folder("C:/work/projects");
-    let layout = with_settings(&mut text, &preferences, Language::English.strings());
+    let layout = opened_in(&mut text, &preferences, CURRENT);
     let row = &panel(&layout).folder;
     let chip = &row.chips[0];
-    let expected = text.layout("projects", layout.metrics.label());
+    let expected = text.layout("C:/work/projects", layout.metrics.label());
     assert_eq!(chip.label.width, expected.width);
+    assert!(!chip.faint);
     let (clear, control) = row.clear.expect("a button to forget the folder");
     assert_eq!(control, SettingControl::ClearFolder);
     assert!(chip.rect.right() < clear.x);
@@ -60,4 +72,38 @@ fn a_long_folder_name_is_shortened_beside_its_label() {
     let chip = &row.chips[0];
     assert!(chip.rect.x > row.line.label_x + row.line.label.width);
     assert!(chip.label.width < chip.rect.width);
+}
+
+#[test]
+fn without_a_choice_the_row_shows_the_terminal_folder_greyed() {
+    let mut text = text_system();
+    let layout = opened_in(&mut text, &Preferences::default(), CURRENT);
+    let row = &panel(&layout).folder;
+    let chip = &row.chips[0];
+    let expected = text.layout(CURRENT, layout.metrics.label());
+    assert_eq!(chip.label.width, expected.width);
+    assert_eq!(chip.control, SettingControl::DefaultFolder);
+    assert!(chip.faint);
+    assert!(row.clear.is_none());
+}
+
+#[test]
+fn the_choose_button_is_not_greyed() {
+    let layout = english(&Preferences::default());
+    assert!(!panel(&layout).folder.chips[0].faint);
+}
+
+#[test]
+fn a_long_path_keeps_its_end_in_the_chip() {
+    let mut text = text_system();
+    let deep = format!("C:/{}final", "nested/".repeat(30));
+    let layout = opened_in(&mut text, &with_folder(&deep), CURRENT);
+    let row = &panel(&layout).folder;
+    let chip = &row.chips[0];
+    let style = layout.metrics.label();
+    let whole = text.layout(&deep, style);
+    assert!(chip.label.width < whole.width);
+    let fitted = fit_text_start(&mut text, &deep, style, chip.label.width);
+    assert!(fitted.ends_with("nested/final"));
+    assert_eq!(text.layout(&fitted, style).width, chip.label.width);
 }

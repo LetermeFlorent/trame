@@ -63,6 +63,10 @@ impl Column<'_> {
         Rect::new(right - width, y, width, height).snapped()
     }
 
+    pub(super) fn chip_room(&self) -> f32 {
+        self.inner.width / 2.0 - 2.0 * self.metrics.px(CHOICE_PAD)
+    }
+
     pub(super) fn end_button(&self, line: &SettingLine) -> Rect {
         let button = self.metrics.px(UiMetrics::BUTTON);
         let y = middle(line, button);
@@ -110,7 +114,7 @@ impl Column<'_> {
         let height = self.metrics.px(UiMetrics::BUTTON);
         let pad = self.metrics.px(CHOICE_PAD);
         let gap = self.metrics.px(CHOICE_GAP);
-        let widest = line.rect.width / 2.0 - 2.0 * pad;
+        let widest = self.chip_room();
         let y = middle(&line, height);
         let mut right = clear.map_or(line.rect.right(), |(rect, _)| rect.x - gap);
         let mut chips: Vec<Chip> = choices
@@ -126,6 +130,7 @@ impl Column<'_> {
                     label,
                     control,
                     selected,
+                    faint: false,
                 }
             })
             .collect();

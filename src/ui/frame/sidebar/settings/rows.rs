@@ -1,5 +1,9 @@
+use std::path::Path;
+
+use crate::files::{home_dir, short_path};
 use crate::locale::{LanguageChoice, Strings};
 use crate::preferences::Preferences;
+use crate::ui::frame::fit_text_start;
 
 use super::column::Column;
 use super::{ChoiceRow, SettingControl, Stepper};
@@ -57,19 +61,23 @@ pub(super) fn folder_row(
     column: &mut Column,
     strings: &Strings,
     preferences: &Preferences,
+    current: Option<&Path>,
 ) -> ChoiceRow {
-    let name = preferences.default_folder.as_deref().map(|path| {
-        path.file_name()
-            .unwrap_or(path.as_os_str())
-            .to_string_lossy()
+    let chosen = preferences.default_folder.as_deref();
+    let shown = chosen.or(current).map(|path| {
+        let short = short_path(path, home_dir().as_deref());
+        let room = column.chip_room();
+        fit_text_start(column.text, &short, column.metrics.label(), room)
     });
-    picker_row(
-        column,
-        strings.default_folder,
-        name.as_deref(),
-        strings.choose,
-        [SettingControl::DefaultFolder, SettingControl::ClearFolder],
-    )
+    let pick = shown.as_deref().unwrap_or(strings.choose);
+    let clear = chosen.map(|_| SettingControl::ClearFolder);
+    let chips = [(pick, SettingControl::DefaultFolder, false)];
+    let mut row = column.choice_row(strings.default_folder, &chips, clear);
+    let suggested = chosen.is_none() && shown.is_some();
+    for chip in &mut row.chips {
+        chip.faint = suggested;
+    }
+    row
 }
 
 pub(super) fn host_rows(column: &mut Column, preferences: &Preferences) -> Vec<ChoiceRow> {
