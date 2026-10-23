@@ -1,6 +1,7 @@
 use trame::preferences::{ConnectForm, SshHost};
 use trame::ui::frame::HostsView;
 
+use super::SettingsState;
 use super::store::HostForm;
 use crate::app::running::Running;
 
@@ -37,13 +38,13 @@ impl HostsPanel {
     }
 }
 
+pub(super) fn settings_panel(settings: &mut Option<SettingsState>) -> Option<&mut HostsPanel> {
+    settings.as_mut()?.hosts.as_mut()
+}
+
 impl Running {
     pub(in crate::app::running) fn panel_mut(&mut self) -> Option<&mut HostsPanel> {
-        let settings = self
-            .settings
-            .as_mut()
-            .and_then(|state| state.hosts.as_mut());
-        settings.or_else(|| self.editing.as_mut()?.panel_mut())
+        settings_panel(&mut self.settings).or_else(|| self.editing.as_mut()?.panel_mut())
     }
 
     pub(in crate::app::running) fn connect_form_mut(&mut self) -> Option<&mut ConnectForm> {
@@ -60,19 +61,11 @@ impl Running {
     }
 
     pub(in crate::app::running) fn close_settings_form(&mut self) -> bool {
-        let panel = self
-            .settings
-            .as_mut()
-            .and_then(|state| state.hosts.as_mut());
-        panel.is_some_and(|panel| panel.form.take().is_some())
+        settings_panel(&mut self.settings).is_some_and(|panel| panel.form.take().is_some())
     }
 
     pub(super) fn add_host(&mut self) {
-        if let Some(panel) = self
-            .settings
-            .as_mut()
-            .and_then(|state| state.hosts.as_mut())
-        {
+        if let Some(panel) = settings_panel(&mut self.settings) {
             panel.form = Some(HostForm::new());
         }
         self.changed();

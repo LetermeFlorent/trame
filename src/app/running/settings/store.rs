@@ -1,5 +1,6 @@
 use trame::preferences::{ConnectForm, HostEntry, SshHost, vault};
 
+use super::hosts::settings_panel;
 use crate::app::persist;
 use crate::app::running::Running;
 
@@ -56,10 +57,7 @@ impl Running {
     }
 
     pub(in crate::app::running) fn save_settings_form(&mut self) {
-        let panel = self
-            .settings
-            .as_mut()
-            .and_then(|state| state.hosts.as_mut());
+        let panel = settings_panel(&mut self.settings);
         let Some(mut entry) = panel.and_then(|panel| panel.form.take()) else {
             return;
         };
