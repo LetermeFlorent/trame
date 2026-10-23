@@ -14,7 +14,7 @@ impl Running {
             return false;
         };
         match editing.mode {
-            EditMode::Name { .. } => self.edit_key(event),
+            EditMode::Text { .. } => self.edit_key(event),
             _ if is_escape(event) => self.cancel_edit(),
             _ => {}
         }
@@ -70,7 +70,7 @@ impl Running {
 
     fn with_field(&mut self, change: impl FnOnce(&mut TextField)) {
         if let Some(Editing {
-            mode: EditMode::Name { field, .. },
+            mode: EditMode::Text { field, .. },
             ..
         }) = &mut self.editing
         {

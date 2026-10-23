@@ -52,6 +52,9 @@ fn each_language_has_its_own_texts() {
         (english.default_folder, french.default_folder),
         (english.choose, french.choose),
         (english.pick_folder, french.pick_folder),
+        (english.new_connection, french.new_connection),
+        (english.connections, french.connections),
+        (english.no_connections, french.no_connections),
     ];
     for (english, french) in pairs {
         assert_ne!(english, french);

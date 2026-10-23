@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use super::{Instance, InstanceId, Workspace};
+use crate::preferences::SshHost;
 use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
 
@@ -8,11 +9,12 @@ use crate::theme::{Emblem, Swatch};
 pub struct TabMark {
     pub name: Option<String>,
     pub color: Option<Swatch>,
+    pub host: Option<SshHost>,
 }
 
 impl TabMark {
     fn is_blank(&self) -> bool {
-        self.name.is_none() && self.color.is_none()
+        self.name.is_none() && self.color.is_none() && self.host.is_none()
     }
 }
 
@@ -28,6 +30,14 @@ impl Workspace {
 
     pub fn tab_color(&self, tab: SessionId) -> Option<Swatch> {
         self.marks.get(&tab)?.color
+    }
+
+    pub fn tab_host(&self, tab: SessionId) -> Option<&SshHost> {
+        self.marks.get(&tab)?.host.as_ref()
+    }
+
+    pub fn set_tab_host(&mut self, tab: SessionId, host: Option<SshHost>) {
+        self.edit_mark(tab, |mark| mark.host = host);
     }
 
     pub fn rename_tab(&mut self, tab: SessionId, name: &str) {

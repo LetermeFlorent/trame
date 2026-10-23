@@ -1,3 +1,4 @@
+mod commit;
 mod keys;
 mod menu;
 mod pointer;
@@ -11,9 +12,17 @@ use super::Running;
 pub(super) use menu::Menu;
 
 enum EditMode {
-    Name { field: TextField, original: String },
+    Text {
+        field: TextField,
+        purpose: TextPurpose,
+    },
     Color,
     Emblem,
+}
+
+enum TextPurpose {
+    Rename(String),
+    Connect,
 }
 
 pub(super) struct Editing {
@@ -47,14 +56,19 @@ impl Running {
         let mode = match entry {
             MenuEntry::Rename => {
                 let original = self.name_of(target);
-                EditMode::Name {
+                EditMode::Text {
                     field: TextField::new(&original),
-                    original,
+                    purpose: TextPurpose::Rename(original),
                 }
             }
             MenuEntry::Color => EditMode::Color,
             MenuEntry::Icon => EditMode::Emblem,
             MenuEntry::Folder => return self.ask_folder(target.into()),
+            MenuEntry::Host(index) => return self.connect_saved(target, index),
+            MenuEntry::NewConnection => EditMode::Text {
+                field: TextField::new(""),
+                purpose: TextPurpose::Connect,
+            },
         };
         self.editing = Some(Editing {
             target,
@@ -69,7 +83,7 @@ impl Running {
             return;
         };
         let kind = match &editing.mode {
-            EditMode::Name { field, .. } => EditKind::Name(field),
+            EditMode::Text { field, .. } => EditKind::Name(field),
             EditMode::Color => EditKind::Color(self.color_of(editing.target)),
             EditMode::Emblem => EditKind::Emblem(self.emblem_of(editing.target)),
         };
@@ -81,44 +95,6 @@ impl Running {
         self.frame.place_editor(&mut self.text, &request);
         if self.frame.editor.is_none() {
             self.editing = None;
-        }
-    }
-
-    fn commit_edit(&mut self) {
-        let Some(Editing {
-            target,
-            mode: EditMode::Name { field, original },
-            ..
-        }) = self.editing.take()
-        else {
-            return;
-        };
-        if field.text() == original {
-            return;
-        }
-        match target {
-            EditTarget::Tab(id) => self.workspace.rename_tab(id, field.text()),
-            EditTarget::Instance(id) => self.workspace.rename_instance(id, field.text()),
-        }
-    }
-
-    fn cancel_edit(&mut self) {
-        self.editing = None;
-    }
-
-    fn pick_color(&mut self, color: Option<Swatch>) {
-        let Some(editing) = self.editing.take() else {
-            return;
-        };
-        match editing.target {
-            EditTarget::Tab(id) => self.workspace.set_tab_color(id, color),
-            EditTarget::Instance(id) => self.workspace.set_instance_color(id, color),
-        }
-    }
-
-    fn pick_emblem(&mut self, emblem: Emblem) {
-        if let Some(EditTarget::Instance(id)) = self.editing.take().map(|editing| editing.target) {
-            self.workspace.set_instance_emblem(id, emblem);
         }
     }
 

@@ -96,5 +96,6 @@ fn capture_tab(workspace: &Workspace, id: SessionId, describe: DescribeTab) -> T
         title: workspace.tab_name(id).map(str::to_owned),
         color: workspace.tab_color(id),
         transcript: described.transcript,
+        ssh: workspace.tab_host(id).cloned(),
     }
 }

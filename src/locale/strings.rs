@@ -19,6 +19,9 @@ pub struct Strings {
     pub default_folder: &'static str,
     pub choose: &'static str,
     pub pick_folder: &'static str,
+    pub new_connection: &'static str,
+    pub connections: &'static str,
+    pub no_connections: &'static str,
 }
 
 pub const ENGLISH: Strings = Strings {
@@ -41,6 +44,9 @@ pub const ENGLISH: Strings = Strings {
     default_folder: "Default folder",
     choose: "Choose",
     pick_folder: "Choose a folder",
+    new_connection: "New SSH connection",
+    connections: "SSH CONNECTIONS",
+    no_connections: "Add one from the right-click menu",
 };
 
 pub const FRENCH: Strings = Strings {
@@ -63,4 +69,7 @@ pub const FRENCH: Strings = Strings {
     default_folder: "Dossier par défaut",
     choose: "Choisir",
     pick_folder: "Choisir un dossier",
+    new_connection: "Nouvelle connexion SSH",
+    connections: "CONNEXIONS SSH",
+    no_connections: "Ajoutez-en une avec le clic droit",
 };

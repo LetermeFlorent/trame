@@ -16,6 +16,8 @@ pub enum MenuEntry {
     Color,
     Icon,
     Folder,
+    Host(usize),
+    NewConnection,
 }
 
 pub struct MenuRequest<'a> {

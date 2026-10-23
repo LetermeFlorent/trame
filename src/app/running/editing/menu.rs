@@ -73,6 +73,12 @@ impl Running {
             return;
         };
         let strings = self.strings;
+        let hosts: Vec<String> = self
+            .preferences
+            .ssh_hosts
+            .iter()
+            .map(|host| format!("SSH {}", host.label()))
+            .collect();
         let mut entries = vec![
             (MenuEntry::Rename, strings.rename),
             (MenuEntry::Color, strings.change_color),
@@ -81,6 +87,9 @@ impl Running {
             entries.push((MenuEntry::Icon, strings.change_icon));
         }
         entries.push((MenuEntry::Folder, strings.change_folder));
+        let saved = hosts.iter().enumerate();
+        entries.extend(saved.map(|(index, label)| (MenuEntry::Host(index), label.as_str())));
+        entries.push((MenuEntry::NewConnection, strings.new_connection));
         let request = MenuRequest {
             at: menu.at,
             entries: &entries,

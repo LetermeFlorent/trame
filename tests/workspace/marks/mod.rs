@@ -1,5 +1,6 @@
 mod emblems;
 mod folders;
+mod hosts;
 
 use trame::theme::Swatch;
 use trame::workspace::{Edge, Instance, Workspace};

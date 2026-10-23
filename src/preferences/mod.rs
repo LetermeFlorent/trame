@@ -1,9 +1,13 @@
+mod ssh;
+
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
 use crate::locale::LanguageChoice;
 use crate::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
+use ssh::sanitized_hosts;
+pub use ssh::{MAX_SSH_HOSTS, SshHost};
 
 pub const FONT_SIZE_STEP: f32 = 1.0;
 pub const INTERFACE_SIZE: u16 = 100;
@@ -24,6 +28,8 @@ pub struct Preferences {
     pub language: LanguageChoice,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default_folder: Option<PathBuf>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ssh_hosts: Vec<SshHost>,
 }
 
 impl Default for Preferences {
@@ -34,6 +40,7 @@ impl Default for Preferences {
             interface_size: INTERFACE_SIZE,
             language: LanguageChoice::Auto,
             default_folder: None,
+            ssh_hosts: Vec::new(),
         }
     }
 }
@@ -43,6 +50,7 @@ impl Preferences {
         Self {
             font_size: clamp_font_size(self.font_size),
             interface_size: clamp_interface_size(self.interface_size),
+            ssh_hosts: sanitized_hosts(self.ssh_hosts),
             ..self
         }
     }

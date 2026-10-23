@@ -1,4 +1,5 @@
 mod choices;
+mod connections;
 mod folders;
 
 use trame::geometry::Point;
@@ -47,6 +48,7 @@ fn every_control_answers_where_it_is_drawn() {
     let settings = panel(&layout);
     let rows = [&settings.language, &settings.folder]
         .into_iter()
+        .chain(&settings.hosts)
         .flat_map(ChoiceRow::controls);
     let controls = [
         (settings.close, SettingControl::Close),

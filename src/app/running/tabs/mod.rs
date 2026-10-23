@@ -1,4 +1,5 @@
 mod folder;
+mod ssh;
 
 use std::io;
 use std::path::Path;
@@ -22,7 +23,7 @@ pub(super) enum Placement {
 }
 
 impl Running {
-    pub(super) fn open(&mut self, placement: Placement) -> io::Result<()> {
+    pub(super) fn open(&mut self, placement: Placement) -> io::Result<SessionId> {
         let cwd = self.start_folder(placement);
         let id = self.sessions.reserve();
         match placement {
@@ -35,7 +36,7 @@ impl Running {
         self.relayout();
         let spawned = self.start_shell(id, cwd.as_deref(), &[]);
         self.changed();
-        spawned
+        spawned.map(|()| id)
     }
 
     pub(super) fn start_shell(
@@ -51,8 +52,11 @@ impl Running {
             transcript,
         };
         let spawned = self.sessions.spawn(id, &start);
-        if spawned.is_err() {
-            self.workspace.close_tab(id);
+        match spawned {
+            Ok(()) => self.dial(id),
+            Err(_) => {
+                self.workspace.close_tab(id);
+            }
         }
         spawned
     }

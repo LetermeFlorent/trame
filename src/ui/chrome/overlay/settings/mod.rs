@@ -26,6 +26,13 @@ pub fn draw_settings(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInp
     draw_stepper(&mut painter, &settings.interface_size, interface_steps);
     draw_choices(&mut painter, &settings.language);
     draw_choices(&mut painter, &settings.folder);
+    for host in &settings.hosts {
+        draw_choices(&mut painter, host);
+    }
+    if let Some(hint) = &settings.hosts_hint {
+        let muted = painter.theme.text_muted;
+        painter.label(&hint.label, hint.label_x, hint.rect, muted);
+    }
 }
 
 fn draw_panel(painter: &mut Painter, settings: &SettingsFrame) {

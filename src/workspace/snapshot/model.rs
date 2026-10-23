@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::SnapshotError;
-use crate::preferences::Preferences;
+use crate::preferences::{Preferences, SshHost};
 use crate::theme::{Emblem, Swatch};
 use crate::workspace::Axis;
 
@@ -72,6 +72,8 @@ pub struct TabSnapshot {
     pub color: Option<Swatch>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub transcript: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ssh: Option<SshHost>,
 }
 
 impl Snapshot {

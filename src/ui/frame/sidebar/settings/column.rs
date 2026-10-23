@@ -31,10 +31,12 @@ impl Column<'_> {
             self.metrics.px(height),
         );
         self.y = rect.bottom();
+        let inset = self.metrics.px(LINE_INSET);
+        let widest = rect.width - self.metrics.px(UiMetrics::BUTTON) - 2.0 * inset;
         SettingLine {
             rect,
-            label: self.text.layout(label, style),
-            label_x: rect.x + self.metrics.px(LINE_INSET),
+            label: fit_label(self.text, label, style, widest),
+            label_x: rect.x + inset,
         }
     }
 

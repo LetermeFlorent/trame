@@ -47,6 +47,7 @@ impl Running {
                 default_folder: None,
                 ..current.clone()
             },
+            SettingControl::ForgetHost(index) => current.forget_host(index),
         };
         self.set_preferences(next);
     }

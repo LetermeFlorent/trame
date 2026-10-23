@@ -4,6 +4,7 @@ mod nesting;
 mod preferences;
 mod round_trip;
 mod sanitize;
+mod ssh_hosts;
 
 use std::collections::HashMap;
 use std::path::PathBuf;

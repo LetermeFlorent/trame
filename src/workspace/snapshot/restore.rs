@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use super::{InstanceSnapshot, NodeSnapshot, PaneSnapshot, Snapshot, SnapshotError, TabSnapshot};
+use crate::preferences::SshHost;
 use crate::session::SessionId;
 use crate::theme::Emblem;
 use crate::workspace::{Instance, InstanceId, Node, Pane, PaneId, TabMark, Workspace, clean_name};
@@ -112,6 +113,7 @@ impl Restorer<'_> {
             let mark = TabMark {
                 name: tab.title.as_deref().and_then(clean_name),
                 color: tab.color,
+                host: tab.ssh.clone().filter(SshHost::is_valid),
             };
             self.workspace.restore_mark(id, mark);
             tabs.push(id);

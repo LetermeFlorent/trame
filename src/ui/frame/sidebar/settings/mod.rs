@@ -1,5 +1,6 @@
 mod column;
 mod place;
+mod rows;
 
 use std::sync::Arc;
 
@@ -18,6 +19,7 @@ pub enum SettingControl {
     Language(LanguageChoice),
     DefaultFolder,
     ClearFolder,
+    ForgetHost(usize),
 }
 
 #[derive(Clone, Debug)]
@@ -68,7 +70,7 @@ pub struct SettingsFrame {
     pub rect: Rect,
     pub title: SettingLine,
     pub close: Rect,
-    pub sections: [SettingLine; 3],
+    pub sections: [SettingLine; 4],
     pub restore: SettingLine,
     pub toggle: Rect,
     pub restores_text: bool,
@@ -76,12 +78,15 @@ pub struct SettingsFrame {
     pub interface_size: Stepper,
     pub language: ChoiceRow,
     pub folder: ChoiceRow,
+    pub hosts: Vec<ChoiceRow>,
+    pub hosts_hint: Option<SettingLine>,
 }
 
 impl SettingsFrame {
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
         let rows = [&self.language, &self.folder]
             .into_iter()
+            .chain(&self.hosts)
             .flat_map(ChoiceRow::controls);
         [
             (self.close, SettingControl::Close),
