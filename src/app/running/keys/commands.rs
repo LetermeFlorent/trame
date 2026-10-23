@@ -4,12 +4,16 @@ use trame::input::Command;
 use trame::ui::metrics::TERMINAL_FONT_SIZE;
 use trame::workspace::{Edge, Instance, PaneLayout};
 
-use super::Running;
-use super::pointer::Scroll;
-use super::tabs::Placement;
+use crate::app::running::Running;
+use crate::app::running::pointer::Scroll;
+use crate::app::running::tabs::Placement;
 
 impl Running {
-    pub(super) fn command(&mut self, event_loop: &ActiveEventLoop, command: Command) {
+    pub(in crate::app::running) fn command(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        command: Command,
+    ) {
         self.motion.animate_next();
         match command {
             Command::NewTab => self.open_or_report(event_loop, Placement::Tab),
@@ -102,7 +106,7 @@ impl Running {
     }
 }
 
-pub(super) fn read_clipboard() -> Option<String> {
+pub(in crate::app::running) fn read_clipboard() -> Option<String> {
     match arboard::Clipboard::new().and_then(|mut clipboard| clipboard.get_text()) {
         Ok(text) => Some(text),
         Err(arboard::Error::ContentNotAvailable) => None,

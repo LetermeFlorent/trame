@@ -6,13 +6,14 @@ use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 use trame::input::{Command, KeyInput, ShortcutInput, encode, shortcut};
 use trame::term::Modes;
 
-use super::{Running, window};
+use crate::app::running::Running;
+use crate::app::window;
 
 const FOCUS_IN: &[u8] = b"\x1b[I";
 const FOCUS_OUT: &[u8] = b"\x1b[O";
 
 impl Running {
-    pub(super) fn key(&mut self, event_loop: &ActiveEventLoop, event: &KeyEvent) {
+    pub(in crate::app::running) fn key(&mut self, event_loop: &ActiveEventLoop, event: &KeyEvent) {
         if self.frame.blocked
             || event.state != ElementState::Pressed
             || self.drag_key(&event.logical_key)
@@ -36,7 +37,7 @@ impl Running {
         self.write_to_active(|modes| encode(key_input, modes).unwrap_or_default());
     }
 
-    pub(super) fn shortcut_for(&self, event: &KeyEvent) -> Option<Command> {
+    pub(in crate::app::running) fn shortcut_for(&self, event: &KeyEvent) -> Option<Command> {
         let base = event.key_without_modifiers();
         let input = ShortcutInput {
             key: &event.logical_key,
@@ -47,7 +48,10 @@ impl Running {
         shortcut(input, self.metrics.platform)
     }
 
-    pub(super) fn write_to_active(&mut self, bytes_for: impl FnOnce(Modes) -> Vec<u8>) {
+    pub(in crate::app::running) fn write_to_active(
+        &mut self,
+        bytes_for: impl FnOnce(Modes) -> Vec<u8>,
+    ) {
         let Some(session) = self.sessions.active(&self.workspace) else {
             return;
         };
@@ -70,7 +74,7 @@ impl Running {
         }
     }
 
-    pub(super) fn focus_changed(&mut self, focused: bool) {
+    pub(in crate::app::running) fn focus_changed(&mut self, focused: bool) {
         self.view.window_focused = focused;
         if focused {
             self.set_appearance(window::appearance(&self.window));
@@ -94,6 +98,6 @@ impl Running {
     }
 }
 
-pub(super) fn is_escape(event: &KeyEvent) -> bool {
+pub(in crate::app::running) fn is_escape(event: &KeyEvent) -> bool {
     event.logical_key == Key::Named(NamedKey::Escape)
 }

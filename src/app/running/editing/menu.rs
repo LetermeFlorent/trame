@@ -5,7 +5,7 @@ use trame::ui::Hit;
 use trame::ui::frame::{EditAnchor, EditTarget, MenuEntry, MenuRequest};
 
 use super::{Running, target_of};
-use crate::app::running::keyboard::is_escape;
+use crate::app::running::keys::is_escape;
 
 pub(in super::super) struct Menu {
     target: EditTarget,

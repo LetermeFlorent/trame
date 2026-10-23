@@ -3,7 +3,7 @@ use winit::event::KeyEvent;
 use trame::input::TextField;
 use trame::ui::frame::SettingControl;
 
-use super::keyboard::is_escape;
+use super::keys::is_escape;
 use super::{FolderTarget, Running};
 
 impl Running {

@@ -5,8 +5,7 @@ use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 use trame::input::{Command, TextField};
 
 use super::{EditMode, Editing, Running};
-use crate::app::running::commands::read_clipboard;
-use crate::app::running::keyboard::is_escape;
+use crate::app::running::keys::{is_escape, read_clipboard};
 
 impl Running {
     pub(in super::super) fn editing_key(&mut self, event: &KeyEvent) -> bool {

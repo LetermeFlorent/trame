@@ -1,7 +1,6 @@
-mod commands;
 mod editing;
 mod frame;
-mod keyboard;
+mod keys;
 mod lifecycle;
 mod pointer;
 mod settings;
