@@ -80,7 +80,7 @@ impl Running {
             .position
             .and_then(|point| self.frame.hit(point, self.resizable()));
         match (button, state) {
-            (MouseButton::Left, ElementState::Pressed) => self.press(hit),
+            (MouseButton::Left, ElementState::Pressed) => self.press(event_loop, hit),
             (MouseButton::Left, ElementState::Released) => self.release(event_loop, hit),
             (MouseButton::Middle, ElementState::Released) => self.middle_click(event_loop, hit),
             _ => {}

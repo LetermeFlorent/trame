@@ -12,31 +12,22 @@ use crate::app::window;
 const DOUBLE_CLICK: Duration = Duration::from_millis(500);
 
 impl Running {
-    pub(super) fn press(&mut self, hit: Option<Hit>) {
+    pub(super) fn press(&mut self, event_loop: &ActiveEventLoop, hit: Option<Hit>) {
         let Some(hit) = hit else {
             return;
         };
         let previous = self.pointer.last_click.replace((Instant::now(), hit));
         let double = previous.is_some_and(|(at, last)| last == hit && at.elapsed() < DOUBLE_CLICK);
-        if double && self.open_editor(hit) {
+        if double && self.double_press(event_loop, hit) {
             self.pointer.last_click = None;
             return;
         }
         match hit {
             Hit::Resize(edge) => {
                 let direction = window::resize_direction(edge);
-                report(self.window.drag_resize_window(direction), "resize");
-                return;
+                return report(self.window.drag_resize_window(direction), "resize");
             }
-            Hit::TitleBar if double => {
-                self.pointer.last_click = None;
-                self.toggle_maximized();
-                return;
-            }
-            Hit::TitleBar => {
-                report(self.window.drag_window(), "move");
-                return;
-            }
+            Hit::TitleBar => return report(self.window.drag_window(), "move"),
             Hit::Tab(_, id) | Hit::Row(SidebarItem::Tab(id)) => self.workspace.activate_tab(id),
             Hit::Row(SidebarItem::Instance(instance)) | Hit::RailInstance(instance) => {
                 self.activate_instance(instance)
@@ -48,6 +39,18 @@ impl Running {
         self.pointer.pressed = Some(hit);
         self.view.pressed = Some(hit);
         self.changed();
+    }
+
+    fn double_press(&mut self, event_loop: &ActiveEventLoop, hit: Hit) -> bool {
+        match hit {
+            Hit::TitleBar => self.toggle_maximized(),
+            Hit::TabBar(pane) => {
+                self.focus_pane(pane);
+                self.command(event_loop, Command::NewTab);
+            }
+            _ => return self.open_editor(hit),
+        }
+        true
     }
 
     pub(super) fn release(&mut self, event_loop: &ActiveEventLoop, hit: Option<Hit>) {
