@@ -68,7 +68,7 @@ impl FrameLayout {
         let reveal = motion.sidebar(input.workspace.sidebar_open);
         let columns = Columns::split(input, rest, reveal);
         let (side, content) = (columns.side, columns.content);
-        let footer = sidebar::layout_footer(text, &metrics, side, input.strings.settings);
+        let footer = sidebar::layout_footer(text, input, side);
         let mut sidebar = (reveal > 0.0)
             .then(|| sidebar::layout_sidebar(text, input, footer.above(columns.sidebar)));
         let rail = (reveal < 1.0)

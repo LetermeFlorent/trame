@@ -1,4 +1,4 @@
-use trame::ui::Hit;
+use trame::ui::{Hit, Platform};
 use trame::workspace::Workspace;
 
 use crate::{frame, frame_at, text_system, workspace};
@@ -14,7 +14,8 @@ fn the_settings_button_sits_at_the_bottom_of_the_side() {
     let mut text = text_system();
     let layout = frame(&mut text, &workspace());
     let footer = &layout.footer;
-    assert_eq!(footer.rect.bottom(), layout.side.bottom());
+    let shown = layout.side.bottom() - layout.metrics.platform.hidden_bottom(false);
+    assert_eq!(footer.rect.bottom(), shown);
     assert!(footer.rect.contains(footer.settings.center()));
     assert_eq!(
         layout.hit(footer.settings.center(), false),
@@ -66,4 +67,12 @@ fn the_settings_button_has_as_much_room_above_as_below() {
         assert_eq!(above, below, "scale {scale}");
         assert!(above > 0.0, "scale {scale}");
     }
+}
+
+#[test]
+fn only_an_unmaximized_windows_window_hides_its_last_row() {
+    assert_eq!(Platform::Windows.hidden_bottom(false), 1.0);
+    assert_eq!(Platform::Windows.hidden_bottom(true), 0.0);
+    assert_eq!(Platform::Mac.hidden_bottom(false), 0.0);
+    assert_eq!(Platform::Linux.hidden_bottom(false), 0.0);
 }

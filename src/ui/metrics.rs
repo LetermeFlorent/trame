@@ -3,6 +3,7 @@ use crate::text::{FontRole, REGULAR, SEMIBOLD, TextStyle};
 pub const TERMINAL_FONT_SIZE: f32 = 14.0;
 pub const MIN_TERMINAL_FONT_SIZE: f32 = 8.0;
 pub const MAX_TERMINAL_FONT_SIZE: f32 = 32.0;
+const WINDOWS_SHADOW_SHIFT: f32 = 1.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Platform {
@@ -24,6 +25,13 @@ impl Platform {
 
     pub fn draws_window_controls(self) -> bool {
         self != Self::Mac
+    }
+
+    pub fn hidden_bottom(self, maximized: bool) -> f32 {
+        match self == Self::Windows && !maximized {
+            true => WINDOWS_SHADOW_SHIFT,
+            false => 0.0,
+        }
     }
 }
 
