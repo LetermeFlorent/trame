@@ -8,7 +8,7 @@ use winit::window::{Cursor, CursorIcon};
 use trame::geometry::Point;
 use trame::session::SessionId;
 use trame::ui::Hit;
-use trame::ui::frame::ListControl;
+use trame::ui::frame::{ListControl, PickerPart};
 use trame::workspace::{Axis, Divider, Node, resized};
 
 use crate::app::running::Running;
@@ -29,6 +29,7 @@ pub(in crate::app::running) enum Drag {
     Divider(DividerDrag),
     Sidebar(SidebarDrag),
     List(f32),
+    Picker(PickerPart),
 }
 
 impl Running {
@@ -41,6 +42,7 @@ impl Running {
             Hit::Divider(index) => self.divider_drag(index, origin).map(Drag::Divider),
             Hit::SidebarEdge => Some(Drag::Sidebar(self.sidebar_drag())),
             Hit::List(ListControl::Thumb) => self.list_grab(origin).map(Drag::List),
+            Hit::Picker(part) => Some(Drag::Picker(part)),
             _ => None,
         };
     }
@@ -81,6 +83,10 @@ impl Running {
             Some(Drag::List(grab)) => {
                 self.drag_list(point.y - grab);
                 Drag::List(grab)
+            }
+            Some(Drag::Picker(part)) => {
+                self.drag_picker(part);
+                Drag::Picker(part)
             }
         };
         self.drag = Some(next);

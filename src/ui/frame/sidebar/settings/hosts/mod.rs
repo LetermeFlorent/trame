@@ -99,10 +99,7 @@ impl HostList {
 
 impl FrameLayout {
     pub fn host_list(&self) -> Option<&HostList> {
-        let settings = self.settings.as_ref().and_then(|settings| {
-            let page = settings.connections()?;
-            page.list.as_ref()
-        });
-        settings.or_else(|| self.editor.as_ref()?.list.as_ref())
+        let editor = self.editor.as_ref().and_then(|editor| editor.list.as_ref());
+        editor.or_else(|| self.settings.as_ref()?.connections()?.list.as_ref())
     }
 }

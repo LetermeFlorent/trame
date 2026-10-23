@@ -1,16 +1,15 @@
 use trame::geometry::Point;
 use trame::theme::Swatch;
 use trame::ui::Hit;
-use trame::ui::frame::EditKind;
 
-use super::on_strip;
+use super::{colors, on_strip};
 use crate::{text_system, workspace};
 
 #[test]
 fn the_colours_open_in_a_window_like_the_settings() {
     let mut text = text_system();
     let workspace = workspace();
-    let frame = on_strip(&mut text, &workspace, EditKind::Color(None));
+    let frame = on_strip(&mut text, &workspace, colors(None));
     let editor = frame.editor.as_ref().expect("an editor");
     let popup = editor.popup.as_ref().expect("a popup");
     assert_eq!(popup.backdrop.y, frame.title_bar.rect.bottom());
@@ -31,7 +30,7 @@ fn the_colours_open_in_a_window_like_the_settings() {
 fn the_colour_window_closes_from_its_cross_or_from_outside() {
     let mut text = text_system();
     let workspace = workspace();
-    let frame = on_strip(&mut text, &workspace, EditKind::Color(None));
+    let frame = on_strip(&mut text, &workspace, colors(None));
     let popup = frame
         .editor
         .as_ref()
@@ -48,7 +47,7 @@ fn the_colour_window_closes_from_its_cross_or_from_outside() {
 fn each_swatch_is_a_hit_and_the_empty_one_resets() {
     let mut text = text_system();
     let workspace = workspace();
-    let frame = on_strip(&mut text, &workspace, EditKind::Color(None));
+    let frame = on_strip(&mut text, &workspace, colors(None));
     let editor = frame.editor.as_ref().expect("an editor");
     for (slot, expected) in editor.slots.iter().zip(Swatch::ALL) {
         let hit = frame.hit(slot.rect.center(), false);
@@ -66,7 +65,7 @@ fn each_swatch_is_a_hit_and_the_empty_one_resets() {
 fn the_gaps_between_swatches_still_belong_to_the_strip() {
     let mut text = text_system();
     let workspace = workspace();
-    let frame = on_strip(&mut text, &workspace, EditKind::Color(None));
+    let frame = on_strip(&mut text, &workspace, colors(None));
     let editor = frame.editor.as_ref().expect("an editor");
     let (first, second) = (editor.slots[0].rect, editor.slots[1].rect);
     let between = Point::new((first.right() + second.x) / 2.0, first.center().y);
@@ -77,7 +76,7 @@ fn the_gaps_between_swatches_still_belong_to_the_strip() {
 fn the_selected_swatch_is_remembered_by_the_frame() {
     let mut text = text_system();
     let workspace = workspace();
-    let frame = on_strip(&mut text, &workspace, EditKind::Color(Some(Swatch::Blue)));
+    let frame = on_strip(&mut text, &workspace, colors(Some(Swatch::Blue)));
     assert_eq!(
         frame.editor.as_ref().map(|editor| editor.selected),
         Some(Some(Swatch::Blue))

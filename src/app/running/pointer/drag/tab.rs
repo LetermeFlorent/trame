@@ -17,7 +17,7 @@ impl Running {
                 }
                 true
             }
-            Some(Drag::Divider(_) | Drag::Sidebar(_) | Drag::List(_)) => true,
+            Some(Drag::Divider(_) | Drag::Sidebar(_) | Drag::List(_) | Drag::Picker(_)) => true,
             _ => false,
         }
     }

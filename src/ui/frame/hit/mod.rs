@@ -6,7 +6,7 @@ use crate::preferences::FormField;
 use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
 use crate::ui::frame::{
-    FormAction, FrameLayout, ListControl, MenuEntry, SettingControl, SidebarItem,
+    FormAction, FrameLayout, ListControl, MenuEntry, PickerPart, SettingControl, SidebarItem,
 };
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{InstanceId, PaneId};
@@ -53,6 +53,7 @@ pub enum Hit {
     EditSwatch(Option<Swatch>),
     EditEmblem(Emblem),
     EditClose,
+    Picker(PickerPart),
     FormField(FormField),
     FormButton(FormAction),
     List(ListControl),

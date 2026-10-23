@@ -6,6 +6,9 @@ use crate::app::running::Running;
 
 impl Running {
     pub(in crate::app::running) fn list_control(&mut self, control: ListControl) {
+        if self.custom_control(control) {
+            return self.changed();
+        }
         match control {
             ListControl::Pick(index) => self.connect_listed(index),
             ListControl::Change(index) => self.change_host(index),
@@ -40,11 +43,11 @@ impl Running {
     }
 
     pub(in crate::app::running) fn scroll_list_to(&mut self, first: usize) {
-        let Some(panel) = self.panel_mut() else {
+        let Some(shown) = self.list_first_mut() else {
             return;
         };
-        if panel.first != first {
-            panel.first = first;
+        if *shown != first {
+            *shown = first;
             self.changed();
         }
     }

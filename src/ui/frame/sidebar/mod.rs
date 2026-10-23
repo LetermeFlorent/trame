@@ -19,7 +19,7 @@ pub(super) use rail::layout_rail;
 pub use rail::{RailFrame, RailSlot};
 use row::{RowSpec, layout_row, row_specs};
 pub(super) use settings::{
-    CAPTION_HEIGHT, LINE_HEIGHT, LINE_INSET, ListSpec, SECTION_GAP, host_labels,
+    CAPTION_HEIGHT, Column, LINE_HEIGHT, LINE_INSET, ListSpec, SECTION_GAP, host_labels,
 };
 pub use settings::{
     Chip, ChoiceRow, ConnectionsPage, GeneralPage, HostList, HostRow, HostsView, ListControl,

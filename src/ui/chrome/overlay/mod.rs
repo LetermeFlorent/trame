@@ -2,6 +2,7 @@ mod connect;
 mod editor;
 mod loader;
 mod menu;
+mod picker;
 mod popup;
 mod settings;
 mod tooltip;

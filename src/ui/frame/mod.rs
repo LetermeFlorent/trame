@@ -7,9 +7,9 @@ mod sidebar;
 mod titlebar;
 
 pub use editor::{
-    EditAnchor, EditKind, EditTarget, EditorFrame, EditorRequest, EmblemSlot, FieldFrame,
-    FormAction, FormButton, FormFrame, FormRow, MenuEntry, MenuFrame, MenuRequest, MenuRow,
-    SECRET_MASK, SwatchSlot,
+    ColorsView, EditAnchor, EditKind, EditTarget, EditorFrame, EditorRequest, EmblemSlot,
+    FieldFrame, FormAction, FormButton, FormFrame, FormRow, MenuEntry, MenuFrame, MenuRequest,
+    MenuRow, PickerFrame, PickerPart, PickerView, SECRET_MASK, SwatchSlot,
 };
 pub use label::{fit_label, fit_label_start, fit_text_start};
 pub use panes::{PaneFrame, TabFrame, TabStrip};

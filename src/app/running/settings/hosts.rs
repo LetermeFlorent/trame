@@ -44,7 +44,11 @@ pub(super) fn settings_panel(settings: &mut Option<SettingsState>) -> Option<&mu
 
 impl Running {
     pub(in crate::app::running) fn panel_mut(&mut self) -> Option<&mut HostsPanel> {
-        settings_panel(&mut self.settings).or_else(|| self.editing.as_mut()?.panel_mut())
+        let editing = self
+            .editing
+            .as_mut()
+            .and_then(|editing| editing.panel_mut());
+        editing.or_else(|| settings_panel(&mut self.settings))
     }
 
     pub(in crate::app::running) fn connect_form_mut(&mut self) -> Option<&mut ConnectForm> {

@@ -13,7 +13,9 @@ use crate::geometry::{Point, Rect};
 use crate::locale::{LanguageChoice, Strings};
 use crate::preferences::{Preferences, Recall};
 use crate::text::TextLayout;
-pub(in crate::ui::frame) use column::{CAPTION_HEIGHT, LINE_HEIGHT, LINE_INSET, SECTION_GAP};
+pub(in crate::ui::frame) use column::{
+    CAPTION_HEIGHT, Column, LINE_HEIGHT, LINE_INSET, SECTION_GAP,
+};
 pub use general::{GeneralPage, Stepper, ToggleRow};
 pub use hosts::{ConnectionsPage, HostList, HostRow, HostsView, ListControl, ScrollBar};
 pub(in crate::ui::frame) use hosts::{ListSpec, host_labels};

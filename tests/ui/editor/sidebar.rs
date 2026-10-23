@@ -6,7 +6,7 @@ use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest, SidebarI
 use trame::ui::{FrameLayout, Hit};
 use trame::workspace::Workspace;
 
-use super::place;
+use super::{colors, place};
 use crate::{HEIGHT, text_system, workspace};
 
 fn rename(text: &mut TextSystem, workspace: &Workspace, target: EditTarget) -> FrameLayout {
@@ -57,7 +57,7 @@ fn an_editor_for_a_missing_target_is_dropped() {
     assert!(hidden.editor.is_none());
     let strip = EditAnchor::Strip(workspace.instances[0].active_pane);
     let missing = EditTarget::Tab(SessionId(9));
-    let frame = place(&mut text, &workspace, missing, strip, EditKind::Color(None));
+    let frame = place(&mut text, &workspace, missing, strip, colors(None));
     assert!(frame.editor.is_none());
 }
 
@@ -72,7 +72,7 @@ fn a_row_near_the_bottom_edge_still_gets_its_colours_inside_the_window() {
     let request = EditorRequest {
         target: EditTarget::Instance(workspace.instances[0].id),
         anchor: EditAnchor::Sidebar,
-        kind: EditKind::Color(None),
+        kind: colors(None),
         strings: Language::English.strings(),
     };
     frame.place_editor(&mut text, &request);

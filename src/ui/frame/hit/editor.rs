@@ -37,6 +37,13 @@ fn hit_dialog(editor: &EditorFrame, close: Rect, point: Point) -> Hit {
     if let Some(hit) = host_hit(editor.form.as_ref(), editor.list.as_ref(), point) {
         return hit;
     }
+    if let Some(part) = editor
+        .picker
+        .as_ref()
+        .and_then(|picker| picker.part_at(point))
+    {
+        return Hit::Picker(part);
+    }
     if let Some(slot) = editor.slot_at(point) {
         return Hit::EditSwatch(slot.color);
     }

@@ -27,17 +27,8 @@ impl Running {
             Some(Hit::FormButton(action)) if pressed => self.form_action(action),
             Some(Hit::List(control)) if pressed => self.list_control(control),
             Some(Hit::EditClose) if pressed => self.cancel_edit(),
-            Some(
-                Hit::EditField
-                | Hit::EditStrip
-                | Hit::EditSwatch(_)
-                | Hit::EditEmblem(_)
-                | Hit::EditClose
-                | Hit::FormField(_)
-                | Hit::FormButton(_)
-                | Hit::List(_)
-                | Hit::Dialog,
-            ) => return true,
+            Some(Hit::Picker(part)) if pressed => self.press_picker(part),
+            _ if swallowed(hit) => return true,
             _ if pressed => {
                 self.cancel_edit();
                 self.changed();
@@ -71,4 +62,22 @@ impl Running {
             .position
             .and_then(|point| self.frame.hit(point, false))
     }
+}
+
+fn swallowed(hit: Option<Hit>) -> bool {
+    matches!(
+        hit,
+        Some(
+            Hit::EditField
+                | Hit::EditStrip
+                | Hit::EditSwatch(_)
+                | Hit::EditEmblem(_)
+                | Hit::EditClose
+                | Hit::Picker(_)
+                | Hit::FormField(_)
+                | Hit::FormButton(_)
+                | Hit::List(_)
+                | Hit::Dialog
+        )
+    )
 }

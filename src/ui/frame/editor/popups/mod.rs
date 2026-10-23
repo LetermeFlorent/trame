@@ -1,40 +1,27 @@
+mod colors;
 mod connect;
 mod emblems;
+mod picker;
 mod row;
 
 use super::EditorFrame;
 use crate::geometry::Rect;
 use crate::locale::Strings;
 use crate::text::TextSystem;
-use crate::theme::{Emblem, Swatch};
+use crate::theme::Emblem;
 use crate::ui::frame::sidebar::LINE_HEIGHT;
 use crate::ui::frame::{FrameLayout, PopupFrame};
+pub use colors::ColorsView;
 pub(super) use connect::ConnectDialog;
 pub use emblems::EmblemSlot;
 use emblems::{emblem_row, emblem_slots};
+pub use picker::{PickerFrame, PickerPart, PickerView};
+use row::RowSize;
 pub use row::SwatchSlot;
-use row::{RowSize, swatch_row, swatch_slots};
 
 const MAX_LISTED: usize = 6;
 
 impl FrameLayout {
-    pub(super) fn color_popup(
-        &self,
-        text: &mut TextSystem,
-        strings: &Strings,
-        selected: Option<Swatch>,
-        editor: EditorFrame,
-    ) -> EditorFrame {
-        let (popup, strip) = self.row_popup(text, strings.change_color, swatch_row(&self.metrics));
-        EditorFrame {
-            popup: Some(popup),
-            slots: swatch_slots(&self.metrics, strip),
-            strip,
-            selected,
-            ..editor
-        }
-    }
-
     pub(super) fn emblem_popup(
         &self,
         text: &mut TextSystem,

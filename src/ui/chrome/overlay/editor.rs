@@ -8,6 +8,7 @@ use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
 use super::connect::draw_connect_dialog;
+use super::picker::draw_picker;
 use super::popup::draw_popup;
 
 const RING_GAP: f32 = 2.0;
@@ -27,6 +28,12 @@ pub fn draw_editor(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
         draw_field(&mut painter, field, true);
     }
     draw_connect_dialog(&mut painter, editor);
+    for dot in &editor.dots {
+        draw_slot(&mut painter, dot, editor.selected);
+    }
+    if let Some(picker) = &editor.picker {
+        draw_picker(&mut painter, picker);
+    }
 }
 
 fn draw_slots(painter: &mut Painter, editor: &EditorFrame) {

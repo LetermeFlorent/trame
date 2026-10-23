@@ -33,7 +33,8 @@ impl Running {
                     self.folder_picked(editing.target.into(), folder);
                 }
             }
-            EditMode::Color | EditMode::Emblem => {}
+            EditMode::Picker(picker) => self.apply_color(editing.target, picker),
+            EditMode::Color { .. } | EditMode::Emblem => {}
         }
     }
 
@@ -41,7 +42,9 @@ impl Running {
         match action {
             FormAction::Connect | FormAction::Save | FormAction::Apply => self.commit_edit(),
             FormAction::Change => self.change_chosen_folder(),
-            FormAction::Cancel | FormAction::Close => self.cancel_edit(),
+            FormAction::Add => self.add_color(),
+            FormAction::Cancel => self.step_back(),
+            FormAction::Close => self.cancel_edit(),
         }
     }
 
@@ -75,10 +78,13 @@ impl Running {
     }
 
     pub(super) fn pick_color(&mut self, color: Option<Swatch>) {
-        let Some(editing) = self.editing.take() else {
-            return;
-        };
-        match editing.target {
+        if let Some(editing) = self.editing.take() {
+            self.paint_target(editing.target, color);
+        }
+    }
+
+    pub(super) fn paint_target(&mut self, target: EditTarget, color: Option<Swatch>) {
+        match target {
             EditTarget::Tab(id) => self.workspace.set_tab_color(id, color),
             EditTarget::Instance(id) => self.workspace.set_instance_color(id, color),
         }

@@ -1,6 +1,8 @@
+mod custom;
 mod emblems;
 mod form;
 mod menu;
+mod picker;
 mod rename;
 mod servers;
 mod sidebar;
@@ -11,7 +13,8 @@ use trame::input::TextField;
 use trame::locale::Language;
 use trame::session::SessionId;
 use trame::text::TextSystem;
-use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest};
+use trame::theme::Swatch;
+use trame::ui::frame::{ColorsView, EditAnchor, EditKind, EditTarget, EditorRequest};
 use trame::ui::{FrameLayout, Hit};
 use trame::workspace::Workspace;
 
@@ -40,6 +43,14 @@ fn place(
 fn on_strip(text: &mut TextSystem, workspace: &Workspace, kind: EditKind) -> FrameLayout {
     let strip = EditAnchor::Strip(workspace.instances[0].active_pane);
     place(text, workspace, EditTarget::Tab(SessionId(2)), strip, kind)
+}
+
+fn colors(selected: Option<Swatch>) -> EditKind<'static> {
+    EditKind::Color(ColorsView {
+        selected,
+        custom: &[],
+        first: 0,
+    })
 }
 
 #[test]

@@ -1,3 +1,4 @@
+mod colors;
 mod commit;
 mod folder;
 mod keys;
@@ -9,10 +10,13 @@ use std::path::PathBuf;
 use trame::input::TextField;
 use trame::theme::{Emblem, Swatch};
 use trame::ui::Hit;
-use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest, MenuEntry, SidebarItem};
+use trame::ui::frame::{
+    ColorsView, EditAnchor, EditKind, EditTarget, EditorRequest, MenuEntry, SidebarItem,
+};
 
 use super::Running;
 use super::settings::HostsPanel;
+use colors::Picker;
 use folder::shown_folder;
 pub(super) use menu::Menu;
 
@@ -22,7 +26,10 @@ enum EditMode {
         original: String,
     },
     Form(HostsPanel),
-    Color,
+    Color {
+        first: usize,
+    },
+    Picker(Picker),
     Emblem,
     Folder {
         original: Option<PathBuf>,
@@ -74,7 +81,7 @@ impl Running {
                 field.select_all();
                 EditMode::Text { field, original }
             }
-            MenuEntry::Color => EditMode::Color,
+            MenuEntry::Color => EditMode::Color { first: 0 },
             MenuEntry::Icon => EditMode::Emblem,
             MenuEntry::Folder => self.folder_mode(target),
             MenuEntry::Ssh => EditMode::Form(HostsPanel::connecting(self.known_hosts())),
@@ -97,7 +104,12 @@ impl Running {
             }
             EditMode::Text { field, .. } => EditKind::Name(field),
             EditMode::Form(panel) => EditKind::Connect(panel.view()),
-            EditMode::Color => EditKind::Color(self.color_of(editing.target)),
+            EditMode::Color { first } => EditKind::Color(ColorsView {
+                selected: self.color_of(editing.target),
+                custom: &self.preferences.custom_colors,
+                first: *first,
+            }),
+            EditMode::Picker(picker) => EditKind::Picker(picker.view()),
             EditMode::Emblem => EditKind::Emblem(self.emblem_of(editing.target)),
         };
         let request = EditorRequest {

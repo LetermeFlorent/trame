@@ -21,7 +21,7 @@ pub use form::{FormAction, FormButton, FormFrame, FormRow, SECRET_MASK};
 pub(in crate::ui::frame) use form::{FormSpec, button_form, form_height, form_title, place_form};
 pub use menu::{MenuEntry, MenuFrame, MenuRequest, MenuRow};
 use popups::ConnectDialog;
-pub use popups::{EmblemSlot, SwatchSlot};
+pub use popups::{ColorsView, EmblemSlot, PickerFrame, PickerPart, PickerView, SwatchSlot};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum EditTarget {
@@ -32,7 +32,8 @@ pub enum EditTarget {
 #[derive(Clone, Copy, Debug)]
 pub enum EditKind<'a> {
     Name(&'a TextField),
-    Color(Option<Swatch>),
+    Color(ColorsView<'a>),
+    Picker(PickerView<'a>),
     Emblem(Option<Emblem>),
     Connect(HostsView<'a>),
 }
@@ -53,6 +54,8 @@ pub struct EditorFrame {
     pub strip: Rect,
     pub slots: Vec<SwatchSlot>,
     pub selected: Option<Swatch>,
+    pub dots: Vec<SwatchSlot>,
+    pub picker: Option<PickerFrame>,
     pub emblems: Vec<EmblemSlot>,
     pub emblem: Option<Emblem>,
     pub sections: Vec<SettingLine>,
@@ -70,6 +73,8 @@ impl EditorFrame {
             strip: Rect::default(),
             slots: Vec::new(),
             selected: None,
+            dots: Vec::new(),
+            picker: None,
             emblems: Vec::new(),
             emblem: None,
             sections: Vec::new(),
@@ -107,7 +112,8 @@ impl FrameLayout {
                 field: Some(self.name_field(text, spot, field)),
                 ..editor
             },
-            EditKind::Color(selected) => self.color_popup(text, strings, selected, editor),
+            EditKind::Color(view) => self.color_popup(text, strings, view, editor),
+            EditKind::Picker(view) => self.picker_popup(text, strings, view, editor),
             EditKind::Emblem(emblem) => self.emblem_popup(text, strings, emblem, editor),
             EditKind::Connect(view) => {
                 let dialog = ConnectDialog { view, strings };

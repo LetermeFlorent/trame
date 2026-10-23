@@ -10,6 +10,7 @@ use winit::event_loop::ActiveEventLoop;
 use winit::window::{Cursor, CursorIcon};
 
 use trame::geometry::Point;
+use trame::ui::frame::PickerPart;
 use trame::ui::{FrameLayout, Hit};
 use trame::workspace::Axis;
 
@@ -104,7 +105,9 @@ fn cursor_for(hit: Option<Hit>, frame: &FrameLayout) -> CursorIcon {
             None => CursorIcon::Default,
         },
         Some(Hit::SidebarEdge) => CursorIcon::ColResize,
-        Some(Hit::Terminal(_) | Hit::EditField | Hit::FormField(_)) => CursorIcon::Text,
+        Some(
+            Hit::Terminal(_) | Hit::EditField | Hit::FormField(_) | Hit::Picker(PickerPart::Field),
+        ) => CursorIcon::Text,
         _ => CursorIcon::Default,
     }
 }

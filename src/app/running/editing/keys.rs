@@ -11,12 +11,15 @@ impl Running {
     pub(in super::super) fn editing_key(&mut self, event: &KeyEvent) -> bool {
         let typing = match &self.editing {
             _ if self.command_field.is_some() || self.settings_form_open() => true,
-            Some(editing) => matches!(editing.mode, EditMode::Text { .. } | EditMode::Form(..)),
+            Some(editing) => matches!(
+                editing.mode,
+                EditMode::Text { .. } | EditMode::Form(..) | EditMode::Picker(..)
+            ),
             None => return false,
         };
         match typing {
             true => self.edit_key(event),
-            false if is_escape(event) => self.cancel_edit(),
+            false if is_escape(event) => self.step_back(),
             false if event.logical_key == Key::Named(NamedKey::Enter) => self.commit_edit(),
             false => {}
         }
@@ -48,7 +51,7 @@ impl Running {
         match key {
             NamedKey::Enter => self.commit_edit(),
             NamedKey::Tab => return self.step_form(),
-            NamedKey::Escape => self.cancel_edit(),
+            NamedKey::Escape => self.step_back(),
             NamedKey::Backspace => self.with_field(TextField::backspace),
             NamedKey::Delete => self.with_field(TextField::delete),
             NamedKey::ArrowLeft => self.with_field(TextField::left),
@@ -90,6 +93,9 @@ impl Running {
         };
         if let Some(field) = text {
             return change(field);
+        }
+        if let Some(picker) = self.editing.as_mut().and_then(Editing::picker_mut) {
+            return picker.edit_code(change);
         }
         if let Some(form) = self.connect_form_mut() {
             change(form.focused_mut());
