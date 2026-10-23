@@ -1,5 +1,7 @@
 mod detect;
 mod strings;
+#[cfg(test)]
+mod tests;
 
 use serde::{Deserialize, Serialize};
 

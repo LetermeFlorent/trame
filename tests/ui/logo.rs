@@ -1,4 +1,6 @@
-use trame::ui::chrome::logo::{SIZE, pixels, window_icon};
+use trame::geometry::Rect;
+use trame::render::Scene;
+use trame::ui::chrome::logo::{SIZE, draw_logo, pixels, window_icon};
 
 const BYTES_PER_PIXEL: usize = 4;
 const CENTER: u32 = SIZE / 2;
@@ -30,4 +32,17 @@ fn a_thread_pixel_is_opaque_blue() {
 #[test]
 fn winit_accepts_the_pixels() {
     assert!(window_icon().is_some());
+}
+
+#[test]
+fn the_drawn_logo_stays_inside_its_square() {
+    let square = Rect::new(20.0, 30.0, 120.0, 120.0);
+    let mut scene = Scene::new(200.0, 200.0);
+    draw_logo(&mut scene, square);
+    assert_eq!(scene.quads().len(), 16);
+    for quad in scene.quads() {
+        let [x, y, width, height] = quad.rect;
+        assert!(x >= square.x && y >= square.y, "{:?}", quad.rect);
+        assert!(x + width <= square.right() && y + height <= square.bottom());
+    }
 }

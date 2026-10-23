@@ -2,9 +2,9 @@ mod drop;
 mod editor;
 mod logo;
 mod motion;
+mod overlay;
 mod sidebar;
 mod tabbar;
-mod tooltip;
 
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};

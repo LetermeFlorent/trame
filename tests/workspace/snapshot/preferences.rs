@@ -97,6 +97,14 @@ fn preferences_and_text_keys_survive_json() {
 }
 
 #[test]
+fn preferences_saved_before_the_language_choice_follow_the_system() {
+    let saved = r#"{"font_size":15.0,"restore_text":true,"interface_size":110}"#;
+    let preferences: Preferences = serde_json::from_str(saved).expect("parses");
+    assert_eq!(preferences.language, LanguageChoice::Auto);
+    assert_eq!(preferences.interface_size, 110);
+}
+
+#[test]
 fn interface_size_scales_the_chrome_but_not_the_terminal_font() {
     let preferences = with_interface(120);
     assert!(close(preferences.ui_scale(1.5), 1.8));
