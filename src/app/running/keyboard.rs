@@ -3,7 +3,7 @@ use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
-use trame::input::{KeyInput, ShortcutInput, encode, shortcut};
+use trame::input::{Command, KeyInput, ShortcutInput, encode, shortcut};
 use trame::term::Modes;
 
 use super::{Running, window};
@@ -22,17 +22,11 @@ impl Running {
         {
             return;
         }
-        let base = event.key_without_modifiers();
-        let shortcut_input = ShortcutInput {
-            key: &event.logical_key,
-            base: &base,
-            physical: event.physical_key,
-            modifiers: self.modifiers,
-        };
-        if let Some(command) = shortcut(shortcut_input, self.metrics.platform) {
+        if let Some(command) = self.shortcut_for(event) {
             self.command(event_loop, command);
             return;
         }
+        let base = event.key_without_modifiers();
         let key_input = KeyInput {
             key: &event.logical_key,
             base: &base,
@@ -40,6 +34,17 @@ impl Running {
             modifiers: self.modifiers,
         };
         self.write_to_active(|modes| encode(key_input, modes).unwrap_or_default());
+    }
+
+    pub(super) fn shortcut_for(&self, event: &KeyEvent) -> Option<Command> {
+        let base = event.key_without_modifiers();
+        let input = ShortcutInput {
+            key: &event.logical_key,
+            base: &base,
+            physical: event.physical_key,
+            modifiers: self.modifiers,
+        };
+        shortcut(input, self.metrics.platform)
     }
 
     pub(super) fn write_to_active(&mut self, bytes_for: impl FnOnce(Modes) -> Vec<u8>) {

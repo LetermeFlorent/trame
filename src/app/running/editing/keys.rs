@@ -2,7 +2,7 @@ use winit::event::KeyEvent;
 use winit::keyboard::{Key, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
-use trame::input::{Command, ShortcutInput, TextField, shortcut};
+use trame::input::{Command, TextField};
 
 use super::{EditMode, Editing, Running};
 use crate::app::running::commands::read_clipboard;
@@ -60,14 +60,7 @@ impl Running {
     }
 
     fn is_paste(&self, event: &KeyEvent) -> bool {
-        let base = event.key_without_modifiers();
-        let input = ShortcutInput {
-            key: &event.logical_key,
-            base: &base,
-            physical: event.physical_key,
-            modifiers: self.modifiers,
-        };
-        shortcut(input, self.metrics.platform) == Some(Command::Paste)
+        self.shortcut_for(event) == Some(Command::Paste)
     }
 
     fn with_field(&mut self, change: impl FnOnce(&mut TextField)) {
