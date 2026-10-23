@@ -1,4 +1,5 @@
 mod fetch;
+mod progress;
 mod swap;
 mod version;
 
@@ -23,7 +24,8 @@ const ASSET: Option<&str> = None;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum UpdateStatus {
     Checking,
-    Downloading(String),
+    Downloading { version: String, percent: u8 },
+    Installing(String),
     Done,
     Installed(PathBuf),
 }
@@ -65,8 +67,7 @@ fn check(asset: &str, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) -> UpdateStat
     if Version::current().is_none_or(|current| latest <= current) {
         return UpdateStatus::Done;
     }
-    notify(UpdateStatus::Downloading(latest.number()));
-    match install(latest, asset, &exe) {
+    match install(latest, asset, &exe, notify) {
         Ok(()) => UpdateStatus::Installed(exe),
         Err(error) => {
             eprintln!("trame: the update to {latest} failed: {error}");
@@ -75,9 +76,23 @@ fn check(asset: &str, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) -> UpdateStat
     }
 }
 
-fn install(version: Version, asset: &str, exe: &Path) -> io::Result<()> {
+fn install(
+    version: Version,
+    asset: &str,
+    exe: &Path,
+    notify: &dyn Fn(UpdateStatus),
+) -> io::Result<()> {
+    let number = version.number();
+    let downloading = |percent| {
+        notify(UpdateStatus::Downloading {
+            version: number.clone(),
+            percent,
+        })
+    };
+    downloading(0);
     let fresh = swap::sibling(exe, NEW_SUFFIX);
-    let installed = fetch::download(version, asset, &fresh)
+    let installed = fetch::download(version, asset, &fresh, &downloading)
+        .inspect(|_| notify(UpdateStatus::Installing(number.clone())))
         .and_then(|()| swap::check_executable(&fresh))
         .and_then(|()| swap::replace(exe, &fresh));
     if installed.is_err() && fresh.exists() {

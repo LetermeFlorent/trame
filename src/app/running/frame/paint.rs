@@ -41,7 +41,7 @@ impl Running {
         } else {
             self.visibility.missed();
         }
-        if self.motion.is_busy() || self.loader.is_some() {
+        if self.motion.is_busy() {
             self.window.request_redraw();
         }
     }

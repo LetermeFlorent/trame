@@ -35,4 +35,5 @@ fn each_language_has_its_own_texts() {
     let french = Language::French.strings();
     assert_ne!(english.checking_updates, french.checking_updates);
     assert_ne!(english.downloading_version, french.downloading_version);
+    assert_ne!(english.installing_version, french.installing_version);
 }

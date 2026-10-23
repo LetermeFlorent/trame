@@ -1,3 +1,5 @@
+mod bar;
+
 use trame::geometry::Point;
 use trame::render::Scene;
 use trame::text::TextSystem;
@@ -10,7 +12,16 @@ use crate::{HEIGHT, WIDTH, frame, text_system, workspace};
 const DOTS: usize = 10;
 const LOGO_STRANDS: usize = 16;
 
-fn paint(text: &mut TextSystem, layout: &FrameLayout, theme: &Theme, opacity: f32) -> Scene {
+fn waiting(opacity: f32) -> LoaderView<'static> {
+    LoaderView {
+        message: "Checking for updates",
+        progress: None,
+        spin: 0.3,
+        opacity,
+    }
+}
+
+fn paint(text: &mut TextSystem, layout: &FrameLayout, theme: &Theme, loader: &LoaderView) -> Scene {
     let view = FrameView::default();
     let motion = Motion::default();
     let input = ChromeInput {
@@ -19,13 +30,8 @@ fn paint(text: &mut TextSystem, layout: &FrameLayout, theme: &Theme, opacity: f3
         view: &view,
         motion: &motion,
     };
-    let loader = LoaderView {
-        message: "Checking for updates",
-        spin: 0.3,
-        opacity,
-    };
     let mut scene = Scene::new(layout.bounds.width, layout.bounds.height);
-    draw_loader(&mut scene, text, &input, &loader);
+    draw_loader(&mut scene, text, &input, loader);
     scene
 }
 
@@ -34,7 +40,7 @@ fn the_loader_covers_everything_below_the_title_bar() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
     let layout = frame(&mut text, &workspace());
-    let scene = paint(&mut text, &layout, &theme, 1.0);
+    let scene = paint(&mut text, &layout, &theme, &waiting(1.0));
     let bar = layout.title_bar.rect.height;
     let backdrop = scene.quads().first().expect("a backdrop is drawn");
     assert_eq!(backdrop.rect, [0.0, bar, WIDTH, HEIGHT - bar]);
@@ -47,7 +53,7 @@ fn the_logo_ring_and_message_are_centered() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
     let layout = frame(&mut text, &workspace());
-    let scene = paint(&mut text, &layout, &theme, 1.0);
+    let scene = paint(&mut text, &layout, &theme, &waiting(1.0));
     let content = &scene.quads()[1..];
     let left = content
         .iter()
@@ -66,7 +72,11 @@ fn a_faded_out_loader_draws_nothing() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
     let layout = frame(&mut text, &workspace());
-    assert!(paint(&mut text, &layout, &theme, 0.0).quads().is_empty());
+    assert!(
+        paint(&mut text, &layout, &theme, &waiting(0.0))
+            .quads()
+            .is_empty()
+    );
 }
 
 #[test]

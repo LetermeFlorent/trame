@@ -2,8 +2,8 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use super::RELEASES;
 use super::version::Version;
+use super::{RELEASES, progress};
 
 const CHECK_SECONDS: &str = "1";
 const DOWNLOAD_SECONDS: &str = "120";
@@ -17,7 +17,13 @@ const NULL_DEVICE: &str = "/dev/null";
 
 pub fn latest() -> Option<Version> {
     let output = curl()
-        .args(["--max-time", CHECK_SECONDS, "--output", NULL_DEVICE])
+        .args([
+            "--silent",
+            "--max-time",
+            CHECK_SECONDS,
+            "--output",
+            NULL_DEVICE,
+        ])
         .args(["--write-out", "%{redirect_url}"])
         .arg(format!("{RELEASES}/latest"))
         .output()
@@ -25,14 +31,25 @@ pub fn latest() -> Option<Version> {
     Version::released(&String::from_utf8_lossy(&output.stdout))
 }
 
-pub fn download(version: Version, asset: &str, target: &Path) -> io::Result<()> {
-    let status = curl()
-        .args(["--fail", "--location", "--max-time", DOWNLOAD_SECONDS])
+pub fn download(
+    version: Version,
+    asset: &str,
+    target: &Path,
+    on_percent: &dyn Fn(u8),
+) -> io::Result<()> {
+    let mut child = curl()
+        .args(["--progress-bar", "--fail", "--location"])
+        .args(["--max-time", DOWNLOAD_SECONDS])
         .args(["--speed-limit", SLOWEST_BYTES_PER_SECOND])
         .args(["--speed-time", STALL_SECONDS, "--output"])
         .arg(target)
         .arg(format!("{RELEASES}/download/{version}/{asset}"))
-        .status()?;
+        .stderr(Stdio::piped())
+        .spawn()?;
+    if let Some(bar) = child.stderr.take() {
+        progress::follow(bar, on_percent);
+    }
+    let status = child.wait()?;
     match status.success() {
         true => Ok(()),
         false => Err(io::Error::other(format!("the download stopped ({status})"))),
@@ -42,7 +59,7 @@ pub fn download(version: Version, asset: &str, target: &Path) -> io::Result<()> 
 fn curl() -> Command {
     let mut command = Command::new(curl_program());
     command
-        .args(["--silent", "--proto", "=https", "--proto-redir", "=https"])
+        .args(["--proto", "=https", "--proto-redir", "=https"])
         .stdin(Stdio::null())
         .stderr(Stdio::null());
     hide_console(&mut command);
