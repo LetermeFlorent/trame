@@ -3,10 +3,9 @@ use std::mem::size_of;
 use super::atlas::{Atlas, AtlasKind};
 use super::gpu::Gpu;
 use super::pipeline::{self, Bindings, Globals};
-use super::scene::{Quad, Scene};
+use super::scene::{INITIAL_QUAD_CAPACITY, Quad, Scene};
+use super::slack::Slack;
 use crate::theme::Rgba;
-
-const INITIAL_QUAD_CAPACITY: usize = 4096;
 
 pub struct Renderer {
     pipeline: wgpu::RenderPipeline,
@@ -14,6 +13,7 @@ pub struct Renderer {
     bind_group: wgpu::BindGroup,
     quads: wgpu::Buffer,
     quad_capacity: usize,
+    slack: Slack,
     srgb_output: bool,
 }
 
@@ -27,19 +27,20 @@ impl Renderer {
             bindings,
             quads: create_quad_buffer(device, INITIAL_QUAD_CAPACITY),
             quad_capacity: INITIAL_QUAD_CAPACITY,
+            slack: Slack::default(),
             srgb_output: format.is_srgb(),
         }
     }
 
     pub fn sync_atlas(&mut self, gpu: &Gpu, atlas: &mut Atlas) {
         let bindings = &mut self.bindings;
-        let grew_mask = bindings
+        let new_mask = bindings
             .mask
-            .grow(&gpu.device, &gpu.queue, atlas.size(AtlasKind::Mask));
-        let grew_color = bindings
+            .fit(&gpu.device, &gpu.queue, atlas.size(AtlasKind::Mask));
+        let new_color = bindings
             .color
-            .grow(&gpu.device, &gpu.queue, atlas.size(AtlasKind::Color));
-        if grew_mask || grew_color {
+            .fit(&gpu.device, &gpu.queue, atlas.size(AtlasKind::Color));
+        if new_mask || new_color {
             self.bind_group = bindings.group(&gpu.device);
         }
         for upload in atlas.take_uploads() {
@@ -94,10 +95,15 @@ impl Renderer {
     }
 
     fn reserve(&mut self, device: &wgpu::Device, count: usize) {
-        if count <= self.quad_capacity {
+        let fits = count <= self.quad_capacity;
+        if fits
+            && !self
+                .slack
+                .shrinks(count, self.quad_capacity, INITIAL_QUAD_CAPACITY)
+        {
             return;
         }
-        self.quad_capacity = count.next_power_of_two();
+        self.quad_capacity = count.next_power_of_two().max(INITIAL_QUAD_CAPACITY);
         self.quads = create_quad_buffer(device, self.quad_capacity);
     }
 

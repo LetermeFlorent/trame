@@ -4,8 +4,11 @@ mod shape;
 use bytemuck::{Pod, Zeroable};
 
 use self::shape::Shape;
+use super::slack::Slack;
 use crate::geometry::Rect;
 use crate::theme::Rgba;
+
+pub(super) const INITIAL_QUAD_CAPACITY: usize = 4096;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]
@@ -22,6 +25,7 @@ pub struct Scene {
     quads: Vec<Quad>,
     clips: Vec<Rect>,
     opacities: Vec<f32>,
+    slack: Slack,
     width: f32,
     height: f32,
 }
@@ -36,7 +40,14 @@ impl Scene {
     }
 
     pub fn reset(&mut self, width: f32, height: f32) {
+        let used = self.quads.len();
         self.quads.clear();
+        if self
+            .slack
+            .shrinks(used, self.quads.capacity(), INITIAL_QUAD_CAPACITY)
+        {
+            self.quads.shrink_to(used.max(INITIAL_QUAD_CAPACITY));
+        }
         self.clips.clear();
         self.opacities.clear();
         self.width = width;

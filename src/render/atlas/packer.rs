@@ -29,11 +29,6 @@ impl ShelfPacker {
         self.size
     }
 
-    pub(super) fn clear(&mut self) {
-        self.shelves.clear();
-        self.next_y = 0;
-    }
-
     pub(super) fn allocate(&mut self, width: u32, height: u32) -> Option<(u32, u32)> {
         let width = width + PADDING;
         let height = height + PADDING;

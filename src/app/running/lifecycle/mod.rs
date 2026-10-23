@@ -76,11 +76,13 @@ impl Running {
         let text = self.transcript_deadline();
         let retry = self.visibility.retry(&self.window);
         let loader = self.loader_wake(Instant::now());
+        let secret = self.sessions.secret_deadline(Instant::now());
         let wake = save
             .into_iter()
             .chain(text)
             .chain(retry)
             .chain(loader)
+            .chain(secret)
             .min();
         event_loop.set_control_flow(wake.map_or(ControlFlow::Wait, ControlFlow::WaitUntil));
     }

@@ -43,3 +43,8 @@ fn folder_name(path: &Path) -> Option<String> {
     };
     (!name.is_empty()).then_some(name)
 }
+
+pub fn starting_label(cwd: Option<&Path>, program: &Path) -> String {
+    cwd.and_then(folder_name)
+        .unwrap_or_else(|| shell_name(program))
+}

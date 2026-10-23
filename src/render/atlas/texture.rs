@@ -34,26 +34,30 @@ impl AtlasTexture {
         &self.view
     }
 
-    pub(in crate::render) fn grow(
+    pub(in crate::render) fn fit(
         &mut self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         size: u32,
     ) -> bool {
-        if size <= self.size {
+        if size == self.size {
             return false;
         }
-        let grown = Self::new(device, self.kind, size);
+        let resized = Self::new(device, self.kind, size);
+        if size < self.size {
+            *self = resized;
+            return true;
+        }
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("atlas grow"),
         });
         encoder.copy_texture_to_texture(
             self.texture.as_image_copy(),
-            grown.texture.as_image_copy(),
+            resized.texture.as_image_copy(),
             extent(self.size),
         );
         queue.submit([encoder.finish()]);
-        *self = grown;
+        *self = resized;
         true
     }
 

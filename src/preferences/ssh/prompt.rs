@@ -1,3 +1,4 @@
+use std::hint::black_box;
 use std::time::{Duration, Instant};
 
 pub const ANSWER_WINDOW: Duration = Duration::from_secs(60);
@@ -5,6 +6,7 @@ pub const ANSWER_WINDOW: Duration = Duration::from_secs(60);
 const PASSPHRASE_PROMPT: &str = "enter passphrase for key";
 const PASSWORD_PROMPT: &str = "'s password:";
 const INTERACTIVE_PROMPT: &str = ") password:";
+const PROMPT_KINDS: usize = 2;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Prompt {
@@ -46,6 +48,18 @@ impl SecretAnswer {
     }
 
     pub fn is_over(&self, now: Instant) -> bool {
-        now >= self.deadline
+        now >= self.deadline || self.answered.len() == PROMPT_KINDS
+    }
+
+    pub fn deadline(&self) -> Instant {
+        self.deadline
+    }
+}
+
+impl Drop for SecretAnswer {
+    fn drop(&mut self) {
+        let mut bytes = std::mem::take(&mut self.secret).into_bytes();
+        bytes.fill(0);
+        black_box(&bytes);
     }
 }

@@ -54,3 +54,14 @@ fn the_secret_is_only_given_shortly_after_connecting() {
     assert!(answer.is_over(late));
     assert_eq!(answer.reply(PASSWORD, late), None);
 }
+
+#[test]
+fn the_answer_is_over_once_both_prompts_got_the_secret() {
+    let now = Instant::now();
+    let mut answer = SecretAnswer::new("hunter2".to_owned(), now);
+    assert!(answer.reply(PASSWORD, now).is_some());
+    assert!(!answer.is_over(now));
+    assert!(answer.reply(PASSPHRASE, now).is_some());
+    assert!(answer.is_over(now));
+    assert_eq!(answer.deadline(), now + ANSWER_WINDOW);
+}

@@ -1,3 +1,4 @@
+mod atlas;
 mod formats;
 
 use std::sync::Arc;

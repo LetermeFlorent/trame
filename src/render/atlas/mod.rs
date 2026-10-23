@@ -98,10 +98,7 @@ impl Atlas {
     }
 
     pub fn clear(&mut self) {
-        self.mask.clear();
-        self.color.clear();
-        self.uploads.clear();
-        self.full = false;
+        *self = Self::new();
     }
 
     pub fn take_uploads(&mut self) -> Vec<Upload> {

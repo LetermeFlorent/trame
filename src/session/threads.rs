@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::hint::black_box;
 use std::io::{self, ErrorKind, Read, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{Receiver, Sender};
@@ -27,8 +28,11 @@ pub fn spawn_reader(reader: Reader) -> io::Result<()> {
 
 pub fn spawn_writer(mut sink: File, queue: Receiver<Vec<u8>>) -> io::Result<()> {
     spawn("trame-write", move || {
-        for bytes in queue {
-            if sink.write_all(&bytes).is_err() {
+        for mut bytes in queue {
+            let written = sink.write_all(&bytes);
+            bytes.fill(0);
+            black_box(&bytes);
+            if written.is_err() {
                 break;
             }
         }

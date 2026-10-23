@@ -1,18 +1,21 @@
+mod deferred;
+mod secrets;
+
 use std::collections::HashMap;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
-use std::time::Instant;
 
 use winit::event_loop::EventLoopProxy;
 
 use trame::preferences::SecretAnswer;
 use trame::session::pty::{ShellCommand, default_shell};
-use trame::session::{Notifier, Session, SessionId, SessionOptions};
+use trame::session::{Notifier, Session, SessionId, SessionOptions, starting_label};
 use trame::term::ReportedColors;
 use trame::workspace::Workspace;
 
 use super::UserEvent;
+pub use deferred::Waiting;
 
 pub struct ShellStart<'a> {
     pub cwd: Option<&'a Path>,
@@ -24,6 +27,7 @@ pub struct ShellStart<'a> {
 pub struct Sessions {
     map: HashMap<SessionId, Session>,
     origins: HashMap<SessionId, PathBuf>,
+    waiting: HashMap<SessionId, Waiting>,
     answers: HashMap<SessionId, SecretAnswer>,
     next: u64,
     shell: ShellCommand,
@@ -40,6 +44,7 @@ impl Sessions {
         Self {
             map: HashMap::new(),
             origins: HashMap::new(),
+            waiting: HashMap::new(),
             answers: HashMap::new(),
             next: 0,
             shell: default_shell(),
@@ -85,27 +90,9 @@ impl Sessions {
 
     pub fn remove(&mut self, id: SessionId) -> Option<Session> {
         self.origins.remove(&id);
+        self.waiting.remove(&id);
         self.answers.remove(&id);
         self.map.remove(&id)
-    }
-
-    pub fn expect_secret(&mut self, id: SessionId, secret: String) {
-        self.answers
-            .insert(id, SecretAnswer::new(secret, Instant::now()));
-    }
-
-    pub fn answer_prompt(&mut self, id: SessionId) {
-        let (Some(answer), Some(session)) = (self.answers.get_mut(&id), self.map.get(&id)) else {
-            return;
-        };
-        let now = Instant::now();
-        let line = session.terminal().screen().cursor_line();
-        if let Some(reply) = answer.reply(&line, now) {
-            session.write(reply);
-        }
-        if answer.is_over(now) {
-            self.answers.remove(&id);
-        }
     }
 
     pub fn cwd(&self, id: SessionId) -> Option<PathBuf> {
@@ -118,7 +105,14 @@ impl Sessions {
     }
 
     pub fn label(&self, id: SessionId) -> String {
-        self.map.get(&id).map_or_else(String::new, Session::label)
+        if let Some(session) = self.map.get(&id) {
+            return session.label();
+        }
+        if !self.waiting.contains_key(&id) {
+            return String::new();
+        }
+        let cwd = self.origins.get(&id).map(PathBuf::as_path);
+        starting_label(cwd, &self.shell.program)
     }
 
     pub fn set_colors(&self, colors: ReportedColors) {

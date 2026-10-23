@@ -32,6 +32,9 @@ impl Running {
         if !window::has_area(&self.window) {
             return;
         }
+        if self.start_shown() {
+            self.relayout();
+        }
         self.paint(now);
         let clear = self.theme.chrome;
         let presented =

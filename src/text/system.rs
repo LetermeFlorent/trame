@@ -82,7 +82,10 @@ impl TextSystem {
     pub fn set_terminal_font(&mut self, font_size: f32, line_height: f32) {
         let primary: FontId = self.cells.primary();
         let metrics = CellMetrics::measure(self.library.face(primary), font_size, line_height);
-        self.cells.set_metrics(metrics);
+        if metrics != self.cells.metrics() {
+            self.cells.set_metrics(metrics);
+            self.forget_glyphs();
+        }
     }
 
     pub fn layout(&mut self, text: &str, style: TextStyle) -> Arc<TextLayout> {
@@ -125,11 +128,15 @@ impl TextSystem {
         if !self.atlas.is_full() {
             return false;
         }
+        self.forget_glyphs();
+        true
+    }
+
+    fn forget_glyphs(&mut self) {
         self.atlas.clear();
         self.glyphs.clear();
         self.cells.clear();
         self.images.clear();
-        true
     }
 }
 

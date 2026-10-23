@@ -8,6 +8,7 @@ use trame::session::SessionId;
 use trame::workspace::{Snapshot, TabSnapshot, Workspace};
 
 use crate::app::running::Running;
+use crate::app::sessions::Waiting;
 use crate::app::window;
 
 type SavedTabs = HashMap<SessionId, TabSnapshot>;
@@ -61,7 +62,8 @@ impl Running {
             }
         }
         self.relayout();
-        self.spawn_restored(tabs, saved.resume);
+        self.defer_restored(tabs, saved.resume);
+        self.start_shown();
         if self.workspace.is_empty() {
             return false;
         }
@@ -70,22 +72,17 @@ impl Running {
         true
     }
 
-    fn spawn_restored(&mut self, mut tabs: SavedTabs, resume: bool) {
+    fn defer_restored(&mut self, mut tabs: SavedTabs, resume: bool) {
         let keeps_text = resume || self.preferences.recalls(Recall::Text);
         for id in self.workspace.tabs() {
             let saved = tabs.remove(&id).unwrap_or_default();
-            let cwd = existing_or_home(saved.cwd);
-            let key = saved.transcript.as_deref().filter(|_| keeps_text);
-            let text = key.map(|key| self.saved_text(key));
-            match self.start_shell(id, cwd.as_deref(), text.as_deref()) {
-                Ok(()) => self.transcripts.adopt(id, saved.transcript.as_deref()),
-                Err(error) => eprintln!("trame: a saved shell could not start: {error}"),
-            }
+            let waiting = Waiting {
+                transcript: saved.transcript.clone().filter(|_| keeps_text),
+            };
+            self.sessions
+                .defer(id, existing_or_home(saved.cwd), waiting);
+            self.transcripts.adopt(id, saved.transcript.as_deref());
         }
-    }
-
-    fn saved_text(&self, key: &str) -> Vec<u8> {
-        self.transcripts.read(key).unwrap_or_default()
     }
 }
 

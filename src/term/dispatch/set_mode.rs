@@ -63,9 +63,7 @@ impl Screen {
             return;
         }
         self.modes.set(Modes::ALT_SCREEN, alternate);
-        if alternate {
-            self.alternate.reset();
-        }
+        self.alternate.reset();
         self.primary.reset_display();
         self.scroll_top = 0;
         self.scroll_bottom = self.rows() - 1;
@@ -100,4 +98,19 @@ pub(crate) fn simple_private_mode(mode: u16) -> Option<Modes> {
         2026 => Modes::SYNC_UPDATE,
         _ => return None,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::term::Terminal;
+
+    #[test]
+    fn leaving_the_alternate_screen_frees_its_cells() {
+        let mut terminal = Terminal::new(4, 20, 0);
+        terminal.feed(b"\x1b[?1049hfull screen app\x1b[42m\x1b[2J");
+        assert!(!terminal.screen().alternate.row(0).is_empty());
+        terminal.feed(b"\x1b[?1049l");
+        let alternate = &terminal.screen().alternate;
+        assert!((0..alternate.rows()).all(|row| alternate.row(row).is_empty()));
+    }
 }

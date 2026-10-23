@@ -3,6 +3,7 @@ mod gpu;
 mod pipeline;
 mod renderer;
 mod scene;
+mod slack;
 mod target;
 
 pub use atlas::{Atlas, AtlasKind, AtlasRegion};
