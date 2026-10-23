@@ -53,12 +53,12 @@ pub(super) fn draw_label_button(painter: &mut Painter, button: &LabelButton) {
     painter.label(button.label, x, rect, color);
 }
 
-pub fn draw_confirm(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput) {
-    let Some(confirm) = &input.frame.confirm else {
+pub fn draw_message(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput) {
+    let Some(message) = &input.frame.message else {
         return;
     };
     let mut painter = Painter::new(scene, text, input);
-    draw_popup(&mut painter, &confirm.popup, Hit::EditClose);
-    painter.setting_line(&confirm.message, painter.theme.text_muted);
-    draw_form(&mut painter, &confirm.form);
+    draw_popup(&mut painter, &message.popup, Hit::EditClose);
+    painter.setting_line(&message.line, painter.theme.text_muted);
+    draw_form(&mut painter, &message.form);
 }

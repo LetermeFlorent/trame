@@ -68,7 +68,10 @@ impl Running {
             SettingControl::InterfaceSmaller => current.step_interface_size(-1),
             SettingControl::InterfaceBigger => current.step_interface_size(1),
             SettingControl::Language(language) => current.with(|next| next.language = language),
-            SettingControl::DefaultFolder => return self.ask_folder(FolderTarget::Default),
+            SettingControl::DefaultFolder => {
+                let start = self.preferences.default_folder.clone();
+                return self.ask_folder(FolderTarget::Default, start);
+            }
             SettingControl::ClearFolder => current.with(|next| next.default_folder = None),
         };
         self.set_preferences(next);

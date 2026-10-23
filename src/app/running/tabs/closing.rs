@@ -3,11 +3,13 @@ use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, NamedKey};
 
 use trame::ui::Hit;
-use trame::ui::frame::{ConfirmRequest, FormAction};
+use trame::ui::frame::{FormAction, MessageRequest};
 use trame::workspace::{Instance, InstanceId};
 
 use crate::app::running::Running;
 use crate::app::running::keys::is_escape;
+
+const CLOSE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Close];
 
 #[derive(Clone, Copy)]
 pub(in crate::app::running) enum Closing {
@@ -67,7 +69,7 @@ impl Running {
         self.changed();
     }
 
-    pub(in crate::app::running) fn place_confirm(&mut self) {
+    pub(in crate::app::running) fn place_message(&mut self) {
         let Some(closing) = self.closing else {
             return;
         };
@@ -81,13 +83,14 @@ impl Running {
             Closing::Window => strings.close_window,
             Closing::Instance(_) => strings.close_instance,
         };
-        let message = format!("{count} {}", strings.tabs_will_close);
-        let request = ConfirmRequest {
+        let line = format!("{count} {}", strings.tabs_will_close);
+        let request = MessageRequest {
             title,
-            message: &message,
+            line: &line,
+            actions: &CLOSE_ACTIONS,
             strings,
         };
-        self.frame.place_confirm(&mut self.text, &request);
+        self.frame.place_message(&mut self.text, &request);
     }
 
     pub(in crate::app::running) fn closing_button(

@@ -46,4 +46,6 @@ pub struct Strings {
     pub close_instance: &'static str,
     pub tabs_will_close: &'static str,
     pub close: &'static str,
+    pub change: &'static str,
+    pub apply: &'static str,
 }

@@ -14,8 +14,8 @@ pub use editor::{
 pub use label::{fit_label, fit_label_start, fit_text_start};
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{
-    Chip, ChoiceRow, ConfirmFrame, ConfirmRequest, ConnectionsPage, FooterButton, FooterFrame,
-    GeneralPage, HostList, HostRow, HostsView, ListControl, PopupFrame, RailFrame, RailSlot,
+    Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, GeneralPage, HostList, HostRow,
+    HostsView, ListControl, MessageFrame, MessageRequest, PopupFrame, RailFrame, RailSlot,
     ScrollBar, SettingControl, SettingLine, SettingsFrame, SettingsPage, SettingsRequest,
     SettingsTab, SidebarFrame, SidebarItem, SidebarRow, Stepper, ToggleRow, dragged_width,
     shown_width,
@@ -60,7 +60,7 @@ pub struct FrameLayout {
     pub editor: Option<EditorFrame>,
     pub menu: Option<MenuFrame>,
     pub settings: Option<SettingsFrame>,
-    pub confirm: Option<ConfirmFrame>,
+    pub message: Option<MessageFrame>,
     pub blocked: bool,
 }
 
@@ -106,7 +106,7 @@ impl FrameLayout {
             editor: None,
             menu: None,
             settings: None,
-            confirm: None,
+            message: None,
             blocked: false,
         }
     }

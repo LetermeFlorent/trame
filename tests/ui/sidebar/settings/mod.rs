@@ -1,8 +1,8 @@
 mod choices;
-mod confirm;
 mod connections;
 mod folders;
 mod launch;
+mod message;
 mod tabs;
 
 use trame::geometry::{Point, Rect};

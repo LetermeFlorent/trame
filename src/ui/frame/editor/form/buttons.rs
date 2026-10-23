@@ -14,11 +14,13 @@ pub enum FormAction {
     Save,
     Cancel,
     Close,
+    Change,
+    Apply,
 }
 
 impl FormAction {
     pub fn is_primary(self) -> bool {
-        self != Self::Cancel
+        !matches!(self, Self::Cancel | Self::Change)
     }
 
     fn label(self, strings: &'static Strings) -> &'static str {
@@ -27,6 +29,8 @@ impl FormAction {
             Self::Save => strings.save,
             Self::Cancel => strings.cancel,
             Self::Close => strings.close,
+            Self::Change => strings.change,
+            Self::Apply => strings.apply,
         }
     }
 }

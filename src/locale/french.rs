@@ -47,4 +47,6 @@ pub const FRENCH: Strings = Strings {
     close_instance: "Fermer l'instance ?",
     tabs_will_close: "onglets vont se fermer.",
     close: "Fermer",
+    change: "Modifier",
+    apply: "Valider",
 };

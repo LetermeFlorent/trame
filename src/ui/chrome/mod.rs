@@ -8,7 +8,7 @@ mod titlebar;
 
 pub use icons::{Icon, Pen, draw_icon};
 pub use overlay::{
-    LoaderProgress, LoaderView, draw_confirm, draw_editor, draw_loader, draw_menu, draw_settings,
+    LoaderProgress, LoaderView, draw_editor, draw_loader, draw_menu, draw_message, draw_settings,
     draw_tooltip,
 };
 

@@ -1,7 +1,10 @@
 mod commit;
+mod folder;
 mod keys;
 mod menu;
 mod pointer;
+
+use std::path::PathBuf;
 
 use trame::input::TextField;
 use trame::theme::{Emblem, Swatch};
@@ -10,13 +13,21 @@ use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest, MenuEntr
 
 use super::Running;
 use super::settings::HostsPanel;
+use folder::shown_folder;
 pub(super) use menu::Menu;
 
 enum EditMode {
-    Text { field: TextField, original: String },
+    Text {
+        field: TextField,
+        original: String,
+    },
     Form(HostsPanel),
     Color,
     Emblem,
+    Folder {
+        original: Option<PathBuf>,
+        chosen: Option<PathBuf>,
+    },
 }
 
 pub(super) struct Editing {
@@ -65,7 +76,7 @@ impl Running {
             }
             MenuEntry::Color => EditMode::Color,
             MenuEntry::Icon => EditMode::Emblem,
-            MenuEntry::Folder => return self.ask_folder(target.into()),
+            MenuEntry::Folder => self.folder_mode(target),
             MenuEntry::Ssh => EditMode::Form(HostsPanel::connecting(self.known_hosts())),
         };
         self.editing = Some(Editing {
@@ -81,6 +92,9 @@ impl Running {
             return;
         };
         let kind = match &editing.mode {
+            EditMode::Folder { chosen, .. } => {
+                return self.place_folder(shown_folder(chosen.as_ref()));
+            }
             EditMode::Text { field, .. } => EditKind::Name(field),
             EditMode::Form(panel) => EditKind::Connect(panel.view()),
             EditMode::Color => EditKind::Color(self.color_of(editing.target)),

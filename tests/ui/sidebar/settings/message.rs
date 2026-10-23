@@ -1,26 +1,35 @@
 use trame::locale::Language;
 use trame::preferences::Preferences;
 use trame::text::TextSystem;
-use trame::ui::frame::{ConfirmFrame, ConfirmRequest, FormAction};
+use trame::ui::frame::{FormAction, MessageFrame, MessageRequest, fit_text_start};
 use trame::ui::{FrameLayout, Hit};
 
 use super::{general_request, panel};
 use crate::{frame, text_system, workspace};
 
-fn confirming(text: &mut TextSystem) -> FrameLayout {
+fn showing(text: &mut TextSystem, line: &str, actions: &[FormAction]) -> FrameLayout {
     let strings = Language::English.strings();
     let mut layout = frame(text, &workspace());
-    let request = ConfirmRequest {
+    let request = MessageRequest {
         title: strings.close_window,
-        message: "3 tabs will close.",
+        line,
+        actions,
         strings,
     };
-    layout.place_confirm(text, &request);
+    layout.place_message(text, &request);
     layout
 }
 
-fn dialog(layout: &FrameLayout) -> &ConfirmFrame {
-    layout.confirm.as_ref().expect("the confirmation")
+fn confirming(text: &mut TextSystem) -> FrameLayout {
+    showing(
+        text,
+        "3 tabs will close.",
+        &[FormAction::Cancel, FormAction::Close],
+    )
+}
+
+fn dialog(layout: &FrameLayout) -> &MessageFrame {
+    layout.message.as_ref().expect("the message box")
 }
 
 #[test]
@@ -44,9 +53,9 @@ fn the_confirmation_offers_cancel_then_close_and_each_answers_where_drawn() {
     }
     let close = confirm.popup.close.center();
     assert_eq!(layout.hit(close, false), Some(Hit::EditClose));
-    let message = confirm.message.rect;
-    assert_eq!(layout.hit(message.center(), false), Some(Hit::Dialog));
-    assert!(message.bottom() <= confirm.form.rect.y);
+    let line = confirm.line.rect;
+    assert_eq!(layout.hit(line.center(), false), Some(Hit::Dialog));
+    assert!(line.bottom() <= confirm.form.rect.y);
 }
 
 #[test]
@@ -73,4 +82,24 @@ fn the_confirmation_answers_before_an_open_settings_window() {
     let settings_close = panel(&layout).popup.close.center();
     assert!(!confirm.popup.rect.contains(settings_close));
     assert_eq!(layout.hit(settings_close, false), Some(Hit::Backdrop));
+}
+
+#[test]
+fn a_long_folder_keeps_its_end_and_change_stays_beside_the_filled_apply() {
+    let mut text = text_system();
+    let deep = format!("C:/{}final", "nested/".repeat(30));
+    let layout = showing(&mut text, &deep, &[FormAction::Change, FormAction::Apply]);
+    let message = dialog(&layout);
+    let style = layout.metrics.label();
+    let shown = message.line.label.width;
+    assert!(shown < text.layout(&deep, style).width);
+    assert!(shown <= message.line.rect.width);
+    assert!(fit_text_start(&mut text, &deep, style, shown).ends_with("nested/final"));
+    let filled: Vec<_> = message
+        .form
+        .buttons
+        .iter()
+        .map(|button| button.action.is_primary())
+        .collect();
+    assert_eq!(filled, [false, true]);
 }

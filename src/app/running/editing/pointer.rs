@@ -35,7 +35,8 @@ impl Running {
                 | Hit::EditClose
                 | Hit::FormField(_)
                 | Hit::FormButton(_)
-                | Hit::List(_),
+                | Hit::List(_)
+                | Hit::Dialog,
             ) => return true,
             _ if pressed => {
                 self.cancel_edit();

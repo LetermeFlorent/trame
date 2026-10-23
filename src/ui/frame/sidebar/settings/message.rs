@@ -1,47 +1,48 @@
 use crate::geometry::{Point, Rect};
 use crate::locale::Strings;
 use crate::text::TextSystem;
-use crate::ui::frame::FrameLayout;
 use crate::ui::frame::editor::{FormAction, FormFrame, place_buttons};
+use crate::ui::frame::{FrameLayout, fit_label_start};
 use crate::ui::metrics::UiMetrics;
 
-use super::column::{LINE_HEIGHT, SECTION_GAP};
+use super::column::{LINE_HEIGHT, LINE_INSET, SECTION_GAP};
 use super::{PopupFrame, SettingLine};
 
-const CONFIRM_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Close];
-
 #[derive(Clone, Debug)]
-pub struct ConfirmFrame {
+pub struct MessageFrame {
     pub popup: PopupFrame,
-    pub message: SettingLine,
+    pub line: SettingLine,
     pub form: FormFrame,
 }
 
-pub struct ConfirmRequest<'a> {
+pub struct MessageRequest<'a> {
     pub title: &'a str,
-    pub message: &'a str,
+    pub line: &'a str,
+    pub actions: &'a [FormAction],
     pub strings: &'static Strings,
 }
 
-impl ConfirmFrame {
+impl MessageFrame {
     pub fn button_at(&self, point: Point) -> Option<FormAction> {
         self.form.button_at(point)
     }
 }
 
 impl FrameLayout {
-    pub fn place_confirm(&mut self, text: &mut TextSystem, request: &ConfirmRequest) {
+    pub fn place_message(&mut self, text: &mut TextSystem, request: &MessageRequest) {
         let metrics = self.metrics;
         let actions = metrics.px(SECTION_GAP) + metrics.px(UiMetrics::BUTTON);
         let content = metrics.px(LINE_HEIGHT) + actions;
         let (popup, mut column) = self.open_popup(text, request.title, content);
-        let message = column.line(request.message, LINE_HEIGHT, metrics.label());
+        let mut line = column.line("", LINE_HEIGHT, metrics.label());
+        let room = line.rect.width - 2.0 * metrics.px(LINE_INSET);
+        line.label = fit_label_start(column.text, request.line, metrics.label(), room);
         let area = Rect::new(column.inner.x, column.y, column.inner.width, actions);
         let buttons = place_buttons(
             column.text,
             &metrics,
             area,
-            &CONFIRM_ACTIONS,
+            request.actions,
             request.strings,
         );
         let form = FormFrame {
@@ -49,10 +50,6 @@ impl FrameLayout {
             rows: Vec::new(),
             buttons,
         };
-        self.confirm = Some(ConfirmFrame {
-            popup,
-            message,
-            form,
-        });
+        self.message = Some(MessageFrame { popup, line, form });
     }
 }

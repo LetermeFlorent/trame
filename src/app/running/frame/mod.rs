@@ -93,7 +93,7 @@ impl Running {
         self.place_editor();
         self.place_menu();
         self.place_settings();
-        self.place_confirm();
+        self.place_message();
         self.sync_sizes();
         self.refresh_hover();
     }

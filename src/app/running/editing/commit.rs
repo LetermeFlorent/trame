@@ -25,13 +25,22 @@ impl Running {
                     None => self.editing = Some(editing),
                 }
             }
+            EditMode::Folder { original, chosen } => {
+                if let Some(folder) = chosen
+                    .take()
+                    .filter(|folder| Some(folder) != original.as_ref())
+                {
+                    self.folder_picked(editing.target.into(), folder);
+                }
+            }
             EditMode::Color | EditMode::Emblem => {}
         }
     }
 
     pub(in crate::app::running) fn form_action(&mut self, action: FormAction) {
         match action {
-            FormAction::Connect | FormAction::Save => self.commit_edit(),
+            FormAction::Connect | FormAction::Save | FormAction::Apply => self.commit_edit(),
+            FormAction::Change => self.change_chosen_folder(),
             FormAction::Cancel | FormAction::Close => self.cancel_edit(),
         }
     }

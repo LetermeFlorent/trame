@@ -17,6 +17,7 @@ impl Running {
         match typing {
             true => self.edit_key(event),
             false if is_escape(event) => self.cancel_edit(),
+            false if event.logical_key == Key::Named(NamedKey::Enter) => self.commit_edit(),
             false => {}
         }
         self.changed();

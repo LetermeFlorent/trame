@@ -26,11 +26,11 @@ impl From<EditTarget> for FolderTarget {
 }
 
 impl Running {
-    pub(in crate::app::running) fn ask_folder(&self, target: FolderTarget) {
+    pub(in crate::app::running) fn ask_folder(&self, target: FolderTarget, start: Option<PathBuf>) {
         let request = FolderRequest {
             owner: window::owner(&self.window),
             title: self.strings.pick_folder.to_owned(),
-            start: self.folder_of(target),
+            start,
         };
         let proxy = self.proxy.clone();
         pick_folder(request, move |folder| {
@@ -39,6 +39,10 @@ impl Running {
     }
 
     pub fn folder_picked(&mut self, target: FolderTarget, folder: PathBuf) {
+        if let Some(chosen) = self.chosen_folder(target) {
+            *chosen = Some(folder);
+            return self.changed();
+        }
         match target {
             FolderTarget::Default => {
                 let next = self
@@ -70,7 +74,7 @@ impl Running {
         chosen.filter(|folder| folder.is_dir()).or(current)
     }
 
-    fn folder_of(&self, target: FolderTarget) -> Option<PathBuf> {
+    pub(in crate::app::running) fn folder_of(&self, target: FolderTarget) -> Option<PathBuf> {
         match target {
             FolderTarget::Default => self.preferences.default_folder.clone(),
             FolderTarget::Instance(id) => {

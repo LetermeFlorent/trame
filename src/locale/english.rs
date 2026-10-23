@@ -47,4 +47,6 @@ pub const ENGLISH: Strings = Strings {
     close_instance: "Close the instance?",
     tabs_will_close: "tabs will close.",
     close: "Close",
+    change: "Change",
+    apply: "Apply",
 };
