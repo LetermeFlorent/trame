@@ -18,11 +18,7 @@ pub(in crate::app::running) enum Scroll {
 
 impl Running {
     pub(in crate::app::running) fn scroll_active(&mut self, scroll: Scroll) {
-        let Some(session) = self
-            .workspace
-            .active_tab()
-            .and_then(|id| self.sessions.get(id))
-        else {
+        let Some(session) = self.sessions.active(&self.workspace) else {
             return;
         };
         let id = session.id();

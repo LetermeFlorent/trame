@@ -4,7 +4,6 @@ use winit::keyboard::{Key, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
 use trame::input::{KeyInput, ShortcutInput, encode, shortcut};
-use trame::session::Session;
 use trame::term::Modes;
 
 use super::{Running, window};
@@ -44,7 +43,7 @@ impl Running {
     }
 
     pub(super) fn write_to_active(&mut self, bytes_for: impl FnOnce(Modes) -> Vec<u8>) {
-        let Some(session) = self.active_session() else {
+        let Some(session) = self.sessions.active(&self.workspace) else {
             return;
         };
         let id = session.id();
@@ -76,7 +75,7 @@ impl Running {
             self.pointer.pressed = None;
             self.view.pressed = None;
         }
-        if let Some(session) = self.active_session() {
+        if let Some(session) = self.sessions.active(&self.workspace) {
             let reports = session
                 .terminal()
                 .screen()
@@ -87,12 +86,6 @@ impl Running {
             }
         }
         self.window.request_redraw();
-    }
-
-    fn active_session(&self) -> Option<&Session> {
-        self.workspace
-            .active_tab()
-            .and_then(|id| self.sessions.get(id))
     }
 }
 

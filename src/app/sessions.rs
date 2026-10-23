@@ -8,6 +8,7 @@ use winit::event_loop::EventLoopProxy;
 use trame::session::pty::{ShellCommand, default_shell};
 use trame::session::{Notifier, Session, SessionId, SessionOptions};
 use trame::term::ReportedColors;
+use trame::workspace::Workspace;
 
 use super::UserEvent;
 
@@ -66,6 +67,10 @@ impl Sessions {
 
     pub fn get(&self, id: SessionId) -> Option<&Session> {
         self.map.get(&id)
+    }
+
+    pub fn active(&self, workspace: &Workspace) -> Option<&Session> {
+        workspace.active_tab().and_then(|id| self.get(id))
     }
 
     pub fn resize(&mut self, id: SessionId, size: (usize, usize)) {

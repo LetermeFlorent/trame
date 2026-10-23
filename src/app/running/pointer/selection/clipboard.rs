@@ -4,10 +4,7 @@ use super::Running;
 
 impl Running {
     pub(in crate::app::running) fn copy_selection(&self) {
-        let session = self
-            .workspace
-            .active_tab()
-            .and_then(|id| self.sessions.get(id));
+        let session = self.sessions.active(&self.workspace);
         let text = session.and_then(|session| session.terminal().screen().selected_text());
         if let Some(text) = text {
             write_clipboard(&text);
