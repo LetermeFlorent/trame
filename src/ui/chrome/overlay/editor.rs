@@ -98,11 +98,16 @@ pub(super) fn draw_field(painter: &mut Painter, field: &FieldFrame, focused: boo
         true => theme.accent,
         false => theme.border_strong,
     };
-    painter.scene.fill(field.rect, theme.terminal, radius);
-    painter.scene.border(field.rect, edge, radius, line);
+    if field.boxed {
+        painter.scene.fill(field.rect, theme.terminal, radius);
+        painter.scene.border(field.rect, edge, radius, line);
+    }
     painter.scene.push_clip(field.text_area);
+    if let Some(selection) = field.selection {
+        painter.scene.fill(selection, theme.selection, 0.0);
+    }
     painter.label(&field.label, field.text_x, field.rect, theme.text);
-    if focused {
+    if focused && field.selection.is_none() {
         painter.scene.fill(field.caret, theme.text, 0.0);
     }
     painter.scene.pop_clip();

@@ -50,10 +50,9 @@ impl Running {
         let mode = match entry {
             MenuEntry::Rename => {
                 let original = self.name_of(target);
-                EditMode::Text {
-                    field: TextField::new(&original),
-                    original,
-                }
+                let mut field = TextField::new(&original);
+                field.select_all();
+                EditMode::Text { field, original }
             }
             MenuEntry::Color => EditMode::Color,
             MenuEntry::Icon => EditMode::Emblem,

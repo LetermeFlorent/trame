@@ -1,4 +1,4 @@
-use std::iter;
+use std::{iter, mem};
 
 pub const MAX_CHARS: usize = 120;
 
@@ -6,6 +6,7 @@ pub const MAX_CHARS: usize = 120;
 pub struct TextField {
     text: String,
     caret: usize,
+    selected: bool,
 }
 
 impl TextField {
@@ -23,6 +24,15 @@ impl TextField {
         self.caret
     }
 
+    pub fn is_selected(&self) -> bool {
+        self.selected
+    }
+
+    pub fn select_all(&mut self) {
+        self.selected = !self.text.is_empty();
+        self.caret = self.text.len();
+    }
+
     pub fn before_caret(&self) -> &str {
         &self.text[..self.caret]
     }
@@ -32,21 +42,33 @@ impl TextField {
         Self {
             text: iter::repeat_n(mask, count(&self.text)).collect(),
             caret: mask.len_utf8() * count(self.before_caret()),
+            selected: self.selected,
         }
     }
 
     pub fn insert(&mut self, typed: &str) {
-        let room = MAX_CHARS.saturating_sub(self.text.chars().count());
+        let kept = if self.selected {
+            0
+        } else {
+            self.text.chars().count()
+        };
         let accepted: String = typed
             .chars()
             .filter(|ch| !ch.is_control())
-            .take(room)
+            .take(MAX_CHARS.saturating_sub(kept))
             .collect();
+        if accepted.is_empty() {
+            return;
+        }
+        self.clear_selection();
         self.text.insert_str(self.caret, &accepted);
         self.caret += accepted.len();
     }
 
     pub fn backspace(&mut self) {
+        if self.clear_selection() {
+            return;
+        }
         let Some(start) = self.previous_boundary() else {
             return;
         };
@@ -55,6 +77,9 @@ impl TextField {
     }
 
     pub fn delete(&mut self) {
+        if self.clear_selection() {
+            return;
+        }
         let Some(end) = self.next_boundary() else {
             return;
         };
@@ -62,23 +87,40 @@ impl TextField {
     }
 
     pub fn left(&mut self) {
+        if mem::take(&mut self.selected) {
+            return self.home();
+        }
         if let Some(start) = self.previous_boundary() {
             self.caret = start;
         }
     }
 
     pub fn right(&mut self) {
+        if mem::take(&mut self.selected) {
+            return self.end();
+        }
         if let Some(end) = self.next_boundary() {
             self.caret = end;
         }
     }
 
     pub fn home(&mut self) {
+        self.selected = false;
         self.caret = 0;
     }
 
     pub fn end(&mut self) {
+        self.selected = false;
         self.caret = self.text.len();
+    }
+
+    fn clear_selection(&mut self) -> bool {
+        if !mem::take(&mut self.selected) {
+            return false;
+        }
+        self.text.clear();
+        self.caret = 0;
+        true
     }
 
     fn previous_boundary(&self) -> Option<usize> {

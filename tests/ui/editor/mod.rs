@@ -1,6 +1,7 @@
 mod emblems;
 mod form;
 mod menu;
+mod rename;
 mod servers;
 mod sidebar;
 mod swatches;

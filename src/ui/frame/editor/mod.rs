@@ -15,11 +15,13 @@ use crate::session::SessionId;
 use crate::text::TextSystem;
 use crate::theme::{Emblem, Swatch};
 use crate::workspace::InstanceId;
+use anchor::AnchorSpot;
 pub use anchor::EditAnchor;
 use dialogs::ConnectDialog;
 pub use emblems::EmblemSlot;
 pub use field::FieldFrame;
 pub(in crate::ui::frame) use field::place_field;
+use field::place_inline;
 pub use form::{FormFrame, FormRow, SECRET_MASK};
 pub use menu::{MenuEntry, MenuFrame, MenuRequest, MenuRow};
 pub use row::SwatchSlot;
@@ -95,21 +97,21 @@ impl EditorFrame {
 impl FrameLayout {
     pub fn place_editor(&mut self, text: &mut TextSystem, request: &EditorRequest) {
         self.editor = self
-            .anchor_rect(request.anchor, request.target)
-            .map(|anchor| self.layout_editor(text, anchor, request));
+            .anchor_spot(request.anchor, request.target)
+            .map(|spot| self.layout_editor(text, spot, request));
     }
 
     fn layout_editor(
         &self,
         text: &mut TextSystem,
-        anchor: Rect,
+        spot: AnchorSpot,
         request: &EditorRequest,
     ) -> EditorFrame {
         let editor = EditorFrame::empty(request.target, request.anchor);
         let strings = request.strings;
         match request.kind {
             EditKind::Name(field) => EditorFrame {
-                field: Some(place_field(text, &self.metrics, anchor, self.bounds, field)),
+                field: Some(self.name_field(text, spot, field)),
                 ..editor
             },
             EditKind::Color(selected) => self.color_popup(text, strings, selected, editor),
@@ -122,6 +124,16 @@ impl FrameLayout {
                 };
                 self.connect_popup(text, &dialog, editor)
             }
+        }
+    }
+}
+
+impl FrameLayout {
+    fn name_field(&self, text: &mut TextSystem, spot: AnchorSpot, field: &TextField) -> FieldFrame {
+        let metrics = &self.metrics;
+        match spot.label {
+            Some(label) => place_inline(text, metrics, spot.rect, label, field),
+            None => place_field(text, metrics, spot.rect, self.bounds, field),
         }
     }
 }

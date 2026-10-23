@@ -58,7 +58,9 @@ fn a_rail_icon_opens_the_rename_field_beside_the_rail() {
         .editor
         .as_ref()
         .and_then(|editor| editor.field.as_ref());
-    let field = field.expect("a field beside the rail").rect;
+    let field = field.expect("a field beside the rail");
+    assert!(field.boxed && field.selection.is_none());
+    let field = field.rect;
     assert!(field.x >= rail.rect.right());
     assert!(field.y <= row && field.bottom() >= row);
     assert!(field.width >= UiMetrics::SIDEBAR_MIN_WIDTH);

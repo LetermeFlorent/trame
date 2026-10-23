@@ -44,7 +44,9 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
         true => theme.text,
         false => theme.muted_text(glow),
     };
-    painter.label(&tab.label, tab.label_x, rect, color);
+    if !painter.renaming(|editor| editor.renames_tab(pane.id, tab.id)) {
+        painter.label(&tab.label, tab.label_x, rect, color);
+    }
     let close_opacity = if tab.active { 1.0 } else { glow };
     painter.scene.push_opacity(close_opacity);
     painter.small_button(tab.close, Hit::TabClose(pane.id, tab.id), Icon::Close);

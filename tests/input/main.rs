@@ -2,6 +2,7 @@ mod field;
 mod keys;
 mod mouse;
 mod paste;
+mod selection;
 mod shortcuts;
 mod wheel;
 

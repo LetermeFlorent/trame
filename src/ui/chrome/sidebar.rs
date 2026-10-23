@@ -130,7 +130,9 @@ fn draw_row(painter: &mut Painter, row: &SidebarRow) {
         true => theme.text,
         false => theme.muted_text(glow),
     };
-    painter.label(&row.label, row.label_x, row.rect, text_color);
+    if !painter.renaming(|editor| editor.renames_row(row.item)) {
+        painter.label(&row.label, row.label_x, row.rect, text_color);
+    }
     draw_row_end(painter, row, glow);
 }
 

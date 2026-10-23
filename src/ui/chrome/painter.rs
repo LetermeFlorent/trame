@@ -4,7 +4,7 @@ use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::text::{TextLayout, TextSystem};
 use crate::theme::{Rgba, Theme};
-use crate::ui::frame::SettingLine;
+use crate::ui::frame::{EditorFrame, SettingLine};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 use crate::ui::motion::Motion;
@@ -27,6 +27,7 @@ pub(super) struct Painter<'a> {
     pub(super) metrics: UiMetrics,
     pub(super) view: &'a FrameView,
     pub(super) motion: &'a Motion,
+    pub(super) editor: Option<&'a EditorFrame>,
 }
 
 impl<'a> Painter<'a> {
@@ -42,6 +43,7 @@ impl<'a> Painter<'a> {
             metrics: input.frame.metrics,
             view: input.view,
             motion: input.motion,
+            editor: input.frame.editor.as_ref(),
         }
     }
 
@@ -105,6 +107,10 @@ impl<'a> Painter<'a> {
             stroke,
         };
         draw_icon(&mut pen, icon, rect);
+    }
+
+    pub(super) fn renaming(&self, test: impl FnOnce(&EditorFrame) -> bool) -> bool {
+        self.editor.is_some_and(test)
     }
 
     pub(super) fn label(&mut self, layout: &TextLayout, x: f32, rect: Rect, color: Rgba) {
