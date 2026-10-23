@@ -16,11 +16,6 @@
   <a href="#build-from-source">Build from source</a>
 </p>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/trame-dark.png">
-  <img alt="trame with two instances in the side bar, three tabs and a split showing git output" src="docs/screenshots/trame-light.png">
-</picture>
-
 ## What it does
 
 An instance is a named group of shells, usually one per project. Instances sit in a side bar on the left, and each one has its own tabs and its own splits, the way an editor like Zed lays out panes. Switching from "trame" to "dev server" brings back that instance's tabs exactly as you left them.
