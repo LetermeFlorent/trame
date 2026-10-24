@@ -77,6 +77,21 @@ fn leaves_plain_control_letters_to_the_shell() {
 }
 
 #[test]
+fn copies_and_pastes_with_the_system_keys() {
+    let windows = Platform::Windows;
+    let copy = press(windows, CONTROL, character("c"), KeyCode::KeyC);
+    assert_eq!(copy, Some(Command::Copy));
+    let paste = press(windows, CONTROL, character("v"), KeyCode::KeyV);
+    assert_eq!(paste, Some(Command::Paste));
+    let shifted = press(windows, CONTROL | SHIFT, character("v"), KeyCode::KeyV);
+    assert_eq!(shifted, Some(Command::Paste));
+    let linux = press(Platform::Linux, CONTROL, character("v"), KeyCode::KeyV);
+    assert_eq!(linux, None);
+    let mac = press(Platform::Mac, LOGO, character("c"), KeyCode::KeyC);
+    assert_eq!(mac, Some(Command::Copy));
+}
+
+#[test]
 fn reads_letters_from_the_layout_not_the_key_position() {
     let azerty_w = press(
         Platform::Windows,

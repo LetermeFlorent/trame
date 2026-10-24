@@ -58,6 +58,7 @@ pub(super) struct Bindings {
     pub select_tab: Chord,
     pub focus_pane: Chord,
     pub font: Chord,
+    pub clipboard: Option<Chord>,
 }
 
 impl Bindings {
@@ -69,6 +70,7 @@ impl Bindings {
                 select_tab: LOGO,
                 focus_pane: LOGO_ALT,
                 font: LOGO,
+                clipboard: None,
             },
             Platform::Windows | Platform::Linux => Self {
                 primary: CONTROL_SHIFT,
@@ -76,6 +78,7 @@ impl Bindings {
                 select_tab: ALT,
                 focus_pane: CONTROL_ALT,
                 font: CONTROL,
+                clipboard: (platform == Platform::Windows).then_some(CONTROL),
             },
         }
     }

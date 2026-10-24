@@ -84,8 +84,8 @@ These are the Windows and Linux bindings.
 | Split right | `Ctrl+Shift+D` |
 | Split down | `Ctrl+Shift+Alt+D` |
 | Show or hide the side bar | `Ctrl+Shift+B` |
-| Copy | `Ctrl+Shift+C` |
-| Paste | `Ctrl+Shift+V` or `Shift+Insert` |
+| Copy | `Ctrl+Shift+C`, and `Ctrl+C` on Windows |
+| Paste | `Ctrl+Shift+V` or `Shift+Insert`, and `Ctrl+V` on Windows |
 | Next and previous tab | `Ctrl+Tab` and `Ctrl+Shift+Tab`, or `Ctrl+PageDown` and `Ctrl+PageUp` |
 | Next and previous instance | `Ctrl+Shift+PageDown` and `Ctrl+Shift+PageUp` |
 | Go to tab 1 to 8 | `Alt+1` to `Alt+8` |
@@ -94,6 +94,8 @@ These are the Windows and Linux bindings.
 | Bigger, smaller, reset text | `Ctrl+=`, `Ctrl+-`, `Ctrl+0` |
 | Scroll one page | `Shift+PageUp` and `Shift+PageDown` |
 | Scroll to the top or the bottom | `Ctrl+Shift+Home` and `Ctrl+Shift+End` |
+
+On Windows, `Ctrl+C` copies only when text is selected. Without a selection it goes to the program as usual and stops it.
 
 `Escape` cancels a tab drag before the drop.
 

@@ -24,7 +24,10 @@ impl Running {
         {
             return;
         }
-        if let Some(command) = self.shortcut_for(event) {
+        if let Some(command) = self
+            .shortcut_for(event)
+            .filter(|command| self.claims(*command))
+        {
             self.command(event_loop, command);
             return;
         }
@@ -47,6 +50,18 @@ impl Running {
             modifiers: self.modifiers,
         };
         shortcut(input, self.metrics.platform)
+    }
+
+    fn claims(&self, command: Command) -> bool {
+        let interrupt = self.modifiers == ModifiersState::CONTROL;
+        command != Command::Copy || !interrupt || self.has_selection()
+    }
+
+    fn has_selection(&self) -> bool {
+        self.sessions
+            .active(&self.workspace)
+            .and_then(|session| session.terminal().screen().selected_text())
+            .is_some()
     }
 
     pub(in crate::app::running) fn write_to_active(

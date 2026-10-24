@@ -56,6 +56,13 @@ fn letter(base: &Key, pressed: Chord, bindings: &Bindings) -> Option<Command> {
     if pressed == bindings.split_down && text == "d" {
         return Some(Command::SplitDown);
     }
+    if Some(pressed) == bindings.clipboard {
+        return match text.as_str() {
+            "c" => Some(Command::Copy),
+            "v" => Some(Command::Paste),
+            _ => None,
+        };
+    }
     if pressed != bindings.primary {
         return None;
     }
