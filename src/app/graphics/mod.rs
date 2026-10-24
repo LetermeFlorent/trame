@@ -15,6 +15,9 @@ use trame::theme::Rgba;
 #[cfg(feature = "capture")]
 use capture::Capture;
 
+#[cfg(windows)]
+const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::DX12;
+#[cfg(not(windows))]
 const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::VULKAN.union(wgpu::Backends::METAL);
 
 pub struct Graphics {

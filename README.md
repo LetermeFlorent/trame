@@ -34,7 +34,7 @@ The rest stays out of your way:
 - closing the window, or an instance from its cross in the side bar, while it holds two tabs or more first asks to confirm, with the number of tabs that will close. Enter or Close confirms, Escape, Cancel, the cross or a click outside keeps everything open. The switch "Ask before closing several tabs" in the settings, on by default, turns the question off;
 - the startup command, empty by default, is typed and run in every new shell. A tab that comes back with its text skips it, since it picks up where you left it. A tab opened for an SSH connection only runs `ssh`. Click the command to change it, Enter or a click elsewhere keeps it, Escape leaves it as it was, and the cross removes it.
 
-Drawing goes through the graphics card with [wgpu](https://wgpu.rs), on Vulkan first, with DirectX 12 on Windows and OpenGL on Linux when Vulkan is missing. Nothing is drawn while the window is hidden or minimized. The terminal itself, from the escape sequence parser to the screen grid and the scrollback, is written from scratch in Rust. On Windows 11 the program weighs 6.4 MB and uses around 65 MB of memory once open.
+Drawing goes through the graphics card with [wgpu](https://wgpu.rs), on DirectX 12 on Windows and Vulkan elsewhere, with Vulkan on Windows and OpenGL on Linux when those are missing. Nothing is drawn while the window is hidden or minimized. The terminal itself, from the escape sequence parser to the screen grid and the scrollback, is written from scratch in Rust. On Windows 11 the program weighs 6.4 MB and uses around 65 MB of memory once open.
 
 ## Install
 
