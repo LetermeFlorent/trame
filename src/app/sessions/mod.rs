@@ -58,9 +58,10 @@ impl Sessions {
     }
 
     pub fn spawn(&mut self, id: SessionId, start: &ShellStart) -> io::Result<()> {
+        let cwd = start.cwd.filter(|path| path.is_dir());
         let options = SessionOptions {
             shell: &self.shell,
-            cwd: start.cwd,
+            cwd,
             rows: start.size.0,
             cols: start.size.1,
             colors: start.colors,
@@ -68,7 +69,7 @@ impl Sessions {
         };
         let session = Session::spawn(id, &options, self.notify.clone())?;
         self.map.insert(id, session);
-        if let Some(path) = start.cwd {
+        if let Some(path) = cwd {
             self.origins.insert(id, path.to_path_buf());
         }
         Ok(())

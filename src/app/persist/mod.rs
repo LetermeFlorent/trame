@@ -70,8 +70,16 @@ pub fn load() -> Option<Snapshot> {
         Ok(snapshot) => Some(snapshot),
         Err(error) => {
             eprintln!("trame: {error}, starting a fresh session");
+            keep_aside(&path);
             None
         }
+    }
+}
+
+fn keep_aside(path: &Path) {
+    let aside = path.with_extension("json.bad");
+    if let Err(error) = fs::rename(path, &aside) {
+        eprintln!("trame: the unreadable session file stays in place: {error}");
     }
 }
 
