@@ -1,10 +1,13 @@
 use std::fmt;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 pub struct Gpu {
     pub instance: wgpu::Instance,
     pub adapter: wgpu::Adapter,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
+    lost: Arc<AtomicBool>,
 }
 
 #[derive(Debug)]
@@ -46,12 +49,28 @@ impl Gpu {
             ..Default::default()
         }))
         .map_err(GpuError::Device)?;
+        device.on_uncaptured_error(Arc::new(|error| {
+            eprintln!("trame: the graphics card reported an error: {error}");
+        }));
+        let lost = Arc::new(AtomicBool::new(false));
+        let flag = lost.clone();
+        device.set_device_lost_callback(move |reason, message| {
+            if reason == wgpu::DeviceLostReason::Unknown {
+                eprintln!("trame: the graphics card was lost: {message}");
+                flag.store(true, Ordering::Release);
+            }
+        });
         Ok(Self {
             instance,
             adapter,
             device,
             queue,
+            lost,
         })
+    }
+
+    pub fn is_lost(&self) -> bool {
+        self.lost.load(Ordering::Acquire)
     }
 
     pub fn headless() -> Result<Self, GpuError> {

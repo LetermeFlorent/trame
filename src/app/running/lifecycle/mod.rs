@@ -72,6 +72,7 @@ impl Running {
     }
 
     pub fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        self.restart_if_card_lost(event_loop);
         let save = self.save_deadline();
         let text = self.transcript_deadline();
         let retry = self.visibility.retry(&self.window);

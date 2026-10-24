@@ -22,4 +22,18 @@ impl Running {
             Err(error) => eprintln!("trame: the update restart did not start: {error}"),
         }
     }
+
+    pub(in crate::app::running) fn restart_if_card_lost(&mut self, event_loop: &ActiveEventLoop) {
+        if self.restarting || !self.graphics.is_lost() {
+            return;
+        }
+        self.save_for_restart();
+        match update::start_again() {
+            Ok(()) => {
+                self.restarting = true;
+                event_loop.exit();
+            }
+            Err(error) => eprintln!("trame: trame could not start again: {error}"),
+        }
+    }
 }

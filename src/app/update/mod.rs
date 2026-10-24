@@ -13,7 +13,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::thread;
 
-pub use launch::{relaunch, restart};
+pub use launch::{relaunch, restart, start_again};
 use route::Route;
 use version::Version;
 

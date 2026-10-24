@@ -19,6 +19,10 @@ pub fn restart(offer: &str) -> io::Result<()> {
     }
 }
 
+pub fn start_again() -> io::Result<()> {
+    spawn_again(&env::current_exe()?, false)
+}
+
 fn spawn_again(exe: &Path, updated: bool) -> io::Result<()> {
     Command::new(exe)
         .args(next_arguments(env::args_os().skip(1), updated))

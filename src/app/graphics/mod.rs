@@ -67,6 +67,10 @@ impl Graphics {
         render_in_format(&self.gpu, &mut self.renderer, scene, clear, format)
     }
 
+    pub fn is_lost(&self) -> bool {
+        self.gpu.is_lost()
+    }
+
     pub fn resize(&mut self, width: u32, height: u32) {
         self.surface.resize(&self.gpu, width, height);
     }
