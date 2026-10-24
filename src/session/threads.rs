@@ -5,6 +5,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::time::{Duration, Instant};
 
 use super::{Notifier, SessionEvent, SessionId, lock};
 use crate::session::pty::Child;
@@ -12,6 +13,7 @@ use crate::term::{Modes, Terminal};
 
 const READ_BUFFER: usize = 64 * 1024;
 const STACK_SIZE: usize = 256 * 1024;
+const SYNC_LIMIT: Duration = Duration::from_secs(1);
 
 pub struct Reader {
     pub id: SessionId,
@@ -48,6 +50,7 @@ pub fn spawn_waiter(id: SessionId, child: Child, notify: Notifier) -> io::Result
 
 fn read_loop(mut reader: Reader) {
     let mut buffer = vec![0; READ_BUFFER];
+    let mut held_since: Option<Instant> = None;
     loop {
         let count = match reader.source.read(&mut buffer) {
             Ok(0) => break,
@@ -65,7 +68,12 @@ fn read_loop(mut reader: Reader) {
         if !responses.is_empty() && reader.input.send(responses).is_err() {
             break;
         }
-        if !synchronized && !reader.pending.swap(true, Ordering::AcqRel) {
+        let held =
+            synchronized && held_since.get_or_insert_with(Instant::now).elapsed() < SYNC_LIMIT;
+        if !synchronized {
+            held_since = None;
+        }
+        if !held && !reader.pending.swap(true, Ordering::AcqRel) {
             (reader.notify)(SessionEvent::Output(reader.id));
         }
     }

@@ -37,7 +37,7 @@ impl Screen {
             6 => {
                 let origin = self.modes.contains(Modes::ORIGIN);
                 let top = if origin { self.scroll_top } else { 0 };
-                let row = self.cursor.row - top + 1;
+                let row = self.cursor.row.saturating_sub(top) + 1;
                 let col = self.cursor.col + 1;
                 let marker = if private { "?" } else { "" };
                 self.respond(format!("\x1b[{marker}{row};{col}R").as_bytes());
