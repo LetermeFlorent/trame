@@ -1,3 +1,4 @@
+mod dump;
 pub mod pty;
 mod threads;
 mod title;

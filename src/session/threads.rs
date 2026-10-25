@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use super::dump::Dump;
 use super::{Notifier, SessionEvent, SessionId, lock};
 use crate::session::pty::Child;
 use crate::term::{Modes, Terminal};
@@ -51,6 +52,7 @@ pub fn spawn_waiter(id: SessionId, child: Child, notify: Notifier) -> io::Result
 fn read_loop(mut reader: Reader) {
     let mut buffer = vec![0; READ_BUFFER];
     let mut held_since: Option<Instant> = None;
+    let mut dump = Dump::open(reader.id);
     loop {
         let count = match reader.source.read(&mut buffer) {
             Ok(0) => break,
@@ -58,6 +60,7 @@ fn read_loop(mut reader: Reader) {
             Err(error) if error.kind() == ErrorKind::Interrupted => continue,
             Err(_) => break,
         };
+        dump.record(&buffer[..count]);
         let (responses, synchronized) = {
             let mut terminal = lock(&reader.terminal);
             terminal.feed(&buffer[..count]);
