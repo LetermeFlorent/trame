@@ -98,7 +98,7 @@ impl Running {
         }
     }
 
-    fn paste(&mut self) {
+    pub(in crate::app::running) fn paste(&mut self) {
         let Some(text) = read_clipboard() else {
             return;
         };

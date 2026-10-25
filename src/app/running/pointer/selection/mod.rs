@@ -75,6 +75,12 @@ impl Running {
         };
         let cell = self.cell_in_pane(pane, point);
         let reports = self.reports_mouse(id);
+        if !reports && button == MouseButton::Right {
+            self.focus_pane(pane_id);
+            self.paste();
+            self.changed();
+            return true;
+        }
         if !reports && button != MouseButton::Left {
             return false;
         }
@@ -92,6 +98,7 @@ impl Running {
 
     fn terminal_release(&mut self, button: MouseButton) -> bool {
         if button == MouseButton::Left && self.selecting.drag.take().is_some() {
+            self.copy_selection();
             return true;
         }
         let Some((id, _)) = self.selecting.held.filter(|(_, held)| *held == button) else {
