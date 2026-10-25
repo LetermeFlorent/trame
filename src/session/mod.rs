@@ -1,5 +1,6 @@
 mod dump;
 pub mod pty;
+mod sync;
 mod threads;
 mod title;
 mod transcript;
