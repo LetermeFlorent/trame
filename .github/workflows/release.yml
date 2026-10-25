@@ -101,9 +101,49 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Test
+        run: cargo test --locked --no-fail-fast
+
+      - name: Build for Apple Silicon and Intel
+        run: |
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+          cargo build --release --locked --target aarch64-apple-darwin
+          cargo build --release --locked --target x86_64-apple-darwin
+          lipo -create -output trame-universal \
+            target/aarch64-apple-darwin/release/trame \
+            target/x86_64-apple-darwin/release/trame
+
+      - name: Make trame.app
+        run: |
+          version=$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json, sys; print(json.load(sys.stdin)["packages"][0]["version"])')
+          mkdir dist
+          sh packaging/macos/bundle.sh trame-universal "$version" build
+          ditto -c -k --keepParent build/trame.app "dist/trame-$version-macos.zip"
+
+      - name: Open trame
+        run: |
+          open build/trame.app
+          for _ in $(seq 30); do
+            pid=$(pgrep -f trame.app/Contents/MacOS/trame) && pgrep -P "$pid" > /dev/null && break
+            sleep 1
+          done
+          pgrep -P "$pid"
+          kill "$pid"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: macos
+          path: dist/*
+          if-no-files-found: error
+
   publish:
     if: github.ref_type == 'tag'
-    needs: [windows, test, linux]
+    needs: [windows, test, linux, macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
