@@ -22,9 +22,9 @@ pub(super) use settings::{
     CAPTION_HEIGHT, Column, LINE_HEIGHT, LINE_INSET, ListSpec, SECTION_GAP, host_labels,
 };
 pub use settings::{
-    Chip, ChoiceRow, ConnectionsPage, GeneralPage, HostList, HostRow, HostsView, ListControl,
-    MessageFrame, MessageRequest, PopupFrame, ScrollBar, SettingControl, SettingLine,
-    SettingsFrame, SettingsPage, SettingsRequest, SettingsTab, Stepper, ToggleRow,
+    Chip, ChoiceRow, ConnectionsPage, GeneralPage, HostList, HostRow, HostsView, InstancesPage,
+    ListControl, MessageFrame, MessageRequest, NumberChoice, PopupFrame, ScrollBar, SettingControl,
+    SettingLine, SettingsFrame, SettingsPage, SettingsRequest, SettingsTab, Stepper, ToggleRow,
 };
 pub(super) use width::Columns;
 pub use width::{dragged_width, shown_width};

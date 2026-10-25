@@ -15,10 +15,10 @@ pub use label::{fit_label, fit_label_start, fit_text_start};
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{
     Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, GeneralPage, HostList, HostRow,
-    HostsView, ListControl, MessageFrame, MessageRequest, PopupFrame, RailFrame, RailSlot,
-    ScrollBar, SettingControl, SettingLine, SettingsFrame, SettingsPage, SettingsRequest,
-    SettingsTab, SidebarFrame, SidebarItem, SidebarRow, Stepper, ToggleRow, dragged_width,
-    shown_width,
+    HostsView, InstancesPage, ListControl, MessageFrame, MessageRequest, NumberChoice, PopupFrame,
+    RailFrame, RailSlot, ScrollBar, SettingControl, SettingLine, SettingsFrame, SettingsPage,
+    SettingsRequest, SettingsTab, SidebarFrame, SidebarItem, SidebarRow, Stepper, ToggleRow,
+    dragged_width, shown_width,
 };
 pub use titlebar::{TitleBarFrame, WindowControls};
 

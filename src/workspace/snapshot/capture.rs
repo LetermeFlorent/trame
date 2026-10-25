@@ -36,6 +36,7 @@ fn capture_instance(
         name: instance.name.clone(),
         color: instance.color,
         emblem: Some(instance.emblem),
+        number: Some(instance.number),
         folder: instance
             .folder
             .clone()

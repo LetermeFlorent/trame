@@ -1,6 +1,7 @@
 use super::Screen;
 use crate::term::modes::Modes;
 
+const BEL: u8 = 0x07;
 const BS: u8 = 0x08;
 const HT: u8 = 0x09;
 const LF: u8 = 0x0A;
@@ -12,6 +13,9 @@ const SI: u8 = 0x0F;
 impl Screen {
     pub(crate) fn execute_control(&mut self, byte: u8) {
         match byte {
+            BEL => {
+                self.attention.get_or_insert_default();
+            }
             BS => self.backspace(),
             HT => self.tab_forward(1),
             LF..=FF => {

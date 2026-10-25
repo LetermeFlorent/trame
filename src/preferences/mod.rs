@@ -11,6 +11,7 @@ use crate::locale::LanguageChoice;
 use crate::theme::Swatch;
 use crate::ui::display::{Density, PanelSide};
 use crate::ui::metrics::TERMINAL_FONT_SIZE;
+use crate::workspace::Numbering;
 pub use colors::MAX_CUSTOM_COLORS;
 use colors::sanitized_colors;
 pub use launch::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Recall};
@@ -64,6 +65,10 @@ pub struct Preferences {
     pub efficiency: bool,
     #[serde(default)]
     pub acrylic: bool,
+    #[serde(default = "enabled")]
+    pub notify_waiting: bool,
+    #[serde(flatten)]
+    pub numbering: Numbering,
 }
 
 impl Default for Preferences {
@@ -85,6 +90,8 @@ impl Default for Preferences {
             density: Density::Compact,
             efficiency: false,
             acrylic: false,
+            notify_waiting: true,
+            numbering: Numbering::default(),
         }
     }
 }

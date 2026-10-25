@@ -1,6 +1,7 @@
 mod instance;
 mod marks;
 mod moves;
+mod numbers;
 mod pane;
 mod snapshot;
 mod tabs;
@@ -9,6 +10,7 @@ mod tree;
 pub use instance::{Instance, InstanceId};
 pub use marks::{TabMark, clean_name};
 pub use moves::DropTarget;
+pub use numbers::Numbering;
 pub use pane::Pane;
 pub use snapshot::{
     DescribeTab, InstanceSnapshot, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot,
@@ -37,6 +39,7 @@ pub struct Workspace {
     marks: HashMap<SessionId, TabMark>,
     next_pane: u32,
     next_instance: u32,
+    numbering: Numbering,
 }
 
 impl Default for Workspace {
@@ -55,6 +58,7 @@ impl Workspace {
             marks: HashMap::new(),
             next_pane: 0,
             next_instance: 0,
+            numbering: Numbering::default(),
         }
     }
 
@@ -89,6 +93,7 @@ impl Workspace {
         let pane = self.new_pane_id();
         let mut instance = Instance::new(id, name, pane, tab);
         instance.emblem = Emblem::random(&self.emblems());
+        instance.number = self.next_number();
         self.instances.push(instance);
         self.active = self.instances.len() - 1;
         id
@@ -103,6 +108,7 @@ impl Workspace {
         if self.active > index || self.active >= self.instances.len() {
             self.active = self.active.saturating_sub(1);
         }
+        self.renumber_after_close();
         removed.tabs()
     }
 

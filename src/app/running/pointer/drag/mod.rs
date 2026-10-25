@@ -1,4 +1,5 @@
 mod ghost;
+mod instance;
 mod sidebar;
 mod tab;
 
@@ -8,8 +9,8 @@ use winit::window::{Cursor, CursorIcon};
 use trame::geometry::Point;
 use trame::session::SessionId;
 use trame::ui::Hit;
-use trame::ui::frame::{ListControl, PickerPart};
-use trame::workspace::{Axis, Divider, Node, resized};
+use trame::ui::frame::{ListControl, PickerPart, SidebarItem};
+use trame::workspace::{Axis, Divider, InstanceId, Node, resized};
 
 use crate::app::running::Running;
 pub(in crate::app::running) use ghost::Ghost;
@@ -30,6 +31,8 @@ pub(in crate::app::running) enum Drag {
     Sidebar(SidebarDrag),
     List(f32),
     Picker(PickerPart),
+    PendingInstance(InstanceId, Point),
+    Instance(InstanceId, usize),
 }
 
 impl Running {
@@ -43,6 +46,9 @@ impl Running {
             Hit::SidebarEdge => Some(Drag::Sidebar(self.sidebar_drag())),
             Hit::List(ListControl::Thumb) => self.list_grab(origin).map(Drag::List),
             Hit::Picker(part) => Some(Drag::Picker(part)),
+            Hit::Row(SidebarItem::Instance(id)) | Hit::RailInstance(id) => {
+                Some(Drag::PendingInstance(id, origin))
+            }
             _ => None,
         };
     }
@@ -59,6 +65,9 @@ impl Running {
 
     pub(in crate::app::running) fn drag_moved(&mut self, point: Point) -> bool {
         let threshold = self.metrics.px(DRAG_THRESHOLD);
+        if let Some(moved) = self.instance_drag_moved(point, threshold) {
+            return moved;
+        }
         let next = match self.drag.take() {
             None => return false,
             Some(Drag::Pending(tab, origin)) if distance(origin, point) < threshold => {
@@ -70,10 +79,7 @@ impl Running {
                 Drag::Tab(tab, point)
             }
             Some(Drag::Divider(drag)) => {
-                let delta = drag.divider.delta(drag.origin, point);
-                if let Some(instance) = self.workspace.active_instance_mut() {
-                    instance.root = resized(&drag.root, &drag.divider, delta);
-                }
+                self.drag_divider(&drag, point);
                 Drag::Divider(drag)
             }
             Some(Drag::Sidebar(drag)) => {
@@ -88,10 +94,18 @@ impl Running {
                 self.drag_picker(part);
                 Drag::Picker(part)
             }
+            Some(drag @ (Drag::PendingInstance(..) | Drag::Instance(..))) => drag,
         };
         self.drag = Some(next);
         self.window.request_redraw();
         true
+    }
+
+    fn drag_divider(&mut self, drag: &DividerDrag, point: Point) {
+        let delta = drag.divider.delta(drag.origin, point);
+        if let Some(instance) = self.workspace.active_instance_mut() {
+            instance.root = resized(&drag.root, &drag.divider, delta);
+        }
     }
 
     pub(in crate::app::running) fn drag_key(&mut self, key: &Key) -> bool {
@@ -100,7 +114,7 @@ impl Running {
 
     pub(in crate::app::running) fn cancel_drag(&mut self) -> bool {
         let drag = match self.drag.take() {
-            None | Some(Drag::Pending(..)) => return false,
+            None | Some(Drag::Pending(..) | Drag::PendingInstance(..)) => return false,
             Some(drag) => drag,
         };
         match drag {
@@ -110,6 +124,7 @@ impl Running {
                 }
             }
             Drag::Sidebar(drag) => self.restore_sidebar(drag),
+            Drag::Instance(id, start) => self.move_instance_to(id, Some(start)),
             _ => {}
         }
         self.pointer.pressed = None;
@@ -131,6 +146,7 @@ impl Running {
             })),
             Some(Drag::Sidebar(_)) => Some(Cursor::Icon(CursorIcon::ColResize)),
             Some(Drag::Tab(..)) => Some(self.pointer.ghost.cursor()),
+            Some(Drag::Instance(..)) => Some(Cursor::Icon(CursorIcon::Grabbing)),
             _ => None,
         }
     }

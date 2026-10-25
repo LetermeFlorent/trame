@@ -2,6 +2,7 @@ mod chips;
 mod column;
 mod general;
 mod hosts;
+mod instances;
 mod message;
 mod place;
 mod popup;
@@ -20,6 +21,7 @@ pub(in crate::ui::frame) use column::{
 pub use general::{GeneralPage, Stepper, ToggleRow};
 pub use hosts::{ConnectionsPage, HostList, HostRow, HostsView, ListControl, ScrollBar};
 pub(in crate::ui::frame) use hosts::{ListSpec, host_labels};
+pub use instances::{InstancesPage, NumberChoice};
 pub use message::{MessageFrame, MessageRequest};
 pub use popup::PopupFrame;
 
@@ -27,11 +29,12 @@ pub use popup::PopupFrame;
 pub enum SettingsTab {
     #[default]
     General,
+    Instances,
     Connections,
 }
 
 impl SettingsTab {
-    pub const ALL: [Self; 2] = [Self::General, Self::Connections];
+    pub const ALL: [Self; 3] = [Self::General, Self::Instances, Self::Connections];
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -56,6 +59,8 @@ pub enum SettingControl {
     ConfirmClose,
     Efficiency,
     Acrylic,
+    NotifyWaiting,
+    Numbers(NumberChoice),
 }
 
 #[derive(Clone, Debug)]
@@ -102,13 +107,14 @@ pub struct SettingsRequest<'a> {
 #[derive(Clone, Debug)]
 pub enum SettingsPage {
     General(Box<GeneralPage>),
+    Instances(Box<InstancesPage>),
     Connections(Box<ConnectionsPage>),
 }
 
 #[derive(Clone, Debug)]
 pub struct SettingsFrame {
     pub popup: PopupFrame,
-    pub tabs: [Chip; 2],
+    pub tabs: [Chip; 3],
     pub page: SettingsPage,
 }
 
@@ -116,20 +122,21 @@ impl SettingsFrame {
     pub fn general(&self) -> Option<&GeneralPage> {
         match &self.page {
             SettingsPage::General(page) => Some(page),
-            SettingsPage::Connections(_) => None,
+            _ => None,
         }
     }
 
     pub fn connections(&self) -> Option<&ConnectionsPage> {
         match &self.page {
             SettingsPage::Connections(page) => Some(page),
-            SettingsPage::General(_) => None,
+            _ => None,
         }
     }
 
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
         let page = match &self.page {
             SettingsPage::General(page) => page.control_at(point),
+            SettingsPage::Instances(page) => page.control_at(point),
             SettingsPage::Connections(page) => page.control_at(point),
         };
         let tabs = self.tabs.iter().map(|chip| (chip.rect, chip.control));

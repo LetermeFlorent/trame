@@ -1,4 +1,5 @@
 mod graphics;
+mod notice;
 mod persist;
 mod power;
 mod running;

@@ -45,6 +45,7 @@ impl Running {
 
     pub(in crate::app::running) fn apply_system(&mut self, previous: &Preferences) {
         let current = &self.preferences;
+        self.workspace.set_numbering(current.numbering);
         if previous.efficiency != current.efficiency {
             self.idle.set_enabled(current.efficiency);
         }

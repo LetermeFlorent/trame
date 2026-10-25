@@ -66,7 +66,7 @@ pub(crate) fn layout_rail(metrics: &UiMetrics, workspace: &Workspace, rect: Rect
                 icon: slot.inset_by((size - icon) / 2.0, (size - icon) / 2.0),
                 active: index == workspace.active,
                 color: instance.color,
-                emblem: instance.emblem,
+                emblem: workspace.shown_emblem(instance),
             }
         })
         .collect();

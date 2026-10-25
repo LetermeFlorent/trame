@@ -86,6 +86,7 @@ impl Running {
     pub(in crate::app::running) fn output(&mut self, id: SessionId) {
         self.sessions.answer_prompt(id);
         self.forward_clipboard(id);
+        self.forward_attention(id);
         if self.frame.panes.iter().any(|pane| pane.active == Some(id)) {
             self.window.request_redraw();
             return;

@@ -46,17 +46,21 @@ impl Restorer<'_> {
         let order = root.panes();
         let active_pane = *order.get(item.active_pane).or(order.first())?;
         self.workspace.next_instance += 1;
-        let number = self.workspace.next_instance;
-        let id = InstanceId(number);
+        let id = InstanceId(self.workspace.next_instance);
         let name = clean_name(&item.name).unwrap_or_else(|| Instance::automatic_name(id));
         let emblem = item
             .emblem
             .unwrap_or_else(|| Emblem::random(&self.workspace.emblems()));
+        let number = item
+            .number
+            .filter(|number| *number > 0)
+            .unwrap_or_else(|| self.workspace.next_number());
         Some(Instance {
             id,
             name,
             color: item.color,
             emblem,
+            number,
             folder: item.folder.clone(),
             root,
             panes,

@@ -1,3 +1,4 @@
+mod attention;
 mod clipboard;
 mod modes;
 mod reports;

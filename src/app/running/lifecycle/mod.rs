@@ -21,6 +21,7 @@ use trame::workspace::{Snapshot, Workspace};
 
 use super::tabs::Placement;
 use super::{Pointer, Running, Selecting, frame};
+use crate::app::notice::Notifier;
 use crate::app::persist::{self, Saver};
 use crate::app::power::Idle;
 use crate::app::sessions::Sessions;
@@ -93,12 +94,12 @@ impl Running {
     fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>) -> Self {
         let border = window::frame_border(&surface.window);
         let metrics = surface.preferences.ui_metrics(surface.window_scale, border);
-        let workspace = Workspace::new();
-        let strings = surface.preferences.language.resolve().strings();
-        let (frame, motion) = first_frame(&mut surface, &workspace, metrics, strings);
+        let workspace = Workspace::numbered(surface.preferences.numbering);
+        let (frame, motion, strings) = first_frame(&mut surface, &workspace, metrics);
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
             idle: Idle::new(surface.preferences.efficiency),
+            notifier: Notifier::default(),
             window: surface.window,
             graphics: surface.graphics,
             text: surface.text,
@@ -138,8 +139,8 @@ fn first_frame(
     surface: &mut Surface,
     workspace: &Workspace,
     metrics: UiMetrics,
-    strings: &'static Strings,
-) -> (FrameLayout, Motion) {
+) -> (FrameLayout, Motion, &'static Strings) {
+    let strings = surface.preferences.language.resolve().strings();
     let mut motion = Motion::default();
     let layout_input = frame::LayoutInput {
         workspace,
@@ -152,5 +153,5 @@ fn first_frame(
     let frame = frame::compute(&mut surface.text, &layout_input, &mut motion, &|_| {
         String::new()
     });
-    (frame, motion)
+    (frame, motion, strings)
 }

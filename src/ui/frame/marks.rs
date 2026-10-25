@@ -19,6 +19,6 @@ pub fn apply(workspace: &Workspace, sidebar: Option<&mut SidebarFrame>, panes: &
 
 fn instance_marks(workspace: &Workspace, id: InstanceId) -> (Option<Swatch>, Option<Emblem>) {
     workspace.instance(id).map_or((None, None), |instance| {
-        (instance.color, Some(instance.emblem))
+        (instance.color, Some(workspace.shown_emblem(instance)))
     })
 }

@@ -9,7 +9,7 @@ const TOGGLE_WIDTH: f32 = 28.0;
 const TOGGLE_HEIGHT: f32 = 16.0;
 
 impl Column<'_> {
-    pub(super) fn toggle_row(
+    pub(in crate::ui::frame) fn toggle_row(
         &mut self,
         label: &str,
         [on, enabled]: [bool; 2],

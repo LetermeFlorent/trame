@@ -9,7 +9,7 @@ use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences, Ss
 use trame::theme::Swatch;
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
 use trame::ui::{Density, PanelSide};
-use trame::workspace::{NodeSnapshot, PaneSnapshot, Snapshot, TabSnapshot};
+use trame::workspace::{NodeSnapshot, Numbering, PaneSnapshot, Snapshot, TabSnapshot};
 
 use super::{restore, single};
 
@@ -101,6 +101,12 @@ fn preferences_and_text_keys_survive_json() {
         density: Density::Spacious,
         efficiency: true,
         acrylic: true,
+        notify_waiting: false,
+        numbering: Numbering {
+            shown: false,
+            on_close: false,
+            on_move: true,
+        },
     };
     let text = snapshot.to_json().expect("serializes");
     let parsed = Snapshot::from_json(&text).expect("parses");

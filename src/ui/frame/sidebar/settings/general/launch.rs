@@ -50,6 +50,11 @@ pub(super) fn system_toggles(
             preferences.acrylic,
             SettingControl::Acrylic,
         ),
+        (
+            strings.notify_waiting,
+            preferences.notify_waiting,
+            SettingControl::NotifyWaiting,
+        ),
     ]
     .map(|(label, on, control)| column.toggle_row(label, [on, true], control));
     (Some(section), toggles.into())

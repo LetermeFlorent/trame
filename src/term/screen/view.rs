@@ -85,6 +85,10 @@ impl Screen {
         self.clipboard.take()
     }
 
+    pub fn take_attention(&mut self) -> Option<String> {
+        self.attention.take()
+    }
+
     pub fn scroll_display(&mut self, delta: isize) {
         self.grid_mut().scroll_display(delta);
     }

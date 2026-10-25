@@ -28,6 +28,7 @@ use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
+use super::notice::Notifier;
 use super::persist::Saver;
 use super::power::Idle;
 use super::sessions::Sessions;
@@ -72,6 +73,7 @@ pub struct Running {
     update_offer: Option<String>,
     restarting: bool,
     idle: Idle,
+    notifier: Notifier,
     closing: Option<Closing>,
     strings: &'static Strings,
 }

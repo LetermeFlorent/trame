@@ -89,7 +89,7 @@ fn a_closed_sidebar_leaves_a_rail_with_one_button_per_instance() {
         let hit = layout.hit(slot.rect.center(), false);
         assert_eq!(hit, Some(Hit::RailInstance(instance.id)));
         assert_eq!(slot.color, instance.color);
-        assert_eq!(slot.emblem, instance.emblem);
+        assert_eq!(slot.emblem, workspace.shown_emblem(instance));
         assert_eq!(slot.name, instance.name);
         assert!(rail.rect.contains(slot.icon.center()));
     }
@@ -115,7 +115,7 @@ fn instance_rows_carry_their_emblem_and_tab_rows_none() {
         match row.item {
             SidebarItem::Instance(id) => {
                 let instance = workspace.instance(id).expect("the instance");
-                assert_eq!(row.emblem, Some(instance.emblem));
+                assert_eq!(row.emblem, Some(workspace.shown_emblem(instance)));
             }
             SidebarItem::Tab(_) => assert_eq!(row.emblem, None),
         }

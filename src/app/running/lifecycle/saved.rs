@@ -55,7 +55,10 @@ impl Running {
             id
         });
         match restored {
-            Ok(workspace) => self.workspace = workspace,
+            Ok(workspace) => {
+                self.workspace = workspace;
+                self.workspace.set_numbering(self.preferences.numbering);
+            }
             Err(error) => {
                 eprintln!("trame: {error}, starting a fresh session");
                 return false;

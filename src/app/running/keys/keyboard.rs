@@ -93,6 +93,7 @@ impl Running {
     pub(in crate::app::running) fn focus_changed(&mut self, focused: bool) {
         self.view.window_focused = focused;
         if focused {
+            self.notifier.clear();
             self.set_appearance(window::appearance(&self.window));
         } else {
             self.cancel_drag();

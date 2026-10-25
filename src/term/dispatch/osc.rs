@@ -21,6 +21,13 @@ impl Screen {
                     self.cwd = Some(path.trim_matches('"').to_string());
                 }
             }
+            b"9" if !params.get(1).is_some_and(|code| is_number(code)) => {
+                self.notice(&params[1..]);
+            }
+            b"777" if params.get(1) == Some(&&b"notify"[..]) => {
+                self.notice(params.get(3..).unwrap_or_default());
+            }
+            b"99" => self.notice(params.get(2..).unwrap_or_default()),
             b"10" | b"11" | b"12" if params.get(1) == Some(&&b"?"[..]) => {
                 self.report_color(kind, bell_terminated);
             }
@@ -48,6 +55,16 @@ impl Screen {
         self.title = if title.is_empty() { None } else { Some(title) };
     }
 
+    fn notice(&mut self, parts: &[&[u8]]) {
+        let joined = parts.join(&b';');
+        let text: String = String::from_utf8_lossy(&joined)
+            .chars()
+            .filter(|c| !c.is_control())
+            .take(MAX_TITLE_LEN)
+            .collect();
+        self.attention = Some(text.trim().to_string());
+    }
+
     fn report_color(&mut self, kind: &[u8], bell_terminated: bool) {
         let rgb = match kind {
             b"10" => self.colors.foreground,
@@ -62,4 +79,8 @@ impl Screen {
         );
         self.respond(reply.as_bytes());
     }
+}
+
+fn is_number(code: &[u8]) -> bool {
+    !code.is_empty() && code.iter().all(u8::is_ascii_digit)
 }

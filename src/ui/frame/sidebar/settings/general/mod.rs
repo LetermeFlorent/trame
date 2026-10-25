@@ -19,7 +19,7 @@ use rows::{display_rows, folder_row, language_row, size_steppers};
 
 const CAPTIONS: f32 = 4.0;
 const LINES: f32 = 12.0;
-const SYSTEM_LINES: f32 = 2.0;
+const SYSTEM_LINES: f32 = 3.0;
 
 #[derive(Clone, Debug)]
 pub struct ToggleRow {
