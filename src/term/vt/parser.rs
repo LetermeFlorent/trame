@@ -24,6 +24,12 @@ pub(super) enum State {
     IgnoreString,
 }
 
+impl State {
+    fn breaks_on_text(self) -> bool {
+        !matches!(self, Self::Ground | Self::OscString | Self::IgnoreString)
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct Parser {
     pub(super) state: State,
@@ -50,6 +56,9 @@ impl Parser {
     }
 
     fn advance_byte<P: Perform>(&mut self, performer: &mut P, byte: u8) {
+        if byte >= 0x80 && self.state.breaks_on_text() {
+            self.state = State::Ground;
+        }
         if self.state == State::Ground && (byte >= 0x80 || self.utf8.is_pending()) {
             self.decode_utf8(performer, byte);
             return;

@@ -47,6 +47,12 @@ fn replaces_invalid_utf8_and_keeps_following_ascii() {
 }
 
 #[test]
+fn text_after_a_cut_sequence_keeps_its_accents() {
+    assert_eq!(parse("é".as_bytes()), vec![Event::Print('é')]);
+    assert_eq!(parse("[1é".as_bytes()), vec![Event::Print('é')]);
+}
+
+#[test]
 fn dispatches_csi_with_params_and_private_marker() {
     assert_eq!(
         parse(b"\x1b[12;34H"),
