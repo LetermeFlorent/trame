@@ -42,6 +42,7 @@ pub(super) fn compute(
         height: size.height as f32,
         metrics: layout.metrics,
         maximized: layout.window.is_maximized(),
+        fullscreen: layout.window.fullscreen().is_some(),
         title,
         folder: layout.folder,
         update: layout.update,

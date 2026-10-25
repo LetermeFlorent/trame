@@ -39,7 +39,7 @@ pub struct TitleBarFrame {
 
 pub fn layout_title_bar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> TitleBarFrame {
     let metrics = &input.metrics;
-    let toggle = sidebar_toggle(metrics, rect);
+    let toggle = sidebar_toggle(metrics, rect, input.fullscreen);
     let controls = metrics
         .platform
         .draws_window_controls()
@@ -103,9 +103,9 @@ fn layout_heading(
     )
 }
 
-fn sidebar_toggle(metrics: &UiMetrics, rect: Rect) -> Rect {
+fn sidebar_toggle(metrics: &UiMetrics, rect: Rect, fullscreen: bool) -> Rect {
     let inset = match metrics.platform {
-        Platform::Mac => metrics.px(UiMetrics::MAC_CONTROLS_INSET),
+        Platform::Mac if !fullscreen => metrics.px(UiMetrics::MAC_CONTROLS_INSET),
         _ => 0.0,
     };
     let button = metrics.px(UiMetrics::BUTTON);

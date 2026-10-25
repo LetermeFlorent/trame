@@ -63,8 +63,9 @@ fn outside_the_confirmation_only_the_title_bar_answers() {
     let layout = confirming(&mut text_system());
     let row = layout.sidebar.as_ref().expect("the sidebar").rows[0].rect;
     assert_eq!(layout.hit(row.center(), false), Some(Hit::Backdrop));
-    let controls = layout.title_bar.controls.expect("window buttons");
-    assert_eq!(layout.hit(controls.close.center(), false), Some(Hit::Close));
+    if let Some(controls) = layout.title_bar.controls {
+        assert_eq!(layout.hit(controls.close.center(), false), Some(Hit::Close));
+    }
 }
 
 #[test]

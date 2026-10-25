@@ -3,7 +3,7 @@ use std::path::{MAIN_SEPARATOR, Path, PathBuf};
 use trame::files::{home_dir, short_path};
 use trame::text::{TextStyle, TextSystem};
 use trame::ui::frame::{TitleBarFrame, fit_text_start};
-use trame::ui::{FrameLayout, UiMetrics};
+use trame::ui::{FrameLayout, Platform, UiMetrics};
 
 use crate::{WIDTH, input, text_system, workspace};
 
@@ -125,4 +125,25 @@ fn short_paths_replace_the_home_folder_with_a_tilde() {
         parent.display().to_string()
     );
     assert_eq!(short_path(&logs, None), logs.display().to_string());
+}
+
+#[test]
+fn a_full_screen_mac_window_gives_the_traffic_light_slot_back() {
+    let mut text = text_system();
+    let workspace = workspace();
+    let mac = UiMetrics {
+        platform: Platform::Mac,
+        ..UiMetrics::new(1.0)
+    };
+    let mut input = input(&workspace, mac);
+    let windowed = FrameLayout::compute(&mut text, &input).title_bar;
+    input.fullscreen = true;
+    let full = FrameLayout::compute(&mut text, &input).title_bar;
+    assert_eq!(
+        windowed.toggle.x - full.toggle.x,
+        UiMetrics::MAC_CONTROLS_INSET
+    );
+    let (_, windowed_x) = windowed.title.expect("the instance name is shown");
+    let (_, full_x) = full.title.expect("the instance name is shown");
+    assert!(full_x < windowed_x);
 }

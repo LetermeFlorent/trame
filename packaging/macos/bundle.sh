@@ -1,6 +1,4 @@
 #!/bin/sh
-# Wraps a built trame binary into trame.app.
-# Usage: packaging/macos/bundle.sh <binary> <version> <output folder>
 set -eu
 
 binary=$1
@@ -28,5 +26,4 @@ rm -rf "$(dirname "$iconset")"
 
 sed "s/@VERSION@/$version/g" "$root/packaging/macos/Info.plist" > "$app/Contents/Info.plist"
 
-# No Developer ID here: an ad-hoc signature is the least Apple Silicon accepts.
 codesign --force --deep --sign - "$app"

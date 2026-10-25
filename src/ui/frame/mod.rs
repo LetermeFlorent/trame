@@ -39,6 +39,7 @@ pub struct FrameInput<'a> {
     pub height: f32,
     pub metrics: UiMetrics,
     pub maximized: bool,
+    pub fullscreen: bool,
     pub title: &'a dyn Fn(SessionId) -> String,
     pub folder: Option<&'a Path>,
     pub update: Option<&'a str>,

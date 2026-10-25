@@ -65,6 +65,7 @@ pub fn input(workspace: &Workspace, metrics: UiMetrics) -> FrameInput<'_> {
         height: HEIGHT,
         metrics,
         maximized: false,
+        fullscreen: false,
         title: &title,
         folder: None,
         update: None,
