@@ -132,7 +132,7 @@ impl TextSystem {
         true
     }
 
-    fn forget_glyphs(&mut self) {
+    pub fn forget_glyphs(&mut self) {
         self.atlas.clear();
         self.glyphs.clear();
         self.cells.clear();

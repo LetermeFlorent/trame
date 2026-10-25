@@ -19,6 +19,7 @@ impl Running {
             return;
         }
         let previous = mem::replace(&mut self.preferences, preferences);
+        self.apply_system(&previous);
         let current = &self.preferences;
         if previous.recalls(Recall::Text) && !current.recalls(Recall::Text) {
             self.transcripts.clear();
@@ -48,6 +49,7 @@ impl Running {
             return;
         }
         self.theme = Theme::new(appearance);
+        self.refresh_backdrop();
         self.sessions.set_colors(self.theme.reported_colors());
         self.window.request_redraw();
     }

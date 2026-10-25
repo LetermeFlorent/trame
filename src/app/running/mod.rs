@@ -29,6 +29,7 @@ use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
 use super::persist::Saver;
+use super::power::Idle;
 use super::sessions::Sessions;
 use super::visibility::Visibility;
 use super::{UserEvent, window};
@@ -70,6 +71,7 @@ pub struct Running {
     loader: Option<Loader>,
     update_offer: Option<String>,
     restarting: bool,
+    idle: Idle,
     closing: Option<Closing>,
     strings: &'static Strings,
 }
@@ -77,12 +79,18 @@ pub struct Running {
 impl Running {
     pub fn session_event(&mut self, event_loop: &ActiveEventLoop, event: SessionEvent) {
         match event {
-            SessionEvent::Output(id) => self.output(id),
+            SessionEvent::Output(id) => {
+                self.idle.touch();
+                self.output(id);
+            }
             SessionEvent::Exited(id) => self.close_tab(event_loop, id),
         }
     }
 
     pub fn window_event(&mut self, event_loop: &ActiveEventLoop, event: WindowEvent) {
+        if !matches!(event, WindowEvent::RedrawRequested) {
+            self.idle.touch();
+        }
         match event {
             WindowEvent::CloseRequested => self.ask_close(event_loop, Closing::Window),
             WindowEvent::RedrawRequested => self.redraw(),

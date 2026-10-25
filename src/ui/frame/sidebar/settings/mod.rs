@@ -54,6 +54,8 @@ pub enum SettingControl {
     ClearFolder,
     AddHost,
     ConfirmClose,
+    Efficiency,
+    Acrylic,
 }
 
 #[derive(Clone, Debug)]

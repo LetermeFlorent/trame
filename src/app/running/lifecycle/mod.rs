@@ -22,6 +22,7 @@ use trame::workspace::{Snapshot, Workspace};
 use super::tabs::Placement;
 use super::{Pointer, Running, Selecting, frame};
 use crate::app::persist::{self, Saver};
+use crate::app::power::Idle;
 use crate::app::sessions::Sessions;
 use crate::app::update::UpdateStatus;
 use crate::app::visibility::Visibility;
@@ -72,7 +73,7 @@ impl Running {
     }
 
     pub fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        self.restart_if_card_lost(event_loop);
+        self.sync_graphics(event_loop);
         let save = self.save_deadline();
         let text = self.transcript_deadline();
         let retry = self.visibility.retry(&self.window);
@@ -84,6 +85,7 @@ impl Running {
             .chain(retry)
             .chain(loader)
             .chain(secret)
+            .chain(self.idle.deadline())
             .min();
         event_loop.set_control_flow(wake.map_or(ControlFlow::Wait, ControlFlow::WaitUntil));
     }
@@ -92,11 +94,11 @@ impl Running {
         let border = window::frame_border(&surface.window);
         let metrics = surface.preferences.ui_metrics(surface.window_scale, border);
         let workspace = Workspace::new();
-        let mut motion = Motion::default();
         let strings = surface.preferences.language.resolve().strings();
-        let frame = first_frame(&mut surface, &workspace, metrics, &mut motion, strings);
+        let (frame, motion) = first_frame(&mut surface, &workspace, metrics, strings);
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
+            idle: Idle::new(surface.preferences.efficiency),
             window: surface.window,
             graphics: surface.graphics,
             text: surface.text,
@@ -136,9 +138,9 @@ fn first_frame(
     surface: &mut Surface,
     workspace: &Workspace,
     metrics: UiMetrics,
-    motion: &mut Motion,
     strings: &'static Strings,
-) -> FrameLayout {
+) -> (FrameLayout, Motion) {
+    let mut motion = Motion::default();
     let layout_input = frame::LayoutInput {
         workspace,
         window: &surface.window,
@@ -147,5 +149,8 @@ fn first_frame(
         update: None,
         strings,
     };
-    frame::compute(&mut surface.text, &layout_input, motion, &|_| String::new())
+    let frame = frame::compute(&mut surface.text, &layout_input, &mut motion, &|_| {
+        String::new()
+    });
+    (frame, motion)
 }

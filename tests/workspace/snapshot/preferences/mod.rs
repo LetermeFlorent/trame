@@ -99,6 +99,8 @@ fn preferences_and_text_keys_survive_json() {
         custom_colors: vec![Swatch::custom(0x12ab34)],
         panel_side: PanelSide::Right,
         density: Density::Spacious,
+        efficiency: true,
+        acrylic: true,
     };
     let text = snapshot.to_json().expect("serializes");
     let parsed = Snapshot::from_json(&text).expect("parses");

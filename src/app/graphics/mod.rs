@@ -1,5 +1,6 @@
 #[cfg(feature = "capture")]
 mod capture;
+mod connect;
 
 use std::error::Error;
 use std::sync::Arc;
@@ -7,6 +8,7 @@ use std::sync::Arc;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::Window;
 
+use connect::{PREFERRED_BACKENDS, connect};
 use trame::render::{
     Atlas, Frame, Gpu, ReadbackError, Renderer, Scene, WindowSurface, render_in_format,
 };
@@ -15,15 +17,14 @@ use trame::theme::Rgba;
 #[cfg(feature = "capture")]
 use capture::Capture;
 
-#[cfg(windows)]
-const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::DX12;
-#[cfg(not(windows))]
-const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::VULKAN.union(wgpu::Backends::METAL);
-
 pub struct Graphics {
     gpu: Gpu,
-    surface: WindowSurface,
+    surface: Option<WindowSurface>,
+    format: wgpu::TextureFormat,
     renderer: Renderer,
+    built_translucent: bool,
+    wanted_translucent: bool,
+    fresh: bool,
     #[cfg(feature = "capture")]
     capture: Option<Capture>,
 }
@@ -33,12 +34,13 @@ impl Graphics {
         event_loop: &ActiveEventLoop,
         window: Arc<Window>,
         atlas: &Atlas,
+        translucent: bool,
     ) -> Result<Self, Box<dyn Error>> {
         let size = window.inner_size();
-        let (gpu, surface) = connect(event_loop, &window, PREFERRED_BACKENDS)
-            .or_else(|_| connect(event_loop, &window, wgpu::Backends::all()))?;
+        let (gpu, surface) = connect(event_loop, &window, PREFERRED_BACKENDS, translucent)
+            .or_else(|_| connect(event_loop, &window, wgpu::Backends::all(), translucent))?;
         #[cfg_attr(not(feature = "capture"), expect(unused_mut))]
-        let mut surface = WindowSurface::new(&gpu, surface, size.width, size.height)
+        let mut surface = WindowSurface::new(&gpu, surface, size.width, size.height, translucent)
             .ok_or("the graphics card cannot draw into this window")?;
         #[cfg(feature = "capture")]
         let capture = Capture::from_env();
@@ -46,14 +48,53 @@ impl Graphics {
         if capture.is_some() {
             surface.allow_copy(&gpu);
         }
-        let renderer = Renderer::new(&gpu, surface.format(), atlas);
+        let format = surface.format();
+        let renderer = Renderer::new(&gpu, format, atlas);
         Ok(Self {
             gpu,
-            surface,
+            surface: Some(surface),
+            format,
             renderer,
+            built_translucent: translucent,
+            wanted_translucent: translucent,
+            fresh: true,
             #[cfg(feature = "capture")]
             capture,
         })
+    }
+
+    pub fn reopen(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        window: Arc<Window>,
+        atlas: &mut Atlas,
+        translucent: bool,
+    ) -> Result<(), Box<dyn Error>> {
+        self.surface = None;
+        self.built_translucent = self.wanted_translucent;
+        let fresh = Self::new(event_loop, window.clone(), atlas, translucent)
+            .or_else(|_| Self::new(event_loop, window, atlas, false))?;
+        *self = fresh;
+        self.wanted_translucent = self.built_translucent;
+        Ok(())
+    }
+
+    pub fn want_translucent(&mut self, translucent: bool) {
+        self.wanted_translucent = translucent;
+    }
+
+    pub fn needs_reopen(&self) -> bool {
+        self.wanted_translucent != self.built_translucent
+    }
+
+    pub fn take_fresh(&mut self) -> bool {
+        std::mem::take(&mut self.fresh)
+    }
+
+    pub fn is_translucent(&self) -> bool {
+        self.surface
+            .as_ref()
+            .is_some_and(WindowSurface::is_translucent)
     }
 
     pub fn render_image(
@@ -63,16 +104,17 @@ impl Graphics {
     ) -> Result<Vec<u8>, ReadbackError> {
         self.renderer.sync_atlas(&self.gpu, atlas);
         let clear = Rgba::new(0.0, 0.0, 0.0, 0.0);
-        let format = self.surface.format();
-        render_in_format(&self.gpu, &mut self.renderer, scene, clear, format)
+        render_in_format(&self.gpu, &mut self.renderer, scene, clear, self.format)
     }
 
     pub fn is_lost(&self) -> bool {
-        self.gpu.is_lost()
+        self.gpu.is_lost() || self.surface.is_none()
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
-        self.surface.resize(&self.gpu, width, height);
+        if let Some(surface) = &mut self.surface {
+            surface.resize(&self.gpu, width, height);
+        }
     }
 
     pub fn present(
@@ -83,7 +125,10 @@ impl Graphics {
         clear: Rgba,
     ) -> bool {
         self.renderer.sync_atlas(&self.gpu, atlas);
-        let Frame::Ready(texture) = self.surface.acquire(&self.gpu) else {
+        let Some(surface) = &mut self.surface else {
+            return false;
+        };
+        let Frame::Ready(texture) = surface.acquire(&self.gpu) else {
             return false;
         };
         let view = texture
@@ -98,18 +143,4 @@ impl Graphics {
         self.gpu.queue.present(texture);
         true
     }
-}
-
-fn connect(
-    event_loop: &ActiveEventLoop,
-    window: &Arc<Window>,
-    backends: wgpu::Backends,
-) -> Result<(Gpu, wgpu::Surface<'static>), Box<dyn Error>> {
-    let display = Box::new(event_loop.owned_display_handle());
-    let mut descriptor = wgpu::InstanceDescriptor::new_with_display_handle(display);
-    descriptor.backends = backends.with_env();
-    let instance = wgpu::Instance::new(descriptor);
-    let surface = instance.create_surface(window.clone())?;
-    let gpu = Gpu::new(instance, Some(&surface))?;
-    Ok((gpu, surface))
 }

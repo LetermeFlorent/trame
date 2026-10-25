@@ -59,6 +59,8 @@ impl Running {
             SettingControl::AddHost => return self.add_host(),
             SettingControl::Recall(recall) => current.toggle(recall),
             SettingControl::ConfirmClose => current.toggle_confirm_close(),
+            SettingControl::Efficiency => current.with(|next| next.efficiency = !next.efficiency),
+            SettingControl::Acrylic => current.with(|next| next.acrylic = !next.acrylic),
             SettingControl::StartupCommand => return self.edit_command(),
             SettingControl::ClearStartupCommand => current.with_startup_command(""),
             SettingControl::InstanceTabsFewer => current.step_instance_tabs(-1),

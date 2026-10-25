@@ -14,11 +14,12 @@ use crate::ui::metrics::UiMetrics;
 
 use super::column::{CAPTION_HEIGHT, Column, LINE_HEIGHT, SECTION_GAP};
 use super::{ChoiceRow, SettingControl, SettingLine};
-use launch::{close_toggle, command_row, instance_tabs_stepper, recall_toggles};
+use launch::{close_toggle, command_row, instance_tabs_stepper, recall_toggles, system_toggles};
 use rows::{display_rows, folder_row, language_row, size_steppers};
 
 const CAPTIONS: f32 = 4.0;
 const LINES: f32 = 12.0;
+const SYSTEM_LINES: f32 = 2.0;
 
 #[derive(Clone, Debug)]
 pub struct ToggleRow {
@@ -42,9 +43,10 @@ pub struct Stepper {
 
 #[derive(Clone, Debug)]
 pub struct GeneralPage {
-    pub sections: [SettingLine; 4],
+    pub sections: Vec<SettingLine>,
     pub toggles: [ToggleRow; 3],
     pub confirm_close: ToggleRow,
+    pub system: Vec<ToggleRow>,
     pub command: ChoiceRow,
     pub command_field: Option<FieldFrame>,
     pub instance_tabs: Stepper,
@@ -86,7 +88,10 @@ impl GeneralPage {
     }
 
     pub fn all_toggles(&self) -> impl Iterator<Item = &ToggleRow> {
-        self.toggles.iter().chain([&self.confirm_close])
+        self.toggles
+            .iter()
+            .chain([&self.confirm_close])
+            .chain(&self.system)
     }
 
     pub fn steppers(&self) -> [(&Stepper, [SettingControl; 2]); 3] {
@@ -103,9 +108,12 @@ impl GeneralPage {
 }
 
 pub(super) fn general_height(metrics: &UiMetrics) -> f32 {
-    CAPTIONS * metrics.px(CAPTION_HEIGHT)
-        + LINES * metrics.px(LINE_HEIGHT)
-        + (CAPTIONS - 1.0) * metrics.px(SECTION_GAP)
+    let system = f32::from(u8::from(cfg!(windows)));
+    let captions = CAPTIONS + system;
+    let lines = LINES + system * SYSTEM_LINES;
+    captions * metrics.px(CAPTION_HEIGHT)
+        + lines * metrics.px(LINE_HEIGHT)
+        + (captions - 1.0) * metrics.px(SECTION_GAP)
 }
 
 pub(super) fn general_page(
@@ -126,10 +134,14 @@ pub(super) fn general_page(
     let [panel_side, density] = display_rows(column, strings, preferences);
     let folders = column.section(strings.folders);
     let folder = folder_row(column, strings, preferences, folder);
+    let (system_section, system) = system_toggles(column, strings, preferences);
+    let mut sections = vec![at_launch, terminals, display, folders];
+    sections.extend(system_section);
     GeneralPage {
-        sections: [at_launch, terminals, display, folders],
+        sections,
         toggles,
         confirm_close,
+        system,
         command,
         command_field: None,
         instance_tabs,

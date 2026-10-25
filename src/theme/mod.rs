@@ -22,10 +22,13 @@ pub enum Appearance {
     Light,
 }
 
+const PANEL_ALPHA: f32 = 0.55;
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Theme {
     pub appearance: Appearance,
     pub chrome: Rgba,
+    pub panel: Rgba,
     pub tab_bar: Rgba,
     pub tab_active: Rgba,
     pub terminal: Rgba,
@@ -52,6 +55,17 @@ impl Theme {
             Appearance::Dark => palettes::dark(),
             Appearance::Light => palettes::light(),
         }
+    }
+
+    pub fn set_translucent_panel(&mut self, translucent: bool) {
+        self.panel = match translucent {
+            true => self.chrome.with_alpha(PANEL_ALPHA),
+            false => self.chrome,
+        };
+    }
+
+    pub fn is_translucent(&self) -> bool {
+        self.panel.a < 1.0
     }
 
     pub fn muted_text(&self, glow: f32) -> Rgba {

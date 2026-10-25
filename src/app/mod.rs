@@ -1,5 +1,6 @@
 mod graphics;
 mod persist;
+mod power;
 mod running;
 mod sessions;
 mod update;

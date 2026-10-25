@@ -1,3 +1,4 @@
+mod backdrop;
 mod loader;
 mod paint;
 mod style;

@@ -36,7 +36,7 @@ impl Running {
             self.relayout();
         }
         self.paint(now);
-        let clear = self.theme.chrome;
+        let clear = self.clear_color();
         let presented =
             self.graphics
                 .present(&self.window, &self.scene, self.text.atlas_mut(), clear);

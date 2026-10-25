@@ -6,8 +6,10 @@ use trame::ui::ResizeEdge;
 use trame::ui::chrome::logo;
 use trame::workspace::WindowSnapshot;
 
+mod backdrop;
 mod frame;
 
+pub use backdrop::set_backdrop;
 pub use frame::{frame_border, round_corners};
 
 const APP_NAME: &str = "trame";

@@ -60,6 +60,10 @@ pub struct Preferences {
     pub panel_side: PanelSide,
     #[serde(default)]
     pub density: Density,
+    #[serde(default)]
+    pub efficiency: bool,
+    #[serde(default)]
+    pub acrylic: bool,
 }
 
 impl Default for Preferences {
@@ -79,6 +83,8 @@ impl Default for Preferences {
             custom_colors: Vec::new(),
             panel_side: PanelSide::Left,
             density: Density::Compact,
+            efficiency: false,
+            acrylic: false,
         }
     }
 }
