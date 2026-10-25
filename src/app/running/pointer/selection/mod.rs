@@ -74,7 +74,7 @@ impl Running {
             return false;
         };
         let cell = self.cell_in_pane(pane, point);
-        let reports = self.reports_mouse(id);
+        let reports = self.reports_mouse(id) && !self.modifiers.shift_key();
         if !reports && button == MouseButton::Right {
             self.focus_pane(pane_id);
             self.paste();
