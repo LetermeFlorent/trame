@@ -55,6 +55,7 @@ fn layout(text: &mut TextSystem, workspace: &Workspace, scale: f32) -> FrameLayo
         height: (HEIGHT * scale).round(),
         metrics: UiMetrics::new(scale),
         maximized: false,
+        fullscreen: false,
         title: &title,
         folder: None,
         update: None,

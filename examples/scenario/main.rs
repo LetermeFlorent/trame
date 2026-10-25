@@ -89,6 +89,7 @@ fn layout(text: &mut TextSystem, scenario: &Scenario, scale: f32) -> FrameLayout
         height: (HEIGHT * scale).round(),
         metrics: UiMetrics::new(scale),
         maximized: false,
+        fullscreen: false,
         title: &title,
         folder: None,
         update: None,
