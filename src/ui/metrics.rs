@@ -60,6 +60,8 @@ impl UiMetrics {
     pub const DIVIDER_GRAB: f32 = 4.0;
     pub const RESIZE_BORDER: f32 = 5.0;
     pub const RADIUS: f32 = 5.0;
+    pub const CARD_MARGIN: f32 = 8.0;
+    pub const CARD_RADIUS: f32 = 8.0;
     pub const ICON: f32 = 14.0;
     pub const UI_FONT: f32 = 12.5;
     pub const SMALL_FONT: f32 = 11.0;
@@ -91,6 +93,20 @@ impl UiMetrics {
 
     pub fn spaced(&self, logical: f32) -> f32 {
         self.px(logical * self.density.spacing())
+    }
+
+    pub fn card_margin(&self) -> f32 {
+        match self.density.cards() {
+            true => self.px(Self::CARD_MARGIN),
+            false => 0.0,
+        }
+    }
+
+    pub fn card_radius(&self) -> f32 {
+        match self.density.cards() {
+            true => self.px(Self::CARD_RADIUS),
+            false => 0.0,
+        }
     }
 
     pub fn hidden_bottom(&self, maximized: bool) -> f32 {

@@ -72,7 +72,12 @@ pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSourc
 
 fn draw_body(scene: &mut Scene, text: &mut TextSystem, pane: &PaneFrame, sources: &FrameSources) {
     let theme = sources.theme;
-    scene.fill(pane.body, theme.terminal, 0.0);
+    if pane.radius > 0.0 {
+        let line = sources.frame.metrics.line();
+        scene.border(pane.card, theme.border_strong, pane.radius, line);
+    } else {
+        scene.fill(pane.body, theme.terminal, 0.0);
+    }
     let Some(session) = pane.active.and_then(|id| sources.sessions.get(&id)) else {
         return;
     };

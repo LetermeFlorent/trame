@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-const SPACIOUS: f32 = 1.25;
+const SPACING: f32 = 1.25;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PanelSide {
@@ -24,9 +24,10 @@ impl Density {
     pub const ALL: [Self; 2] = [Self::Compact, Self::Spacious];
 
     pub fn spacing(self) -> f32 {
-        match self {
-            Self::Compact => 1.0,
-            Self::Spacious => SPACIOUS,
-        }
+        SPACING
+    }
+
+    pub fn cards(self) -> bool {
+        self == Self::Spacious
     }
 }

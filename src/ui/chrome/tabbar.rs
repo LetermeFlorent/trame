@@ -11,7 +11,15 @@ pub(super) fn draw(painter: &mut Painter, pane: &PaneFrame) {
     let theme = painter.theme;
     let line = painter.metrics.line();
     let strip = &pane.strip;
-    painter.rule(strip.rect, theme.tab_bar);
+    if pane.radius > 0.0 {
+        painter.rule(pane.rect, theme.chrome);
+        painter.scene.fill(pane.card, theme.terminal, pane.radius);
+        painter
+            .scene
+            .fill_top(strip.rect, theme.tab_bar, pane.radius);
+    } else {
+        painter.rule(strip.rect, theme.tab_bar);
+    }
     painter.rule(
         Rect::new(
             strip.rect.x,

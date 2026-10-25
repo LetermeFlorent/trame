@@ -25,9 +25,11 @@ pub(super) struct PaneContext<'a> {
 pub struct PaneFrame {
     pub id: PaneId,
     pub rect: Rect,
+    pub card: Rect,
     pub focused: bool,
     pub strip: TabStrip,
     pub body: Rect,
+    pub radius: f32,
     pub terminal: Rect,
     pub grid_area: Rect,
     pub tabs: Vec<SessionId>,
@@ -92,8 +94,10 @@ fn pane_frame(
     let bar_height = cx.metrics.spaced(UiMetrics::TAB_BAR);
     let padding_x = cx.metrics.spaced(UiMetrics::TERMINAL_PAD_X);
     let padding_y = cx.metrics.spaced(UiMetrics::TERMINAL_PAD_Y);
-    let (bar, body) = placement.rect.split_top(bar_height);
-    let (target_bar, target_body) = placement.target.split_top(bar_height);
+    let margin = cx.metrics.card_margin();
+    let card = placement.rect.inset(margin);
+    let (bar, body) = card.split_top(bar_height);
+    let (target_bar, target_body) = placement.target.inset(margin).split_top(bar_height);
     let strip_placement = tabs::StripPlacement {
         pane_id: placement.id,
         pane,
@@ -104,9 +108,11 @@ fn pane_frame(
     Some(PaneFrame {
         id: placement.id,
         rect: placement.rect,
+        card,
         focused: placement.id == instance.active_pane,
         strip: tabs::layout_strip(cx, strip_placement),
         body,
+        radius: cx.metrics.card_radius(),
         terminal: body.inset_by(padding_x, padding_y),
         grid_area: target_body.inset_by(padding_x, padding_y),
         tabs: pane.tabs.clone(),

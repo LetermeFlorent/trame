@@ -49,7 +49,7 @@ fn both_sides_leave_the_terminals_the_same_room() {
 }
 
 #[test]
-fn spacious_rows_and_tab_bars_are_taller() {
+fn spacious_sets_the_terminal_in_a_rounded_card() {
     let mut text = text_system();
     let compact = frame_in(
         &mut text,
@@ -61,19 +61,32 @@ fn spacious_rows_and_tab_bars_are_taller() {
         &workspace(),
         on(PanelSide::Left, Density::Spacious),
     );
-    assert!(row_height(&spacious) > row_height(&compact));
-    let bar = |frame: &FrameLayout| frame.panes[0].strip.rect.height;
-    assert!(bar(&spacious) > bar(&compact));
+    assert_eq!(row_height(&spacious), row_height(&compact));
+    let (flat, card) = (&compact.panes[0], &spacious.panes[0]);
+    assert_eq!(flat.radius, 0.0);
+    assert_eq!(card.radius, UiMetrics::CARD_RADIUS);
+    assert_eq!(
+        card.strip.rect.y,
+        flat.strip.rect.y + UiMetrics::CARD_MARGIN
+    );
+    assert_eq!(card.body.x, flat.body.x + UiMetrics::CARD_MARGIN);
+    assert_eq!(
+        card.body.bottom(),
+        flat.body.bottom() - UiMetrics::CARD_MARGIN
+    );
 }
 
 #[test]
-fn compact_keeps_the_usual_sizes() {
+fn compact_keeps_the_roomy_sizes() {
     let mut text = text_system();
     let frame = frame_in(
         &mut text,
         &workspace(),
         on(PanelSide::Left, Density::Compact),
     );
-    assert_eq!(row_height(&frame), UiMetrics::SIDEBAR_ROW);
-    assert_eq!(frame.panes[0].strip.rect.height, UiMetrics::TAB_BAR);
+    assert_eq!(row_height(&frame), (UiMetrics::SIDEBAR_ROW * 1.25).round());
+    assert_eq!(
+        frame.panes[0].strip.rect.height,
+        (UiMetrics::TAB_BAR * 1.25).round()
+    );
 }
