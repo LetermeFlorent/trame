@@ -61,8 +61,6 @@ fn read_loop(mut reader: Reader) {
             Err(_) => break,
         };
         dump.record(&buffer[..count]);
-        // With the shell back in front, whatever asked for mouse reports has quit,
-        // maybe without turning them off (crash, dropped SSH).
         let shell_in_front = pty::shell_in_foreground(&reader.source, reader.shell);
         let (responses, synchronized) = {
             let mut terminal = lock(&reader.terminal);

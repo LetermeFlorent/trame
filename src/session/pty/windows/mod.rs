@@ -47,8 +47,6 @@ impl Pty {
     }
 }
 
-// ConPTY has no foreground process group to ask; the prompt hook's OSC 9;9 tells
-// the screen when the shell is back instead.
 pub(super) fn shell_in_foreground(_terminal: &File, _shell: u32) -> bool {
     false
 }

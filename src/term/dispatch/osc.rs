@@ -20,8 +20,6 @@ impl Screen {
                     let path = String::from_utf8_lossy(path);
                     self.cwd = Some(path.trim_matches('"').to_string());
                 }
-                // The shell only sends this from its prompt, so whatever asked for mouse
-                // reports is gone, maybe without turning them off (crash, dropped SSH).
                 self.forget_mouse();
             }
             b"9" if !params.get(1).is_some_and(|code| is_number(code)) => {
