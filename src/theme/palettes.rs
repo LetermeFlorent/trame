@@ -23,7 +23,6 @@ pub fn dark() -> Theme {
         cursor: accent,
         drop_target: accent.with_alpha(0.16),
         shadow: Rgba::new(0.0, 0.0, 0.0, 0.45),
-        danger: Rgba::hex(0xc94f4f),
         ansi: DARK_ANSI,
     }
 }
@@ -50,7 +49,6 @@ pub fn light() -> Theme {
         cursor: accent,
         drop_target: accent.with_alpha(0.12),
         shadow: Rgba::new(0.05, 0.07, 0.1, 0.18),
-        danger: Rgba::hex(0xd64545),
         ansi: LIGHT_ANSI,
     }
 }

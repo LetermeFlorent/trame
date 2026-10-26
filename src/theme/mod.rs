@@ -43,7 +43,6 @@ pub struct Theme {
     pub cursor: Rgba,
     pub drop_target: Rgba,
     pub shadow: Rgba,
-    pub danger: Rgba,
     pub ansi: [Rgba; 16],
 }
 

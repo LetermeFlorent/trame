@@ -4,10 +4,6 @@ use crate::theme::Swatch;
 pub const MAX_CUSTOM_COLORS: usize = 8;
 
 impl Preferences {
-    pub fn can_add_color(&self) -> bool {
-        self.custom_colors.len() < MAX_CUSTOM_COLORS
-    }
-
     pub fn with_custom_color(&self, slot: Option<usize>, color: Swatch) -> Self {
         self.with(|next| {
             match slot.filter(|index| *index < next.custom_colors.len()) {
