@@ -16,7 +16,6 @@ impl WindowSurface {
         surface: wgpu::Surface<'static>,
         width: u32,
         height: u32,
-        translucent: bool,
     ) -> Option<Self> {
         let capabilities = surface.get_capabilities(&gpu.adapter);
         let mut config = surface.get_default_config(&gpu.adapter, width.max(1), height.max(1))?;
@@ -24,21 +23,15 @@ impl WindowSurface {
             config.format = format;
         }
         config.present_mode = wgpu::PresentMode::AutoVsync;
-        let wanted = match translucent {
-            true => wgpu::CompositeAlphaMode::PreMultiplied,
-            false => wgpu::CompositeAlphaMode::Opaque,
-        };
-        config.alpha_mode = [wanted, wgpu::CompositeAlphaMode::Opaque]
-            .into_iter()
-            .find(|mode| capabilities.alpha_modes.contains(mode))
-            .unwrap_or(config.alpha_mode);
+        if capabilities
+            .alpha_modes
+            .contains(&wgpu::CompositeAlphaMode::Opaque)
+        {
+            config.alpha_mode = wgpu::CompositeAlphaMode::Opaque;
+        }
         config.desired_maximum_frame_latency = 1;
         surface.configure(&gpu.device, &config);
         Some(Self { surface, config })
-    }
-
-    pub fn is_translucent(&self) -> bool {
-        self.config.alpha_mode == wgpu::CompositeAlphaMode::PreMultiplied
     }
 
     pub fn format(&self) -> wgpu::TextureFormat {

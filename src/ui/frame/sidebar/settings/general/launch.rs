@@ -46,11 +46,6 @@ pub(super) fn system_toggles(
             SettingControl::Efficiency,
         ),
         (
-            strings.acrylic_panel,
-            preferences.acrylic,
-            SettingControl::Acrylic,
-        ),
-        (
             strings.notify_waiting,
             preferences.notify_waiting,
             SettingControl::NotifyWaiting,
@@ -86,5 +81,17 @@ pub(super) fn instance_tabs_stepper(
         strings.instance_tabs,
         &preferences.instance_tabs.to_string(),
         can_step(preferences, Preferences::step_instance_tabs),
+    )
+}
+
+pub(super) fn history_stepper(
+    column: &mut Column,
+    strings: &Strings,
+    preferences: &Preferences,
+) -> Stepper {
+    column.stepper(
+        strings.history_lines,
+        &preferences.history_lines.to_string(),
+        can_step(preferences, Preferences::step_history_lines),
     )
 }

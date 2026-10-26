@@ -90,6 +90,7 @@ fn preferences_and_text_keys_survive_json() {
         restore_instances: false,
         restore_tabs: false,
         instance_tabs: 3,
+        history_lines: 5_000,
         startup_command: Some("cd work".to_owned()),
         interface_size: 120,
         language: LanguageChoice::French,
@@ -99,8 +100,7 @@ fn preferences_and_text_keys_survive_json() {
         custom_colors: vec![Swatch::custom(0x12ab34)],
         panel_side: PanelSide::Right,
         density: Density::Spacious,
-        efficiency: true,
-        acrylic: true,
+        efficiency: false,
         notify_waiting: false,
         numbering: Numbering {
             shown: false,

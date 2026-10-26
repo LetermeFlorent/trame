@@ -30,12 +30,7 @@ impl Surface {
         let window_scale = window.scale_factor() as f32;
         let font = preferences.font_pixels(window_scale);
         let mut text = TextSystem::new(font, DEFAULT_LINE_HEIGHT)?;
-        let graphics = Graphics::new(
-            event_loop,
-            window.clone(),
-            text.atlas_mut(),
-            preferences.acrylic,
-        )?;
+        let graphics = Graphics::new(event_loop, window.clone(), text.atlas_mut())?;
         Ok(Self {
             window,
             graphics,

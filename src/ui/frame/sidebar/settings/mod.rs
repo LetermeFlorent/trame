@@ -46,6 +46,8 @@ pub enum SettingControl {
     ClearStartupCommand,
     InstanceTabsFewer,
     InstanceTabsMore,
+    HistoryFewer,
+    HistoryMore,
     TextSmaller,
     TextBigger,
     InterfaceSmaller,
@@ -58,7 +60,6 @@ pub enum SettingControl {
     AddHost,
     ConfirmClose,
     Efficiency,
-    Acrylic,
     NotifyWaiting,
     Numbers(NumberChoice),
 }

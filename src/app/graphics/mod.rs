@@ -22,8 +22,6 @@ pub struct Graphics {
     surface: Option<WindowSurface>,
     format: wgpu::TextureFormat,
     renderer: Renderer,
-    built_translucent: bool,
-    wanted_translucent: bool,
     fresh: bool,
     #[cfg(feature = "capture")]
     capture: Option<Capture>,
@@ -34,13 +32,12 @@ impl Graphics {
         event_loop: &ActiveEventLoop,
         window: Arc<Window>,
         atlas: &Atlas,
-        translucent: bool,
     ) -> Result<Self, Box<dyn Error>> {
         let size = window.inner_size();
-        let (gpu, surface) = connect(event_loop, &window, PREFERRED_BACKENDS, translucent)
-            .or_else(|_| connect(event_loop, &window, wgpu::Backends::all(), translucent))?;
+        let (gpu, surface) = connect(event_loop, &window, PREFERRED_BACKENDS)
+            .or_else(|_| connect(event_loop, &window, wgpu::Backends::all()))?;
         #[cfg_attr(not(feature = "capture"), expect(unused_mut))]
-        let mut surface = WindowSurface::new(&gpu, surface, size.width, size.height, translucent)
+        let mut surface = WindowSurface::new(&gpu, surface, size.width, size.height)
             .ok_or("the graphics card cannot draw into this window")?;
         #[cfg(feature = "capture")]
         let capture = Capture::from_env();
@@ -55,46 +52,14 @@ impl Graphics {
             surface: Some(surface),
             format,
             renderer,
-            built_translucent: translucent,
-            wanted_translucent: translucent,
             fresh: true,
             #[cfg(feature = "capture")]
             capture,
         })
     }
 
-    pub fn reopen(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        window: Arc<Window>,
-        atlas: &mut Atlas,
-        translucent: bool,
-    ) -> Result<(), Box<dyn Error>> {
-        self.surface = None;
-        self.built_translucent = self.wanted_translucent;
-        let fresh = Self::new(event_loop, window.clone(), atlas, translucent)
-            .or_else(|_| Self::new(event_loop, window, atlas, false))?;
-        *self = fresh;
-        self.wanted_translucent = self.built_translucent;
-        Ok(())
-    }
-
-    pub fn want_translucent(&mut self, translucent: bool) {
-        self.wanted_translucent = translucent;
-    }
-
-    pub fn needs_reopen(&self) -> bool {
-        self.wanted_translucent != self.built_translucent
-    }
-
     pub fn take_fresh(&mut self) -> bool {
         std::mem::take(&mut self.fresh)
-    }
-
-    pub fn is_translucent(&self) -> bool {
-        self.surface
-            .as_ref()
-            .is_some_and(WindowSurface::is_translucent)
     }
 
     pub fn render_image(

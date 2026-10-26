@@ -32,6 +32,19 @@ fn history_is_capped() {
 }
 
 #[test]
+fn a_lower_history_limit_drops_only_the_oldest_lines() {
+    let mut term = terminal(2, 4);
+    for index in 0..50 {
+        term.feed(format!("{index}\r\n").as_bytes());
+    }
+    term.screen_mut().set_history(10);
+    let grid = term.screen().grid();
+    assert_eq!(grid.history_len(), 10);
+    assert_eq!(grid.line(grid.first_line()).unwrap().text(), "39");
+    assert_eq!(lines(&term), vec!["49", ""]);
+}
+
+#[test]
 fn display_offset_scrolls_back_and_stays_on_content() {
     let mut term = feed(2, 5, "1\r\n2\r\n3\r\n4");
     term.screen_mut().scroll_display(2);

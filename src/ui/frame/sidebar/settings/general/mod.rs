@@ -14,12 +14,15 @@ use crate::ui::metrics::UiMetrics;
 
 use super::column::{CAPTION_HEIGHT, Column, LINE_HEIGHT, SECTION_GAP};
 use super::{ChoiceRow, SettingControl, SettingLine};
-use launch::{close_toggle, command_row, instance_tabs_stepper, recall_toggles, system_toggles};
+use launch::{
+    close_toggle, command_row, history_stepper, instance_tabs_stepper, recall_toggles,
+    system_toggles,
+};
 use rows::{display_rows, folder_row, language_row, size_steppers};
 
 const CAPTIONS: f32 = 4.0;
-const LINES: f32 = 12.0;
-const SYSTEM_LINES: f32 = 3.0;
+const LINES: f32 = 13.0;
+const SYSTEM_LINES: f32 = 2.0;
 
 #[derive(Clone, Debug)]
 pub struct ToggleRow {
@@ -50,6 +53,7 @@ pub struct GeneralPage {
     pub command: ChoiceRow,
     pub command_field: Option<FieldFrame>,
     pub instance_tabs: Stepper,
+    pub history: Stepper,
     pub text_size: Stepper,
     pub interface_size: Stepper,
     pub language: ChoiceRow,
@@ -94,13 +98,14 @@ impl GeneralPage {
             .chain(&self.system)
     }
 
-    pub fn steppers(&self) -> [(&Stepper, [SettingControl; 2]); 3] {
+    pub fn steppers(&self) -> [(&Stepper, [SettingControl; 2]); 4] {
         use SettingControl::{
-            InstanceTabsFewer, InstanceTabsMore, InterfaceBigger, InterfaceSmaller, TextBigger,
-            TextSmaller,
+            HistoryFewer, HistoryMore, InstanceTabsFewer, InstanceTabsMore, InterfaceBigger,
+            InterfaceSmaller, TextBigger, TextSmaller,
         };
         [
             (&self.instance_tabs, [InstanceTabsFewer, InstanceTabsMore]),
+            (&self.history, [HistoryFewer, HistoryMore]),
             (&self.text_size, [TextSmaller, TextBigger]),
             (&self.interface_size, [InterfaceSmaller, InterfaceBigger]),
         ]
@@ -127,6 +132,7 @@ pub(super) fn general_page(
     let terminals = column.section(strings.terminals);
     let command = command_row(column, strings, preferences);
     let instance_tabs = instance_tabs_stepper(column, strings, preferences);
+    let history = history_stepper(column, strings, preferences);
     let confirm_close = close_toggle(column, strings, preferences);
     let display = column.section(strings.display);
     let [text_size, interface_size] = size_steppers(column, strings, preferences);
@@ -145,6 +151,7 @@ pub(super) fn general_page(
         command,
         command_field: None,
         instance_tabs,
+        history,
         text_size,
         interface_size,
         language,

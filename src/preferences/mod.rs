@@ -1,4 +1,5 @@
 mod colors;
+mod history;
 mod launch;
 mod sizes;
 mod ssh;
@@ -14,6 +15,8 @@ use crate::ui::metrics::TERMINAL_FONT_SIZE;
 use crate::workspace::Numbering;
 pub use colors::MAX_CUSTOM_COLORS;
 use colors::sanitized_colors;
+pub use history::{DEFAULT_HISTORY_LINES, HISTORY_CHOICES};
+use history::{history_lines, sanitized_history};
 pub use launch::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Recall};
 use launch::{clamp_instance_tabs, sanitized_command};
 use sizes::{clamp_font_size, clamp_interface_size, interface_size};
@@ -43,6 +46,8 @@ pub struct Preferences {
     pub restore_tabs: bool,
     #[serde(default = "instance_tabs")]
     pub instance_tabs: u8,
+    #[serde(default = "history_lines")]
+    pub history_lines: usize,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub startup_command: Option<String>,
     #[serde(default = "interface_size")]
@@ -61,10 +66,8 @@ pub struct Preferences {
     pub panel_side: PanelSide,
     #[serde(default)]
     pub density: Density,
-    #[serde(default)]
+    #[serde(default = "enabled")]
     pub efficiency: bool,
-    #[serde(default)]
-    pub acrylic: bool,
     #[serde(default = "enabled")]
     pub notify_waiting: bool,
     #[serde(flatten)]
@@ -79,6 +82,7 @@ impl Default for Preferences {
             restore_instances: true,
             restore_tabs: true,
             instance_tabs: MIN_INSTANCE_TABS,
+            history_lines: DEFAULT_HISTORY_LINES,
             startup_command: None,
             interface_size: INTERFACE_SIZE,
             language: LanguageChoice::Auto,
@@ -88,8 +92,7 @@ impl Default for Preferences {
             custom_colors: Vec::new(),
             panel_side: PanelSide::Left,
             density: Density::Compact,
-            efficiency: false,
-            acrylic: false,
+            efficiency: true,
             notify_waiting: true,
             numbering: Numbering::default(),
         }
@@ -102,6 +105,7 @@ impl Preferences {
             font_size: clamp_font_size(self.font_size),
             interface_size: clamp_interface_size(self.interface_size),
             instance_tabs: clamp_instance_tabs(self.instance_tabs),
+            history_lines: sanitized_history(self.history_lines),
             startup_command: sanitized_command(self.startup_command),
             ssh_hosts: sanitized_hosts(self.ssh_hosts),
             custom_colors: sanitized_colors(self.custom_colors),

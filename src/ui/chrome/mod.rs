@@ -14,7 +14,6 @@ pub use overlay::{
 
 use self::painter::{Painter, Press, centered};
 use crate::files::IconStore;
-use crate::geometry::Rect;
 use crate::render::Scene;
 use crate::text::TextSystem;
 use crate::theme::Theme;
@@ -39,9 +38,6 @@ pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
     let frame = input.frame;
     let mut painter = Painter::new(scene, text, input);
     let shown = frame.reveal >= SIDEBAR_SHOWN;
-    if input.theme.is_translucent() {
-        backdrop_around(&mut painter, frame);
-    }
     titlebar::draw(&mut painter, &frame.title_bar, shown);
     sidebar::draw_panel(&mut painter, frame.side);
     if let Some(rail) = &frame.rail {
@@ -60,31 +56,6 @@ pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
     sidebar::draw_footer(&mut painter, &frame.footer, open, frame.reveal);
     for pane in &frame.panes {
         tabbar::draw(&mut painter, pane);
-    }
-}
-
-fn backdrop_around(painter: &mut Painter, frame: &FrameLayout) {
-    let bounds = frame.bounds;
-    let side = frame.side;
-    let left = Rect::new(bounds.x, bounds.y, side.x - bounds.x, bounds.height);
-    let right = Rect::new(
-        side.right(),
-        bounds.y,
-        bounds.right() - side.right(),
-        bounds.height,
-    );
-    let above = Rect::new(side.x, bounds.y, side.width, side.y - bounds.y);
-    let below = Rect::new(
-        side.x,
-        side.bottom(),
-        side.width,
-        bounds.bottom() - side.bottom(),
-    );
-    let chrome = painter.theme.chrome;
-    for rect in [left, right, above, below] {
-        if rect.width > 0.0 && rect.height > 0.0 {
-            painter.rule(rect, chrome);
-        }
     }
 }
 

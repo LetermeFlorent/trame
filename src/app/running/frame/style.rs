@@ -24,6 +24,9 @@ impl Running {
         if previous.recalls(Recall::Text) && !current.recalls(Recall::Text) {
             self.transcripts.clear();
         }
+        if previous.history_lines != current.history_lines {
+            self.sessions.set_history(current.history_lines);
+        }
         self.saver.touch();
         self.strings = current.language.resolve().strings();
         let layout = |kept: &Preferences| {
@@ -49,7 +52,6 @@ impl Running {
             return;
         }
         self.theme = Theme::new(appearance);
-        self.refresh_backdrop();
         self.sessions.set_colors(self.theme.reported_colors());
         self.window.request_redraw();
     }

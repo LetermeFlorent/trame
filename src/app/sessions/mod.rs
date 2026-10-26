@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex, PoisonError};
 
 use winit::event_loop::EventLoopProxy;
 
-use trame::preferences::SecretAnswer;
+use trame::preferences::{DEFAULT_HISTORY_LINES, SecretAnswer};
 use trame::session::pty::{ShellCommand, default_shell};
 use trame::session::{Notifier, Session, SessionId, SessionOptions, starting_label};
 use trame::term::ReportedColors;
@@ -32,6 +32,7 @@ pub struct Sessions {
     next: u64,
     shell: ShellCommand,
     notify: Notifier,
+    history: usize,
 }
 
 impl Sessions {
@@ -49,6 +50,7 @@ impl Sessions {
             next: 0,
             shell: default_shell(),
             notify,
+            history: DEFAULT_HISTORY_LINES,
         }
     }
 
@@ -68,6 +70,7 @@ impl Sessions {
             transcript: start.transcript,
         };
         let session = Session::spawn(id, &options, self.notify.clone())?;
+        session.terminal().screen_mut().set_history(self.history);
         self.map.insert(id, session);
         if let Some(path) = cwd {
             self.origins.insert(id, path.to_path_buf());
@@ -119,6 +122,13 @@ impl Sessions {
     pub fn set_colors(&self, colors: ReportedColors) {
         for session in self.map.values() {
             session.terminal().screen_mut().set_reported_colors(colors);
+        }
+    }
+
+    pub fn set_history(&mut self, lines: usize) {
+        self.history = lines;
+        for session in self.map.values() {
+            session.terminal().screen_mut().set_history(lines);
         }
     }
 

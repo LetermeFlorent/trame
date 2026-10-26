@@ -52,7 +52,7 @@ fn each_language_has_its_own_update_and_menu_texts() {
 
 #[test]
 fn each_language_has_its_own_settings_texts() {
-    let picks: [fn(&Strings) -> &'static str; 24] = [
+    let picks: [fn(&Strings) -> &'static str; 25] = [
         |s| s.settings,
         |s| s.at_launch,
         |s| s.remember_instances,
@@ -61,6 +61,7 @@ fn each_language_has_its_own_settings_texts() {
         |s| s.terminals,
         |s| s.startup_command,
         |s| s.instance_tabs,
+        |s| s.history_lines,
         |s| s.add,
         |s| s.display,
         |s| s.text_size,

@@ -69,6 +69,9 @@ impl Running {
             });
         let surface = Surface::open(event_loop, window, preferences)?;
         let mut running = Self::with_surface(surface, proxy);
+        running
+            .sessions
+            .set_history(running.preferences.history_lines);
         running.saver.remember_window(window);
         Ok(Opened { running, saved })
     }

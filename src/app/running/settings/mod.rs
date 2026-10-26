@@ -60,7 +60,6 @@ impl Running {
             SettingControl::Recall(recall) => current.toggle(recall),
             SettingControl::ConfirmClose => current.toggle_confirm_close(),
             SettingControl::Efficiency => current.with(|next| next.efficiency = !next.efficiency),
-            SettingControl::Acrylic => current.with(|next| next.acrylic = !next.acrylic),
             SettingControl::Numbers(choice) => {
                 current.with(|next| choice.toggle(&mut next.numbering))
             }
@@ -71,6 +70,8 @@ impl Running {
             SettingControl::ClearStartupCommand => current.with_startup_command(""),
             SettingControl::InstanceTabsFewer => current.step_instance_tabs(-1),
             SettingControl::InstanceTabsMore => current.step_instance_tabs(1),
+            SettingControl::HistoryFewer => current.step_history_lines(-1),
+            SettingControl::HistoryMore => current.step_history_lines(1),
             SettingControl::TextSmaller => current.step_font_size(-1),
             SettingControl::TextBigger => current.step_font_size(1),
             SettingControl::InterfaceSmaller => current.step_interface_size(-1),

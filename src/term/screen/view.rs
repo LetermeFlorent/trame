@@ -100,4 +100,8 @@ impl Screen {
     pub fn set_reported_colors(&mut self, colors: ReportedColors) {
         self.colors = colors;
     }
+
+    pub fn set_history(&mut self, lines: usize) {
+        self.primary.set_max_history(lines);
+    }
 }

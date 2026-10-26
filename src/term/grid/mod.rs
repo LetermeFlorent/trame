@@ -46,6 +46,11 @@ impl Grid {
         self.cols
     }
 
+    pub fn set_max_history(&mut self, lines: usize) {
+        self.max_history = lines;
+        self.enforce_history_limit();
+    }
+
     pub fn history_len(&self) -> usize {
         self.lines.len() - self.rows
     }
