@@ -50,6 +50,11 @@ impl Screen {
         }
     }
 
+    pub(crate) fn forget_mouse(&mut self) {
+        self.modes.set(Modes::MOUSE_ANY, false);
+        self.modes.set(Modes::MOUSE_SGR, false);
+    }
+
     fn save_or_restore(&mut self, save: bool) {
         if save {
             self.save_cursor();

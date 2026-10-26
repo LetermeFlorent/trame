@@ -9,7 +9,7 @@ use std::thread;
 use super::dump::Dump;
 use super::sync::SyncHold;
 use super::{Notifier, SessionEvent, SessionId, lock};
-use crate::session::pty::Child;
+use crate::session::pty::{self, Child};
 use crate::term::{Modes, Terminal};
 
 const READ_BUFFER: usize = 64 * 1024;
@@ -18,6 +18,7 @@ const STACK_SIZE: usize = 256 * 1024;
 pub struct Reader {
     pub id: SessionId,
     pub source: File,
+    pub shell: u32,
     pub terminal: Arc<Mutex<Terminal>>,
     pub input: Sender<Vec<u8>>,
     pub pending: Arc<AtomicBool>,
@@ -60,10 +61,16 @@ fn read_loop(mut reader: Reader) {
             Err(_) => break,
         };
         dump.record(&buffer[..count]);
+        // With the shell back in front, whatever asked for mouse reports has quit,
+        // maybe without turning them off (crash, dropped SSH).
+        let shell_in_front = pty::shell_in_foreground(&reader.source, reader.shell);
         let (responses, synchronized) = {
             let mut terminal = lock(&reader.terminal);
             terminal.feed(&buffer[..count]);
             let screen = terminal.screen_mut();
+            if shell_in_front {
+                screen.forget_mouse();
+            }
             let synchronized = screen.modes().contains(Modes::SYNC_UPDATE);
             (screen.take_responses(), synchronized)
         };

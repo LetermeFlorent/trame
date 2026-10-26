@@ -33,6 +33,16 @@ fn private_modes_toggle_flags() {
 }
 
 #[test]
+fn shell_prompt_turns_mouse_reports_off() {
+    let mut term = feed(2, 6, "\x1b[?1003h\x1b[?1006h\x1b[?1h");
+    term.feed(b"\x1b]9;9;\"C:\\\"\x1b\\");
+    let modes = term.screen().modes();
+    assert!(!modes.intersects(Modes::MOUSE_ANY));
+    assert!(!modes.contains(Modes::MOUSE_SGR));
+    assert!(modes.contains(Modes::APP_CURSOR));
+}
+
+#[test]
 fn autowrap_off_overwrites_last_column() {
     let term = feed(2, 3, "\x1b[?7labcdef");
     assert_eq!(lines(&term), vec!["abf", ""]);

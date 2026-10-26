@@ -68,6 +68,7 @@ impl Session {
         threads::spawn_reader(threads::Reader {
             id,
             source: spawned.reader,
+            shell: spawned.pty.process_id(),
             terminal: terminal.clone(),
             input: input.clone(),
             pending: pending.clone(),

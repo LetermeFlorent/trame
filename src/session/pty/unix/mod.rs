@@ -1,4 +1,7 @@
 mod cwd;
+mod foreground;
+
+pub(super) use foreground::shell_in_foreground;
 
 use std::fs::File;
 use std::io;

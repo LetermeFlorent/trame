@@ -76,6 +76,10 @@ pub fn spawn(options: &PtyOptions) -> io::Result<Spawned> {
     platform::spawn(options)
 }
 
+pub(crate) fn shell_in_foreground(terminal: &File, shell: u32) -> bool {
+    platform::shell_in_foreground(terminal, shell)
+}
+
 fn terminal_env() -> [(&'static str, &'static str); 3] {
     [
         ("COLORTERM", "truecolor"),
