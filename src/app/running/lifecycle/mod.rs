@@ -1,3 +1,4 @@
+mod first_frame;
 mod saved;
 mod surface;
 mod text;
@@ -11,16 +12,15 @@ use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 
 use trame::files::IconStore;
-use trame::locale::Strings;
 use trame::preferences::Preferences;
 use trame::render::Scene;
 use trame::session::Transcripts;
 use trame::theme::Theme;
-use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
+use trame::ui::FrameView;
 use trame::workspace::{Snapshot, Workspace};
 
 use super::tabs::Placement;
-use super::{Pointer, Running, Selecting, frame};
+use super::{Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
 use crate::app::persist::{self, Saver};
 use crate::app::power::Idle;
@@ -28,6 +28,7 @@ use crate::app::sessions::Sessions;
 use crate::app::update::UpdateStatus;
 use crate::app::visibility::Visibility;
 use crate::app::{UserEvent, window};
+use first_frame::first_frame;
 use surface::Surface;
 
 pub struct Opened {
@@ -136,25 +137,4 @@ impl Running {
             strings,
         }
     }
-}
-
-fn first_frame(
-    surface: &mut Surface,
-    workspace: &Workspace,
-    metrics: UiMetrics,
-) -> (FrameLayout, Motion, &'static Strings) {
-    let strings = surface.preferences.language.resolve().strings();
-    let mut motion = Motion::default();
-    let layout_input = frame::LayoutInput {
-        workspace,
-        window: &surface.window,
-        metrics,
-        folder: None,
-        update: None,
-        strings,
-    };
-    let frame = frame::compute(&mut surface.text, &layout_input, &mut motion, &|_| {
-        String::new()
-    });
-    (frame, motion, strings)
 }

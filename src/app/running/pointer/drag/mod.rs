@@ -1,9 +1,9 @@
+mod cancel;
 mod ghost;
 mod instance;
 mod sidebar;
 mod tab;
 
-use winit::keyboard::{Key, NamedKey};
 use winit::window::{Cursor, CursorIcon};
 
 use trame::geometry::Point;
@@ -106,32 +106,6 @@ impl Running {
         if let Some(instance) = self.workspace.active_instance_mut() {
             instance.root = resized(&drag.root, &drag.divider, delta);
         }
-    }
-
-    pub(in crate::app::running) fn drag_key(&mut self, key: &Key) -> bool {
-        *key == Key::Named(NamedKey::Escape) && self.cancel_drag()
-    }
-
-    pub(in crate::app::running) fn cancel_drag(&mut self) -> bool {
-        let drag = match self.drag.take() {
-            None | Some(Drag::Pending(..) | Drag::PendingInstance(..)) => return false,
-            Some(drag) => drag,
-        };
-        match drag {
-            Drag::Divider(drag) => {
-                if let Some(instance) = self.workspace.active_instance_mut() {
-                    instance.root = drag.root;
-                }
-            }
-            Drag::Sidebar(drag) => self.restore_sidebar(drag),
-            Drag::Instance(id, start) => self.move_instance_to(id, Some(start)),
-            _ => {}
-        }
-        self.pointer.pressed = None;
-        self.pointer.ghost = Ghost::Idle;
-        self.view.pressed = None;
-        self.changed();
-        true
     }
 
     pub(in crate::app::running) fn drags_tab(&self) -> bool {

@@ -33,8 +33,6 @@ pub const MAX_INTERFACE_SIZE: u16 = 150;
 pub const INTERFACE_SIZE_STEP: u16 = 10;
 pub const CONFIRM_FROM_TABS: usize = 2;
 
-const PERCENT: f32 = 100.0;
-
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Preferences {
     pub font_size: f32,
@@ -119,34 +117,12 @@ impl Preferences {
         next
     }
 
-    pub fn with_font_size(&self, font_size: f32) -> Self {
-        self.with(|next| next.font_size = clamp_font_size(font_size))
-    }
-
-    pub fn step_font_size(&self, steps: i32) -> Self {
-        self.with_font_size(self.font_size + steps as f32 * FONT_SIZE_STEP)
-    }
-
-    pub fn step_interface_size(&self, steps: i32) -> Self {
-        let wanted = i32::from(self.interface_size) + steps * i32::from(INTERFACE_SIZE_STEP);
-        let size = wanted.clamp(0, i32::from(u16::MAX)) as u16;
-        self.with(|next| next.interface_size = clamp_interface_size(size))
-    }
-
     pub fn toggle_confirm_close(&self) -> Self {
         self.with(|next| next.confirm_close = !next.confirm_close)
     }
 
     pub fn confirms_closing(&self, tabs: usize) -> bool {
         self.confirm_close && tabs >= CONFIRM_FROM_TABS
-    }
-
-    pub fn ui_scale(&self, window_scale: f32) -> f32 {
-        window_scale * f32::from(self.interface_size) / PERCENT
-    }
-
-    pub fn font_pixels(&self, window_scale: f32) -> f32 {
-        self.font_size * window_scale
     }
 }
 

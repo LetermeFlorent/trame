@@ -1,4 +1,5 @@
 mod controls;
+mod height;
 mod launch;
 mod rows;
 
@@ -10,19 +11,15 @@ use crate::locale::Strings;
 use crate::preferences::Preferences;
 use crate::text::TextLayout;
 use crate::ui::frame::FieldFrame;
-use crate::ui::metrics::UiMetrics;
 
-use super::column::{CAPTION_HEIGHT, Column, LINE_HEIGHT, SECTION_GAP};
+use super::column::Column;
 use super::{ChoiceRow, SettingControl, SettingLine};
+pub(super) use height::general_height;
 use launch::{
     close_toggle, command_row, history_stepper, instance_tabs_stepper, recall_toggles,
     system_toggles,
 };
 use rows::{display_rows, folder_row, language_row, size_steppers};
-
-const CAPTIONS: f32 = 4.0;
-const LINES: f32 = 13.0;
-const SYSTEM_LINES: f32 = 2.0;
 
 #[derive(Clone, Debug)]
 pub struct ToggleRow {
@@ -110,15 +107,6 @@ impl GeneralPage {
             (&self.interface_size, [InterfaceSmaller, InterfaceBigger]),
         ]
     }
-}
-
-pub(super) fn general_height(metrics: &UiMetrics) -> f32 {
-    let system = f32::from(u8::from(cfg!(windows)));
-    let captions = CAPTIONS + system;
-    let lines = LINES + system * SYSTEM_LINES;
-    captions * metrics.px(CAPTION_HEIGHT)
-        + lines * metrics.px(LINE_HEIGHT)
-        + (captions - 1.0) * metrics.px(SECTION_GAP)
 }
 
 pub(super) fn general_page(

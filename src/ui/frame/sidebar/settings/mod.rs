@@ -4,15 +4,15 @@ mod general;
 mod hosts;
 mod instances;
 mod message;
+mod page;
 mod place;
 mod popup;
 
-use std::path::Path;
 use std::sync::Arc;
 
-use crate::geometry::{Point, Rect};
-use crate::locale::{LanguageChoice, Strings};
-use crate::preferences::{Preferences, Recall};
+use crate::geometry::Rect;
+use crate::locale::LanguageChoice;
+use crate::preferences::Recall;
 use crate::text::TextLayout;
 use crate::ui::display::{Density, PanelSide};
 pub(in crate::ui::frame) use column::{
@@ -23,6 +23,7 @@ pub use hosts::{ConnectionsPage, HostList, HostRow, HostsView, ListControl, Scro
 pub(in crate::ui::frame) use hosts::{ListSpec, host_labels};
 pub use instances::{InstancesPage, NumberChoice};
 pub use message::{MessageFrame, MessageRequest};
+pub use page::{SettingsFrame, SettingsPage, SettingsRequest};
 pub use popup::PopupFrame;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -93,59 +94,5 @@ impl ChoiceRow {
             .iter()
             .map(|chip| (chip.rect, chip.control))
             .chain(self.clear)
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct SettingsRequest<'a> {
-    pub preferences: &'a Preferences,
-    pub strings: &'static Strings,
-    pub folder: Option<&'a Path>,
-    pub tab: SettingsTab,
-    pub hosts: Option<HostsView<'a>>,
-}
-
-#[derive(Clone, Debug)]
-pub enum SettingsPage {
-    General(Box<GeneralPage>),
-    Instances(Box<InstancesPage>),
-    Connections(Box<ConnectionsPage>),
-}
-
-#[derive(Clone, Debug)]
-pub struct SettingsFrame {
-    pub popup: PopupFrame,
-    pub tabs: [Chip; 3],
-    pub page: SettingsPage,
-}
-
-impl SettingsFrame {
-    pub fn general(&self) -> Option<&GeneralPage> {
-        match &self.page {
-            SettingsPage::General(page) => Some(page),
-            _ => None,
-        }
-    }
-
-    pub fn connections(&self) -> Option<&ConnectionsPage> {
-        match &self.page {
-            SettingsPage::Connections(page) => Some(page),
-            _ => None,
-        }
-    }
-
-    pub fn control_at(&self, point: Point) -> Option<SettingControl> {
-        let page = match &self.page {
-            SettingsPage::General(page) => page.control_at(point),
-            SettingsPage::Instances(page) => page.control_at(point),
-            SettingsPage::Connections(page) => page.control_at(point),
-        };
-        let tabs = self.tabs.iter().map(|chip| (chip.rect, chip.control));
-        [(self.popup.close, SettingControl::Close)]
-            .into_iter()
-            .chain(tabs)
-            .find(|(rect, _)| rect.contains(point))
-            .map(|(_, control)| control)
-            .or(page)
     }
 }
