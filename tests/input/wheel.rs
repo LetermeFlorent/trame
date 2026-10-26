@@ -44,3 +44,10 @@ fn repeats_arrow_keys_in_the_cursor_mode_of_the_program() {
     assert_eq!(arrow_keys(1, false, modes(&[Modes::APP_CURSOR])), b"\x1bOB");
     assert!(arrow_keys(0, true, Modes::default()).is_empty());
 }
+
+#[test]
+fn repeats_whole_key_records_for_the_windows_console() {
+    let console = modes(&[Modes::WIN32_INPUT]);
+    let up = "\x1b[38;72;0;1;256;1_\x1b[38;72;0;0;256;1_";
+    assert_eq!(arrow_keys(2, true, console), up.repeat(2).into_bytes());
+}

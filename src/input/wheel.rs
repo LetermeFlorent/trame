@@ -1,3 +1,6 @@
+use winit::keyboard::{ModifiersState, NamedKey};
+
+use super::keys::win32_key;
 use crate::term::Modes;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -25,6 +28,16 @@ pub fn wheel_action(lines: isize, modes: Modes) -> WheelAction {
 }
 
 pub fn arrow_keys(count: usize, up: bool, modes: Modes) -> Vec<u8> {
+    let named = if up {
+        NamedKey::ArrowUp
+    } else {
+        NamedKey::ArrowDown
+    };
+    if modes.contains(Modes::WIN32_INPUT)
+        && let Some(key) = win32_key(named, ModifiersState::empty())
+    {
+        return key.repeat(count);
+    }
     let letter = if up { 'A' } else { 'B' };
     let key = match modes.contains(Modes::APP_CURSOR) {
         true => format!("\x1bO{letter}"),

@@ -1,4 +1,5 @@
 mod sequences;
+mod win32;
 
 use trame::input::{KeyInput, encode};
 use trame::term::Modes;

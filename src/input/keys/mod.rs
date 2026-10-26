@@ -1,9 +1,11 @@
 mod sequences;
+mod win32;
 
 use winit::keyboard::{Key, ModifiersState, NamedKey};
 
 use crate::term::Modes;
 use sequences::cursor_or_function;
+pub(super) use win32::win32_key;
 
 const ESC: u8 = 0x1b;
 
@@ -30,6 +32,11 @@ pub fn encode(input: KeyInput, modes: Modes) -> Option<Vec<u8>> {
 
 fn named_key(named: NamedKey, input: KeyInput, modes: Modes) -> Option<Vec<u8>> {
     let modifiers = input.modifiers;
+    if modes.contains(Modes::WIN32_INPUT)
+        && let Some(bytes) = win32_key(named, modifiers)
+    {
+        return Some(bytes);
+    }
     let alt = modifiers.alt_key() && meta_sends_escape();
     let simple = |bytes: &[u8]| Some(if alt { escaped(bytes) } else { bytes.to_vec() });
     match named {

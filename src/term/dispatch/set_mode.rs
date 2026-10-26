@@ -101,6 +101,7 @@ pub(crate) fn simple_private_mode(mode: u16) -> Option<Modes> {
         1007 => Modes::ALTERNATE_SCROLL,
         2004 => Modes::BRACKETED_PASTE,
         2026 => Modes::SYNC_UPDATE,
+        9001 => Modes::WIN32_INPUT,
         _ => return None,
     })
 }

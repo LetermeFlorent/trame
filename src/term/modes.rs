@@ -18,6 +18,7 @@ impl Modes {
     pub const MOUSE_SGR: Self = Self(1 << 13);
     pub const ALTERNATE_SCROLL: Self = Self(1 << 14);
     pub const SYNC_UPDATE: Self = Self(1 << 15);
+    pub const WIN32_INPUT: Self = Self(1 << 16);
     pub const MOUSE_ANY: Self =
         Self(Self::MOUSE_CLICK.0 | Self::MOUSE_DRAG.0 | Self::MOUSE_MOTION.0);
 
