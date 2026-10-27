@@ -24,9 +24,8 @@ impl Running {
             Drag::Instance(id, start) => self.move_instance_to(id, Some(start)),
             _ => {}
         }
-        self.pointer.pressed = None;
+        self.drop_press();
         self.pointer.ghost = Ghost::Idle;
-        self.view.pressed = None;
         self.changed();
         true
     }

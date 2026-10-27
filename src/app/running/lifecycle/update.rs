@@ -1,3 +1,5 @@
+use std::io;
+
 use winit::event_loop::ActiveEventLoop;
 
 use crate::app::running::Running;
@@ -13,27 +15,37 @@ impl Running {
         let Some(offer) = self.update_offer.clone() else {
             return;
         };
-        self.save_for_restart();
-        match update::restart(&offer) {
-            Ok(()) => {
-                self.restarting = true;
-                event_loop.exit();
-            }
-            Err(error) => eprintln!("trame: the update restart did not start: {error}"),
-        }
+        self.restart_with(
+            event_loop,
+            || update::restart(&offer),
+            "the update restart did not start",
+        );
     }
 
     pub(in crate::app::running) fn restart_if_card_lost(&mut self, event_loop: &ActiveEventLoop) {
         if self.restarting || !self.graphics.is_lost() {
             return;
         }
+        self.restart_with(
+            event_loop,
+            update::start_again,
+            "trame could not start again",
+        );
+    }
+
+    fn restart_with(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        start: impl FnOnce() -> io::Result<()>,
+        failure: &str,
+    ) {
         self.save_for_restart();
-        match update::start_again() {
+        match start() {
             Ok(()) => {
                 self.restarting = true;
                 event_loop.exit();
             }
-            Err(error) => eprintln!("trame: trame could not start again: {error}"),
+            Err(error) => eprintln!("trame: {failure}: {error}"),
         }
     }
 }

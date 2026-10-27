@@ -6,11 +6,7 @@ use super::{Cell, Running};
 
 impl Running {
     pub(super) fn cell_in_session(&self, id: SessionId, point: Point) -> Option<Cell> {
-        let pane = self
-            .frame
-            .panes
-            .iter()
-            .find(|pane| pane.active == Some(id))?;
+        let pane = self.pane_showing(id)?;
         Some(self.cell_in_pane(pane, point))
     }
 

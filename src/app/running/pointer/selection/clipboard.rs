@@ -26,8 +26,7 @@ impl Running {
         let Some(message) = session.terminal().screen_mut().take_attention() else {
             return;
         };
-        let seen =
-            self.view.window_focused && self.frame.panes.iter().any(|pane| pane.active == Some(id));
+        let seen = self.view.window_focused && self.pane_showing(id).is_some();
         if seen || !self.preferences.notify_waiting {
             return;
         }

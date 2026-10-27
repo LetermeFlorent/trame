@@ -36,6 +36,14 @@ pub fn remove_leftover(exe: &Path) {
     }
 }
 
+pub fn discard_partial(path: &Path, what: &str) {
+    if path.exists()
+        && let Err(error) = fs::remove_file(path)
+    {
+        eprintln!("trame: the partial {what} stays on disk: {error}");
+    }
+}
+
 pub fn check_executable(path: &Path) -> io::Result<()> {
     let mut file = File::open(path)?;
     let mut magic = [0; 2];

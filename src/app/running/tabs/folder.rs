@@ -67,10 +67,7 @@ impl Running {
                 .active_instance()
                 .and_then(|instance| instance.folder.clone()),
         };
-        let current = self
-            .workspace
-            .active_tab()
-            .and_then(|id| self.sessions.cwd(id));
+        let current = self.active_folder();
         chosen.filter(|folder| folder.is_dir()).or(current)
     }
 

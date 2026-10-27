@@ -1,9 +1,7 @@
 mod cover;
 
 use windows_sys::Win32::Foundation::{HWND, RECT};
-use windows_sys::Win32::Graphics::Dwm::{
-    DWMWA_CLOAKED, DWMWA_EXTENDED_FRAME_BOUNDS, DwmGetWindowAttribute,
-};
+use windows_sys::Win32::Graphics::Dwm::{DWMWA_CLOAKED, DWMWA_EXTENDED_FRAME_BOUNDS};
 use windows_sys::Win32::System::StationsAndDesktops::{
     CloseDesktop, DESKTOP_READOBJECTS, GetThreadDesktop, GetUserObjectInformationW, HDESK,
     OpenInputDesktop, UOI_NAME,
@@ -55,34 +53,17 @@ fn desktop_name(desktop: HDESK) -> Option<DesktopName> {
 }
 
 fn is_cloaked(hwnd: HWND) -> bool {
-    let mut cloaked: u32 = 0;
-    let result = unsafe {
-        DwmGetWindowAttribute(
-            hwnd,
-            DWMWA_CLOAKED as u32,
-            (&raw mut cloaked).cast(),
-            size_of_val(&cloaked) as u32,
-        )
-    };
-    result == 0 && cloaked != 0
+    window::dwm::attribute(hwnd, DWMWA_CLOAKED, 0u32).is_some_and(|cloaked| cloaked != 0)
 }
 
 fn frame_bounds(hwnd: HWND) -> Option<RECT> {
-    let mut rect = RECT {
+    let empty = RECT {
         left: 0,
         top: 0,
         right: 0,
         bottom: 0,
     };
-    let result = unsafe {
-        DwmGetWindowAttribute(
-            hwnd,
-            DWMWA_EXTENDED_FRAME_BOUNDS as u32,
-            (&raw mut rect).cast(),
-            size_of_val(&rect) as u32,
-        )
-    };
-    (result == 0 && has_area(&rect)).then_some(rect)
+    window::dwm::attribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, empty).filter(has_area)
 }
 
 fn has_area(rect: &RECT) -> bool {

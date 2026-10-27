@@ -97,8 +97,7 @@ impl Running {
         } else {
             self.cancel_drag();
             self.modifiers = ModifiersState::empty();
-            self.pointer.pressed = None;
-            self.view.pressed = None;
+            self.drop_press();
         }
         if let Some(session) = self.sessions.active(&self.workspace) {
             let reports = session

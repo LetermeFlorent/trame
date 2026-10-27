@@ -13,8 +13,7 @@ impl Running {
                 if distance(origin, point) < threshold {
                     return Some(false);
                 }
-                self.view.pressed = None;
-                self.pointer.pressed = None;
+                self.drop_press();
                 (id, self.workspace.instance_index(id)?)
             }
             Some(Drag::Instance(id, start)) => (id, start),

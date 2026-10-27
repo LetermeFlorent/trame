@@ -6,6 +6,8 @@ use trame::ui::ResizeEdge;
 use trame::ui::chrome::logo;
 use trame::workspace::WindowSnapshot;
 
+#[cfg(windows)]
+pub mod dwm;
 mod frame;
 
 pub use frame::{frame_border, round_corners};

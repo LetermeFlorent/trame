@@ -41,6 +41,11 @@ impl Running {
         self.terminal_motion(point);
     }
 
+    pub(in crate::app::running) fn drop_press(&mut self) {
+        self.pointer.pressed = None;
+        self.view.pressed = None;
+    }
+
     pub(super) fn pointer_left(&mut self) {
         self.pointer.position = None;
         self.refresh_hover();

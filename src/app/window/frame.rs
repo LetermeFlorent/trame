@@ -21,25 +21,12 @@ pub fn round_corners(window: &Window) {
 
 #[cfg(windows)]
 pub fn frame_border(window: &Window) -> f32 {
-    use windows_sys::Win32::Graphics::Dwm::{
-        DWMWA_VISIBLE_FRAME_BORDER_THICKNESS, DwmGetWindowAttribute,
-    };
+    use windows_sys::Win32::Graphics::Dwm::DWMWA_VISIBLE_FRAME_BORDER_THICKNESS;
     let Some(hwnd) = super::hwnd(window) else {
         return 0.0;
     };
-    let mut thickness = 0u32;
-    let result = unsafe {
-        DwmGetWindowAttribute(
-            hwnd,
-            DWMWA_VISIBLE_FRAME_BORDER_THICKNESS as u32,
-            (&raw mut thickness).cast(),
-            size_of_val(&thickness) as u32,
-        )
-    };
-    match result {
-        0 => thickness as f32,
-        _ => 0.0,
-    }
+    super::dwm::attribute(hwnd, DWMWA_VISIBLE_FRAME_BORDER_THICKNESS, 0u32)
+        .map_or(0.0, |thickness| thickness as f32)
 }
 
 #[cfg(not(windows))]

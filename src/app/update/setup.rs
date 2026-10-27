@@ -29,10 +29,8 @@ pub fn fetch(version: Version) -> io::Result<()> {
     let fetched = fetch::download_quietly(version, &asset(&number), &part)
         .and_then(|()| swap::check_executable(&part))
         .and_then(|()| fs::rename(&part, &target));
-    if fetched.is_err() && part.exists() {
-        if let Err(error) = fs::remove_file(&part) {
-            eprintln!("trame: the partial installer stays on disk: {error}");
-        }
+    if fetched.is_err() {
+        swap::discard_partial(&part, "installer");
     }
     fetched
 }

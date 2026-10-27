@@ -17,7 +17,7 @@ impl Notifier {
             return;
         }
         self.last = Some(now);
-        if let Some(owner) = owner_of(window) {
+        if let Some(owner) = super::window::owner(window) {
             let added = self.shown_on.is_some();
             if tray::show(owner, added, title, body) {
                 self.shown_on = Some(owner);
@@ -36,16 +36,6 @@ impl Drop for Notifier {
     fn drop(&mut self) {
         self.clear();
     }
-}
-
-#[cfg(windows)]
-fn owner_of(window: &Window) -> Option<isize> {
-    super::window::hwnd(window).map(|hwnd| hwnd as isize)
-}
-
-#[cfg(not(windows))]
-fn owner_of(_window: &Window) -> Option<isize> {
-    None
 }
 
 #[cfg(windows)]

@@ -87,7 +87,7 @@ impl Running {
         self.sessions.answer_prompt(id);
         self.forward_clipboard(id);
         self.forward_attention(id);
-        if self.frame.panes.iter().any(|pane| pane.active == Some(id)) {
+        if self.pane_showing(id).is_some() {
             self.window.request_redraw();
             return;
         }

@@ -9,7 +9,6 @@ mod version;
 mod watch;
 
 use std::env;
-use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -137,10 +136,8 @@ fn install(
         .inspect(|_| notify(UpdateStatus::Installing(number.clone())))
         .and_then(|()| swap::check_executable(&fresh))
         .and_then(|()| swap::replace(exe, &fresh));
-    if installed.is_err() && fresh.exists() {
-        if let Err(error) = fs::remove_file(&fresh) {
-            eprintln!("trame: the partial download stays on disk: {error}");
-        }
+    if installed.is_err() {
+        swap::discard_partial(&fresh, "download");
     }
     installed
 }

@@ -12,6 +12,7 @@ use winit::window::Window;
 use trame::locale::Strings;
 use trame::session::SessionId;
 use trame::text::TextSystem;
+use trame::ui::frame::PaneFrame;
 use trame::ui::{FrameInput, FrameLayout, Motion, UiMetrics};
 use trame::workspace::{Instance, Workspace};
 
@@ -104,6 +105,10 @@ impl Running {
     pub(super) fn active_folder(&self) -> Option<PathBuf> {
         let tab = self.workspace.active_tab()?;
         self.sessions.cwd(tab)
+    }
+
+    pub(super) fn pane_showing(&self, id: SessionId) -> Option<&PaneFrame> {
+        self.frame.panes.iter().find(|pane| pane.active == Some(id))
     }
 
     pub(super) fn tab_title(&self, id: SessionId) -> String {
