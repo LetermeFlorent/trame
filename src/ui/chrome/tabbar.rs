@@ -64,7 +64,7 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
 
 fn draw_tab_fill(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, glow: f32) {
     let theme = painter.theme;
-    let radius = painter.metrics.px(TAB_RADIUS);
+    let radius = painter.metrics.px(TAB_RADIUS).max(pane.radius);
     let rect = tab.rect;
     if tab.active {
         painter.scene.fill_top(rect, theme.terminal, radius);
@@ -87,11 +87,8 @@ fn draw_tab_fill(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, glow: 
     };
     if let Some(color) = accent {
         let height = painter.metrics.px(ACCENT_HEIGHT);
-        painter
-            .scene
-            .push_clip(Rect::new(rect.x, rect.y, rect.width, height));
-        painter.scene.fill_top(rect, color, radius);
-        painter.scene.pop_clip();
+        let width = (rect.width - radius * 2.0).max(0.0);
+        painter.rule(Rect::new(rect.x + radius, rect.y, width, height), color);
     }
 }
 
