@@ -1,4 +1,5 @@
 mod bar;
+mod motion;
 
 use trame::files::IconStore;
 use trame::geometry::Point;
@@ -16,9 +17,13 @@ const LOGO_STRANDS: usize = 16;
 fn waiting(opacity: f32) -> LoaderView<'static> {
     LoaderView {
         message: "Checking for updates",
+        previous: None,
+        blend: 1.0,
         progress: None,
         spin: 0.3,
         opacity,
+        content: 1.0,
+        shift: 0.0,
     }
 }
 

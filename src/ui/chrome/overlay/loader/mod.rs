@@ -1,12 +1,13 @@
 mod marks;
+mod words;
 
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
-use crate::text::{TextLayout, TextSystem};
-use crate::theme::Rgba;
+use crate::text::TextSystem;
 use crate::ui::chrome::ChromeInput;
 use crate::ui::chrome::logo::draw_logo;
 use marks::{DOT_RADIUS, RING_RADIUS, draw_bar, draw_ring};
+use words::{draw_centered, draw_message};
 
 const LOGO: f32 = 72.0;
 const LOGO_GAP: f32 = 30.0;
@@ -25,9 +26,13 @@ pub struct LoaderProgress<'a> {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct LoaderView<'a> {
     pub message: &'a str,
+    pub previous: Option<&'a str>,
+    pub blend: f32,
     pub progress: Option<LoaderProgress<'a>>,
     pub spin: f32,
     pub opacity: f32,
+    pub content: f32,
+    pub shift: f32,
 }
 
 pub fn draw_loader(
@@ -56,7 +61,11 @@ pub fn draw_loader(
     scene.push_opacity(loader.opacity);
     scene.fill(area, input.theme.chrome, 0.0);
     scene.fill(title, input.theme.chrome, 0.0);
-    draw_column(scene, text, input, loader, area);
+    let shift = frame.metrics.px(loader.shift);
+    let column = Rect::new(area.x, area.y + shift, area.width, area.height);
+    scene.push_opacity(loader.content);
+    draw_column(scene, text, input, loader, column);
+    scene.pop_opacity();
     scene.pop_opacity();
 }
 
@@ -90,13 +99,7 @@ fn draw_column(
         loader.spin,
     );
     y += ring + metrics.px(MESSAGE_GAP);
-    draw_centered(
-        scene,
-        text,
-        &message,
-        Point::new(center, y),
-        theme.text_muted,
-    );
+    draw_message(scene, text, input, loader, Point::new(center, y));
     y += line + metrics.px(BAR_GAP);
     let width = metrics.px(BAR_WIDTH);
     let track = Rect::new((center - width / 2.0).round(), y.round(), width, bar);
@@ -107,18 +110,4 @@ fn draw_column(
     let label = text.layout(progress.label, metrics.caption());
     let top = Point::new(center, track.bottom() + metrics.px(LABEL_GAP));
     draw_centered(scene, text, &label, top, theme.text_muted);
-}
-
-fn draw_centered(
-    scene: &mut Scene,
-    text: &mut TextSystem,
-    layout: &TextLayout,
-    top: Point,
-    color: Rgba,
-) {
-    let pen = Point::new(
-        (top.x - layout.width / 2.0).round(),
-        (top.y + layout.ascent).round(),
-    );
-    text.draw_layout(scene, layout, pen, color);
 }
