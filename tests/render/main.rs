@@ -50,7 +50,7 @@ fn readback_returns_each_row_without_its_padding() {
         },
         extent(),
     );
-    let pixels = read_texture(&gpu, &texture, WIDTH, HEIGHT).expect("the pixels are read");
+    let pixels = read_texture(&gpu, &texture).expect("the pixels are read");
     assert_eq!(pixels, pattern());
 }
 
@@ -60,6 +60,6 @@ fn a_lost_device_is_reported_instead_of_empty_pixels() {
     let texture = texture(&gpu);
     gpu.device.on_uncaptured_error(Arc::new(|_| {}));
     gpu.device.destroy();
-    let read = read_texture(&gpu, &texture, WIDTH, HEIGHT);
+    let read = read_texture(&gpu, &texture);
     assert!(matches!(read, Err(ReadbackError::Map(_))), "{read:?}");
 }

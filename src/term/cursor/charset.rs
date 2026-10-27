@@ -20,9 +20,6 @@ impl CharsetState {
     }
 
     pub fn designate(&mut self, slot: usize, designator: u8) {
-        if slot >= self.slots.len() {
-            return;
-        }
         self.slots[slot] = match designator {
             b'0' => Charset::LineDrawing,
             _ => Charset::Ascii,

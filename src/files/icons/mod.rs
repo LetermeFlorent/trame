@@ -25,7 +25,7 @@ pub fn import_icon(source: &Path, dir: &Path) -> io::Result<u64> {
     let id = fingerprint(&pixels);
     let path = icon_path(dir, id);
     if !path.exists() {
-        write_atomic(&path, &codec::encode(&pixels, ICON_SIZE)?)?;
+        write_atomic(&path, &codec::encode(&pixels)?)?;
     }
     Ok(id)
 }

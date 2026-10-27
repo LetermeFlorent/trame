@@ -45,7 +45,7 @@ pub fn render_in_format(
     });
     let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
     renderer.render(gpu, &view, scene, clear);
-    let mut pixels = read_texture(gpu, &texture, width, height)?;
+    let mut pixels = read_texture(gpu, &texture)?;
     into_rgba(&mut pixels, format);
     Ok(pixels)
 }
@@ -61,12 +61,8 @@ pub fn into_rgba(pixels: &mut [u8], format: wgpu::TextureFormat) {
     }
 }
 
-pub fn read_texture(
-    gpu: &Gpu,
-    texture: &wgpu::Texture,
-    width: u32,
-    height: u32,
-) -> Result<Vec<u8>, ReadbackError> {
+pub fn read_texture(gpu: &Gpu, texture: &wgpu::Texture) -> Result<Vec<u8>, ReadbackError> {
+    let (width, height) = (texture.width(), texture.height());
     let row = width * BYTES_PER_PIXEL;
     let padded = row.next_multiple_of(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT);
     let size = wgpu::Extent3d {

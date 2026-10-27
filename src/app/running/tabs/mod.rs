@@ -28,7 +28,7 @@ pub(super) enum Placement {
 }
 
 impl Running {
-    pub(super) fn open(&mut self, placement: Placement) -> io::Result<SessionId> {
+    pub(super) fn open(&mut self, placement: Placement) -> io::Result<()> {
         let cwd = self.start_folder(placement);
         let first = self.open_in(placement, cwd.as_deref(), None)?;
         if placement == Placement::Instance {
@@ -38,7 +38,7 @@ impl Running {
             self.workspace.activate_tab(first);
             self.changed();
         }
-        Ok(first)
+        Ok(())
     }
 
     fn open_in(

@@ -47,10 +47,7 @@ impl CellCache {
     }
 
     pub fn set_metrics(&mut self, metrics: CellMetrics) {
-        if metrics != self.metrics {
-            self.metrics = metrics;
-            self.glyphs.clear();
-        }
+        self.metrics = metrics;
     }
 
     pub fn clear(&mut self) {

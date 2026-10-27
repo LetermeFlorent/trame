@@ -92,11 +92,11 @@ impl Sessions {
         }
     }
 
-    pub fn remove(&mut self, id: SessionId) -> Option<Session> {
+    pub fn remove(&mut self, id: SessionId) {
         self.origins.remove(&id);
         self.waiting.remove(&id);
         self.answers.remove(&id);
-        self.map.remove(&id)
+        self.map.remove(&id);
     }
 
     pub fn cwd(&self, id: SessionId) -> Option<PathBuf> {

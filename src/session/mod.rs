@@ -101,8 +101,8 @@ impl Session {
         }
     }
 
-    pub fn take_output(&self) -> bool {
-        self.pending.swap(false, Ordering::AcqRel)
+    pub fn take_output(&self) {
+        self.pending.swap(false, Ordering::AcqRel);
     }
 
     pub fn size(&self) -> (usize, usize) {

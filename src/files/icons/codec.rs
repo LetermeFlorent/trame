@@ -2,6 +2,8 @@ use std::io::{self, Cursor};
 
 use png::{BitDepth, ColorType, Decoder, Encoder, Transformations};
 
+use super::ICON_SIZE;
+
 pub(super) struct Image {
     pub(super) width: u32,
     pub(super) height: u32,
@@ -45,9 +47,9 @@ fn to_rgba(data: &[u8], color: ColorType) -> io::Result<Vec<u8>> {
     Ok(pixels)
 }
 
-pub(super) fn encode(pixels: &[u8], size: u32) -> io::Result<Vec<u8>> {
+pub(super) fn encode(pixels: &[u8]) -> io::Result<Vec<u8>> {
     let mut bytes = Vec::new();
-    let mut encoder = Encoder::new(&mut bytes, size, size);
+    let mut encoder = Encoder::new(&mut bytes, ICON_SIZE, ICON_SIZE);
     encoder.set_color(ColorType::Rgba);
     encoder.set_depth(BitDepth::Eight);
     let mut writer = encoder.write_header().map_err(io::Error::other)?;

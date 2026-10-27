@@ -28,7 +28,7 @@ impl Capture {
 
     fn write(&self, gpu: &Gpu, texture: &wgpu::Texture) -> Result<(), Box<dyn Error>> {
         let (width, height) = (texture.width(), texture.height());
-        let mut pixels = read_texture(gpu, texture, width, height)?;
+        let mut pixels = read_texture(gpu, texture)?;
         into_rgba(&mut pixels, texture.format());
         for pixel in pixels.chunks_exact_mut(4) {
             pixel[3] = OPAQUE;
