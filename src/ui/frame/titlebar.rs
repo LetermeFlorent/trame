@@ -109,12 +109,7 @@ fn sidebar_toggle(metrics: &UiMetrics, rect: Rect, fullscreen: bool) -> Rect {
         _ => 0.0,
     };
     let button = metrics.px(UiMetrics::BUTTON);
-    Rect::new(
-        rect.x + inset + metrics.px(TOGGLE_MARGIN),
-        rect.centered_y(button).round(),
-        button,
-        button,
-    )
+    rect.square_at(rect.x + inset + metrics.px(TOGGLE_MARGIN), button)
 }
 
 fn window_controls(metrics: &UiMetrics, rect: Rect) -> WindowControls {

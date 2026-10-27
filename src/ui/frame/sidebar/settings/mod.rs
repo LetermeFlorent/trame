@@ -11,7 +11,7 @@ mod shortcuts;
 
 use std::sync::Arc;
 
-use crate::geometry::Rect;
+use crate::geometry::{Point, Rect};
 use crate::locale::LanguageChoice;
 use crate::preferences::Recall;
 use crate::text::TextLayout;
@@ -114,4 +114,13 @@ impl ChoiceRow {
             .map(|chip| (chip.rect, chip.control))
             .chain(self.clear)
     }
+}
+
+pub(in crate::ui::frame) fn control_under(
+    point: Point,
+    mut controls: impl Iterator<Item = (Rect, SettingControl)>,
+) -> Option<SettingControl> {
+    controls
+        .find(|(rect, _)| rect.contains(point))
+        .map(|(_, control)| control)
 }

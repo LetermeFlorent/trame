@@ -19,6 +19,15 @@ pub(in crate::ui::frame) struct Column<'a> {
 }
 
 impl Column<'_> {
+    pub(in crate::ui::frame) fn rows_left(&self, bottom: f32) -> usize {
+        let room = (bottom - self.y) / self.metrics.px(LINE_HEIGHT);
+        room.floor().max(1.0) as usize
+    }
+
+    pub(in crate::ui::frame) fn band(&self, height: f32) -> Rect {
+        Rect::new(self.inner.x, self.y, self.inner.width, height)
+    }
+
     pub(in crate::ui::frame) fn line(
         &mut self,
         label: &str,
@@ -35,12 +44,7 @@ impl Column<'_> {
         style: TextStyle,
         buttons: f32,
     ) -> SettingLine {
-        let rect = Rect::new(
-            self.inner.x,
-            self.y,
-            self.inner.width,
-            self.metrics.px(height),
-        );
+        let rect = self.band(self.metrics.px(height));
         self.y = rect.bottom();
         let inset = self.metrics.px(LINE_INSET);
         let widest = rect.width - buttons * self.metrics.px(UiMetrics::BUTTON) - 2.0 * inset;
@@ -62,8 +66,7 @@ impl Column<'_> {
 
     pub(super) fn end_button(&self, line: &SettingLine) -> Rect {
         let button = self.metrics.px(UiMetrics::BUTTON);
-        let y = middle(line, button);
-        Rect::new(line.rect.right() - button, y, button, button)
+        line.rect.square_at(line.rect.right() - button, button)
     }
 }
 

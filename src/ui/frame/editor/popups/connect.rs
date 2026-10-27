@@ -1,5 +1,4 @@
 use super::EditorFrame;
-use crate::geometry::Rect;
 use crate::locale::Strings;
 use crate::text::TextSystem;
 use crate::ui::frame::editor::{FormAction, FormSpec, form_height, form_title, place_form};
@@ -42,7 +41,7 @@ impl FrameLayout {
             sections.push(column.section(form_title(strings, view.changing)));
         }
         let form = view.form.map(|form| {
-            let area = Rect::new(column.inner.x, column.y, column.inner.width, form_space);
+            let area = column.band(form_space);
             let spec = FormSpec {
                 area,
                 form,

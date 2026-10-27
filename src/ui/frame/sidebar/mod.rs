@@ -69,10 +69,8 @@ pub fn layout_sidebar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> 
     let workspace = input.workspace;
     let (header, list) = rect.split_top(metrics.spaced(UiMetrics::SIDEBAR_HEADER));
     let button = metrics.px(UiMetrics::BUTTON);
-    let new_instance = Rect::new(
+    let new_instance = header.square_at(
         header.right() - metrics.px(HEADER_BUTTON_MARGIN) - button,
-        header.centered_y(button).round(),
-        button,
         button,
     );
     let height = metrics.spaced(UiMetrics::SIDEBAR_ROW);

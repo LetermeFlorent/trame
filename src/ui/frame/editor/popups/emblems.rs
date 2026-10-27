@@ -42,9 +42,7 @@ impl FrameLayout {
         let caption = metrics.px(SECTION_GAP) + metrics.px(CAPTION_HEIGHT);
         let (popup, mut column) =
             self.open_popup(text, strings.change_icon, row.height + caption + line);
-        let x = column.inner.centered_x(row.width).round();
-        let strip = Rect::new(x, column.y, row.width, row.height);
-        column.y = strip.bottom();
+        let strip = row.take_strip(&mut column);
         let caption = column.section(strings.letters_or_image);
         let inner = column.inner;
         let slot = Rect::new(inner.x, column.y, metrics.px(LETTERS_WIDTH), line);

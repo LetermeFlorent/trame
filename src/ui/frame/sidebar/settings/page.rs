@@ -6,7 +6,7 @@ use crate::preferences::Preferences;
 
 use super::{
     Chip, ConnectionsPage, FormPage, HostsView, InstancesPage, PopupFrame, SettingControl,
-    SettingsTab, ShortcutsPage, ShortcutsView,
+    SettingsTab, ShortcutsPage, ShortcutsView, control_under,
 };
 
 #[derive(Clone, Copy)]
@@ -64,11 +64,9 @@ impl SettingsFrame {
             SettingsPage::Shortcuts(page) => page.control_at(point),
         };
         let tabs = self.tabs.iter().map(|chip| (chip.rect, chip.control));
-        [(self.popup.close, SettingControl::Close)]
+        let controls = [(self.popup.close, SettingControl::Close)]
             .into_iter()
-            .chain(tabs)
-            .find(|(rect, _)| rect.contains(point))
-            .map(|(_, control)| control)
-            .or(page)
+            .chain(tabs);
+        control_under(point, controls).or(page)
     }
 }

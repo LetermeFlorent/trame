@@ -3,14 +3,11 @@ use crate::ui::chrome::{Icon, Painter};
 use crate::ui::frame::{KeyControl, SettingControl, ShortcutsPage};
 use crate::ui::hit::Hit;
 
-use super::controls::{draw_chip, draw_choices};
+use super::controls::{draw_choices, draw_header};
 
 pub(super) fn draw_shortcuts(painter: &mut Painter, page: &ShortcutsPage) {
     let theme = painter.theme;
-    painter.setting_line(&page.header.line, theme.text_faint);
-    for chip in &page.header.chips {
-        draw_chip(painter, chip);
-    }
+    draw_header(painter, &page.header);
     if let Some(list) = &page.list {
         draw_host_list(painter, list);
     }

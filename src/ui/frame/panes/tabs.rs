@@ -75,14 +75,8 @@ pub(super) fn layout_strip(cx: &mut PaneContext, placement: StripPlacement) -> T
 fn controls(metrics: &UiMetrics, rect: Rect) -> Controls {
     let button = metrics.px(STRIP_BUTTON);
     let margin = metrics.px(BUTTON_MARGIN);
-    let button_y = rect.centered_y(button).round();
-    let split = Rect::new(rect.right() - margin - button, button_y, button, button);
-    let new_tab = Rect::new(
-        split.x - metrics.px(BUTTON_GAP) - button,
-        button_y,
-        button,
-        button,
-    );
+    let split = rect.square_at(rect.right() - margin - button, button);
+    let new_tab = rect.square_at(split.x - metrics.px(BUTTON_GAP) - button, button);
     let tabs_area = Rect::from_edges(rect.x, rect.y, new_tab.x - margin, rect.bottom());
     Controls {
         tabs_area,

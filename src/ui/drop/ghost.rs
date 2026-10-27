@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
-use crate::text::TextSystem;
+use crate::text::{TextLayout, TextSystem};
 use crate::theme::Theme;
 use crate::ui::frame::fit_label;
 use crate::ui::metrics::UiMetrics;
@@ -36,6 +38,12 @@ pub(super) struct Ghost<'a> {
     pub pointer: Point,
 }
 
+fn fitted_label(text: &mut TextSystem, metrics: &UiMetrics, label: &str) -> (Arc<TextLayout>, f32) {
+    let padding = metrics.px(UiMetrics::TAB_PADDING);
+    let widest = metrics.px(UiMetrics::TAB_MAX) - padding * 2.0;
+    (fit_label(text, label, metrics.label(), widest), padding)
+}
+
 pub(super) fn paint_ghost(
     scene: &mut Scene,
     text: &mut TextSystem,
@@ -43,9 +51,7 @@ pub(super) fn paint_ghost(
     metrics: UiMetrics,
     ghost: Ghost,
 ) {
-    let padding = metrics.px(UiMetrics::TAB_PADDING);
-    let widest = metrics.px(UiMetrics::TAB_MAX) - padding * 2.0;
-    let label = fit_label(text, ghost.label, metrics.label(), widest);
+    let (label, padding) = fitted_label(text, &metrics, ghost.label);
     let offset = metrics.px(GHOST_OFFSET);
     let rect = Rect::new(
         (ghost.pointer.x + offset).round(),
@@ -62,9 +68,8 @@ pub(super) fn paint_ghost(
 }
 
 pub fn ghost_scene(text: &mut TextSystem, theme: &Theme, metrics: UiMetrics, label: &str) -> Scene {
-    let padding = metrics.px(UiMetrics::TAB_PADDING);
-    let widest = metrics.px(UiMetrics::TAB_MAX) - padding * 2.0;
-    let width = fit_label(text, label, metrics.label(), widest).width;
+    let (fitted, padding) = fitted_label(text, &metrics, label);
+    let width = fitted.width;
     let margin = metrics.px(GHOST_OFFSET) + 2.0 * metrics.px(GHOST_BLUR);
     let arrow = arrow_scale(metrics);
     let mut scene = Scene::new(

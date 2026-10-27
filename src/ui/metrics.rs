@@ -50,6 +50,7 @@ impl UiMetrics {
     pub const TAB_BAR: f32 = 22.0;
     pub const TAB_PADDING: f32 = 7.0;
     pub const TAB_CLOSE: f32 = 16.0;
+    pub const TAB_CLOSE_MARGIN: f32 = 5.0;
     pub const TAB_MIN: f32 = 64.0;
     pub const TAB_MAX: f32 = 160.0;
     pub const BUTTON: f32 = 22.0;

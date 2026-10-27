@@ -10,7 +10,6 @@ const ROW_MARGIN: f32 = 6.0;
 const ICON_MARGIN: f32 = 8.0;
 const TAB_INDENT: f32 = 14.0;
 const LABEL_GAP: f32 = 8.0;
-const CLOSE_MARGIN: f32 = 5.0;
 
 pub(super) struct RowSpec {
     item: SidebarItem,
@@ -59,14 +58,10 @@ pub(super) fn layout_row(
         slot.height,
     );
     let icon_size = metrics.px(UiMetrics::ICON);
-    let icon = square_in(
-        rect,
-        rect.x + metrics.px(ICON_MARGIN + spec.indent),
-        icon_size,
-    );
+    let icon = rect.square_at(rect.x + metrics.px(ICON_MARGIN + spec.indent), icon_size);
     let close_size = metrics.px(UiMetrics::TAB_CLOSE);
-    let close_x = rect.right() - metrics.px(CLOSE_MARGIN) - close_size;
-    let close = square_in(rect, close_x, close_size);
+    let close_x = rect.right() - metrics.px(UiMetrics::TAB_CLOSE_MARGIN) - close_size;
+    let close = rect.square_at(close_x, close_size);
     let label_x = icon.right() + metrics.px(LABEL_GAP);
     let label_width = close.x - metrics.px(LABEL_GAP) - label_x;
     let style = if spec.indent > 0.0 {
@@ -88,8 +83,4 @@ pub(super) fn layout_row(
         color: None,
         emblem: None,
     }
-}
-
-fn square_in(row: Rect, x: f32, size: f32) -> Rect {
-    Rect::new(x, row.centered_y(size).round(), size, size)
 }

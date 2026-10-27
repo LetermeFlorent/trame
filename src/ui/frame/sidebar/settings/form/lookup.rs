@@ -2,6 +2,7 @@ use crate::geometry::{Point, Rect};
 use crate::ui::frame::FieldFrame;
 
 use super::{ChoiceRow, FormPage, SettingControl, Stepper, ToggleRow};
+use crate::ui::frame::sidebar::settings::control_under;
 
 impl FormPage {
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
@@ -16,13 +17,8 @@ impl FormPage {
             .map(|toggle| (toggle.line.rect, toggle.control));
         let steppers = self.steppers.iter().flat_map(Stepper::targets);
         let rows = self.rows.iter().flat_map(ChoiceRow::controls);
-        field
-            .into_iter()
-            .chain(toggles)
-            .chain(steppers)
-            .chain(rows)
-            .find(|(rect, _)| rect.contains(point))
-            .map(|(_, control)| control)
+        let controls = field.into_iter().chain(toggles).chain(steppers).chain(rows);
+        control_under(point, controls)
     }
 
     pub fn field_for(&self, wanted: SettingControl) -> Option<&FieldFrame> {

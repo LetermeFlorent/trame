@@ -4,7 +4,7 @@ mod place;
 
 use crate::geometry::{Point, Rect};
 
-use super::{ChoiceRow, HostList, SettingControl, SettingLine};
+use super::{ChoiceRow, HostList, SettingControl, SettingLine, control_under};
 pub use label::key_label;
 pub(super) use place::shortcuts_page;
 
@@ -63,11 +63,11 @@ impl ShortcutsPage {
             let control = SettingControl::Keys(KeyControl::Remove(key.index));
             (key.remove, control)
         });
-        self.header
+        let controls = self
+            .header
             .controls()
             .chain(self.footer.iter().flat_map(ChoiceRow::controls))
-            .chain(removes)
-            .find(|(rect, _)| rect.contains(point))
-            .map(|(_, control)| control)
+            .chain(removes);
+        control_under(point, controls)
     }
 }

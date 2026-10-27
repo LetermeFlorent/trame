@@ -2,7 +2,6 @@ use crate::geometry::Rect;
 use crate::text::{TextStyle, TextSystem};
 use crate::ui::metrics::UiMetrics;
 
-const CLOSE_MARGIN: f32 = 5.0;
 const LABEL_GAP: f32 = 6.0;
 
 pub(super) struct TabSizing {
@@ -19,7 +18,7 @@ impl TabSizing {
     pub(super) fn new(metrics: &UiMetrics) -> Self {
         let padding = metrics.px(UiMetrics::TAB_PADDING);
         let close = metrics.px(UiMetrics::TAB_CLOSE);
-        let close_margin = metrics.px(CLOSE_MARGIN);
+        let close_margin = metrics.px(UiMetrics::TAB_CLOSE_MARGIN);
         Self {
             style: metrics.label(),
             padding,
@@ -38,12 +37,7 @@ impl TabSizing {
     }
 
     pub(super) fn close_rect(&self, tab: Rect) -> Rect {
-        Rect::new(
-            tab.right() - self.close_margin - self.close,
-            tab.centered_y(self.close).round(),
-            self.close,
-            self.close,
-        )
+        tab.square_at(tab.right() - self.close_margin - self.close, self.close)
     }
 }
 

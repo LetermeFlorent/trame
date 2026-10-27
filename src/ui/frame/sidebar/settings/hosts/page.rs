@@ -1,11 +1,11 @@
-use crate::geometry::{Point, Rect};
+use crate::geometry::Point;
 use crate::locale::Strings;
 use crate::preferences::ConnectForm;
 use crate::ui::frame::editor::{
     FormAction, FormFrame, FormSpec, form_height, form_title, place_form,
 };
 use crate::ui::frame::sidebar::settings::column::{Column, LINE_HEIGHT};
-use crate::ui::frame::sidebar::settings::{ChoiceRow, SettingControl, SettingLine};
+use crate::ui::frame::sidebar::settings::{ChoiceRow, SettingControl, SettingLine, control_under};
 
 use super::{HostList, HostsView, ListSpec, host_labels};
 
@@ -21,10 +21,7 @@ pub struct ConnectionsPage {
 
 impl ConnectionsPage {
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
-        self.header
-            .controls()
-            .find(|(rect, _)| rect.contains(point))
-            .map(|(_, control)| control)
+        control_under(point, self.header.controls())
     }
 }
 
@@ -50,7 +47,7 @@ fn form_page(
     let caption = column.caption(form_title(strings, changing));
     let header = column.choices_on(caption, &[], None);
     let height = form_height(&column.metrics);
-    let area = Rect::new(column.inner.x, column.y, column.inner.width, height);
+    let area = column.band(height);
     let spec = FormSpec {
         area,
         form,
@@ -87,12 +84,11 @@ fn list_page(
         page.hint = Some(hint);
         return page;
     }
-    let room = (bottom - column.y) / column.metrics.px(LINE_HEIGHT);
     let labels = host_labels(view.hosts);
     let spec = ListSpec {
         labels: &labels,
         first: view.first,
-        shown: room.floor().max(1.0) as usize,
+        shown: column.rows_left(bottom),
         pickable: false,
         forgets: true,
     };

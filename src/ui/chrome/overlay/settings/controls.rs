@@ -110,6 +110,13 @@ pub(super) fn draw_choices(painter: &mut Painter, row: &ChoiceRow) {
     }
 }
 
+pub(super) fn draw_header(painter: &mut Painter, row: &ChoiceRow) {
+    painter.setting_line(&row.line, painter.theme.text_faint);
+    for chip in &row.chips {
+        draw_chip(painter, chip);
+    }
+}
+
 pub(super) fn draw_chip(painter: &mut Painter, chip: &Chip) {
     let button = LabelButton {
         rect: chip.rect,

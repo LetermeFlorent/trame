@@ -23,7 +23,7 @@ impl Column<'_> {
         let last_first = count - shown;
         let first = spec.first.min(last_first);
         let height = shown as f32 * self.metrics.px(LINE_HEIGHT);
-        let rect = Rect::new(self.inner.x, self.y, self.inner.width, height);
+        let rect = self.band(height);
         let window = Window {
             first,
             shown,

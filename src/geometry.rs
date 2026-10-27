@@ -52,6 +52,10 @@ impl Rect {
         self.y + (self.height - height) / 2.0
     }
 
+    pub fn square_at(&self, x: f32, size: f32) -> Rect {
+        Rect::new(x, self.centered_y(size).round(), size, size)
+    }
+
     pub fn is_empty(&self) -> bool {
         self.width <= 0.0 || self.height <= 0.0
     }

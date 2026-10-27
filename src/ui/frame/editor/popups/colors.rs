@@ -40,9 +40,7 @@ impl FrameLayout {
         let shown = self.listed_rows(view.custom.len(), row.height + tail);
         let content = row.height + tail + shown as f32 * metrics.px(LINE_HEIGHT);
         let (popup, mut column) = self.open_popup(text, strings.change_color, content);
-        let x = column.inner.centered_x(row.width).round();
-        let strip = Rect::new(x, column.y, row.width, row.height);
-        column.y = strip.bottom();
+        let strip = row.take_strip(&mut column);
         let custom = custom_section(&mut column, &view, shown, strings);
         EditorFrame {
             popup: Some(popup),
@@ -119,8 +117,7 @@ fn custom_dots(metrics: &UiMetrics, list: &mut HostList, custom: &[Swatch]) -> V
         .iter_mut()
         .map(|row| {
             let line = &mut row.line;
-            let y = line.rect.centered_y(size).round();
-            let rect = Rect::new(line.label_x.round(), y, size, size);
+            let rect = line.rect.square_at(line.label_x.round(), size);
             line.label_x += step;
             SwatchSlot {
                 rect,

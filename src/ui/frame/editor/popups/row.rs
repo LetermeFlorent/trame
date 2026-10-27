@@ -1,5 +1,6 @@
 use crate::geometry::Rect;
 use crate::theme::Swatch;
+use crate::ui::frame::sidebar::Column;
 use crate::ui::metrics::UiMetrics;
 
 pub(super) const SWATCH_SIZE: f32 = 14.0;
@@ -27,6 +28,13 @@ impl RowSize {
             width: count * size + (count - 1.0) * metrics.px(gap) + 2.0 * metrics.px(STRIP_PAD_X),
             height: size + 2.0 * metrics.px(STRIP_PAD_Y),
         }
+    }
+
+    pub(super) fn take_strip(self, column: &mut Column) -> Rect {
+        let x = column.inner.centered_x(self.width).round();
+        let strip = Rect::new(x, column.y, self.width, self.height);
+        column.y = strip.bottom();
+        strip
     }
 }
 

@@ -2,14 +2,11 @@ use crate::ui::chrome::Painter;
 use crate::ui::chrome::overlay::connect::{draw_form, draw_host_list};
 use crate::ui::frame::ConnectionsPage;
 
-use super::controls::draw_chip;
+use super::controls::draw_header;
 
 pub(super) fn draw_connections(painter: &mut Painter, page: &ConnectionsPage) {
     let theme = painter.theme;
-    painter.setting_line(&page.header.line, theme.text_faint);
-    for chip in &page.header.chips {
-        draw_chip(painter, chip);
-    }
+    draw_header(painter, &page.header);
     if let Some(hint) = &page.hint {
         painter.setting_line(hint, theme.text_muted);
     }

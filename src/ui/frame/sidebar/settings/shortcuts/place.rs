@@ -2,7 +2,7 @@ use crate::input::{Keymap, Overrides};
 use crate::locale::KeyStrings;
 use crate::ui::Platform;
 use crate::ui::frame::fit_label;
-use crate::ui::frame::sidebar::settings::column::{Column, LINE_HEIGHT, LINE_INSET};
+use crate::ui::frame::sidebar::settings::column::{Column, LINE_INSET};
 use crate::ui::frame::sidebar::settings::{
     ChoiceRow, HostRow, ListSpec, SettingControl, SettingLine, SettingsRequest,
 };
@@ -77,7 +77,6 @@ fn list_page(column: &mut Column, book: &Book, view: ShortcutsView, bottom: f32)
     )];
     let shown = usize::from(!book.overrides.is_empty());
     let header = column.choices_on(caption, &reset[..shown], None);
-    let room = (bottom - column.y) / column.metrics.px(LINE_HEIGHT);
     let labels: Vec<String> = strings
         .actions
         .iter()
@@ -86,7 +85,7 @@ fn list_page(column: &mut Column, book: &Book, view: ShortcutsView, bottom: f32)
     let spec = ListSpec {
         labels: &labels,
         first: view.first,
-        shown: room.floor().max(1.0) as usize,
+        shown: column.rows_left(bottom),
         pickable: true,
         forgets: false,
     };

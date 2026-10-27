@@ -1,4 +1,4 @@
-use crate::geometry::{Point, Rect};
+use crate::geometry::Point;
 use crate::locale::Strings;
 use crate::text::TextSystem;
 use crate::ui::frame::editor::{FormAction, FormFrame, button_form};
@@ -41,7 +41,7 @@ impl FrameLayout {
             line.label = fit_label_start(column.text, shown, metrics.label(), room);
             lines.push(line);
         }
-        let area = Rect::new(column.inner.x, column.y, column.inner.width, actions);
+        let area = column.band(actions);
         let form = button_form(
             column.text,
             &metrics,
