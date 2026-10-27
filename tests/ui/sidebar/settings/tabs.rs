@@ -29,18 +29,23 @@ fn the_seven_tabs_fit_on_one_line_under_the_title_and_mark_the_open_one() {
 }
 
 #[test]
-fn the_window_keeps_its_size_from_one_tab_to_the_other() {
-    let general = panel(&english(&Preferences::default())).popup.rect;
+fn the_window_keeps_its_width_and_top_from_one_tab_to_the_other() {
+    let full = panel(&on_tab(&Preferences::default(), SettingsTab::Shortcuts))
+        .popup
+        .rect;
     let wide = english(&Preferences::default()).metrics.px(360.0);
-    assert!(general.width > wide);
+    assert!(full.width > wide);
     for tab in SettingsTab::ALL {
         let layout = on_tab(&Preferences::default(), tab);
-        assert_eq!(panel(&layout).popup.rect, general);
+        let rect = panel(&layout).popup.rect;
+        assert_eq!((rect.x, rect.y, rect.width), (full.x, full.y, full.width));
+        assert!(rect.height <= full.height, "{tab:?}");
     }
     let saved = hosts(60);
-    for layout in [opened(&[], 0, None), opened(&saved, 0, None)] {
-        assert_eq!(panel(&layout).popup.rect, general);
-    }
+    let (empty, long) = (opened(&[], 0, None), opened(&saved, 0, None));
+    let (empty, long) = (panel(&empty).popup.rect, panel(&long).popup.rect);
+    assert_eq!((long.x, long.y, long.width), (full.x, full.y, full.width));
+    assert!(empty.height < long.height);
 }
 
 #[test]

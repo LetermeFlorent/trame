@@ -23,12 +23,14 @@ pub fn draw_settings(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInp
     for tab in &settings.tabs {
         draw_chip(&mut painter, tab);
     }
+    painter.scene.push_clip(settings.popup.rect);
     match &settings.page {
         SettingsPage::Form(page) => draw_form(&mut painter, page),
         SettingsPage::Instances(page) => draw_instances(&mut painter, page),
         SettingsPage::Connections(page) => draw_connections(&mut painter, page),
         SettingsPage::Shortcuts(page) => draw_shortcuts(&mut painter, page),
     }
+    painter.scene.pop_clip();
 }
 
 fn draw_instances(painter: &mut Painter, page: &InstancesPage) {

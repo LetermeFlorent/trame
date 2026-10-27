@@ -23,6 +23,7 @@ pub struct Motion {
     now: Instant,
     animate: bool,
     sidebar: Option<Tween<f32>>,
+    popup: Option<Tween<f32>>,
     rects: HashMap<MotionKey, Tween<Rect>>,
     seen: HashSet<MotionKey>,
     fades: Fades,
@@ -41,6 +42,7 @@ impl Motion {
             now,
             animate: false,
             sidebar: None,
+            popup: None,
             rects: HashMap::new(),
             seen: HashSet::new(),
             fades: Fades::default(),
@@ -64,6 +66,7 @@ impl Motion {
     pub fn is_busy(&self) -> bool {
         let now = self.now;
         self.sidebar.is_some_and(|tween| !tween.is_done(now))
+            || self.popup.is_some_and(|tween| !tween.is_done(now))
             || self.rects.values().any(|tween| !tween.is_done(now))
             || self.fades.is_busy(now)
             || self.scrolls.values().any(|tween| !tween.is_done(now))
@@ -76,6 +79,18 @@ impl Motion {
         self.sidebar
             .get_or_insert_with(|| Tween::settled(target, now))
             .steer(target, now, animate)
+    }
+
+    pub fn popup_height(&mut self, target: Option<f32>) -> Option<f32> {
+        let Some(target) = target else {
+            self.popup = None;
+            return None;
+        };
+        let now = self.now;
+        let tween = self
+            .popup
+            .get_or_insert_with(|| Tween::settled(target, now));
+        Some(tween.steer(target, now, true))
     }
 
     pub fn knows(&self, key: MotionKey) -> bool {

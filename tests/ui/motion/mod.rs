@@ -1,5 +1,6 @@
 mod fades;
 mod layout;
+mod popup;
 mod scroll;
 mod tween;
 

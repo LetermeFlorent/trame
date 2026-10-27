@@ -36,6 +36,15 @@ impl Running {
             };
             self.frame.place_settings(&mut self.text, &request);
         }
+        let popup = self
+            .frame
+            .settings
+            .as_mut()
+            .map(|frame| &mut frame.popup.rect);
+        let target = popup.as_ref().map(|rect| rect.height);
+        if let (Some(rect), Some(height)) = (popup, self.motion.popup_height(target)) {
+            rect.height = height.round();
+        }
         if let Some((control, field)) = &self.setting_field {
             self.frame
                 .place_setting_field(&mut self.text, *control, field);

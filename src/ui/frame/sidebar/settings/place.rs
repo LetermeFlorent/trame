@@ -30,10 +30,11 @@ impl FrameLayout {
         let page_height = page_height(&self.metrics, self.popup_room() - tabs_height);
         let size = [SETTINGS_WIDTH, page_height + tabs_height];
         let title = request.strings.settings;
-        let (popup, mut column) = self.open_wide_popup(text, title, size);
+        let (mut popup, mut column) = self.open_wide_popup(text, title, size);
         let tabs = settings_tabs(&mut column, request);
         column.y += column.metrics.px(SECTION_GAP);
         let page = settings_page(&mut column, request, page_height);
+        popup.end_below(&self.metrics, column.y);
         self.settings = Some(SettingsFrame { popup, tabs, page });
     }
 

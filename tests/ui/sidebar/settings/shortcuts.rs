@@ -55,7 +55,9 @@ fn the_tab_lists_every_action_with_its_keys() {
     let layout = opened(&mut text, &preferences, ShortcutsView::default());
     let page = page(&layout);
     let general = english(&preferences);
-    assert_eq!(panel(&layout).popup.rect, panel(&general).popup.rect);
+    let (list, form) = (panel(&layout).popup.rect, panel(&general).popup.rect);
+    assert_eq!((list.x, list.y, list.width), (form.x, form.y, form.width));
+    assert!(list.height > form.height);
     assert!(page.header.chips.is_empty());
     let list = page.list.as_ref().expect("the action list");
     assert!(list.bar.is_some());

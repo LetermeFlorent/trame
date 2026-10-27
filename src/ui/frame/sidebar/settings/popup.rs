@@ -1,6 +1,7 @@
 use crate::geometry::Rect;
 use crate::text::TextSystem;
 use crate::ui::frame::FrameLayout;
+use crate::ui::metrics::UiMetrics;
 
 use super::SettingLine;
 use super::column::Column;
@@ -15,6 +16,13 @@ pub struct PopupFrame {
     pub rect: Rect,
     pub title: SettingLine,
     pub close: Rect,
+}
+
+impl PopupFrame {
+    pub(in crate::ui::frame) fn end_below(&mut self, metrics: &UiMetrics, content: f32) {
+        let bottom = content + metrics.px(PANEL_PAD);
+        self.rect.height = (bottom - self.rect.y).min(self.rect.height).round();
+    }
 }
 
 impl FrameLayout {
