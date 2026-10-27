@@ -2,6 +2,8 @@ use std::fmt;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+const DESCRIPTOR_SLOTS: u32 = 4096;
+
 pub struct Gpu {
     pub instance: wgpu::Instance,
     pub adapter: wgpu::Adapter,
@@ -41,7 +43,10 @@ impl Gpu {
             ..Default::default()
         }))
         .map_err(GpuError::Adapter)?;
-        let limits = wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits());
+        let limits = wgpu::Limits {
+            max_non_sampler_bindings: DESCRIPTOR_SLOTS,
+            ..wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits())
+        };
         let (device, queue) = pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
             label: Some("trame"),
             required_limits: limits,
