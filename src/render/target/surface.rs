@@ -3,6 +3,7 @@ use crate::render::gpu::Gpu;
 pub struct WindowSurface {
     surface: wgpu::Surface<'static>,
     config: wgpu::SurfaceConfiguration,
+    pending: Option<(u32, u32)>,
 }
 
 pub enum Frame {
@@ -31,7 +32,11 @@ impl WindowSurface {
         }
         config.desired_maximum_frame_latency = 1;
         surface.configure(&gpu.device, &config);
-        Some(Self { surface, config })
+        Some(Self {
+            surface,
+            config,
+            pending: None,
+        })
     }
 
     pub fn format(&self) -> wgpu::TextureFormat {
@@ -42,13 +47,11 @@ impl WindowSurface {
         (self.config.width, self.config.height)
     }
 
-    pub fn resize(&mut self, gpu: &Gpu, width: u32, height: u32) {
-        if width == 0 || height == 0 || (width, height) == self.size() {
+    pub fn resize(&mut self, width: u32, height: u32) {
+        if width == 0 || height == 0 {
             return;
         }
-        self.config.width = width;
-        self.config.height = height;
-        self.surface.configure(&gpu.device, &self.config);
+        self.pending = ((width, height) != self.size()).then_some((width, height));
     }
 
     #[cfg(feature = "capture")]
@@ -61,6 +64,11 @@ impl WindowSurface {
     }
 
     pub fn acquire(&mut self, gpu: &Gpu) -> Frame {
+        if let Some((width, height)) = self.pending.take() {
+            self.config.width = width;
+            self.config.height = height;
+            self.surface.configure(&gpu.device, &self.config);
+        }
         match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Outdated | wgpu::CurrentSurfaceTexture::Lost => {
                 self.surface.configure(&gpu.device, &self.config);

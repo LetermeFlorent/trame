@@ -78,7 +78,7 @@ impl Graphics {
 
     pub fn resize(&mut self, width: u32, height: u32) {
         if let Some(surface) = &mut self.surface {
-            surface.resize(&self.gpu, width, height);
+            surface.resize(width, height);
         }
     }
 
