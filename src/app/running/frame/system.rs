@@ -12,7 +12,7 @@ impl Running {
         if self.graphics.take_fresh() {
             self.changed();
         }
-        self.idle.tick(Instant::now());
+        self.power.tick(Instant::now());
         self.restart_if_card_lost(event_loop);
     }
 
@@ -24,7 +24,7 @@ impl Running {
         let current = &self.preferences;
         self.workspace.set_numbering(current.numbering);
         if previous.efficiency != current.efficiency {
-            self.idle.set_enabled(current.efficiency);
+            self.power.set_enabled(current.efficiency);
         }
     }
 }

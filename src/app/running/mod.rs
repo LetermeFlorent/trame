@@ -30,7 +30,7 @@ use trame::workspace::Workspace;
 use super::graphics::Graphics;
 use super::notice::Notifier;
 use super::persist::Saver;
-use super::power::Idle;
+use super::power::Power;
 use super::sessions::Sessions;
 use super::visibility::Visibility;
 use super::{UserEvent, window};
@@ -72,7 +72,7 @@ pub struct Running {
     loader: Option<Loader>,
     update_offer: Option<String>,
     restarting: bool,
-    idle: Idle,
+    power: Power,
     notifier: Notifier,
     closing: Option<Closing>,
     strings: &'static Strings,
@@ -82,7 +82,7 @@ impl Running {
     pub fn session_event(&mut self, event_loop: &ActiveEventLoop, event: SessionEvent) {
         match event {
             SessionEvent::Output(id) => {
-                self.idle.touch();
+                self.power.touch();
                 self.output(id);
             }
             SessionEvent::Exited(id) => self.close_tab(event_loop, id),
@@ -91,7 +91,7 @@ impl Running {
 
     pub fn window_event(&mut self, event_loop: &ActiveEventLoop, event: WindowEvent) {
         if !matches!(event, WindowEvent::RedrawRequested) {
-            self.idle.touch();
+            self.power.touch();
         }
         match event {
             WindowEvent::CloseRequested => self.ask_close(event_loop, Closing::Window),
@@ -104,6 +104,7 @@ impl Running {
             WindowEvent::ThemeChanged(theme) => self.set_appearance(window::appearance_of(theme)),
             WindowEvent::Focused(focused) => {
                 self.visibility.forget();
+                self.power.set_background(!focused);
                 self.focus_changed(focused);
             }
             WindowEvent::ModifiersChanged(modifiers) => self.modifiers = modifiers.state(),

@@ -51,7 +51,7 @@ pub const FRENCH: Strings = Strings {
     cancel: "Annuler",
     confirm_close: "Confirmer avant de fermer plusieurs onglets",
     windows_section: "Windows",
-    efficiency_mode: "Mode efficacité quand inactif",
+    efficiency_mode: "Mode efficacité inactif ou en arrière-plan",
     notify_waiting: "Notifier quand un onglet attend une réponse",
     instances_section: "Instances",
     numbered_instances: "Numéros au lieu des icônes",

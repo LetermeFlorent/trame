@@ -51,7 +51,7 @@ pub const ENGLISH: Strings = Strings {
     cancel: "Cancel",
     confirm_close: "Ask before closing several tabs",
     windows_section: "Windows",
-    efficiency_mode: "Efficiency mode when idle",
+    efficiency_mode: "Efficiency mode when idle or hidden",
     notify_waiting: "Notify when a tab is waiting for you",
     instances_section: "Instances",
     numbered_instances: "Numbers instead of icons",

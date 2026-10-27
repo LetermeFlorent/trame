@@ -23,7 +23,7 @@ use super::tabs::Placement;
 use super::{Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
 use crate::app::persist::{self, Saver};
-use crate::app::power::Idle;
+use crate::app::power::Power;
 use crate::app::sessions::Sessions;
 use crate::app::update::UpdateStatus;
 use crate::app::visibility::Visibility;
@@ -90,7 +90,7 @@ impl Running {
             .chain(retry)
             .chain(loader)
             .chain(secret)
-            .chain(self.idle.deadline())
+            .chain(self.power.deadline())
             .min();
         event_loop.set_control_flow(wake.map_or(ControlFlow::Wait, ControlFlow::WaitUntil));
     }
@@ -102,7 +102,7 @@ impl Running {
         let (frame, motion, strings) = first_frame(&mut surface, &workspace, metrics);
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
-            idle: Idle::new(surface.preferences.efficiency),
+            power: Power::new(surface.preferences.efficiency),
             notifier: Notifier::default(),
             window: surface.window,
             graphics: surface.graphics,
