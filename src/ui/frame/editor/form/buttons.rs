@@ -18,6 +18,7 @@ pub enum FormAction {
     Apply,
     Add,
     Image,
+    Restart,
 }
 
 impl FormAction {
@@ -35,6 +36,7 @@ impl FormAction {
             Self::Apply => strings.apply,
             Self::Add => strings.add,
             Self::Image => strings.image,
+            Self::Restart => strings.restart,
         }
     }
 }

@@ -21,7 +21,7 @@ impl Running {
         let strings = self.strings;
         let request = MessageRequest {
             title: strings.change_folder,
-            line: shown.as_deref().unwrap_or(strings.pick_folder),
+            lines: &[shown.as_deref().unwrap_or(strings.pick_folder)],
             actions: &FOLDER_ACTIONS,
             strings,
         };

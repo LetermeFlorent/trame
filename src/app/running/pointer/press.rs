@@ -75,7 +75,7 @@ impl Running {
             Hit::Close => self.ask_close(event_loop, Closing::Window),
             Hit::NewInstance => self.command(event_loop, Command::NewInstance),
             Hit::Settings => self.toggle_settings(),
-            Hit::Update => self.restart_for_update(event_loop),
+            Hit::Update => self.ask_close(event_loop, Closing::Update),
             Hit::Setting(control) => self.apply_setting(control),
             Hit::List(control) => self.list_control(control),
             Hit::FormField(field) => self.focus_form(field),

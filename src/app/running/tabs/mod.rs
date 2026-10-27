@@ -1,4 +1,5 @@
 mod closing;
+mod confirm;
 mod deferred;
 mod folder;
 mod ssh;

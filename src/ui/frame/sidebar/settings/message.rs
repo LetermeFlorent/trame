@@ -11,13 +11,13 @@ use super::{PopupFrame, SettingLine};
 #[derive(Clone, Debug)]
 pub struct MessageFrame {
     pub popup: PopupFrame,
-    pub line: SettingLine,
+    pub lines: Vec<SettingLine>,
     pub form: FormFrame,
 }
 
 pub struct MessageRequest<'a> {
     pub title: &'a str,
-    pub line: &'a str,
+    pub lines: &'a [&'a str],
     pub actions: &'a [FormAction],
     pub strings: &'static Strings,
 }
@@ -32,11 +32,15 @@ impl FrameLayout {
     pub fn place_message(&mut self, text: &mut TextSystem, request: &MessageRequest) {
         let metrics = self.metrics;
         let actions = metrics.px(SECTION_GAP) + metrics.px(UiMetrics::BUTTON);
-        let content = metrics.px(LINE_HEIGHT) + actions;
+        let content = request.lines.len() as f32 * metrics.px(LINE_HEIGHT) + actions;
         let (popup, mut column) = self.open_popup(text, request.title, content);
-        let mut line = column.line("", LINE_HEIGHT, metrics.label());
-        let room = line.rect.width - 2.0 * metrics.px(LINE_INSET);
-        line.label = fit_label_start(column.text, request.line, metrics.label(), room);
+        let mut lines = Vec::with_capacity(request.lines.len());
+        for shown in request.lines {
+            let mut line = column.line("", LINE_HEIGHT, metrics.label());
+            let room = line.rect.width - 2.0 * metrics.px(LINE_INSET);
+            line.label = fit_label_start(column.text, shown, metrics.label(), room);
+            lines.push(line);
+        }
         let area = Rect::new(column.inner.x, column.y, column.inner.width, actions);
         let form = button_form(
             column.text,
@@ -45,6 +49,6 @@ impl FrameLayout {
             request.actions,
             request.strings,
         );
-        self.message = Some(MessageFrame { popup, line, form });
+        self.message = Some(MessageFrame { popup, lines, form });
     }
 }

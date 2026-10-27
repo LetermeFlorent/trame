@@ -59,6 +59,8 @@ pub fn draw_message(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInpu
     };
     let mut painter = Painter::new(scene, text, input);
     draw_popup(&mut painter, &message.popup, Hit::EditClose);
-    painter.setting_line(&message.line, painter.theme.text_muted);
+    for line in &message.lines {
+        painter.setting_line(line, painter.theme.text_muted);
+    }
     draw_form(&mut painter, &message.form);
 }

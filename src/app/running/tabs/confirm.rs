@@ -1,0 +1,102 @@
+use winit::event::{ElementState, KeyEvent};
+use winit::event_loop::ActiveEventLoop;
+use winit::keyboard::{Key, NamedKey};
+
+use trame::ui::Hit;
+use trame::ui::frame::{FormAction, MessageRequest};
+
+use super::Closing;
+use crate::app::running::Running;
+use crate::app::running::keys::is_escape;
+
+const CLOSE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Close];
+const UPDATE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Restart];
+const VERSION_SLOT: &str = "{version}";
+
+struct Question {
+    title: String,
+    body: String,
+    actions: &'static [FormAction],
+}
+
+impl Running {
+    pub(in crate::app::running) fn place_message(&mut self) {
+        let Some(closing) = self.closing else {
+            return;
+        };
+        let Some(question) = self.question(closing) else {
+            self.closing = None;
+            return;
+        };
+        let lines: Vec<&str> = question.body.lines().collect();
+        let request = MessageRequest {
+            title: &question.title,
+            lines: &lines,
+            actions: question.actions,
+            strings: self.strings,
+        };
+        self.frame.place_message(&mut self.text, &request);
+    }
+
+    fn question(&self, closing: Closing) -> Option<Question> {
+        let strings = self.strings;
+        if let Closing::Update = closing {
+            let offer = self.update_offer.as_deref()?;
+            return Some(Question {
+                title: strings.update_question.replace(VERSION_SLOT, offer),
+                body: strings.update_restarts.to_owned(),
+                actions: &UPDATE_ACTIONS,
+            });
+        }
+        let count = self.tabs_closing(closing);
+        let title = match closing {
+            Closing::Instance(_) => strings.close_instance,
+            _ => strings.close_window,
+        };
+        (count > 0).then(|| Question {
+            title: title.to_owned(),
+            body: format!("{count} {}", strings.tabs_will_close),
+            actions: &CLOSE_ACTIONS,
+        })
+    }
+
+    pub(in crate::app::running) fn closing_button(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        state: ElementState,
+    ) -> bool {
+        if self.closing.is_none() {
+            return false;
+        }
+        let hit = self.hit_under_pointer();
+        if !matches!(
+            hit,
+            Some(Hit::FormButton(_) | Hit::EditClose | Hit::Dialog | Hit::Backdrop)
+        ) {
+            return false;
+        }
+        if state == ElementState::Pressed && hit != Some(Hit::Dialog) {
+            let confirmed = matches!(
+                hit,
+                Some(Hit::FormButton(FormAction::Close | FormAction::Restart))
+            );
+            self.settle_closing(event_loop, confirmed);
+        }
+        true
+    }
+
+    pub(in crate::app::running) fn closing_key(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        event: &KeyEvent,
+    ) -> bool {
+        if self.closing.is_none() {
+            return false;
+        }
+        let confirmed = event.logical_key == Key::Named(NamedKey::Enter);
+        if confirmed || is_escape(event) {
+            self.settle_closing(event_loop, confirmed);
+        }
+        true
+    }
+}
