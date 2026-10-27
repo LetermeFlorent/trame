@@ -8,6 +8,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
+use crate::input::Overrides;
 use crate::locale::LanguageChoice;
 use crate::theme::Swatch;
 use crate::ui::display::{Density, PanelSide};
@@ -68,6 +69,8 @@ pub struct Preferences {
     pub efficiency: bool,
     #[serde(default = "enabled")]
     pub notify_waiting: bool,
+    #[serde(default, skip_serializing_if = "Overrides::is_empty")]
+    pub shortcuts: Overrides,
     #[serde(flatten)]
     pub numbering: Numbering,
 }
@@ -92,6 +95,7 @@ impl Default for Preferences {
             density: Density::Compact,
             efficiency: true,
             notify_waiting: true,
+            shortcuts: Overrides::default(),
             numbering: Numbering::default(),
         }
     }

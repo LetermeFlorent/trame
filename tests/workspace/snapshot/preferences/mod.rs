@@ -107,6 +107,8 @@ fn preferences_and_text_keys_survive_json() {
             on_close: false,
             on_move: true,
         },
+        shortcuts: serde_json::from_value(serde_json::json!({ "copy": ["Ctrl+Insert"] }))
+            .expect("reads the keys"),
     };
     let text = snapshot.to_json().expect("serializes");
     let parsed = Snapshot::from_json(&text).expect("parses");

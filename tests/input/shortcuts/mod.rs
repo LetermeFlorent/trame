@@ -1,3 +1,6 @@
+mod capture;
+mod combos;
+mod custom;
 mod navigation;
 
 use trame::input::{Command, ShortcutInput, shortcut};
