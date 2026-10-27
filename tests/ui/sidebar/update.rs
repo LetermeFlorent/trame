@@ -1,12 +1,11 @@
-use trame::files::IconStore;
-use trame::render::Scene;
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Swatch, Theme};
-use trame::ui::chrome::{ChromeInput, draw_chrome, draw_tooltip};
-use trame::ui::{FrameLayout, FrameView, Hit, Motion, UiMetrics};
+use trame::ui::chrome::{draw_chrome, draw_tooltip};
+use trame::ui::{FrameLayout, Hit, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::footer::closed_sidebar;
+use crate::paint::paint_with;
 use crate::{input, text_system, workspace};
 
 const VERSION: &str = "9.8.7";
@@ -15,33 +14,6 @@ fn offered(text: &mut TextSystem, workspace: &Workspace, update: Option<&str>) -
     let mut input = input(workspace, UiMetrics::new(1.0));
     input.update = update;
     FrameLayout::compute(text, &input)
-}
-
-type Draw = fn(&mut Scene, &mut TextSystem, &ChromeInput);
-
-fn paint(
-    text: &mut TextSystem,
-    frame: &FrameLayout,
-    theme: &Theme,
-    hover: Option<Hit>,
-    draw: Draw,
-) -> Scene {
-    let view = FrameView {
-        hover,
-        pressed: None,
-        window_focused: true,
-    };
-    let motion = Motion::default();
-    let input = ChromeInput {
-        theme,
-        frame,
-        view: &view,
-        motion: &motion,
-        icons: &IconStore::default(),
-    };
-    let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
-    draw(&mut scene, text, &input);
-    scene
 }
 
 #[test]
@@ -100,14 +72,14 @@ fn the_update_button_is_painted_orange() {
     let orange = theme.swatch(Swatch::Orange).to_array();
     let layout = offered(&mut text, &workspace(), Some(VERSION));
     let update = layout.footer.update.as_ref().expect("the update button");
-    let scene = paint(&mut text, &layout, &theme, None, draw_chrome);
+    let scene = paint_with(&mut text, &layout, &theme, None, draw_chrome);
     assert!(
         scene.quads().iter().any(|quad| {
             quad.color == orange && quad.rect[..2] == [update.rect.x, update.rect.y]
         })
     );
     let plain = offered(&mut text, &workspace(), None);
-    let scene = paint(&mut text, &plain, &theme, None, draw_chrome);
+    let scene = paint_with(&mut text, &plain, &theme, None, draw_chrome);
     assert!(!scene.quads().iter().any(|quad| quad.color == orange));
 }
 
@@ -118,7 +90,7 @@ fn hovering_the_rail_icon_names_the_version_beside_it() {
     let layout = offered(&mut text, &closed_sidebar(), Some(VERSION));
     let update = layout.footer.update.as_ref().expect("the update button");
     let rail = layout.rail.as_ref().expect("the rail");
-    let scene = paint(&mut text, &layout, &theme, Some(Hit::Update), draw_tooltip);
+    let scene = paint_with(&mut text, &layout, &theme, Some(Hit::Update), draw_tooltip);
     let bubble = scene
         .quads()
         .iter()

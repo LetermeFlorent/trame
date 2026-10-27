@@ -4,6 +4,7 @@ mod editor;
 mod logo;
 mod motion;
 mod overlay;
+mod paint;
 mod sidebar;
 
 use trame::locale::Language;

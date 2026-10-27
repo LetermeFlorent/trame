@@ -1,5 +1,6 @@
 use trame::workspace::{DropTarget, Edge, PaneId, Workspace};
 
+use super::{two_instances, two_panes};
 use crate::{assert_unchanged, column, leaf, pane_of, pane_tabs, row, tab, tabs, workspace_with};
 
 fn split_onto(workspace: &Workspace, pane: PaneId, edge: Edge) -> DropTarget {
@@ -8,18 +9,6 @@ fn split_onto(workspace: &Workspace, pane: PaneId, edge: Edge) -> DropTarget {
         pane,
         edge,
     }
-}
-
-fn two_panes() -> Workspace {
-    let mut workspace = workspace_with(&[1, 2, 3]);
-    workspace.split_active(tab(4), Edge::Right);
-    workspace
-}
-
-fn two_instances() -> Workspace {
-    let mut workspace = workspace_with(&[1, 2]);
-    workspace.add_instance(None, tab(3));
-    workspace
 }
 
 #[test]

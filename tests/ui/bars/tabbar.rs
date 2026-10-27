@@ -1,13 +1,13 @@
-use trame::files::IconStore;
 use trame::geometry::Rect;
 use trame::render::Scene;
 use trame::session::SessionId;
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Rgba, Swatch, Theme};
-use trame::ui::chrome::{ChromeInput, draw_chrome};
-use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
+use trame::ui::chrome::draw_chrome;
+use trame::ui::{FrameLayout, UiMetrics};
 use trame::workspace::Workspace;
 
+use crate::paint::paint_with;
 use crate::{frame, frame_in, text_system, workspace};
 
 fn coloured(first: Option<Swatch>, second: Option<Swatch>) -> Workspace {
@@ -18,22 +18,7 @@ fn coloured(first: Option<Swatch>, second: Option<Swatch>) -> Workspace {
 }
 
 fn paint(text: &mut TextSystem, frame: &FrameLayout, theme: &Theme) -> Scene {
-    let view = FrameView {
-        hover: None,
-        pressed: None,
-        window_focused: true,
-    };
-    let motion = Motion::default();
-    let input = ChromeInput {
-        theme,
-        frame,
-        view: &view,
-        motion: &motion,
-        icons: &IconStore::default(),
-    };
-    let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
-    draw_chrome(&mut scene, text, &input);
-    scene
+    paint_with(text, frame, theme, None, draw_chrome)
 }
 
 fn painted_at(scene: &Scene, rect: Rect, color: Rgba) -> bool {

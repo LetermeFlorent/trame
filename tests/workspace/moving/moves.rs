@@ -1,5 +1,6 @@
-use trame::workspace::{DropTarget, Edge, InstanceId, PaneId, Workspace};
+use trame::workspace::{DropTarget, InstanceId, PaneId, Workspace};
 
+use super::{two_instances, two_panes};
 use crate::{leaf, pane_of, pane_tabs, tab, tabs, workspace_with};
 
 fn into_pane(workspace: &Workspace, pane: PaneId, index: Option<usize>) -> DropTarget {
@@ -8,18 +9,6 @@ fn into_pane(workspace: &Workspace, pane: PaneId, index: Option<usize>) -> DropT
         pane,
         index,
     }
-}
-
-fn two_panes() -> Workspace {
-    let mut workspace = workspace_with(&[1, 2, 3]);
-    workspace.split_active(tab(4), Edge::Right);
-    workspace
-}
-
-fn two_instances() -> Workspace {
-    let mut workspace = workspace_with(&[1, 2]);
-    workspace.add_instance(None, tab(3));
-    workspace
 }
 
 #[test]

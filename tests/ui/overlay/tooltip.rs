@@ -1,14 +1,14 @@
-use trame::files::IconStore;
 use trame::input::TextField;
 use trame::locale::Language;
 use trame::render::Scene;
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Theme};
-use trame::ui::chrome::{ChromeInput, draw_tooltip};
+use trame::ui::chrome::draw_tooltip;
 use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest};
-use trame::ui::{FrameLayout, FrameView, Hit, Motion};
+use trame::ui::{FrameLayout, Hit};
 use trame::workspace::Workspace;
 
+use crate::paint::paint_with;
 use crate::{frame, text_system, workspace};
 
 fn collapsed() -> Workspace {
@@ -19,22 +19,7 @@ fn collapsed() -> Workspace {
 }
 
 fn paint(text: &mut TextSystem, frame: &FrameLayout, theme: &Theme, hover: Option<Hit>) -> Scene {
-    let view = FrameView {
-        hover,
-        pressed: None,
-        window_focused: true,
-    };
-    let motion = Motion::default();
-    let input = ChromeInput {
-        theme,
-        frame,
-        view: &view,
-        motion: &motion,
-        icons: &IconStore::default(),
-    };
-    let mut scene = Scene::new(frame.bounds.width, frame.bounds.height);
-    draw_tooltip(&mut scene, text, &input);
-    scene
+    paint_with(text, frame, theme, hover, draw_tooltip)
 }
 
 #[test]

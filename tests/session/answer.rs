@@ -1,14 +1,9 @@
-use std::path::Path;
-use std::sync::Arc;
-use std::sync::mpsc;
 use std::time::Instant;
 
 use trame::preferences::SecretAnswer;
-use trame::session::pty::default_shell;
-use trame::session::{Session, SessionEvent, SessionId, SessionOptions};
-use trame::term::ReportedColors;
 
-use crate::pty::{COLS, ROWS, TIMEOUT, screen_text};
+use crate::pty::{TIMEOUT, screen_text};
+use crate::shell::start_shell;
 
 #[cfg(windows)]
 const ASK: &[u8] = b"$typed = Read-Host -Prompt \"me@box's password\"; 'got-' + $typed\r";
@@ -17,20 +12,7 @@ const ASK: &[u8] = b"printf \"me@box's password: \"; read typed; echo got-$typed
 
 #[test]
 fn a_password_prompt_on_a_real_shell_gets_the_secret() {
-    let shell = default_shell();
-    let options = SessionOptions {
-        shell: &shell,
-        cwd: Some(Path::new(env!("CARGO_MANIFEST_DIR"))),
-        rows: ROWS,
-        cols: COLS,
-        colors: ReportedColors::default(),
-        transcript: &[],
-    };
-    let (sender, events) = mpsc::channel();
-    let notify = Arc::new(move |event: SessionEvent| {
-        let _ = sender.send(event);
-    });
-    let session = Session::spawn(SessionId(1), &options, notify).expect("shell should start");
+    let (session, events) = start_shell(&[]);
     session.write(ASK);
     let mut answer = SecretAnswer::new("hunter2".to_owned(), Instant::now());
     let mut replies = 0;
