@@ -19,7 +19,7 @@ pub(in crate::ui::frame) use field::place_field;
 use field::place_inline;
 pub use form::{FormAction, FormButton, FormFrame, FormRow, SECRET_MASK};
 pub(in crate::ui::frame) use form::{FormSpec, button_form, form_height, form_title, place_form};
-pub use menu::{MenuEntry, MenuFrame, MenuRequest, MenuRow};
+pub use menu::{MenuEntry, MenuFrame, MenuRequest};
 use popups::ConnectDialog;
 pub use popups::{
     ColorsView, EmblemSlot, EmblemView, PickerFrame, PickerPart, PickerView, SwatchSlot,

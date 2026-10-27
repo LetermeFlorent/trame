@@ -57,7 +57,6 @@ fn draw_tabs(scene: &mut Scene, text: &mut TextSystem, scale: f32) {
         role: FontRole::Interface,
         size: INTERFACE_SIZE * scale,
         weight: REGULAR,
-        italic: false,
     };
     let title = text.layout("pwsh  ~/Projets/trame", style);
     let pen = baseline(&title, tab.inset_by(10.0 * scale, 0.0));

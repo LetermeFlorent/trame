@@ -7,7 +7,7 @@ mod slack;
 mod target;
 
 pub use atlas::{Atlas, AtlasKind, AtlasRegion};
-pub use gpu::{Gpu, GpuError};
+pub use gpu::Gpu;
 pub use renderer::Renderer;
 pub use scene::Scene;
 pub use target::{

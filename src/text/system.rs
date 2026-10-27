@@ -94,7 +94,6 @@ impl TextSystem {
         }
         let layout = find_layout(&self.previous_layouts, text, style).unwrap_or_else(|| {
             let family = match style.role {
-                FontRole::Terminal => &self.terminal,
                 FontRole::Interface => &self.interface,
             };
             let shaping = Shaping {

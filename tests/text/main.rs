@@ -13,7 +13,6 @@ fn interface(weight: u16) -> TextStyle {
         role: FontRole::Interface,
         size: 12.5,
         weight,
-        italic: false,
     }
 }
 

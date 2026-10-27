@@ -60,7 +60,7 @@ impl CursorPlace {
     }
 
     pub fn draw_fill(&self, scene: &mut Scene, theme: &Theme, cell: Rect) {
-        scene.fill(cell, theme.cursor, 0.0);
+        scene.fill(cell, theme.accent, 0.0);
     }
 
     pub(super) fn draw_outline(&self, scene: &mut Scene, grid: &GridPaint, cell: Rect) {
@@ -68,20 +68,20 @@ impl CursorPlace {
         let stroke = (grid.metrics.font_size * BAR_RATIO).round().max(1.0);
         match self.shape {
             CursorShape::Block if !grid.paint.focused => {
-                scene.border(cell, theme.cursor, 0.0, (stroke / 2.0).round().max(1.0));
+                scene.border(cell, theme.accent, 0.0, (stroke / 2.0).round().max(1.0));
             }
             CursorShape::Block => {}
             CursorShape::Bar => {
                 scene.fill(
                     Rect::new(cell.x, cell.y, stroke, cell.height),
-                    theme.cursor,
+                    theme.accent,
                     0.0,
                 );
             }
             CursorShape::Underline => {
                 scene.fill(
                     Rect::new(cell.x, cell.bottom() - stroke, cell.width, stroke),
-                    theme.cursor,
+                    theme.accent,
                     0.0,
                 );
             }

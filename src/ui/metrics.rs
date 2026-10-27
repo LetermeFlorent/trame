@@ -1,5 +1,5 @@
 use crate::text::{FontRole, REGULAR, SEMIBOLD, TextStyle};
-use crate::ui::display::{Density, PanelSide};
+use crate::ui::display::{Density, PanelSide, SPACING};
 
 pub const TERMINAL_FONT_SIZE: f32 = 14.0;
 pub const MIN_TERMINAL_FONT_SIZE: f32 = 8.0;
@@ -92,7 +92,7 @@ impl UiMetrics {
     }
 
     pub fn spaced(&self, logical: f32) -> f32 {
-        self.px(logical * self.density.spacing())
+        self.px(logical * SPACING)
     }
 
     pub fn card_margin(&self) -> f32 {
@@ -129,7 +129,6 @@ impl UiMetrics {
             role: FontRole::Interface,
             size: Self::UI_FONT * self.scale,
             weight: REGULAR,
-            italic: false,
         }
     }
 

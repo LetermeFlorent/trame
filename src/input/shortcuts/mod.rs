@@ -11,9 +11,9 @@ use winit::keyboard::{Key, ModifiersState, PhysicalKey};
 
 use crate::input::Command;
 use crate::ui::Platform;
-pub use actions::{ACTIONS, action_id, action_of};
+pub use actions::{ACTIONS, action_of};
 pub use capture::{Pressed, pressed};
-pub use combo::{Chord, Combo, Trigger};
+pub use combo::{Combo, Trigger};
 pub use defaults::default_keys;
 pub use keymap::Keymap;
 pub use overrides::{MAX_KEYS, Overrides};

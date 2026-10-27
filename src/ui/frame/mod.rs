@@ -9,17 +9,16 @@ mod titlebar;
 pub use editor::{
     ColorsView, EditAnchor, EditKind, EditTarget, EditorFrame, EditorRequest, EmblemSlot,
     EmblemView, FieldFrame, FormAction, FormButton, FormFrame, FormRow, MenuEntry, MenuFrame,
-    MenuRequest, MenuRow, PickerFrame, PickerPart, PickerView, SECRET_MASK, SwatchSlot,
+    MenuRequest, PickerFrame, PickerPart, PickerView, SECRET_MASK, SwatchSlot,
 };
 pub use label::{fit_label, fit_label_start, fit_text_start};
-pub use panes::{PaneFrame, TabFrame, TabStrip};
+pub use panes::{PaneFrame, TabFrame};
 pub use sidebar::{
     Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, FormPage, HostList, HostRow,
-    HostsView, InstancesPage, KeyControl, KeyDetail, KeyLine, KeyNotice, ListControl, MessageFrame,
-    MessageRequest, NumberChoice, PopupFrame, RailFrame, RailSlot, ScrollBar, SettingControl,
-    SettingLine, SettingsFrame, SettingsPage, SettingsRequest, SettingsTab, ShortcutsPage,
-    ShortcutsView, SidebarFrame, SidebarItem, SidebarRow, Stepper, ToggleRow, dragged_width,
-    key_label, shown_width,
+    HostsView, InstancesPage, KeyControl, KeyNotice, ListControl, MessageFrame, MessageRequest,
+    PopupFrame, RailFrame, RailSlot, ScrollBar, SettingControl, SettingLine, SettingsFrame,
+    SettingsPage, SettingsRequest, SettingsTab, ShortcutsPage, ShortcutsView, SidebarFrame,
+    SidebarItem, SidebarRow, Stepper, ToggleRow, dragged_width, key_label, shown_width,
 };
 pub use titlebar::{TitleBarFrame, WindowControls};
 

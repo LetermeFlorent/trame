@@ -6,7 +6,7 @@ mod sidebar;
 mod tabbar;
 mod titlebar;
 
-pub use icons::{Icon, Pen, draw_icon};
+pub use icons::Icon;
 pub use overlay::{
     LoaderProgress, LoaderView, draw_editor, draw_loader, draw_menu, draw_message, draw_settings,
     draw_tooltip,

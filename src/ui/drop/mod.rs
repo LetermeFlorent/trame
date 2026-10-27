@@ -7,4 +7,4 @@ pub use ghost::{ghost_scene, stamp_arrow, straight_alpha};
 pub use paint::DragView;
 pub(crate) use paint::draw_drag;
 pub use target::{DropMark, DropSpot};
-pub use zone::{DropZone, EDGE_BAND};
+pub use zone::DropZone;

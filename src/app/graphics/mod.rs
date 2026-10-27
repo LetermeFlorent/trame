@@ -19,7 +19,7 @@ use capture::Capture;
 
 pub struct Graphics {
     gpu: Gpu,
-    surface: Option<WindowSurface>,
+    surface: WindowSurface,
     format: wgpu::TextureFormat,
     renderer: Renderer,
     fresh: bool,
@@ -49,7 +49,7 @@ impl Graphics {
         let renderer = Renderer::new(&gpu, format, atlas);
         Ok(Self {
             gpu,
-            surface: Some(surface),
+            surface,
             format,
             renderer,
             fresh: true,
@@ -73,13 +73,11 @@ impl Graphics {
     }
 
     pub fn is_lost(&self) -> bool {
-        self.gpu.is_lost() || self.surface.is_none()
+        self.gpu.is_lost()
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
-        if let Some(surface) = &mut self.surface {
-            surface.resize(width, height);
-        }
+        self.surface.resize(width, height);
     }
 
     pub fn present(
@@ -90,10 +88,7 @@ impl Graphics {
         clear: Rgba,
     ) -> bool {
         self.renderer.sync_atlas(&self.gpu, atlas);
-        let Some(surface) = &mut self.surface else {
-            return false;
-        };
-        let Frame::Ready(texture) = surface.acquire(&self.gpu) else {
+        let Frame::Ready(texture) = self.surface.acquire(&self.gpu) else {
             return false;
         };
         let view = texture

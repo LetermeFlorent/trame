@@ -48,17 +48,11 @@ pub(super) fn sidebar(pen: &mut Pen, rect: Rect, size: f32, open: bool) {
     );
 }
 
-pub(super) fn split(pen: &mut Pen, rect: Rect, size: f32, vertical: bool) {
+pub(super) fn split(pen: &mut Pen, rect: Rect, size: f32) {
     let frame = icon_frame(rect, size);
     pen.frame(frame, size * FRAME_RADIUS);
-    let middle = frame.center();
-    if vertical {
-        let x = pen.crisp(middle.x);
-        pen.line(Point::new(x, frame.y), Point::new(x, frame.bottom()));
-    } else {
-        let y = pen.crisp(middle.y);
-        pen.line(Point::new(frame.x, y), Point::new(frame.right(), y));
-    }
+    let x = pen.crisp(frame.center().x);
+    pen.line(Point::new(x, frame.y), Point::new(x, frame.bottom()));
 }
 
 pub(super) fn terminal(pen: &mut Pen, rect: Rect, size: f32) {

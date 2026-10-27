@@ -3,7 +3,6 @@ pub struct Modes(u32);
 
 impl Modes {
     pub const APP_CURSOR: Self = Self(1);
-    pub const APP_KEYPAD: Self = Self(1 << 1);
     pub const ORIGIN: Self = Self(1 << 2);
     pub const AUTOWRAP: Self = Self(1 << 3);
     pub const CURSOR_VISIBLE: Self = Self(1 << 4);

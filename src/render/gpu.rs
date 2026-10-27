@@ -16,7 +16,6 @@ pub struct Gpu {
 pub enum GpuError {
     Adapter(wgpu::RequestAdapterError),
     Device(wgpu::RequestDeviceError),
-    Surface(wgpu::CreateSurfaceError),
 }
 
 impl fmt::Display for GpuError {
@@ -24,7 +23,6 @@ impl fmt::Display for GpuError {
         match self {
             GpuError::Adapter(error) => write!(formatter, "no graphics adapter: {error}"),
             GpuError::Device(error) => write!(formatter, "graphics device refused: {error}"),
-            GpuError::Surface(error) => write!(formatter, "window surface refused: {error}"),
         }
     }
 }

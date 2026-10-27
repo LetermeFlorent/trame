@@ -55,7 +55,7 @@ pub(super) fn paint_ghost(
     );
     let radius = metrics.px(UiMetrics::RADIUS);
     scene.shadow(rect, theme.shadow, radius, metrics.px(GHOST_BLUR));
-    scene.fill(rect, theme.tab_active.with_alpha(GHOST_ALPHA), radius);
+    scene.fill(rect, theme.terminal.with_alpha(GHOST_ALPHA), radius);
     scene.border(rect, theme.border_strong, radius, metrics.line());
     let pen = Point::new((rect.x + padding).round(), label.baseline_in(rect));
     text.draw_layout(scene, &label, pen, theme.text);

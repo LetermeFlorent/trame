@@ -96,7 +96,6 @@ impl Screen {
         self.modes.set(Modes::AUTOWRAP, true);
         self.modes.set(Modes::INSERT, false);
         self.modes.set(Modes::APP_CURSOR, false);
-        self.modes.set(Modes::APP_KEYPAD, false);
         self.scroll_top = 0;
         self.scroll_bottom = self.rows() - 1;
         self.charsets = CharsetState::default();

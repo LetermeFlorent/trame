@@ -15,7 +15,7 @@ const HOVER_OVER_TINT: f32 = 0.7;
 pub(super) fn draw_panel(painter: &mut Painter, rect: Rect) {
     let theme = painter.theme;
     let line = painter.metrics.line();
-    painter.rule(rect, theme.panel);
+    painter.rule(rect, theme.chrome);
     let x = match painter.metrics.panel {
         PanelSide::Left => rect.right() - line,
         PanelSide::Right => rect.x,

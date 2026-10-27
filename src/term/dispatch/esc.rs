@@ -1,5 +1,4 @@
 use crate::term::cell::Cell;
-use crate::term::modes::Modes;
 use crate::term::screen::Screen;
 
 impl Screen {
@@ -15,8 +14,6 @@ impl Screen {
             ([], b'M') => self.reverse_index(),
             ([], b'H') => self.set_tab_stop(),
             ([], b'c') => self.full_reset(),
-            ([], b'=') => self.modes.set(Modes::APP_KEYPAD, true),
-            ([], b'>') => self.modes.set(Modes::APP_KEYPAD, false),
             ([b'('], designator) => self.charsets.designate(0, designator),
             ([b')'], designator) => self.charsets.designate(1, designator),
             ([b'#'], b'8') => self.fill_with_test_pattern(),

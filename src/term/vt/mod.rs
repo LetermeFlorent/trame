@@ -6,6 +6,6 @@ mod parser;
 mod perform;
 mod utf8;
 
-pub use params::{MAX_PARAMS, Params, ParamsIter};
+pub use params::{Params, ParamsIter};
 pub use parser::Parser;
 pub use perform::Perform;

@@ -7,7 +7,6 @@ use super::font::{Family, FontKey, FontLibrary, WEIGHT_AXIS};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum FontRole {
-    Terminal,
     Interface,
 }
 
@@ -16,7 +15,6 @@ pub struct TextStyle {
     pub role: FontRole,
     pub size: f32,
     pub weight: u16,
-    pub italic: bool,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -58,7 +56,7 @@ impl Shaping<'_> {
             descent: 0.0,
             cap_height: 0.0,
         };
-        let Some(primary) = family.resolve(self.library, style.weight, style.italic) else {
+        let Some(primary) = family.resolve(self.library, style.weight, false) else {
             return layout;
         };
         let metrics = self.library.face(primary.id).metrics(style.size);
@@ -134,7 +132,7 @@ fn font_for(library: &mut FontLibrary, primary: FontKey, ch: char, style: TextSt
         return primary;
     }
     library
-        .covering_font(primary, ch, style.weight, style.italic)
+        .covering_font(primary, ch, style.weight, false)
         .unwrap_or(primary)
 }
 

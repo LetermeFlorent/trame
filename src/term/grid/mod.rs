@@ -9,7 +9,7 @@ mod words;
 use std::collections::VecDeque;
 
 pub use row::Row;
-pub use selection::{GridPoint, Selection, SelectionKind, Span};
+pub use selection::{GridPoint, Selection, SelectionKind};
 
 #[derive(Debug, Clone)]
 pub struct Grid {

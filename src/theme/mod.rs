@@ -26,9 +26,7 @@ pub enum Appearance {
 pub struct Theme {
     pub appearance: Appearance,
     pub chrome: Rgba,
-    pub panel: Rgba,
     pub tab_bar: Rgba,
-    pub tab_active: Rgba,
     pub terminal: Rgba,
     pub foreground: Rgba,
     pub border: Rgba,
@@ -40,7 +38,6 @@ pub struct Theme {
     pub hover: Rgba,
     pub pressed: Rgba,
     pub selection: Rgba,
-    pub cursor: Rgba,
     pub drop_target: Rgba,
     pub shadow: Rgba,
     pub ansi: [Rgba; 16],
@@ -78,7 +75,7 @@ impl Theme {
         ReportedColors {
             foreground: self.foreground.to_rgb8(),
             background: self.terminal.to_rgb8(),
-            cursor: self.cursor.to_rgb8(),
+            cursor: self.accent.to_rgb8(),
         }
     }
 }

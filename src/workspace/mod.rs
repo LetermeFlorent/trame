@@ -14,8 +14,8 @@ pub use moves::DropTarget;
 pub use numbers::Numbering;
 pub use pane::Pane;
 pub use snapshot::{
-    DescribeTab, InstanceSnapshot, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot,
-    SnapshotError, TabSnapshot, WindowSnapshot,
+    InstanceSnapshot, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot, SnapshotError,
+    TabSnapshot, WindowSnapshot,
 };
 pub use tree::{Axis, Divider, Edge, MIN_PANE, Node, PaneId, PaneLayout, resize_split, resized};
 

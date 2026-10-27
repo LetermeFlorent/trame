@@ -21,7 +21,6 @@ pub enum Icon {
     Plus,
     Close,
     SplitRight,
-    SplitDown,
     Minimize,
     Maximize,
     Restore,
@@ -59,8 +58,7 @@ pub fn draw_icon(pen: &mut Pen, icon: Icon, rect: Rect) {
         Icon::Sidebar { open } => sidebar(pen, rect, size, open),
         Icon::Plus => cross(pen, center, size * PLUS_REACH, false),
         Icon::Close => cross(pen, center, size * CROSS_REACH, true),
-        Icon::SplitRight => split(pen, rect, size, true),
-        Icon::SplitDown => split(pen, rect, size, false),
+        Icon::SplitRight => split(pen, rect, size),
         Icon::Minimize => {
             let reach = size * DASH_REACH;
             pen.line(

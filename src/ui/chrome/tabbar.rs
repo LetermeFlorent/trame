@@ -67,7 +67,7 @@ fn draw_tab_fill(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, glow: 
     let radius = painter.metrics.px(TAB_RADIUS);
     let rect = tab.rect;
     if tab.active {
-        painter.scene.fill_top(rect, theme.tab_active, radius);
+        painter.scene.fill_top(rect, theme.terminal, radius);
     } else {
         let line = painter.metrics.line();
         let hover = theme.hover.faded(glow);

@@ -26,9 +26,7 @@ pub use instances::{InstancesPage, NumberChoice};
 pub use message::{MessageFrame, MessageRequest};
 pub use page::{SettingsFrame, SettingsPage, SettingsRequest};
 pub use popup::PopupFrame;
-pub use shortcuts::{
-    KeyControl, KeyDetail, KeyLine, KeyNotice, ShortcutsPage, ShortcutsView, key_label,
-};
+pub use shortcuts::{KeyControl, KeyNotice, ShortcutsPage, ShortcutsView, key_label};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum SettingsTab {

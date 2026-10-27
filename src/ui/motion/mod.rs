@@ -1,8 +1,8 @@
 mod fades;
 mod tween;
 
-pub use fades::{Fades, surfaces};
-pub use tween::{DURATION, Lerp, Tween, ease_out};
+pub use fades::Fades;
+pub use tween::{DURATION, Tween, ease_out};
 
 use std::collections::{HashMap, HashSet};
 use std::time::Instant;

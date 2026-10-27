@@ -139,6 +139,8 @@ cargo build --release
 
 The program lands in `target/release/trame` (`trame.exe` on Windows). `cargo test` runs the test suite, and `scripts/install-hooks` sets up the pre-commit hook that runs `cargo fmt` and `cargo clippy`.
 
+To debug what a program sends to the terminal, set the environment variable `TRAME_DUMP` to a folder. Every session then writes the raw bytes it receives from its shell to `session-<number>-output.bin` in that folder, which is created if it is missing.
+
 The packages are made with the same tools the release workflow uses:
 
 ```sh

@@ -10,9 +10,9 @@ use vt::Parser;
 
 pub use cell::{Cell, Color, Flags};
 pub use cursor::CursorShape;
-pub use grid::{GridPoint, Selection, SelectionKind};
+pub use grid::SelectionKind;
 pub use modes::Modes;
-pub use screen::{CursorView, ReportedColors, Screen};
+pub use screen::{ReportedColors, Screen};
 
 pub const DEFAULT_HISTORY: usize = 10_000;
 
