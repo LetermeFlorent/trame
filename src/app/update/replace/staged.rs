@@ -2,45 +2,55 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use super::version::Version;
-use super::{fetch, swap};
+use super::super::download::{self, Progress};
+use super::super::route::Route;
+use super::super::version::Version;
+use super::{bundle, check, swap};
 
-const READY_SUFFIX: &str = ".ready";
+const READY_MARK: &str = ".ready";
 const PART_SUFFIX: &str = ".part";
 
-pub fn path(exe: &Path, version: Version) -> PathBuf {
-    swap::sibling(exe, &format!(".{}{READY_SUFFIX}", version.number()))
+pub fn path(target: &Path, version: Version) -> PathBuf {
+    swap::sibling(target, &format!(".{}{READY_MARK}", version.number()))
 }
 
-pub fn newest(exe: &Path) -> Option<Version> {
+pub fn newest(target: &Path) -> Option<Version> {
     let current = Version::current()?;
-    let newer = packages(exe).into_iter().filter_map(|(version, path)| {
+    let newer = packages(target).into_iter().filter_map(|(version, path)| {
         let ready = version.is_some_and(|version| version > current);
-        let whole = ready && swap::check_executable(&path).is_ok();
+        let whole = ready && check::release(&path).is_ok();
         whole.then_some(version).flatten()
     });
     newer.max()
 }
 
-pub fn fetch(exe: &Path, version: Version, asset: &str) -> io::Result<()> {
-    let target = path(exe, version);
-    if swap::check_executable(&target).is_ok() {
+pub fn fetch(route: Route, target: &Path, version: Version, shown: Progress) -> io::Result<()> {
+    let ready = path(target, version);
+    if check::release(&ready).is_ok() {
         return Ok(());
     }
-    clear(exe);
-    let part = swap::sibling(&target, PART_SUFFIX);
-    let fetched = fetch::download_quietly(version, asset, &part)
-        .and_then(|()| swap::check_executable(&part))
-        .and_then(|()| fs::rename(&part, &target));
-    if fetched.is_err() && part.exists() {
-        remove(&part);
+    clear(target);
+    if let Some(shown) = shown {
+        shown(0);
     }
-    fetched
+    let part = swap::sibling(&ready, PART_SUFFIX);
+    let asset = route.asset(&version.number());
+    let fetched = match route {
+        Route::Bundle => bundle::fetch(version, &asset, &part, shown),
+        _ => download::download(version, &asset, &part, shown),
+    };
+    let placed = fetched
+        .and_then(|()| check::release(&part))
+        .and_then(|()| fs::rename(&part, &ready));
+    if placed.is_err() {
+        swap::discard_partial(&part, "download");
+    }
+    placed
 }
 
-pub fn tidy(exe: &Path) {
+pub fn tidy(target: &Path) {
     let current = Version::current();
-    for (version, path) in packages(exe) {
+    for (version, path) in packages(target) {
         let outdated = version.is_none_or(|version| Some(version) <= current);
         if outdated {
             remove(&path);
@@ -48,21 +58,21 @@ pub fn tidy(exe: &Path) {
     }
 }
 
-fn clear(exe: &Path) {
-    for (_, path) in packages(exe) {
+fn clear(target: &Path) {
+    for (_, path) in packages(target) {
         remove(&path);
     }
 }
 
 fn remove(path: &Path) {
-    if let Err(error) = fs::remove_file(path) {
+    if let Err(error) = swap::remove(path) {
         eprintln!("trame: an early update download stays on disk: {error}");
     }
 }
 
-fn packages(exe: &Path) -> Vec<(Option<Version>, PathBuf)> {
-    let prefix = exe.file_name().and_then(|name| name.to_str());
-    let (Some(folder), Some(prefix)) = (exe.parent(), prefix) else {
+fn packages(target: &Path) -> Vec<(Option<Version>, PathBuf)> {
+    let prefix = target.file_name().and_then(|name| name.to_str());
+    let (Some(folder), Some(prefix)) = (target.parent(), prefix) else {
         return Vec::new();
     };
     let Ok(entries) = fs::read_dir(folder) else {
@@ -73,12 +83,8 @@ fn packages(exe: &Path) -> Vec<(Option<Version>, PathBuf)> {
         .filter_map(|entry| {
             let name = entry.file_name();
             let rest = name.to_str()?.strip_prefix(prefix)?.strip_prefix('.')?;
-            let ready = rest.strip_suffix(READY_SUFFIX);
-            let partial = rest
-                .strip_suffix(PART_SUFFIX)
-                .and_then(|rest| rest.strip_suffix(READY_SUFFIX));
-            let number = ready.or(partial)?;
-            let version = ready.and_then(|_| Version::parse(number));
+            let (number, tail) = rest.split_once(READY_MARK)?;
+            let version = tail.is_empty().then(|| Version::parse(number)).flatten();
             Some((version, entry.path()))
         })
         .collect()
@@ -128,11 +134,15 @@ mod tests {
         let old = path(&exe, version("0.0.1"));
         let newer = path(&exe, version("999.0.0"));
         let partial = swap::sibling(&path(&exe, version("999.1.0")), PART_SUFFIX);
-        for file in [&old, &newer, &partial] {
+        let archive = swap::sibling(&partial, ".zip");
+        for file in [&old, &newer, &partial, &archive] {
             fs::write(file, program()).expect("a package");
         }
+        let unpacked = swap::sibling(&partial, ".unzip");
+        fs::create_dir_all(unpacked.join("trame.app")).expect("an unpacked folder");
         tidy(&exe);
         assert!(!old.exists() && !partial.exists());
+        assert!(!archive.exists() && !unpacked.exists());
         assert!(newer.exists() && exe.exists());
     }
 }

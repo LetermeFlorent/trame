@@ -2,8 +2,12 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+use super::RELEASES;
 use super::version::Version;
-use super::{RELEASES, progress};
+
+mod progress;
+
+pub type Progress<'a> = Option<&'a dyn Fn(u8)>;
 
 const CHECK_SECONDS: &str = "1";
 const DOWNLOAD_SECONDS: &str = "120";
@@ -31,19 +35,12 @@ pub fn latest() -> Option<Version> {
     Version::released(&String::from_utf8_lossy(&output.stdout))
 }
 
-pub fn download(
-    version: Version,
-    asset: &str,
-    target: &Path,
-    on_percent: &dyn Fn(u8),
-) -> io::Result<()> {
-    transfer(curl(), version, asset, target, on_percent)
-}
-
-pub fn download_quietly(version: Version, asset: &str, target: &Path) -> io::Result<()> {
+pub fn download(version: Version, asset: &str, target: &Path, shown: Progress) -> io::Result<()> {
     let mut command = curl();
-    lower_priority(&mut command);
-    transfer(command, version, asset, target, &|_| {})
+    if shown.is_none() {
+        lower_priority(&mut command);
+    }
+    transfer(command, version, asset, target, shown.unwrap_or(&|_| {}))
 }
 
 fn transfer(

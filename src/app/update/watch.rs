@@ -4,25 +4,25 @@ use std::time::Duration;
 
 use super::route::Route;
 use super::version::Version;
-use super::{UpdateStatus, automatic, fetch, setup, staged, swap};
+use super::{UpdateStatus, automatic, download, installer, replace};
 
 const CHECK_EVERY: Duration = Duration::from_secs(60 * 60);
 
 pub fn newer_release() -> Option<Version> {
-    let latest = fetch::latest()?;
+    let latest = download::latest()?;
     let newer = Version::current().is_some_and(|current| latest > current);
     newer.then_some(latest)
 }
 
-pub fn watch(route: Route, exe: &Path, asset: &str, notify: &dyn Fn(UpdateStatus)) {
-    if route == Route::Setup {
-        return watch_installer(notify);
+pub fn watch(route: Route, exe: &Path, notify: &dyn Fn(UpdateStatus)) {
+    if !route.replaces() {
+        return watch_installer(route, notify);
     }
     let mut offered = None;
     loop {
         if let Some(latest) = newer_release() {
             let status = match automatic() {
-                true => put_in_place(exe, latest, asset),
+                true => put_in_place(route, exe, latest),
                 false => UpdateStatus::Available(latest.number()),
             };
             if offered.as_ref() != Some(&status) {
@@ -37,10 +37,8 @@ pub fn watch(route: Route, exe: &Path, asset: &str, notify: &dyn Fn(UpdateStatus
     }
 }
 
-fn put_in_place(exe: &Path, version: Version, asset: &str) -> UpdateStatus {
-    let staged = staged::path(exe, version);
-    let placed = staged::fetch(exe, version, asset).and_then(|()| swap::replace(exe, &staged));
-    match placed {
+fn put_in_place(route: Route, exe: &Path, version: Version) -> UpdateStatus {
+    match replace::put_in_place(route, exe, version, None, &|| {}) {
         Ok(()) => UpdateStatus::Ready {
             version: version.number(),
             exe: exe.to_path_buf(),
@@ -52,24 +50,24 @@ fn put_in_place(exe: &Path, version: Version, asset: &str) -> UpdateStatus {
     }
 }
 
-fn watch_installer(notify: &dyn Fn(UpdateStatus)) {
-    if installer_offered(notify) {
+fn watch_installer(route: Route, notify: &dyn Fn(UpdateStatus)) {
+    if installer_offered(route, notify) {
         return;
     }
-    setup::clear();
+    installer::clear(route);
     loop {
         thread::sleep(CHECK_EVERY);
-        if installer_offered(notify) {
+        if installer_offered(route, notify) {
             return;
         }
     }
 }
 
-fn installer_offered(notify: &dyn Fn(UpdateStatus)) -> bool {
+fn installer_offered(route: Route, notify: &dyn Fn(UpdateStatus)) -> bool {
     let Some(latest) = newer_release() else {
         return false;
     };
-    match setup::fetch(latest) {
+    match installer::fetch(route, latest) {
         Ok(()) => {
             notify(UpdateStatus::Available(latest.number()));
             true

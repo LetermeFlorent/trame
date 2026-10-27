@@ -1,10 +1,8 @@
-mod fetch;
+mod download;
+mod installer;
 mod launch;
-mod progress;
+mod replace;
 mod route;
-mod setup;
-mod staged;
-mod swap;
 mod version;
 mod watch;
 
@@ -17,6 +15,7 @@ use std::thread;
 use trame::preferences::Updates;
 
 pub use launch::{relaunch, restart, start_again};
+use replace::{bundle, staged, swap};
 use route::Route;
 use version::Version;
 
@@ -24,12 +23,6 @@ const RELEASES: &str = "https://github.com/LetermeFlorent/trame/releases";
 const SKIP_VARIABLE: &str = "TRAME_NO_UPDATE";
 const UPDATED_FLAG: &str = "--updated";
 const INSTALL_FLAG: &str = "--install";
-const NEW_SUFFIX: &str = ".new";
-
-#[cfg(windows)]
-const ASSET: Option<&str> = Some("trame.exe");
-#[cfg(not(windows))]
-const ASSET: Option<&str> = None;
 
 static AUTOMATIC: AtomicBool = AtomicBool::new(false);
 
@@ -52,18 +45,15 @@ pub fn start(updates: Updates, notify: impl Fn(UpdateStatus) + Send + 'static) -
     let Ok(exe) = env::current_exe() else {
         return UpdateStatus::Done;
     };
-    swap::remove_leftover(&exe);
+    swap::remove_leftover(&bundle::root(&exe).unwrap_or_else(|| exe.clone()));
     allow_automatic(updates.auto);
-    let Some(asset) = ASSET.filter(|_| allowed()) else {
+    let Some(route) = allowed().then(|| Route::of(&exe)).flatten() else {
         return UpdateStatus::Done;
     };
-    let Some(route) = Route::of(&exe) else {
-        return UpdateStatus::Done;
-    };
-    let installs = route == Route::Swap && flagged(INSTALL_FLAG) && !flagged(UPDATED_FLAG);
+    let installs = route.replaces() && flagged(INSTALL_FLAG) && !flagged(UPDATED_FLAG);
     let spawned = thread::Builder::new()
         .name("trame-update".into())
-        .spawn(move || follow(route, installs, asset, exe, &notify));
+        .spawn(move || follow(route, installs, exe, &notify));
     match spawned {
         Ok(_) if installs => UpdateStatus::Checking,
         Ok(_) => UpdateStatus::Done,
@@ -82,24 +72,25 @@ fn flagged(flag: &str) -> bool {
     env::args_os().any(|arg| arg == flag)
 }
 
-fn follow(route: Route, installs: bool, asset: &str, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) {
-    staged::tidy(&exe);
+fn follow(route: Route, installs: bool, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) {
+    staged::tidy(&route.target(&exe));
     if installs {
-        let status = check(asset, &exe, notify);
+        let status = check(route, &exe, notify);
         let installed = matches!(status, UpdateStatus::Installed(_));
         notify(status);
         if installed {
             return;
         }
     }
-    watch::watch(route, &exe, asset, notify);
+    watch::watch(route, &exe, notify);
 }
 
-fn check(asset: &str, exe: &Path, notify: &dyn Fn(UpdateStatus)) -> UpdateStatus {
-    let Some(latest) = staged::newest(exe).or_else(watch::newer_release) else {
+fn check(route: Route, exe: &Path, notify: &dyn Fn(UpdateStatus)) -> UpdateStatus {
+    let staged = staged::newest(&route.target(exe));
+    let Some(latest) = staged.or_else(watch::newer_release) else {
         return UpdateStatus::Done;
     };
-    match install(latest, asset, exe, notify) {
+    match install(route, latest, exe, notify) {
         Ok(()) => UpdateStatus::Installed(exe.to_path_buf()),
         Err(error) => {
             eprintln!("trame: the update to {latest} failed: {error}");
@@ -109,8 +100,8 @@ fn check(asset: &str, exe: &Path, notify: &dyn Fn(UpdateStatus)) -> UpdateStatus
 }
 
 fn install(
+    route: Route,
     version: Version,
-    asset: &str,
     exe: &Path,
     notify: &dyn Fn(UpdateStatus),
 ) -> io::Result<()> {
@@ -121,25 +112,8 @@ fn install(
             percent,
         })
     };
-    let ready = staged::path(exe, version);
-    let staged = swap::check_executable(&ready).is_ok();
-    let (fresh, fetched) = match staged {
-        true => (ready, Ok(())),
-        false => {
-            downloading(0);
-            let fresh = swap::sibling(exe, NEW_SUFFIX);
-            let fetched = fetch::download(version, asset, &fresh, &downloading);
-            (fresh, fetched)
-        }
-    };
-    let installed = fetched
-        .inspect(|_| notify(UpdateStatus::Installing(number.clone())))
-        .and_then(|()| swap::check_executable(&fresh))
-        .and_then(|()| swap::replace(exe, &fresh));
-    if installed.is_err() {
-        swap::discard_partial(&fresh, "download");
-    }
-    installed
+    let installing = || notify(UpdateStatus::Installing(number.clone()));
+    replace::put_in_place(route, exe, version, Some(&downloading), &installing)
 }
 
 fn automatic() -> bool {

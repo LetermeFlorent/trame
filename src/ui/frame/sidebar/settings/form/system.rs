@@ -30,6 +30,8 @@ pub(super) fn system_page(
         let notify = [preferences.notify_waiting, true];
         let control = SettingControl::NotifyWaiting;
         toggles.push(column.toggle_row(strings.notify_waiting, notify, control));
+    }
+    if cfg!(any(windows, target_os = "macos")) {
         sections.push(column.section(strings.updates));
         let auto = [preferences.updates.auto, true];
         let control = SettingControl::AutoUpdate;

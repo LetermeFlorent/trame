@@ -5,7 +5,7 @@ use std::path::Path;
 use std::process::Command;
 
 use super::route::Route;
-use super::{INSTALL_FLAG, UPDATED_FLAG, setup};
+use super::{INSTALL_FLAG, UPDATED_FLAG, installer};
 
 pub fn relaunch(exe: &Path) -> io::Result<()> {
     spawn_again(exe, Some(UPDATED_FLAG))
@@ -14,7 +14,7 @@ pub fn relaunch(exe: &Path) -> io::Result<()> {
 pub fn restart(offer: &str) -> io::Result<()> {
     let exe = env::current_exe()?;
     match Route::of(&exe) {
-        Some(Route::Setup) => setup::run(offer),
+        Some(route) if !route.replaces() => installer::run(route, offer, &exe),
         _ => spawn_again(&exe, Some(INSTALL_FLAG)),
     }
 }

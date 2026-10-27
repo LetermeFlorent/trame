@@ -95,6 +95,25 @@ jobs:
       - name: Install the .rpm on Fedora
         run: docker run --rm -v "$PWD/dist:/dist:ro" fedora:latest sh -c 'dnf install -y /dist/*.rpm && test -x /usr/bin/trame'
 
+      - name: Let an older copy fetch the latest release
+        run: |
+          sudo apt-get install -y policykit-1
+          perl -0pi -e 's/^version = ".*?"/version = "0.0.1"/m' Cargo.toml
+          cargo build --release
+          cargo deb --no-build --output old.deb
+          git checkout Cargo.toml Cargo.lock
+          sudo apt-get install -y --allow-downgrades ./old.deb
+          xvfb-run -a trame > old.log 2>&1 &
+          for _ in $(seq 90); do
+            ls ~/.cache/trame/update/*.deb 2> /dev/null && break
+            sleep 1
+          done
+          pkill -x trame || true
+          cat old.log
+          sudo apt-get install -y ~/.cache/trame/update/*.deb
+          dpkg-query -W trame
+          test "$(dpkg-query -W -f='${Version}' trame)" != 0.0.1-1
+
       - uses: actions/upload-artifact@v7
         with:
           name: linux
@@ -134,6 +153,23 @@ jobs:
           done
           pgrep -P "$pid"
           kill "$pid"
+
+      - name: Let an older copy replace itself with the latest release
+        run: |
+          perl -0pi -e 's/^version = ".*?"/version = "0.0.1"/m' Cargo.toml
+          cargo build --release --target aarch64-apple-darwin
+          git checkout Cargo.toml Cargo.lock
+          sh packaging/macos/bundle.sh target/aarch64-apple-darwin/release/trame 0.0.1 old
+          open old/trame.app
+          for _ in $(seq 90); do
+            test -d old/trame.app.old && break
+            sleep 1
+          done
+          pkill -f old/trame.app/Contents/MacOS/trame || true
+          ls -a old
+          plutil -p old/trame.app/Contents/Info.plist | grep CFBundleShortVersionString
+          test -d old/trame.app.old
+          ! grep -q '>0.0.1<' old/trame.app/Contents/Info.plist
 
       - uses: actions/upload-artifact@v7
         with:
