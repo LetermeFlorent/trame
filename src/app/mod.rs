@@ -19,7 +19,7 @@ use trame::preferences::Updates;
 use trame::session::SessionEvent;
 use trame::workspace::{InstanceId, Snapshot};
 
-use running::{FolderTarget, Running};
+use running::{FolderTarget, Offer, Running};
 use update::UpdateStatus;
 
 #[derive(Clone, Debug)]
@@ -87,10 +87,16 @@ impl App {
                 }
             },
             UpdateStatus::Available(version) => {
-                if let Some(running) = &mut self.running {
-                    running.offer_update(version);
-                }
-                return;
+                return self.offer(Offer {
+                    version,
+                    ready: None,
+                });
+            }
+            UpdateStatus::Ready { version, exe } => {
+                return self.offer(Offer {
+                    version,
+                    ready: Some(exe),
+                });
             }
             status => status,
         };
@@ -98,5 +104,11 @@ impl App {
             running.set_update(&status);
         }
         self.update = status;
+    }
+
+    fn offer(&mut self, offer: Offer) {
+        if let Some(running) = &mut self.running {
+            running.offer_update(offer);
+        }
     }
 }

@@ -82,12 +82,16 @@ impl Running {
             .collect();
         let title = |id: SessionId| title_of(&self.workspace, &self.labels, &self.sessions, id);
         let folder = self.active_folder();
+        let update = self
+            .update_offer
+            .as_ref()
+            .map(|offer| offer.label(self.strings));
         let layout = LayoutInput {
             workspace: &self.workspace,
             window: &self.window,
             metrics: self.metrics,
             folder: folder.as_deref(),
-            update: self.update_offer.as_deref(),
+            update: update.as_deref(),
             strings: self.strings,
         };
         self.motion.tick(Instant::now());

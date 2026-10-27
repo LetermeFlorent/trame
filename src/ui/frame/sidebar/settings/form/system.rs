@@ -31,18 +31,9 @@ pub(super) fn system_page(
         let control = SettingControl::NotifyWaiting;
         toggles.push(column.toggle_row(strings.notify_waiting, notify, control));
         sections.push(column.section(strings.updates));
-        let updates = preferences.updates;
-        toggles.push(column.toggle_row(
-            strings.update_at_launch,
-            [updates.auto, true],
-            SettingControl::UpdateAtLaunch,
-        ));
-        toggles.push(sub_toggle(
-            column,
-            strings.update_ahead,
-            [updates.ahead, updates.auto],
-            SettingControl::UpdateAhead,
-        ));
+        let auto = [preferences.updates.auto, true];
+        let control = SettingControl::AutoUpdate;
+        toggles.push(column.toggle_row(strings.update_automatically, auto, control));
     }
     FormPage {
         sections,

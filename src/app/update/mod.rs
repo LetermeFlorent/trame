@@ -31,7 +31,7 @@ const ASSET: Option<&str> = Some("trame.exe");
 #[cfg(not(windows))]
 const ASSET: Option<&str> = None;
 
-static AHEAD: AtomicBool = AtomicBool::new(false);
+static AUTOMATIC: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum UpdateStatus {
@@ -41,10 +41,11 @@ pub enum UpdateStatus {
     Done,
     Installed(PathBuf),
     Available(String),
+    Ready { version: String, exe: PathBuf },
 }
 
-pub fn download_ahead(enabled: bool) {
-    AHEAD.store(enabled, Ordering::Relaxed);
+pub fn allow_automatic(enabled: bool) {
+    AUTOMATIC.store(enabled, Ordering::Relaxed);
 }
 
 pub fn start(updates: Updates, notify: impl Fn(UpdateStatus) + Send + 'static) -> UpdateStatus {
@@ -52,15 +53,14 @@ pub fn start(updates: Updates, notify: impl Fn(UpdateStatus) + Send + 'static) -
         return UpdateStatus::Done;
     };
     swap::remove_leftover(&exe);
-    download_ahead(updates.downloads_ahead());
+    allow_automatic(updates.auto);
     let Some(asset) = ASSET.filter(|_| allowed()) else {
         return UpdateStatus::Done;
     };
     let Some(route) = Route::of(&exe) else {
         return UpdateStatus::Done;
     };
-    let wanted = updates.auto || flagged(INSTALL_FLAG);
-    let installs = route == Route::Swap && wanted && !flagged(UPDATED_FLAG);
+    let installs = route == Route::Swap && flagged(INSTALL_FLAG) && !flagged(UPDATED_FLAG);
     let spawned = thread::Builder::new()
         .name("trame-update".into())
         .spawn(move || follow(route, installs, asset, exe, &notify));
@@ -142,6 +142,6 @@ fn install(
     installed
 }
 
-fn ahead() -> bool {
-    AHEAD.load(Ordering::Relaxed)
+fn automatic() -> bool {
+    AUTOMATIC.load(Ordering::Relaxed)
 }

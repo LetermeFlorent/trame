@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use super::route::Route;
 use super::version::Version;
-use super::{UpdateStatus, ahead, fetch, setup, staged};
+use super::{UpdateStatus, automatic, fetch, setup, staged, swap};
 
 const CHECK_EVERY: Duration = Duration::from_secs(60 * 60);
 
@@ -21,16 +21,34 @@ pub fn watch(route: Route, exe: &Path, asset: &str, notify: &dyn Fn(UpdateStatus
     let mut offered = None;
     loop {
         if let Some(latest) = newer_release() {
-            if offered != Some(latest) {
-                notify(UpdateStatus::Available(latest.number()));
-                offered = Some(latest);
+            let status = match automatic() {
+                true => put_in_place(exe, latest, asset),
+                false => UpdateStatus::Available(latest.number()),
+            };
+            if offered.as_ref() != Some(&status) {
+                notify(status.clone());
             }
-            let fetched = ahead().then(|| staged::fetch(exe, latest, asset));
-            if let Some(Err(error)) = fetched {
-                eprintln!("trame: the early download of {latest} failed: {error}");
+            if matches!(status, UpdateStatus::Ready { .. }) {
+                return;
             }
+            offered = Some(status);
         }
         thread::sleep(CHECK_EVERY);
+    }
+}
+
+fn put_in_place(exe: &Path, version: Version, asset: &str) -> UpdateStatus {
+    let staged = staged::path(exe, version);
+    let placed = staged::fetch(exe, version, asset).and_then(|()| swap::replace(exe, &staged));
+    match placed {
+        Ok(()) => UpdateStatus::Ready {
+            version: version.number(),
+            exe: exe.to_path_buf(),
+        },
+        Err(error) => {
+            eprintln!("trame: the update to {version} failed: {error}");
+            UpdateStatus::Available(version.number())
+        }
     }
 }
 

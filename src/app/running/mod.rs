@@ -35,6 +35,7 @@ use super::visibility::Visibility;
 use super::{UserEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
+pub use lifecycle::Offer;
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
 use tabs::Closing;
@@ -69,7 +70,7 @@ pub struct Running {
     modifiers: ModifiersState,
     visibility: Visibility,
     loader: Option<Loader>,
-    update_offer: Option<String>,
+    update_offer: Option<Offer>,
     restarting: bool,
     power: Power,
     notifier: Notifier,

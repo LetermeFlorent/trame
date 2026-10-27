@@ -56,10 +56,9 @@ pub(crate) fn layout_footer(text: &mut TextSystem, input: &FrameInput, side: Rec
     let width = (side.width - 2.0 * inset).max(size);
     let place = |y: f32| Rect::new(side.x + inset, y, width, size).snapped();
     let settings = place(rect.bottom() - gap - size);
-    let update = input.update.map(|version| {
-        let label = format!("{} {version}", input.strings.update_to);
-        button(text, metrics, place(settings.y - stack - size), &label)
-    });
+    let update = input
+        .update
+        .map(|label| button(text, metrics, place(settings.y - stack - size), label));
     FooterFrame {
         rect,
         settings: button(text, metrics, settings, input.strings.settings),

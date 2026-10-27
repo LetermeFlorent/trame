@@ -96,10 +96,7 @@ fn every_preference_changed() -> Preferences {
         efficiency: false,
         rest_hidden_tabs: false,
         notify_waiting: false,
-        updates: Updates {
-            auto: true,
-            ahead: false,
-        },
+        updates: Updates { auto: false },
         numbering: Numbering {
             shown: false,
             on_close: false,

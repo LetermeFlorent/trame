@@ -11,7 +11,6 @@ use crate::app::running::keys::is_escape;
 
 const CLOSE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Close];
 const UPDATE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Restart];
-const VERSION_SLOT: &str = "{version}";
 
 struct Question {
     title: String,
@@ -41,9 +40,9 @@ impl Running {
     fn question(&self, closing: Closing) -> Option<Question> {
         let strings = self.strings;
         if let Closing::Update = closing {
-            let offer = self.update_offer.as_deref()?;
+            let offer = self.update_offer.as_ref()?;
             return Some(Question {
-                title: strings.update_question.replace(VERSION_SLOT, offer),
+                title: offer.question(strings),
                 body: strings.update_restarts.to_owned(),
                 actions: &UPDATE_ACTIONS,
             });

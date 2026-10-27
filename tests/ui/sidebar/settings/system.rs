@@ -31,25 +31,19 @@ fn the_hidden_tabs_switch_sits_indented_under_efficiency_and_follows_it() {
 
 #[cfg(windows)]
 #[test]
-fn updates_wait_for_a_click_by_default_and_download_ahead_once_allowed() {
+fn one_update_switch_closes_the_page_and_is_on_by_default() {
     let toggles = switches(&Preferences::default());
-    let auto = position(&toggles, SettingControl::UpdateAtLaunch);
-    let ahead = position(&toggles, SettingControl::UpdateAhead);
-    assert_eq!(ahead, auto + 1);
-    assert!(!toggles[auto].on && toggles[auto].enabled);
-    assert!(toggles[ahead].on && !toggles[ahead].enabled);
-    assert!(toggles[ahead].line.label_x > toggles[auto].line.label_x);
+    let auto = position(&toggles, SettingControl::AutoUpdate);
+    assert_eq!(auto, toggles.len() - 1);
+    assert!(toggles[auto].on && toggles[auto].enabled);
     let notify = position(&toggles, SettingControl::NotifyWaiting);
-    assert!(notify < auto);
+    assert_eq!(toggles[auto].line.label_x, toggles[notify].line.label_x);
     let toggles = switches(&Preferences {
-        updates: trame::preferences::Updates {
-            auto: true,
-            ahead: true,
-        },
+        updates: trame::preferences::Updates { auto: false },
         ..Preferences::default()
     });
-    let ahead = position(&toggles, SettingControl::UpdateAhead);
-    assert!(toggles[ahead].on && toggles[ahead].enabled);
+    let auto = position(&toggles, SettingControl::AutoUpdate);
+    assert!(!toggles[auto].on && toggles[auto].enabled);
 }
 
 #[cfg(not(windows))]

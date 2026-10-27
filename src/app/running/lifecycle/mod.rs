@@ -28,8 +28,10 @@ use crate::app::sessions::Sessions;
 use crate::app::update::UpdateStatus;
 use crate::app::visibility::Visibility;
 use crate::app::{UserEvent, window};
+
 use first_frame::first_frame;
 use surface::Surface;
+pub use update::Offer;
 
 pub struct Opened {
     running: Running,

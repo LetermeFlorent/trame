@@ -58,6 +58,6 @@ impl Running {
         if previous.power_switches() != wanted {
             self.power.set_enabled(wanted);
         }
-        update::download_ahead(current.updates.downloads_ahead());
+        update::allow_automatic(current.updates.auto);
     }
 }

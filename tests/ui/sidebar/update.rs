@@ -8,7 +8,7 @@ use super::footer::closed_sidebar;
 use crate::paint::paint_with;
 use crate::{input, text_system, workspace};
 
-const VERSION: &str = "9.8.7";
+const LABEL: &str = "Restart into 9.8.7";
 
 fn offered(text: &mut TextSystem, workspace: &Workspace, update: Option<&str>) -> FrameLayout {
     let mut input = input(workspace, UiMetrics::new(1.0));
@@ -19,7 +19,7 @@ fn offered(text: &mut TextSystem, workspace: &Workspace, update: Option<&str>) -
 #[test]
 fn a_new_release_adds_a_button_above_the_settings() {
     let mut text = text_system();
-    let layout = offered(&mut text, &workspace(), Some(VERSION));
+    let layout = offered(&mut text, &workspace(), Some(LABEL));
     let footer = &layout.footer;
     let update = footer.update.as_ref().expect("the update button is shown");
     assert!(update.rect.bottom() < footer.settings.rect.y);
@@ -32,12 +32,12 @@ fn a_new_release_adds_a_button_above_the_settings() {
 }
 
 #[test]
-fn the_button_names_the_version_it_installs() {
+fn the_button_shows_the_label_it_is_given() {
     let mut text = text_system();
-    let layout = offered(&mut text, &workspace(), Some(VERSION));
+    let layout = offered(&mut text, &workspace(), Some(LABEL));
     let update = layout.footer.update.as_ref().expect("the update button");
     let style = UiMetrics::new(1.0).label();
-    let expected = text.layout(&format!("Update to {VERSION}"), style);
+    let expected = text.layout(LABEL, style);
     assert_eq!(update.label.width, expected.width);
     assert!(update.label_x + update.label.width <= update.rect.right());
 }
@@ -46,7 +46,7 @@ fn the_button_names_the_version_it_installs() {
 fn without_a_new_release_the_footer_keeps_its_height() {
     let mut text = text_system();
     let plain = offered(&mut text, &workspace(), None);
-    let offer = offered(&mut text, &workspace(), Some(VERSION));
+    let offer = offered(&mut text, &workspace(), Some(LABEL));
     assert!(plain.footer.update.is_none());
     let button = offer.footer.settings.rect.height;
     let grown = offer.footer.rect.height - plain.footer.rect.height;
@@ -57,7 +57,7 @@ fn without_a_new_release_the_footer_keeps_its_height() {
 #[test]
 fn the_rail_keeps_only_the_icon_of_the_update_button() {
     let mut text = text_system();
-    let layout = offered(&mut text, &closed_sidebar(), Some(VERSION));
+    let layout = offered(&mut text, &closed_sidebar(), Some(LABEL));
     let update = layout.footer.update.as_ref().expect("the update button");
     assert_eq!(update.rect, update.icon);
     assert_eq!(layout.hit(update.rect.center(), false), Some(Hit::Update));
@@ -70,7 +70,7 @@ fn the_update_button_is_painted_orange() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
     let orange = theme.swatch(Swatch::Orange).to_array();
-    let layout = offered(&mut text, &workspace(), Some(VERSION));
+    let layout = offered(&mut text, &workspace(), Some(LABEL));
     let update = layout.footer.update.as_ref().expect("the update button");
     let scene = paint_with(&mut text, &layout, &theme, None, draw_chrome);
     assert!(
@@ -87,7 +87,7 @@ fn the_update_button_is_painted_orange() {
 fn hovering_the_rail_icon_names_the_version_beside_it() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
-    let layout = offered(&mut text, &closed_sidebar(), Some(VERSION));
+    let layout = offered(&mut text, &closed_sidebar(), Some(LABEL));
     let update = layout.footer.update.as_ref().expect("the update button");
     let rail = layout.rail.as_ref().expect("the rail");
     let scene = paint_with(&mut text, &layout, &theme, Some(Hit::Update), draw_tooltip);
