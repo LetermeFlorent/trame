@@ -1,7 +1,6 @@
 use trame::geometry::Point;
 use trame::session::SessionId;
 use trame::ui::drop::{DragView, DropSpot};
-use trame::workspace::DropTarget;
 
 use super::{Drag, Ghost};
 use crate::app::running::Running;
@@ -41,14 +40,6 @@ impl Running {
     fn drop_spot(&self, tab: SessionId, pointer: Point) -> Option<DropSpot> {
         let instance = self.workspace.active_instance()?.id;
         let spot = self.frame.drop_at(pointer, instance)?;
-        let source = self.workspace.locate(tab)?;
-        let same_pane = matches!(
-            spot.target,
-            DropTarget::Tabs { pane, index: None, .. } if pane == source.pane
-        );
-        if same_pane {
-            return None;
-        }
         self.workspace
             .clone()
             .move_tab(tab, spot.target)

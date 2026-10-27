@@ -15,6 +15,10 @@ pub enum DropTarget {
         pane: PaneId,
         edge: Edge,
     },
+    Swap {
+        instance: InstanceId,
+        pane: PaneId,
+    },
     Instance(InstanceId),
     NewInstance,
 }
@@ -50,6 +54,7 @@ impl Workspace {
                     into.split(pane, new, tab, edge)
                 })
             }
+            DropTarget::Swap { instance, pane } => self.swap(tab, source, instance, pane),
             DropTarget::Instance(instance) if instance == source_id => false,
             DropTarget::Instance(instance) => {
                 self.transfer(tab, source, instance, |into| into.insert_active(tab))

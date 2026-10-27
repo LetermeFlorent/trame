@@ -88,10 +88,9 @@ fn strip_drop(
 fn body_drop(pane: &PaneFrame, point: Point, instance: InstanceId) -> Option<DropSpot> {
     let zone = DropZone::at(pane.body, point)?;
     let target = match zone {
-        DropZone::Center => DropTarget::Tabs {
+        DropZone::Center => DropTarget::Swap {
             instance,
             pane: pane.id,
-            index: None,
         },
         DropZone::Edge(edge) => DropTarget::Split {
             instance,

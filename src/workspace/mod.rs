@@ -4,6 +4,7 @@ mod moves;
 mod numbers;
 mod pane;
 mod snapshot;
+mod swap;
 mod tabs;
 mod tree;
 

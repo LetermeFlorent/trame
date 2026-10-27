@@ -59,16 +59,13 @@ fn past_the_last_tab_inserts_at_the_end() {
 }
 
 #[test]
-fn the_pane_body_splits_on_an_edge_or_adds_in_the_middle() {
+fn the_pane_body_splits_on_an_edge_or_swaps_in_the_middle() {
     let workspace = workspace();
     let frame = frame(&workspace);
     let body = frame.panes[0].body;
     let id = instance(&workspace);
     let middle = frame.drop_at(body.center(), id).expect("a spot");
-    assert!(matches!(
-        middle.target,
-        DropTarget::Tabs { index: None, .. }
-    ));
+    assert!(matches!(middle.target, DropTarget::Swap { .. }));
     assert_eq!(middle.mark, DropMark::Area(body));
     let right = Point::new(body.right() - 5.0, body.center().y);
     let spot = frame.drop_at(right, id).expect("a spot");
