@@ -1,12 +1,13 @@
 use std::time::Instant;
 
+use trame::preferences::Recall;
 use trame::session::{SessionId, transcript_of};
 
 use crate::app::running::Running;
 
 impl Running {
     pub(super) fn transcript_deadline(&mut self) -> Option<Instant> {
-        if !self.preferences.restore_text {
+        if !self.preferences.recalls(Recall::Text) {
             return None;
         }
         if self.transcripts.due() <= Instant::now() {
@@ -32,7 +33,7 @@ impl Running {
 
     fn save_transcripts(&mut self, every_tab: bool) {
         self.transcripts.schedule();
-        if !every_tab && !self.preferences.restore_text {
+        if !every_tab && !self.preferences.recalls(Recall::Text) {
             return;
         }
         let tabs = self.workspace.tabs();

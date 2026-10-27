@@ -12,7 +12,7 @@ use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 
 use trame::files::IconStore;
-use trame::preferences::Preferences;
+use trame::preferences::{Preferences, Recall};
 use trame::render::Scene;
 use trame::session::Transcripts;
 use trame::theme::Theme;
@@ -47,7 +47,7 @@ impl Opened {
         if !running.restore_session(saved.as_ref()) {
             running.open(Placement::Instance)?;
         }
-        if !running.preferences.restore_text {
+        if !running.preferences.recalls(Recall::Text) {
             running.transcripts.clear();
         }
         running.draw();
