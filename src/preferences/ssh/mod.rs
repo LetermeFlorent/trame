@@ -14,6 +14,10 @@ pub use prompt::{ANSWER_WINDOW, Prompt, SecretAnswer, prompt_in};
 
 const DEFAULT_PORT: u16 = 22;
 
+fn custom_port(port: Option<u16>) -> Option<u16> {
+    port.filter(|&port| port != DEFAULT_PORT)
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SshHost {
     pub target: String,
@@ -30,7 +34,7 @@ impl SshHost {
         };
         let host = Self {
             target: target.to_owned(),
-            port: port.filter(|&port| port != DEFAULT_PORT),
+            port: custom_port(port),
         };
         host.is_valid().then_some(host)
     }
@@ -48,9 +52,16 @@ impl SshHost {
         };
         let host = Self {
             target,
-            port: port.filter(|&port| port != DEFAULT_PORT),
+            port: custom_port(port),
         };
         host.is_valid().then_some(host)
+    }
+
+    fn split(&self) -> (Option<&str>, &str) {
+        match self.target.split_once('@') {
+            Some((user, name)) => (Some(user), name),
+            None => (None, self.target.as_str()),
+        }
     }
 
     pub fn label(&self) -> String {
@@ -61,7 +72,7 @@ impl SshHost {
     }
 
     pub fn alias(&self) -> Option<&str> {
-        let bare = self.port.is_none() && !self.target.contains('@');
+        let bare = self.port.is_none() && self.split().0.is_none();
         bare.then_some(self.target.as_str())
     }
 
@@ -126,7 +137,7 @@ pub(super) fn sanitized_hosts(hosts: Vec<SshHost>) -> Vec<SshHost> {
     let mut kept: Vec<SshHost> = Vec::new();
     for host in hosts {
         let host = SshHost {
-            port: host.port.filter(|&port| port != DEFAULT_PORT),
+            port: custom_port(host.port),
             ..host
         };
         if host.is_valid() && !kept.contains(&host) {

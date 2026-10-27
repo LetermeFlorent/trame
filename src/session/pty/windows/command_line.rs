@@ -8,10 +8,6 @@ const SPACE: u16 = b' ' as u16;
 const TAB: u16 = b'\t' as u16;
 const EQUALS: u16 = b'=' as u16;
 
-pub(super) fn wide(value: &OsStr) -> Vec<u16> {
-    value.encode_wide().chain(Some(0)).collect()
-}
-
 pub(super) fn command_line(program: &OsStr, args: &[OsString]) -> Vec<u16> {
     let mut line = Vec::new();
     append_argument(&mut line, program);

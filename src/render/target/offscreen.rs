@@ -45,12 +45,16 @@ pub fn render_in_format(
     });
     let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
     renderer.render(gpu, &view, scene, clear);
-    let mut pixels = read_texture(gpu, &texture)?;
-    into_rgba(&mut pixels, format);
+    read_rgba(gpu, &texture)
+}
+
+pub fn read_rgba(gpu: &Gpu, texture: &wgpu::Texture) -> Result<Vec<u8>, ReadbackError> {
+    let mut pixels = read_texture(gpu, texture)?;
+    into_rgba(&mut pixels, texture.format());
     Ok(pixels)
 }
 
-pub fn into_rgba(pixels: &mut [u8], format: wgpu::TextureFormat) {
+fn into_rgba(pixels: &mut [u8], format: wgpu::TextureFormat) {
     if matches!(
         format,
         wgpu::TextureFormat::Bgra8Unorm | wgpu::TextureFormat::Bgra8UnormSrgb

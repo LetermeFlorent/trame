@@ -63,6 +63,10 @@ impl Face {
         Some(f32::from(weight).clamp(min, max).round() as u16)
     }
 
+    pub fn effective_weight(&self, weight: u16) -> u16 {
+        self.weight_variation(weight).unwrap_or(self.weight)
+    }
+
     pub fn metrics(&self, size: f32) -> Metrics {
         let mut metrics = self.font().metrics(&[]).scale(size);
         if metrics.cap_height <= 0.0 {

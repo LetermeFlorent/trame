@@ -38,11 +38,10 @@ pub struct FontKey {
 impl FontKey {
     pub fn synthesize(library: &FontLibrary, id: FontId, weight: u16, italic: bool) -> Self {
         let face = library.face(id);
-        let variation = face.weight_variation(weight);
-        let effective = variation.unwrap_or(face.weight());
+        let effective = face.effective_weight(weight);
         Self {
             id,
-            weight: variation,
+            weight: face.weight_variation(weight),
             embolden: weight >= SEMIBOLD && effective < SEMIBOLD,
             skew: italic && !face.is_italic(),
         }

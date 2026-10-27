@@ -9,7 +9,6 @@ use std::path::PathBuf;
 use super::SshHost;
 pub use block::{HostEntry, entry_in};
 pub use edit::{appended, with_host, without_host};
-use names::name_of;
 pub use names::{aliases_in, menu_hosts};
 
 pub struct SshConfig {
@@ -31,7 +30,7 @@ impl SshConfig {
 
     pub fn keep(&self, host: &SshHost) -> io::Result<SshHost> {
         let existing = self.text()?;
-        let name = name_of(host);
+        let name = host.split().1;
         if aliases_in(&existing).iter().any(|alias| alias == name) {
             return Ok(host.clone());
         }

@@ -6,13 +6,11 @@ use windows_sys::Win32::Security::Credentials::{
     CredWriteW,
 };
 
-fn wide(text: &str) -> Vec<u16> {
-    text.encode_utf16().chain(Some(0)).collect()
-}
+use crate::utf16::wide;
 
 pub(super) fn store(key: &str, user: &str, secret: &str) -> io::Result<()> {
-    let mut key = wide(key);
-    let mut user = wide(user);
+    let mut key = wide(key.as_ref());
+    let mut user = wide(user.as_ref());
     let mut blob = secret.as_bytes().to_vec();
     let size = u32::try_from(blob.len()).map_err(io::Error::other)?;
     let credential = CREDENTIALW {
@@ -31,7 +29,7 @@ pub(super) fn store(key: &str, user: &str, secret: &str) -> io::Result<()> {
 }
 
 pub(super) fn load(key: &str) -> Option<String> {
-    let key = wide(key);
+    let key = wide(key.as_ref());
     let mut credential: *mut CREDENTIALW = ptr::null_mut();
     if unsafe { CredReadW(key.as_ptr(), CRED_TYPE_GENERIC, 0, &raw mut credential) } == 0 {
         return None;
@@ -51,6 +49,6 @@ unsafe fn blob_text(credential: &CREDENTIALW) -> Option<String> {
 }
 
 pub(super) fn forget(key: &str) {
-    let key = wide(key);
+    let key = wide(key.as_ref());
     unsafe { CredDeleteW(key.as_ptr(), CRED_TYPE_GENERIC, 0) };
 }

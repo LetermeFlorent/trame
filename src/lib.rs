@@ -9,4 +9,6 @@ pub mod term;
 pub mod text;
 pub mod theme;
 pub mod ui;
+#[cfg(windows)]
+pub mod utf16;
 pub mod workspace;

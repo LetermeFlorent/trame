@@ -11,6 +11,6 @@ pub use gpu::Gpu;
 pub use renderer::Renderer;
 pub use scene::Scene;
 pub use target::{
-    Frame, OFFSCREEN_FORMAT, ReadbackError, WindowSurface, into_rgba, read_texture,
+    Frame, OFFSCREEN_FORMAT, ReadbackError, WindowSurface, read_rgba, read_texture,
     render_in_format, render_to_rgba,
 };

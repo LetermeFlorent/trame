@@ -1,9 +1,7 @@
 use std::borrow::Cow;
 
 use super::block::{HOST_NAME, HostEntry, PORT, USER, block_of, entry_in, is_setting, lines};
-use super::names::{
-    BYTE_ORDER_MARK, aliases_in, host_names, is_filler, name_of, name_range, quoted_range,
-};
+use super::names::{BYTE_ORDER_MARK, aliases_in, host_names, is_filler, name_range, quoted_range};
 use crate::preferences::SshHost;
 
 const INDENT: &str = "    ";
@@ -20,8 +18,7 @@ fn is_blank(line: &str) -> bool {
 }
 
 fn settings_of(host: &SshHost, indent: &str, newline: &str) -> Vec<String> {
-    let name = name_of(host);
-    let user = host.target.split_once('@').map(|(user, _)| user);
+    let (user, name) = host.split();
     let mut lines = vec![format!("{indent}HostName {name}{newline}")];
     lines.extend(user.map(|user| format!("{indent}User {user}{newline}")));
     lines.extend(
@@ -38,7 +35,7 @@ pub fn appended(existing: &str, host: &SshHost) -> String {
         text if text.ends_with('\n') => newline.to_owned(),
         _ => newline.repeat(2),
     };
-    let head = format!("Host {}{newline}", name_of(host));
+    let head = format!("Host {}{newline}", host.split().1);
     let body = settings_of(host, INDENT, newline).concat();
     format!("{lead}{head}{body}")
 }
@@ -110,7 +107,7 @@ pub fn with_host(text: &str, name: &str, host: &SshHost) -> Option<(String, Stri
     let lines = lines(text);
     let block = block_of(&lines, name)?;
     let old = entry_in(text, name)?;
-    let alias = alias_for(text, name, name_of(host), &old);
+    let alias = alias_for(text, name, host.split().1, &old);
     let newline = newline_of(text);
     let body = &lines[block.start + 1..block.end];
     let head = renamed_head(lines[block.start], name, alias, newline)?;

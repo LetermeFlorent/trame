@@ -16,6 +16,7 @@ use windows_sys::Win32::System::Console::{
 use windows_sys::Win32::System::Threading::{GetExitCodeProcess, INFINITE, WaitForSingleObject};
 
 use super::{PtyOptions, PtySize, Spawned, terminal_env};
+use crate::utf16::wide;
 
 struct Console(HPCON);
 
@@ -78,7 +79,7 @@ pub(super) fn spawn(options: &PtyOptions) -> io::Result<Spawned> {
     let shell = options.shell;
     let mut line = command_line::command_line(shell.program.as_os_str(), &shell.args);
     let environment = command_line::environment_block(&child_env(options));
-    let cwd = options.cwd.map(|path| command_line::wide(path.as_os_str()));
+    let cwd = options.cwd.map(|path| wide(path.as_os_str()));
     let process = process::create_process(console.0, &mut line, &environment, cwd.as_deref())?;
     Ok(Spawned {
         pty: super::Pty(Pty {

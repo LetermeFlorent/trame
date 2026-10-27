@@ -1,5 +1,5 @@
 use std::ffi::{OsStr, OsString, c_void};
-use std::os::windows::ffi::{OsStrExt, OsStringExt};
+use std::os::windows::ffi::OsStringExt;
 use std::path::{Path, PathBuf};
 use std::ptr;
 
@@ -12,6 +12,7 @@ use windows_sys::core::{GUID, HRESULT, PCWSTR, PWSTR};
 
 use super::com::{Apartment, Object};
 use super::{PickKind, PickRequest};
+use crate::utf16::wide;
 
 const FILE_OPEN_DIALOG: GUID = GUID::from_u128(0xdc1c5a9c_e88a_4dde_a5a1_60f82a20aef7);
 const FILE_DIALOG: GUID = GUID::from_u128(0x42f85136_db7e_439c_85f1_e4075d135fc8);
@@ -119,8 +120,4 @@ fn path_of(item: &Object) -> Option<PathBuf> {
     let path = PathBuf::from(OsString::from_wide(units));
     unsafe { CoTaskMemFree(name.cast()) };
     Some(path)
-}
-
-fn wide(text: &OsStr) -> Vec<u16> {
-    text.encode_wide().chain([0]).collect()
 }

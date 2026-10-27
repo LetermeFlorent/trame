@@ -79,12 +79,6 @@ pub fn aliases_in(text: &str) -> Vec<String> {
     aliases
 }
 
-pub(super) fn name_of(host: &SshHost) -> &str {
-    host.target
-        .split_once('@')
-        .map_or(host.target.as_str(), |(_, name)| name)
-}
-
 pub fn menu_hosts(saved: &[SshHost], aliases: &[String]) -> Vec<SshHost> {
     let mut hosts = saved.to_vec();
     for host in aliases.iter().filter_map(|alias| SshHost::parse(alias)) {

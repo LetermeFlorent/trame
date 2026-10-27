@@ -1,5 +1,6 @@
-use std::env;
 use std::path::PathBuf;
+
+use crate::files::home_dir;
 
 const SYSTEM_DIRS: &[&str] = &[
     "/System/Library/Fonts",
@@ -35,8 +36,8 @@ pub(super) const FALLBACK: &[&str] = &[
 ];
 
 pub(super) fn font_dirs() -> Vec<PathBuf> {
-    let mut dirs: Vec<PathBuf> = env::var_os("HOME")
-        .map(|home| PathBuf::from(home).join("Library").join("Fonts"))
+    let mut dirs: Vec<PathBuf> = home_dir()
+        .map(|home| home.join("Library").join("Fonts"))
         .into_iter()
         .collect();
     dirs.extend(SYSTEM_DIRS.iter().map(PathBuf::from));

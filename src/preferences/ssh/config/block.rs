@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use super::names::{host_names, is_filler, setting, starts_block};
 use crate::preferences::SshHost;
-use crate::preferences::ssh::DEFAULT_PORT;
+use crate::preferences::ssh::custom_port;
 
 pub(super) const HOST_NAME: &str = "hostname";
 pub(super) const USER: &str = "user";
@@ -17,13 +17,10 @@ pub struct HostEntry {
 
 impl HostEntry {
     pub fn of(host: &SshHost) -> Self {
-        let (user, address) = match host.target.split_once('@') {
-            Some((user, address)) => (Some(user.to_owned()), address),
-            None => (None, host.target.as_str()),
-        };
+        let (user, address) = host.split();
         Self {
             address: address.to_owned(),
-            user,
+            user: user.map(str::to_owned),
             port: host.port,
         }
     }
@@ -72,8 +69,6 @@ pub fn entry_in(text: &str, name: &str) -> Option<HostEntry> {
     Some(HostEntry {
         address: address.unwrap_or(name).to_owned(),
         user: user.map(str::to_owned),
-        port: port
-            .and_then(|port| port.parse().ok())
-            .filter(|&port| port != DEFAULT_PORT),
+        port: custom_port(port.and_then(|port| port.parse().ok())),
     })
 }

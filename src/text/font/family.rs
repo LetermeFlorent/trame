@@ -32,7 +32,7 @@ impl Family {
 
 fn distance(library: &FontLibrary, id: FontId, weight: u16, italic: bool) -> u32 {
     let face = library.face(id);
-    let effective = face.weight_variation(weight).unwrap_or(face.weight());
+    let effective = face.effective_weight(weight);
     let style = if face.is_italic() == italic {
         0
     } else {
