@@ -4,8 +4,8 @@ use std::sync::mpsc::{self, Sender};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use super::threads::spawn;
-use super::{Notifier, SessionEvent, SessionId};
+use super::threads::{spawn, wake_output};
+use super::{Notifier, SessionId};
 
 const SYNC_LIMIT: Duration = Duration::from_secs(1);
 
@@ -68,8 +68,8 @@ impl SyncHold {
                 for (generation, deadline) in queue {
                     thread::sleep(deadline.saturating_duration_since(Instant::now()));
                     let still_held = current.load(Ordering::Acquire) == generation;
-                    if still_held && !pending.swap(true, Ordering::AcqRel) {
-                        notify(SessionEvent::Output(id));
+                    if still_held {
+                        wake_output(id, &pending, &notify);
                     }
                 }
             });

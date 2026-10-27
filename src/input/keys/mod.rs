@@ -23,7 +23,7 @@ pub fn encode(input: KeyInput, modes: Modes) -> Option<Vec<u8>> {
         Key::Named(named) => named_key(*named, input, modes),
         Key::Character(_) if is_alt_graph(input) => text(input),
         Key::Character(_) if modifiers.control_key() => control_key(input),
-        Key::Character(_) if modifiers.alt_key() && meta_sends_escape() => {
+        Key::Character(_) if alt_sends_escape(modifiers) => {
             text(input).map(|bytes| escaped(&bytes))
         }
         _ => text(input),
@@ -37,7 +37,7 @@ fn named_key(named: NamedKey, input: KeyInput, modes: Modes) -> Option<Vec<u8>> 
     {
         return Some(bytes);
     }
-    let alt = modifiers.alt_key() && meta_sends_escape();
+    let alt = alt_sends_escape(modifiers);
     let simple = |bytes: &[u8]| Some(if alt { escaped(bytes) } else { bytes.to_vec() });
     match named {
         NamedKey::Enter if modes.contains(Modes::NEW_LINE) => simple(b"\r\n"),
@@ -64,7 +64,7 @@ fn control_key(input: KeyInput) -> Option<Vec<u8>> {
     let Some(byte) = control_byte(ch.to_ascii_lowercase()) else {
         return text(input);
     };
-    let alt = input.modifiers.alt_key() && meta_sends_escape();
+    let alt = alt_sends_escape(input.modifiers);
     Some(if alt { vec![ESC, byte] } else { vec![byte] })
 }
 
@@ -106,6 +106,6 @@ fn escaped(bytes: &[u8]) -> Vec<u8> {
     output
 }
 
-fn meta_sends_escape() -> bool {
-    !cfg!(target_os = "macos")
+fn alt_sends_escape(modifiers: ModifiersState) -> bool {
+    modifiers.alt_key() && !cfg!(target_os = "macos")
 }

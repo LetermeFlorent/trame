@@ -75,12 +75,16 @@ fn read_loop(mut reader: Reader) {
         if !responses.is_empty() && reader.input.send(responses).is_err() {
             break;
         }
-        if !hold.holds(synchronized) && !reader.pending.swap(true, Ordering::AcqRel) {
-            (reader.notify)(SessionEvent::Output(reader.id));
+        if !hold.holds(synchronized) {
+            wake_output(reader.id, &reader.pending, &reader.notify);
         }
     }
-    if !reader.pending.swap(true, Ordering::AcqRel) {
-        (reader.notify)(SessionEvent::Output(reader.id));
+    wake_output(reader.id, &reader.pending, &reader.notify);
+}
+
+pub(super) fn wake_output(id: SessionId, pending: &AtomicBool, notify: &Notifier) {
+    if !pending.swap(true, Ordering::AcqRel) {
+        notify(SessionEvent::Output(id));
     }
 }
 

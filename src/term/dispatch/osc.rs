@@ -46,24 +46,12 @@ impl Screen {
     }
 
     fn set_title(&mut self, parts: &[&[u8]]) {
-        let joined = parts.join(&b';');
-        let mut title: String = String::from_utf8_lossy(&joined)
-            .chars()
-            .filter(|c| !c.is_control())
-            .take(MAX_TITLE_LEN)
-            .collect();
-        title = title.trim().to_string();
+        let title = printable_text(parts);
         self.title = if title.is_empty() { None } else { Some(title) };
     }
 
     fn notice(&mut self, parts: &[&[u8]]) {
-        let joined = parts.join(&b';');
-        let text: String = String::from_utf8_lossy(&joined)
-            .chars()
-            .filter(|c| !c.is_control())
-            .take(MAX_TITLE_LEN)
-            .collect();
-        self.attention = Some(text.trim().to_string());
+        self.attention = Some(printable_text(parts));
     }
 
     fn report_color(&mut self, kind: &[u8], bell_terminated: bool) {
@@ -80,6 +68,16 @@ impl Screen {
         );
         self.respond(reply.as_bytes());
     }
+}
+
+fn printable_text(parts: &[&[u8]]) -> String {
+    let joined = parts.join(&b';');
+    let text: String = String::from_utf8_lossy(&joined)
+        .chars()
+        .filter(|c| !c.is_control())
+        .take(MAX_TITLE_LEN)
+        .collect();
+    text.trim().to_string()
 }
 
 fn is_number(code: &[u8]) -> bool {

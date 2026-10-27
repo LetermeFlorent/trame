@@ -63,26 +63,28 @@ impl Row {
         }
     }
 
-    pub fn insert_blanks(&mut self, col: usize, count: usize, cols: usize, template: &Cell) {
+    fn shiftable(&mut self, col: usize, count: usize, cols: usize) -> Option<usize> {
         if col >= cols {
-            return;
+            return None;
         }
         if self.cells.len() < cols {
             self.cells.resize(cols, Cell::default());
         }
-        let count = count.min(cols - col);
+        Some(count.min(cols - col))
+    }
+
+    pub fn insert_blanks(&mut self, col: usize, count: usize, cols: usize, template: &Cell) {
+        let Some(count) = self.shiftable(col, count, cols) else {
+            return;
+        };
         self.cells[col..cols].rotate_right(count);
         self.clear_range(col, col + count, template);
     }
 
     pub fn delete_cells(&mut self, col: usize, count: usize, cols: usize, template: &Cell) {
-        if col >= cols {
+        let Some(count) = self.shiftable(col, count, cols) else {
             return;
-        }
-        if self.cells.len() < cols {
-            self.cells.resize(cols, Cell::default());
-        }
-        let count = count.min(cols - col);
+        };
         self.cells[col..cols].rotate_left(count);
         self.clear_range(cols - count, cols, template);
     }
