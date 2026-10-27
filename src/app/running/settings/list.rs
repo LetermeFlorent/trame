@@ -6,7 +6,7 @@ use crate::app::running::Running;
 
 impl Running {
     pub(in crate::app::running) fn list_control(&mut self, control: ListControl) {
-        if self.custom_control(control) {
+        if self.custom_control(control) || self.shortcut_control(control) {
             return self.changed();
         }
         match control {

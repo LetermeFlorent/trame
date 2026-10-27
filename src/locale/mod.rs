@@ -1,6 +1,7 @@
 mod detect;
 mod english;
 mod french;
+mod keys;
 mod strings;
 #[cfg(test)]
 mod tests;
@@ -8,6 +9,7 @@ mod tests;
 use serde::{Deserialize, Serialize};
 
 pub use detect::{language_of_id, language_of_tag, system_language};
+pub use keys::KeyStrings;
 pub use strings::Strings;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

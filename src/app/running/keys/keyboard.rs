@@ -3,7 +3,7 @@ use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
-use trame::input::{Command, KeyInput, ShortcutInput, encode, shortcut};
+use trame::input::{Command, KeyInput, Keymap, ShortcutInput, encode};
 use trame::term::Modes;
 
 use crate::app::running::Running;
@@ -43,13 +43,12 @@ impl Running {
 
     pub(in crate::app::running) fn shortcut_for(&self, event: &KeyEvent) -> Option<Command> {
         let base = event.key_without_modifiers();
-        let input = ShortcutInput {
-            key: &event.logical_key,
-            base: &base,
-            physical: event.physical_key,
-            modifiers: self.modifiers,
-        };
-        shortcut(input, self.metrics.platform)
+        let input = shortcut_input(event, &base, self.modifiers);
+        self.keymap().command_for(input)
+    }
+
+    pub(in crate::app::running) fn keymap(&self) -> Keymap {
+        Keymap::new(self.metrics.platform, &self.preferences.shortcuts)
     }
 
     fn claims(&self, command: Command) -> bool {
@@ -112,6 +111,19 @@ impl Running {
             }
         }
         self.window.request_redraw();
+    }
+}
+
+pub(in crate::app::running) fn shortcut_input<'a>(
+    event: &'a KeyEvent,
+    base: &'a Key,
+    modifiers: ModifiersState,
+) -> ShortcutInput<'a> {
+    ShortcutInput {
+        key: &event.logical_key,
+        base,
+        physical: event.physical_key,
+        modifiers,
     }
 }
 

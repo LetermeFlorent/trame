@@ -1,4 +1,5 @@
 use super::Strings;
+use super::keys::FRENCH_KEYS;
 
 pub const FRENCH: Strings = Strings {
     checking_updates: "Recherche de mises à jour",
@@ -70,4 +71,5 @@ pub const FRENCH: Strings = Strings {
     letters_or_image: "LETTRES OU IMAGE",
     image: "Image",
     pick_image: "Choisir une image",
+    keys: &FRENCH_KEYS,
 };

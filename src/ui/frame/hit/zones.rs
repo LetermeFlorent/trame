@@ -45,6 +45,7 @@ pub(super) fn hit_settings(panel: &SettingsFrame, point: Point) -> Option<Hit> {
             panel
                 .connections()
                 .and_then(|page| host_hit(page.form.as_ref(), page.list.as_ref(), point))
+                .or_else(|| host_hit(None, panel.shortcuts()?.list.as_ref(), point))
                 .or_else(|| panel.control_at(point).map(Hit::Setting))
                 .unwrap_or(Hit::SettingsPanel),
         ),

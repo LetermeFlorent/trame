@@ -23,8 +23,9 @@ pub(super) use settings::{
 };
 pub use settings::{
     Chip, ChoiceRow, ConnectionsPage, GeneralPage, HostList, HostRow, HostsView, InstancesPage,
-    ListControl, MessageFrame, MessageRequest, NumberChoice, PopupFrame, ScrollBar, SettingControl,
-    SettingLine, SettingsFrame, SettingsPage, SettingsRequest, SettingsTab, Stepper, ToggleRow,
+    KeyControl, KeyDetail, KeyLine, KeyNotice, ListControl, MessageFrame, MessageRequest,
+    NumberChoice, PopupFrame, ScrollBar, SettingControl, SettingLine, SettingsFrame, SettingsPage,
+    SettingsRequest, SettingsTab, ShortcutsPage, ShortcutsView, Stepper, ToggleRow, key_label,
 };
 pub(super) use width::Columns;
 pub use width::{dragged_width, shown_width};

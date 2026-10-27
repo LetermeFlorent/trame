@@ -1,11 +1,12 @@
 mod hosts;
 mod list;
+mod shortcuts;
 mod store;
 
 use winit::event::KeyEvent;
 
 use trame::input::TextField;
-use trame::ui::frame::{SettingControl, SettingsRequest, SettingsTab};
+use trame::ui::frame::{SettingControl, SettingsRequest, SettingsTab, ShortcutsView};
 
 use super::keys::is_escape;
 use super::{FolderTarget, Running};
@@ -15,6 +16,7 @@ pub(super) use hosts::HostsPanel;
 pub(super) struct SettingsState {
     tab: SettingsTab,
     hosts: Option<HostsPanel>,
+    keys: Option<ShortcutsView>,
 }
 
 impl Running {
@@ -27,6 +29,7 @@ impl Running {
                 folder: folder.as_deref(),
                 tab: state.tab,
                 hosts: state.hosts.as_ref().map(HostsPanel::view),
+                shortcuts: state.keys,
             };
             self.frame.place_settings(&mut self.text, &request);
         }
@@ -45,7 +48,9 @@ impl Running {
         if self.settings.is_none() {
             return false;
         }
-        if is_escape(event) {
+        if self.capturing_key() {
+            self.capture_key(event);
+        } else if is_escape(event) {
             self.toggle_settings();
         }
         true
@@ -57,6 +62,7 @@ impl Running {
             SettingControl::Close => return self.toggle_settings(),
             SettingControl::Tab(tab) => return self.show_tab(tab),
             SettingControl::AddHost => return self.add_host(),
+            SettingControl::Keys(key) => return self.key_setting(key),
             SettingControl::Recall(recall) => current.toggle(recall),
             SettingControl::ConfirmClose => current.toggle_confirm_close(),
             SettingControl::Efficiency => current.with(|next| next.efficiency = !next.efficiency),
@@ -93,7 +99,8 @@ impl Running {
             return;
         }
         let hosts = (tab == SettingsTab::Connections).then(|| HostsPanel::new(self.known_hosts()));
-        self.settings = Some(SettingsState { tab, hosts });
+        let keys = (tab == SettingsTab::Shortcuts).then(ShortcutsView::default);
+        self.settings = Some(SettingsState { tab, hosts, keys });
         self.command_field = None;
         self.changed();
     }

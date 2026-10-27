@@ -1,3 +1,5 @@
+use super::KeyStrings;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Strings {
     pub checking_updates: &'static str,
@@ -69,4 +71,5 @@ pub struct Strings {
     pub letters_or_image: &'static str,
     pub image: &'static str,
     pub pick_image: &'static str,
+    pub keys: &'static KeyStrings,
 }

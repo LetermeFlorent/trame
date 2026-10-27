@@ -7,6 +7,7 @@ mod message;
 mod page;
 mod place;
 mod popup;
+mod shortcuts;
 
 use std::sync::Arc;
 
@@ -25,6 +26,9 @@ pub use instances::{InstancesPage, NumberChoice};
 pub use message::{MessageFrame, MessageRequest};
 pub use page::{SettingsFrame, SettingsPage, SettingsRequest};
 pub use popup::PopupFrame;
+pub use shortcuts::{
+    KeyControl, KeyDetail, KeyLine, KeyNotice, ShortcutsPage, ShortcutsView, key_label,
+};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum SettingsTab {
@@ -32,10 +36,16 @@ pub enum SettingsTab {
     General,
     Instances,
     Connections,
+    Shortcuts,
 }
 
 impl SettingsTab {
-    pub const ALL: [Self; 3] = [Self::General, Self::Instances, Self::Connections];
+    pub const ALL: [Self; 4] = [
+        Self::General,
+        Self::Instances,
+        Self::Connections,
+        Self::Shortcuts,
+    ];
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -63,6 +73,7 @@ pub enum SettingControl {
     Efficiency,
     NotifyWaiting,
     Numbers(NumberChoice),
+    Keys(KeyControl),
 }
 
 #[derive(Clone, Debug)]

@@ -8,7 +8,7 @@ use super::{english, page, panel};
 fn the_tabs_sit_under_the_title_and_mark_the_open_one() {
     let layout = english(&Preferences::default());
     let settings = panel(&layout);
-    let [general, instances, connections] = &settings.tabs;
+    let [general, instances, connections, shortcuts] = &settings.tabs;
     assert_eq!(general.control, SettingControl::Tab(SettingsTab::General));
     assert_eq!(
         instances.control,
@@ -18,9 +18,16 @@ fn the_tabs_sit_under_the_title_and_mark_the_open_one() {
         connections.control,
         SettingControl::Tab(SettingsTab::Connections)
     );
+    assert_eq!(
+        shortcuts.control,
+        SettingControl::Tab(SettingsTab::Shortcuts)
+    );
     assert!(general.selected && !instances.selected && !connections.selected);
+    assert!(!shortcuts.selected);
     assert!(general.rect.right() <= instances.rect.x);
     assert!(instances.rect.right() <= connections.rect.x);
+    assert!(connections.rect.right() <= shortcuts.rect.x);
+    assert!(shortcuts.rect.right() <= settings.popup.close.right());
     assert!(general.rect.y >= settings.popup.title.rect.bottom());
     assert!(page(&layout).sections[0].rect.y >= general.rect.bottom());
 }

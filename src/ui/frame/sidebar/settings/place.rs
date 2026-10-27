@@ -10,6 +10,7 @@ use super::column::{Column, LINE_HEIGHT, SECTION_GAP};
 use super::general::{general_height, general_page};
 use super::hosts::connections_page;
 use super::instances::instances_page;
+use super::shortcuts::shortcuts_page;
 use super::{
     Chip, HostsView, SettingControl, SettingsFrame, SettingsPage, SettingsRequest, SettingsTab,
 };
@@ -48,13 +49,14 @@ fn tabs_height(metrics: &UiMetrics) -> f32 {
     metrics.px(LINE_HEIGHT) + metrics.px(SECTION_GAP)
 }
 
-fn settings_tabs(column: &mut Column, request: &SettingsRequest) -> [Chip; 3] {
+fn settings_tabs(column: &mut Column, request: &SettingsRequest) -> [Chip; 4] {
     let strings = request.strings;
     let choice = |tab: SettingsTab| -> Choice {
         let label = match tab {
             SettingsTab::General => strings.general,
             SettingsTab::Instances => strings.instances_section,
             SettingsTab::Connections => strings.connections_tab,
+            SettingsTab::Shortcuts => strings.keys.tab,
         };
         (label, SettingControl::Tab(tab), tab == request.tab)
     };
@@ -79,6 +81,9 @@ fn settings_page(column: &mut Column, request: &SettingsRequest, height: f32) ->
         SettingsTab::Connections => {
             let view = request.hosts.unwrap_or(NO_HOSTS);
             SettingsPage::Connections(Box::new(connections_page(column, strings, view, height)))
+        }
+        SettingsTab::Shortcuts => {
+            SettingsPage::Shortcuts(Box::new(shortcuts_page(column, request, height)))
         }
     }
 }

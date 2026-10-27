@@ -43,7 +43,10 @@ impl Running {
             })
         );
         if !colors {
-            return Some(&mut self.panel_mut()?.first);
+            return match self.panel_mut().is_some() {
+                true => Some(&mut self.panel_mut()?.first),
+                false => Some(&mut self.keys_view()?.first),
+            };
         }
         match &mut self.editing.as_mut()?.mode {
             EditMode::Color { first } => Some(first),

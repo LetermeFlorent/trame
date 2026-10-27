@@ -1,5 +1,6 @@
 mod connections;
 mod controls;
+mod shortcuts;
 
 use crate::render::Scene;
 use crate::text::TextSystem;
@@ -8,6 +9,7 @@ use crate::ui::frame::{GeneralPage, InstancesPage, SettingControl, SettingsPage}
 use crate::ui::hit::Hit;
 use connections::draw_connections;
 use controls::{draw_chip, draw_choices, draw_command, draw_stepper, draw_toggle_row};
+use shortcuts::draw_shortcuts;
 
 use super::popup::draw_popup;
 
@@ -25,6 +27,7 @@ pub fn draw_settings(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInp
         SettingsPage::General(page) => draw_general(&mut painter, page),
         SettingsPage::Instances(page) => draw_instances(&mut painter, page),
         SettingsPage::Connections(page) => draw_connections(&mut painter, page),
+        SettingsPage::Shortcuts(page) => draw_shortcuts(&mut painter, page),
     }
 }
 

@@ -3,6 +3,7 @@ mod connections;
 mod folders;
 mod launch;
 mod message;
+mod shortcuts;
 mod tabs;
 
 use trame::geometry::{Point, Rect};
@@ -27,6 +28,7 @@ pub fn general_request<'a>(
         folder: None,
         tab: SettingsTab::General,
         hosts: None,
+        shortcuts: None,
     }
 }
 
