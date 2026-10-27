@@ -104,8 +104,8 @@ impl Running {
             WindowEvent::ThemeChanged(theme) => self.set_appearance(window::appearance_of(theme)),
             WindowEvent::Focused(focused) => {
                 self.visibility.forget();
-                self.power.set_background(!focused);
                 self.focus_changed(focused);
+                self.sync_background();
             }
             WindowEvent::ModifiersChanged(modifiers) => self.modifiers = modifiers.state(),
             WindowEvent::KeyboardInput {
@@ -128,7 +128,14 @@ impl Running {
     fn resized(&mut self, size: PhysicalSize<u32>) {
         self.visibility.forget();
         self.graphics.resize(size.width, size.height);
+        self.sync_background();
         self.changed();
+    }
+
+    fn sync_background(&mut self) {
+        let minimized = self.window.is_minimized() == Some(true);
+        self.power
+            .set_background(minimized || !self.view.window_focused);
     }
 
     fn changed(&mut self) {
