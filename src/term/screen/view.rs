@@ -104,4 +104,10 @@ impl Screen {
     pub fn set_history(&mut self, lines: usize) {
         self.primary.set_max_history(lines);
     }
+
+    pub fn compact(&mut self) {
+        self.primary.compact();
+        self.alternate.compact();
+        self.responses.shrink_to_fit();
+    }
 }

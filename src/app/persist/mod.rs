@@ -1,6 +1,5 @@
 mod saver;
 
-use std::env;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -24,7 +23,7 @@ pub fn ssh_config() -> Option<SshConfig> {
 
 #[cfg(windows)]
 fn state_dir() -> Option<PathBuf> {
-    env::var_os("APPDATA").map(PathBuf::from)
+    std::env::var_os("APPDATA").map(PathBuf::from)
 }
 
 #[cfg(target_os = "macos")]
@@ -34,7 +33,7 @@ fn state_dir() -> Option<PathBuf> {
 
 #[cfg(all(unix, not(target_os = "macos")))]
 fn state_dir() -> Option<PathBuf> {
-    env::var_os("XDG_STATE_HOME")
+    std::env::var_os("XDG_STATE_HOME")
         .map(PathBuf::from)
         .filter(|path| path.is_absolute())
         .or_else(|| home_dir().map(|home| home.join(".local").join("state")))

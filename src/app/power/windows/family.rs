@@ -1,5 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::os::windows::io::AsRawHandle;
+use std::time::Instant;
 
 use windows_sys::Win32::Foundation::FILETIME;
 use windows_sys::Win32::System::SystemInformation::GetSystemTimeAsFileTime;
@@ -23,26 +24,39 @@ pub struct Family {
 }
 
 impl Family {
-    pub fn throttle(&mut self) {
-        if self.saved.is_empty() {
+    pub fn apply(&mut self, everyone: bool, shells: &[(u32, bool)]) {
+        let resting: HashSet<u32> = shells
+            .iter()
+            .filter(|(_, resting)| *resting)
+            .map(|&(shell, _)| shell)
+            .collect();
+        if !everyone && resting.is_empty() && self.saved.is_empty() {
+            return;
+        }
+        let restoring = !self.saved.is_empty();
+        if !restoring {
             self.since = now();
         }
         let members = descendants();
         let originals = self.originals(&members);
-        self.saved.extend(originals);
+        let mut kept = HashMap::new();
         for member in &members {
-            throttle(member.handle.as_raw_handle(), true, IDLE_PRIORITY_CLASS);
+            let original = originals[&member.id];
+            let handle = member.handle.as_raw_handle();
+            let slowed =
+                everyone || resting.contains(&member.id) || kept.contains_key(&member.parent);
+            if slowed {
+                throttle(handle, true, IDLE_PRIORITY_CLASS);
+                kept.insert(member.id, original);
+            } else if restoring {
+                throttle(handle, false, original.class);
+            }
         }
+        self.saved = kept;
     }
 
-    pub fn restore(&mut self) {
-        let members = descendants();
-        let originals = self.originals(&members);
-        for member in &members {
-            let class = originals[&member.id].class;
-            throttle(member.handle.as_raw_handle(), false, class);
-        }
-        self.saved.clear();
+    pub fn retry_at(&self) -> Option<Instant> {
+        None
     }
 
     fn originals(&self, members: &[Member]) -> HashMap<u32, Saved> {

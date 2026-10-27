@@ -48,4 +48,8 @@ impl Terminal {
     pub fn screen_mut(&mut self) -> &mut Screen {
         &mut self.screen
     }
+
+    pub fn compact(&mut self) {
+        self.screen.compact();
+    }
 }

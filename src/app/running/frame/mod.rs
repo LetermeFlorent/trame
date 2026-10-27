@@ -97,6 +97,7 @@ impl Running {
         self.place_settings();
         self.place_message();
         self.sync_sizes();
+        self.sync_rest();
         self.refresh_hover();
     }
 

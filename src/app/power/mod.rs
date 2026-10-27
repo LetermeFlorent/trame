@@ -1,15 +1,22 @@
 mod mode;
-#[cfg(not(windows))]
-mod other;
+mod rest;
+#[cfg(test)]
+mod tests;
+#[cfg(unix)]
+mod unix;
 #[cfg(windows)]
 mod windows;
 
 use std::time::{Duration, Instant};
 
-use mode::Mode;
+use trame::session::SessionId;
 
-#[cfg(not(windows))]
-use other::{Family, set_own};
+use mode::Mode;
+use rest::Rest;
+pub use rest::Shown;
+
+#[cfg(unix)]
+use unix::{Family, set_own};
 #[cfg(windows)]
 use windows::{Family, set_own};
 
@@ -22,24 +29,29 @@ pub struct Power {
     last: Instant,
     walked: Instant,
     mode: Mode,
+    rest: Rest,
     family: Family,
 }
 
 impl Power {
-    pub fn new(enabled: bool) -> Self {
+    pub fn new([enabled, resting]: [bool; 2]) -> Self {
         let now = Instant::now();
+        let mut rest = Rest::default();
+        rest.set_enabled(enabled && resting, now);
         Self {
             enabled,
             background: false,
             last: now,
             walked: now,
             mode: Mode::Normal,
+            rest,
             family: Family::default(),
         }
     }
 
-    pub fn set_enabled(&mut self, enabled: bool) {
+    pub fn set_enabled(&mut self, [enabled, resting]: [bool; 2]) {
         self.enabled = enabled;
+        self.rest.set_enabled(enabled && resting, Instant::now());
         self.touch();
     }
 
@@ -48,17 +60,34 @@ impl Power {
         self.touch();
     }
 
+    pub fn set_tabs(&mut self, tabs: impl IntoIterator<Item = Shown>) {
+        let now = Instant::now();
+        self.rest.set_tabs(tabs, now);
+        self.apply(now);
+    }
+
+    pub fn output(&mut self, id: SessionId) {
+        self.rest.output(id, Instant::now());
+        self.touch();
+    }
+
     pub fn touch(&mut self) {
         self.last = Instant::now();
         self.apply(self.last);
     }
 
+    pub fn take_rested(&mut self) -> Vec<SessionId> {
+        self.rest.take_rested()
+    }
+
     pub fn deadline(&self) -> Option<Instant> {
-        match self.mode {
+        let mode = match self.mode {
             Mode::Normal => self.enabled.then(|| self.last + IDLE_AFTER),
             Mode::Own => None,
             Mode::Family => Some(self.walked + FAMILY_RECHECK),
-        }
+        };
+        let others = [self.rest.deadline(), self.family.retry_at()];
+        mode.into_iter().chain(others.into_iter().flatten()).min()
     }
 
     pub fn tick(&mut self, now: Instant) {
@@ -68,12 +97,14 @@ impl Power {
     fn apply(&mut self, now: Instant) {
         let idle = now.saturating_duration_since(self.last) >= IDLE_AFTER;
         let next = Mode::wanted(self.enabled, self.background, idle);
-        let stale = now.saturating_duration_since(self.walked) >= FAMILY_RECHECK;
-        if next == Mode::Family && (self.mode != Mode::Family || stale) {
-            self.family.throttle();
+        let everyone = next == Mode::Family;
+        self.rest.tick(now);
+        let toggled = everyone != (self.mode == Mode::Family);
+        let stale = everyone && now.saturating_duration_since(self.walked) >= FAMILY_RECHECK;
+        let retry = self.family.retry_at().is_some_and(|at| now >= at);
+        if self.rest.take_changed() || toggled || stale || retry {
+            self.family.apply(everyone, &self.rest.shells());
             self.walked = now;
-        } else if next != Mode::Family && self.mode == Mode::Family {
-            self.family.restore();
         }
         if (next == Mode::Normal) != (self.mode == Mode::Normal) {
             set_own(next != Mode::Normal);
@@ -85,50 +116,7 @@ impl Power {
 impl Drop for Power {
     fn drop(&mut self) {
         self.enabled = false;
+        self.rest.set_enabled(false, Instant::now());
         self.apply(Instant::now());
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_background_slows_the_whole_family_even_while_output_arrives() {
-        let mut power = Power::new(true);
-        power.set_background(true);
-        power.touch();
-        assert_eq!(power.mode, Mode::Family);
-        assert_eq!(power.deadline(), Some(power.walked + FAMILY_RECHECK));
-    }
-
-    #[test]
-    fn coming_back_to_the_front_waits_for_idleness_again() {
-        let mut power = Power::new(true);
-        power.set_background(true);
-        power.set_background(false);
-        assert_eq!(power.mode, Mode::Normal);
-        assert_eq!(power.deadline(), Some(power.last + IDLE_AFTER));
-    }
-
-    #[test]
-    fn a_quiet_window_in_front_only_slows_trame() {
-        let mut power = Power::new(true);
-        power.tick(power.last + IDLE_AFTER);
-        assert_eq!(power.mode, Mode::Own);
-        assert_eq!(power.deadline(), None);
-        power.touch();
-        assert_eq!(power.mode, Mode::Normal);
-    }
-
-    #[test]
-    fn the_switch_turned_off_keeps_full_speed_everywhere() {
-        let mut power = Power::new(true);
-        power.set_background(true);
-        power.set_enabled(false);
-        assert_eq!(power.mode, Mode::Normal);
-        assert_eq!(power.deadline(), None);
-        power.tick(power.last + IDLE_AFTER);
-        assert_eq!(power.mode, Mode::Normal);
     }
 }

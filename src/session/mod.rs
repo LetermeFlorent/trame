@@ -6,7 +6,7 @@ mod title;
 mod transcript;
 
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
@@ -123,15 +123,8 @@ impl Session {
         }
     }
 
-    pub fn cwd(&self) -> Option<PathBuf> {
-        self.pty
-            .as_ref()
-            .and_then(Pty::cwd)
-            .or_else(|| self.terminal().screen().cwd().map(PathBuf::from))
-    }
-
-    pub fn title(&self) -> Option<String> {
-        self.terminal().screen().title().map(str::to_owned)
+    pub fn shell_id(&self) -> Option<u32> {
+        self.pty.as_ref().map(Pty::process_id)
     }
 }
 

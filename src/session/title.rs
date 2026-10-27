@@ -1,6 +1,7 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use super::Session;
+use super::pty::Pty;
 
 impl Session {
     pub fn label(&self) -> String {
@@ -17,8 +18,15 @@ impl Session {
             .unwrap_or_else(|| self.shell.clone())
     }
 
-    pub fn shell_name(&self) -> &str {
-        &self.shell
+    pub fn cwd(&self) -> Option<PathBuf> {
+        self.pty
+            .as_ref()
+            .and_then(Pty::cwd)
+            .or_else(|| self.terminal().screen().cwd().map(PathBuf::from))
+    }
+
+    pub fn title(&self) -> Option<String> {
+        self.terminal().screen().title().map(str::to_owned)
     }
 }
 

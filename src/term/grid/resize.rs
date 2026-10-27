@@ -23,6 +23,13 @@ impl Grid {
         self.enforce_history_limit();
     }
 
+    pub fn compact(&mut self) {
+        for row in self.lines.iter_mut() {
+            row.compact();
+        }
+        self.lines.shrink_to_fit();
+    }
+
     fn shrink_rows(&mut self, mut excess: usize, cursor_row: &mut usize) {
         while excess > 0 && self.rows - 1 > *cursor_row && self.row(self.rows - 1).is_blank() {
             self.lines.pop_back();
