@@ -1,11 +1,13 @@
 mod closing;
+mod history;
 mod launch;
 mod ssh;
+mod updates;
 
 use std::path::PathBuf;
 
 use trame::locale::LanguageChoice;
-use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences, SshHost};
+use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences, SshHost, Updates};
 use trame::theme::Swatch;
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
 use trame::ui::{Density, PanelSide};
@@ -74,17 +76,8 @@ fn interface_size_rounds_to_its_step_and_stays_in_range() {
     assert_eq!(largest.step_interface_size(1), largest);
 }
 
-#[test]
-fn preferences_and_text_keys_survive_json() {
-    let tab = TabSnapshot {
-        transcript: Some("abc-1".to_owned()),
-        ..TabSnapshot::default()
-    };
-    let mut snapshot = single(NodeSnapshot::Pane(PaneSnapshot {
-        tabs: vec![tab],
-        active: 0,
-    }));
-    snapshot.preferences = Preferences {
+fn every_preference_changed() -> Preferences {
+    Preferences {
         font_size: 18.0,
         restore_text: false,
         restore_instances: false,
@@ -101,7 +94,12 @@ fn preferences_and_text_keys_survive_json() {
         panel_side: PanelSide::Right,
         density: Density::Spacious,
         efficiency: false,
+        rest_hidden_tabs: false,
         notify_waiting: false,
+        updates: Updates {
+            auto: true,
+            ahead: false,
+        },
         numbering: Numbering {
             shown: false,
             on_close: false,
@@ -109,7 +107,20 @@ fn preferences_and_text_keys_survive_json() {
         },
         shortcuts: serde_json::from_value(serde_json::json!({ "copy": ["Ctrl+Insert"] }))
             .expect("reads the keys"),
+    }
+}
+
+#[test]
+fn preferences_and_text_keys_survive_json() {
+    let tab = TabSnapshot {
+        transcript: Some("abc-1".to_owned()),
+        ..TabSnapshot::default()
     };
+    let mut snapshot = single(NodeSnapshot::Pane(PaneSnapshot {
+        tabs: vec![tab],
+        active: 0,
+    }));
+    snapshot.preferences = every_preference_changed();
     let text = snapshot.to_json().expect("serializes");
     let parsed = Snapshot::from_json(&text).expect("parses");
     assert_eq!(parsed, snapshot);

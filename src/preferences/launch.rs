@@ -63,6 +63,10 @@ impl Preferences {
     }
 }
 
+pub(super) fn instance_tabs() -> u8 {
+    MIN_INSTANCE_TABS
+}
+
 pub(super) fn clamp_instance_tabs(count: u8) -> u8 {
     count.clamp(MIN_INSTANCE_TABS, MAX_INSTANCE_TABS)
 }

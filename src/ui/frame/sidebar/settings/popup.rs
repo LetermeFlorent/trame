@@ -40,10 +40,19 @@ impl FrameLayout {
         title: &str,
         content: f32,
     ) -> (PopupFrame, Column<'a>) {
+        self.open_wide_popup(text, title, [PANEL_WIDTH, content])
+    }
+
+    pub(in crate::ui::frame) fn open_wide_popup<'a>(
+        &self,
+        text: &'a mut TextSystem,
+        title: &str,
+        [wide, content]: [f32; 2],
+    ) -> (PopupFrame, Column<'a>) {
         let metrics = self.metrics;
         let backdrop = self.popup_backdrop();
         let pad = metrics.px(PANEL_PAD);
-        let width = metrics.px(PANEL_WIDTH).min(backdrop.width);
+        let width = metrics.px(wide).min(backdrop.width);
         let height = 2.0 * pad + metrics.px(TITLE_HEIGHT) + content;
         let x = backdrop.centered_x(width);
         let y = backdrop.centered_y(height).max(backdrop.y);

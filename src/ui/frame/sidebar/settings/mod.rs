@@ -1,6 +1,6 @@
 mod chips;
 mod column;
-mod general;
+mod form;
 mod hosts;
 mod instances;
 mod message;
@@ -19,7 +19,7 @@ use crate::ui::display::{Density, PanelSide};
 pub(in crate::ui::frame) use column::{
     CAPTION_HEIGHT, Column, LINE_HEIGHT, LINE_INSET, SECTION_GAP,
 };
-pub use general::{GeneralPage, Stepper, ToggleRow};
+pub use form::{FormPage, Stepper, ToggleRow};
 pub use hosts::{ConnectionsPage, HostList, HostRow, HostsView, ListControl, ScrollBar};
 pub(in crate::ui::frame) use hosts::{ListSpec, host_labels};
 pub use instances::{InstancesPage, NumberChoice};
@@ -34,14 +34,20 @@ pub use shortcuts::{
 pub enum SettingsTab {
     #[default]
     General,
+    Terminals,
+    Display,
+    System,
     Instances,
     Connections,
     Shortcuts,
 }
 
 impl SettingsTab {
-    pub const ALL: [Self; 4] = [
+    pub const ALL: [Self; 7] = [
         Self::General,
+        Self::Terminals,
+        Self::Display,
+        Self::System,
         Self::Instances,
         Self::Connections,
         Self::Shortcuts,
@@ -59,6 +65,7 @@ pub enum SettingControl {
     InstanceTabsMore,
     HistoryFewer,
     HistoryMore,
+    HistoryLines,
     TextSmaller,
     TextBigger,
     InterfaceSmaller,
@@ -71,7 +78,10 @@ pub enum SettingControl {
     AddHost,
     ConfirmClose,
     Efficiency,
+    RestHiddenTabs,
     NotifyWaiting,
+    UpdateAtLaunch,
+    UpdateAhead,
     Numbers(NumberChoice),
     Keys(KeyControl),
 }

@@ -1,6 +1,6 @@
 use crate::geometry::Rect;
 use crate::ui::chrome::{Icon, Painter};
-use crate::ui::frame::{Chip, ChoiceRow, GeneralPage, SettingControl, Stepper, ToggleRow};
+use crate::ui::frame::{Chip, ChoiceRow, FieldFrame, FormPage, Stepper, ToggleRow};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
@@ -10,6 +10,7 @@ use super::super::popup::{LabelButton, draw_label_button};
 
 const KNOB_INSET: f32 = 2.0;
 const DISABLED_OPACITY: f32 = 0.35;
+const VALUE_INSET_Y: f32 = 2.0;
 
 pub(super) fn draw_toggle_row(painter: &mut Painter, row: &ToggleRow) {
     let radius = painter.metrics.px(UiMetrics::RADIUS);
@@ -21,12 +22,15 @@ pub(super) fn draw_toggle_row(painter: &mut Painter, row: &ToggleRow) {
     });
 }
 
-pub(super) fn draw_command(painter: &mut Painter, page: &GeneralPage) {
-    let Some(field) = &page.command_field else {
-        return draw_choices(painter, &page.command);
+pub(super) fn draw_row(painter: &mut Painter, page: &FormPage, row: &ChoiceRow) {
+    let typed = row
+        .chips
+        .iter()
+        .find_map(|chip| page.field_for(chip.control));
+    let Some(field) = typed else {
+        return draw_choices(painter, row);
     };
-    let line = &page.command.line;
-    painter.setting_line(line, painter.theme.text);
+    painter.setting_line(&row.line, painter.theme.text);
     draw_field(painter, field, true);
 }
 
@@ -54,14 +58,14 @@ fn draw_toggle(painter: &mut Painter, rect: Rect, on: bool) {
     painter.scene.fill(knob_rect, knob_color, knob / 2.0);
 }
 
-pub(super) fn draw_stepper(
-    painter: &mut Painter,
-    stepper: &Stepper,
-    [shrink, grow]: [SettingControl; 2],
-) {
+pub(super) fn draw_stepper(painter: &mut Painter, stepper: &Stepper, field: Option<&FieldFrame>) {
+    let [shrink, grow] = stepper.controls;
     let theme = painter.theme;
     let line = &stepper.line;
     painter.setting_line(line, theme.text);
+    if let Some(field) = field {
+        return draw_field(painter, field, true);
+    }
     let smaller = Hit::Setting(shrink);
     step_button(
         painter,
@@ -70,6 +74,12 @@ pub(super) fn draw_stepper(
         Icon::Minimize,
         stepper.can_shrink,
     );
+    if let Some(control) = stepper.typed {
+        let radius = painter.metrics.px(UiMetrics::RADIUS);
+        let inset = painter.metrics.px(VALUE_INSET_Y);
+        let rect = stepper.value_rect.inset_by(0.0, inset);
+        painter.press_fill(rect, Hit::Setting(control), radius);
+    }
     let value = &stepper.value;
     let value_x = stepper.value_rect.centered_x(value.width);
     painter.label(value, value_x, stepper.value_rect, theme.text_muted);

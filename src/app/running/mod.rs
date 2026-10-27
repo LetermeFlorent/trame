@@ -17,7 +17,6 @@ use winit::window::Window;
 
 use trame::files::IconStore;
 use trame::geometry::Point;
-use trame::input::TextField;
 use trame::locale::Strings;
 use trame::preferences::Preferences;
 use trame::render::Scene;
@@ -37,7 +36,7 @@ use super::{UserEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
 use pointer::{Drag, Pointer, Selecting};
-use settings::SettingsState;
+use settings::{SettingField, SettingsState};
 use tabs::Closing;
 pub use tabs::FolderTarget;
 
@@ -63,7 +62,7 @@ pub struct Running {
     pointer: Pointer,
     drag: Option<Drag>,
     editing: Option<Editing>,
-    command_field: Option<TextField>,
+    setting_field: Option<SettingField>,
     menu: Option<Menu>,
     settings: Option<SettingsState>,
     selecting: Selecting,
@@ -82,7 +81,7 @@ impl Running {
     pub fn session_event(&mut self, event_loop: &ActiveEventLoop, event: SessionEvent) {
         match event {
             SessionEvent::Output(id) => {
-                self.power.touch();
+                self.power.output(id);
                 self.output(id);
             }
             SessionEvent::Exited(id) => self.close_tab(event_loop, id),

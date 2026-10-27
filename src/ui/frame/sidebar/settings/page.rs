@@ -5,7 +5,7 @@ use crate::locale::Strings;
 use crate::preferences::Preferences;
 
 use super::{
-    Chip, ConnectionsPage, GeneralPage, HostsView, InstancesPage, PopupFrame, SettingControl,
+    Chip, ConnectionsPage, FormPage, HostsView, InstancesPage, PopupFrame, SettingControl,
     SettingsTab, ShortcutsPage, ShortcutsView,
 };
 
@@ -21,7 +21,7 @@ pub struct SettingsRequest<'a> {
 
 #[derive(Clone, Debug)]
 pub enum SettingsPage {
-    General(Box<GeneralPage>),
+    Form(Box<FormPage>),
     Instances(Box<InstancesPage>),
     Connections(Box<ConnectionsPage>),
     Shortcuts(Box<ShortcutsPage>),
@@ -30,14 +30,14 @@ pub enum SettingsPage {
 #[derive(Clone, Debug)]
 pub struct SettingsFrame {
     pub popup: PopupFrame,
-    pub tabs: [Chip; 4],
+    pub tabs: [Chip; 7],
     pub page: SettingsPage,
 }
 
 impl SettingsFrame {
-    pub fn general(&self) -> Option<&GeneralPage> {
+    pub fn form(&self) -> Option<&FormPage> {
         match &self.page {
-            SettingsPage::General(page) => Some(page),
+            SettingsPage::Form(page) => Some(page),
             _ => None,
         }
     }
@@ -58,7 +58,7 @@ impl SettingsFrame {
 
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
         let page = match &self.page {
-            SettingsPage::General(page) => page.control_at(point),
+            SettingsPage::Form(page) => page.control_at(point),
             SettingsPage::Instances(page) => page.control_at(point),
             SettingsPage::Connections(page) => page.control_at(point),
             SettingsPage::Shortcuts(page) => page.control_at(point),

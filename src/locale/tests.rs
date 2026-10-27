@@ -52,7 +52,7 @@ fn each_language_has_its_own_update_and_menu_texts() {
 
 #[test]
 fn each_language_has_its_own_settings_texts() {
-    let picks: [fn(&Strings) -> &'static str; 25] = [
+    let picks: [fn(&Strings) -> &'static str; 30] = [
         |s| s.settings,
         |s| s.at_launch,
         |s| s.remember_instances,
@@ -78,6 +78,11 @@ fn each_language_has_its_own_settings_texts() {
         |s| s.pick_folder,
         |s| s.connections,
         |s| s.no_connections,
+        |s| s.system_section,
+        |s| s.rest_hidden_tabs,
+        |s| s.updates,
+        |s| s.update_at_launch,
+        |s| s.update_ahead,
     ];
     picks.into_iter().for_each(differ);
 }
@@ -103,12 +108,15 @@ fn each_language_has_its_own_ssh_texts() {
 
 #[test]
 fn each_language_has_its_own_closing_texts() {
-    let picks: [fn(&Strings) -> &'static str; 5] = [
+    let picks: [fn(&Strings) -> &'static str; 8] = [
         |s| s.confirm_close,
         |s| s.close_window,
         |s| s.close_instance,
         |s| s.tabs_will_close,
         |s| s.close,
+        |s| s.update_question,
+        |s| s.update_restarts,
+        |s| s.restart,
     ];
     picks.into_iter().for_each(differ);
 }

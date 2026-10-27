@@ -19,11 +19,16 @@ pub(super) fn size_steppers(
             strings.text_size,
             &format!("{:.0}", preferences.font_size),
             can_step(preferences, Preferences::step_font_size),
+            [SettingControl::TextSmaller, SettingControl::TextBigger],
         ),
         column.stepper(
             strings.interface_size,
             &format!("{}%", preferences.interface_size),
             can_step(preferences, Preferences::step_interface_size),
+            [
+                SettingControl::InterfaceSmaller,
+                SettingControl::InterfaceBigger,
+            ],
         ),
     ]
 }

@@ -1,8 +1,5 @@
 use trame::input::MAX_CHARS;
-use trame::preferences::{
-    DEFAULT_HISTORY_LINES, HISTORY_CHOICES, MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Preferences,
-    Recall,
-};
+use trame::preferences::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Preferences, Recall};
 
 fn with_command(command: &str) -> Preferences {
     Preferences::default().with_startup_command(command)
@@ -72,29 +69,6 @@ fn the_terminal_count_stays_between_one_and_eight() {
             ..base.clone()
         };
         assert_eq!(preferences.sanitized().instance_tabs, kept, "{stored}");
-    }
-}
-
-#[test]
-fn kept_lines_start_at_a_thousand_and_move_between_the_offered_choices() {
-    let base = Preferences::default();
-    assert!(base.efficiency);
-    assert_eq!(base.history_lines, DEFAULT_HISTORY_LINES);
-    assert_eq!(base.step_history_lines(-1), base);
-    assert_eq!(base.step_history_lines(2).history_lines, 5_000);
-    let last = HISTORY_CHOICES[HISTORY_CHOICES.len() - 1];
-    assert_eq!(base.step_history_lines(100).history_lines, last);
-    for (stored, kept) in [
-        (0, 1_000),
-        (3_000, 2_000),
-        (10_000, 10_000),
-        (usize::MAX, last),
-    ] {
-        let preferences = Preferences {
-            history_lines: stored,
-            ..base.clone()
-        };
-        assert_eq!(preferences.sanitized().history_lines, kept, "{stored}");
     }
 }
 

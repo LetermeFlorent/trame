@@ -8,8 +8,8 @@ use super::Running;
 
 impl Running {
     pub(in super::super) fn editing_button(&mut self, state: ElementState) -> bool {
-        if self.command_field.is_some() {
-            return self.command_button(state);
+        if let Some((control, _)) = self.setting_field {
+            return self.field_button(control, state);
         }
         if self.editing.is_none() {
             return false;
@@ -46,8 +46,8 @@ impl Running {
         }
     }
 
-    fn command_button(&mut self, state: ElementState) -> bool {
-        if self.hit_under_pointer() == Some(Hit::Setting(SettingControl::StartupCommand)) {
+    fn field_button(&mut self, control: SettingControl, state: ElementState) -> bool {
+        if self.hit_under_pointer() == Some(Hit::Setting(control)) {
             return true;
         }
         if state == ElementState::Pressed {

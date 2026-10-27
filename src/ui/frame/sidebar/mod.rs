@@ -22,7 +22,7 @@ pub(super) use settings::{
     CAPTION_HEIGHT, Column, LINE_HEIGHT, LINE_INSET, ListSpec, SECTION_GAP, host_labels,
 };
 pub use settings::{
-    Chip, ChoiceRow, ConnectionsPage, GeneralPage, HostList, HostRow, HostsView, InstancesPage,
+    Chip, ChoiceRow, ConnectionsPage, FormPage, HostList, HostRow, HostsView, InstancesPage,
     KeyControl, KeyDetail, KeyLine, KeyNotice, ListControl, MessageFrame, MessageRequest,
     NumberChoice, PopupFrame, ScrollBar, SettingControl, SettingLine, SettingsFrame, SettingsPage,
     SettingsRequest, SettingsTab, ShortcutsPage, ShortcutsView, Stepper, ToggleRow, key_label,

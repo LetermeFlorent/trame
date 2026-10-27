@@ -38,6 +38,7 @@ impl Column<'_> {
         label: &str,
         value: &str,
         [can_shrink, can_grow]: [bool; 2],
+        controls: [SettingControl; 2],
     ) -> Stepper {
         let line = self.line(label, LINE_HEIGHT, self.metrics.label());
         let bigger = self.end_button(&line);
@@ -60,6 +61,8 @@ impl Column<'_> {
             value_rect,
             can_shrink,
             can_grow,
+            controls,
+            typed: None,
         }
     }
 }

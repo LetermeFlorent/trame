@@ -3,6 +3,7 @@ mod history;
 mod launch;
 mod sizes;
 mod ssh;
+mod updates;
 
 use std::path::PathBuf;
 
@@ -16,16 +17,17 @@ use crate::ui::metrics::TERMINAL_FONT_SIZE;
 use crate::workspace::Numbering;
 pub use colors::MAX_CUSTOM_COLORS;
 use colors::sanitized_colors;
-pub use history::{DEFAULT_HISTORY_LINES, HISTORY_CHOICES};
+pub use history::{DEFAULT_HISTORY_LINES, MAX_HISTORY_LINES, MIN_HISTORY_LINES};
 use history::{history_lines, sanitized_history};
 pub use launch::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Recall};
-use launch::{clamp_instance_tabs, sanitized_command};
+use launch::{clamp_instance_tabs, instance_tabs, sanitized_command};
 use sizes::{clamp_font_size, clamp_interface_size, interface_size};
 use ssh::sanitized_hosts;
 pub use ssh::{
     ANSWER_WINDOW, ConnectForm, FormField, HostEntry, Prompt, SecretAnswer, SshConfig, SshHost,
     aliases_in, appended, entry_in, menu_hosts, prompt_in, vault, with_host, without_host,
 };
+pub use updates::Updates;
 
 pub const FONT_SIZE_STEP: f32 = 1.0;
 pub const INTERFACE_SIZE: u16 = 100;
@@ -68,11 +70,15 @@ pub struct Preferences {
     #[serde(default = "enabled")]
     pub efficiency: bool,
     #[serde(default = "enabled")]
+    pub rest_hidden_tabs: bool,
+    #[serde(default = "enabled")]
     pub notify_waiting: bool,
     #[serde(default, skip_serializing_if = "Overrides::is_empty")]
     pub shortcuts: Overrides,
     #[serde(flatten)]
     pub numbering: Numbering,
+    #[serde(flatten)]
+    pub updates: Updates,
 }
 
 impl Default for Preferences {
@@ -94,9 +100,11 @@ impl Default for Preferences {
             panel_side: PanelSide::Left,
             density: Density::Compact,
             efficiency: true,
+            rest_hidden_tabs: true,
             notify_waiting: true,
             shortcuts: Overrides::default(),
             numbering: Numbering::default(),
+            updates: Updates::default(),
         }
     }
 }
@@ -128,12 +136,12 @@ impl Preferences {
     pub fn confirms_closing(&self, tabs: usize) -> bool {
         self.confirm_close && tabs >= CONFIRM_FROM_TABS
     }
+
+    pub fn power_switches(&self) -> [bool; 2] {
+        [self.efficiency, self.rest_hidden_tabs]
+    }
 }
 
 fn enabled() -> bool {
     true
-}
-
-fn instance_tabs() -> u8 {
-    MIN_INSTANCE_TABS
 }

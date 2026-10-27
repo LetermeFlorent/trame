@@ -6,11 +6,14 @@ mod store;
 use winit::event::KeyEvent;
 
 use trame::input::TextField;
+use trame::preferences::Preferences;
 use trame::ui::frame::{SettingControl, SettingsRequest, SettingsTab, ShortcutsView};
 
 use super::keys::is_escape;
 use super::{FolderTarget, Running};
 pub(super) use hosts::HostsPanel;
+
+pub(super) type SettingField = (SettingControl, TextField);
 
 #[derive(Default)]
 pub(super) struct SettingsState {
@@ -33,14 +36,15 @@ impl Running {
             };
             self.frame.place_settings(&mut self.text, &request);
         }
-        if let Some(field) = &self.command_field {
-            self.frame.place_command_field(&mut self.text, field);
+        if let Some((control, field)) = &self.setting_field {
+            self.frame
+                .place_setting_field(&mut self.text, *control, field);
         }
     }
 
     pub(super) fn toggle_settings(&mut self) {
         self.settings = self.settings.is_none().then(SettingsState::default);
-        self.command_field = None;
+        self.setting_field = None;
         self.changed();
     }
 
@@ -65,14 +69,17 @@ impl Running {
             SettingControl::Keys(key) => return self.key_setting(key),
             SettingControl::Recall(recall) => current.toggle(recall),
             SettingControl::ConfirmClose => current.toggle_confirm_close(),
-            SettingControl::Efficiency => current.with(|next| next.efficiency = !next.efficiency),
+            SettingControl::Efficiency
+            | SettingControl::RestHiddenTabs
+            | SettingControl::NotifyWaiting
+            | SettingControl::UpdateAtLaunch
+            | SettingControl::UpdateAhead => current.with(|next| flip(next, control)),
             SettingControl::Numbers(choice) => {
                 current.with(|next| choice.toggle(&mut next.numbering))
             }
-            SettingControl::NotifyWaiting => {
-                current.with(|next| next.notify_waiting = !next.notify_waiting)
+            SettingControl::StartupCommand | SettingControl::HistoryLines => {
+                return self.edit_setting(control);
             }
-            SettingControl::StartupCommand => return self.edit_command(),
             SettingControl::ClearStartupCommand => current.with_startup_command(""),
             SettingControl::InstanceTabsFewer => current.step_instance_tabs(-1),
             SettingControl::InstanceTabsMore => current.step_instance_tabs(1),
@@ -101,13 +108,37 @@ impl Running {
         let hosts = (tab == SettingsTab::Connections).then(|| HostsPanel::new(self.known_hosts()));
         let keys = (tab == SettingsTab::Shortcuts).then(ShortcutsView::default);
         self.settings = Some(SettingsState { tab, hosts, keys });
-        self.command_field = None;
+        self.setting_field = None;
         self.changed();
     }
 
-    fn edit_command(&mut self) {
-        let command = self.preferences.startup_command.as_deref();
-        self.command_field = Some(TextField::new(command.unwrap_or_default()));
+    fn edit_setting(&mut self, control: SettingControl) {
+        let field = match control {
+            SettingControl::HistoryLines => {
+                let mut field = TextField::new(&self.preferences.history_lines.to_string());
+                field.select_all();
+                field
+            }
+            _ => TextField::new(
+                self.preferences
+                    .startup_command
+                    .as_deref()
+                    .unwrap_or_default(),
+            ),
+        };
+        self.setting_field = Some((control, field));
         self.changed();
     }
+}
+
+fn flip(next: &mut Preferences, control: SettingControl) {
+    let switch = match control {
+        SettingControl::Efficiency => &mut next.efficiency,
+        SettingControl::RestHiddenTabs => &mut next.rest_hidden_tabs,
+        SettingControl::NotifyWaiting => &mut next.notify_waiting,
+        SettingControl::UpdateAtLaunch => &mut next.updates.auto,
+        SettingControl::UpdateAhead => &mut next.updates.ahead,
+        _ => return,
+    };
+    *switch = !*switch;
 }

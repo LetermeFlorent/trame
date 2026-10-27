@@ -3,6 +3,7 @@ use winit::keyboard::{Key, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
 use trame::input::{Command, TextField};
+use trame::ui::frame::SettingControl;
 
 use super::icons::edit_letters;
 use super::{EditMode, Editing, Running};
@@ -11,7 +12,7 @@ use crate::app::running::keys::{is_escape, read_clipboard};
 impl Running {
     pub(in super::super) fn editing_key(&mut self, event: &KeyEvent) -> bool {
         let typing = match &self.editing {
-            _ if self.command_field.is_some() || self.settings_form_open() => true,
+            _ if self.setting_field.is_some() || self.settings_form_open() => true,
             Some(editing) => matches!(
                 editing.mode,
                 EditMode::Text { .. }
@@ -39,7 +40,7 @@ impl Running {
         }
         if self.is_paste(event) {
             if let Some(text) = read_clipboard() {
-                self.with_field(|field| field.insert(&text));
+                self.type_text(&text);
             }
             return;
         }
@@ -47,7 +48,18 @@ impl Running {
         let types_text =
             !modifiers.super_key() && (!modifiers.control_key() || modifiers.alt_key());
         if let Some(typed) = event.text_with_all_modifiers().filter(|_| types_text) {
-            self.with_field(|field| field.insert(typed));
+            self.type_text(typed);
+        }
+    }
+
+    fn type_text(&mut self, typed: &str) {
+        let digits = matches!(self.setting_field, Some((SettingControl::HistoryLines, _)));
+        let kept: String = typed
+            .chars()
+            .filter(|letter| !digits || letter.is_ascii_digit())
+            .collect();
+        if !kept.is_empty() {
+            self.with_field(|field| field.insert(&kept));
         }
     }
 
@@ -84,8 +96,8 @@ impl Running {
     }
 
     fn with_field(&mut self, change: impl FnOnce(&mut TextField)) {
-        let text = match (&mut self.command_field, &mut self.editing) {
-            (Some(field), _)
+        let text = match (&mut self.setting_field, &mut self.editing) {
+            (Some((_, field)), _)
             | (
                 None,
                 Some(Editing {

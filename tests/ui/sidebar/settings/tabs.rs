@@ -1,65 +1,60 @@
+use trame::locale::Language;
 use trame::preferences::Preferences;
-use trame::ui::frame::{SettingControl, SettingsTab};
+use trame::ui::Hit;
+use trame::ui::frame::{SettingControl, SettingsPage, SettingsTab};
 
 use super::connections::{hosts, opened};
-use super::{english, page, panel};
+use super::{english, on_tab, page, panel, with_settings};
+use crate::text_system;
 
 #[test]
-fn the_tabs_sit_under_the_title_and_mark_the_open_one() {
-    let layout = english(&Preferences::default());
-    let settings = panel(&layout);
-    let [general, instances, connections, shortcuts] = &settings.tabs;
-    assert_eq!(general.control, SettingControl::Tab(SettingsTab::General));
-    assert_eq!(
-        instances.control,
-        SettingControl::Tab(SettingsTab::Instances)
-    );
-    assert_eq!(
-        connections.control,
-        SettingControl::Tab(SettingsTab::Connections)
-    );
-    assert_eq!(
-        shortcuts.control,
-        SettingControl::Tab(SettingsTab::Shortcuts)
-    );
-    assert!(general.selected && !instances.selected && !connections.selected);
-    assert!(!shortcuts.selected);
-    assert!(general.rect.right() <= instances.rect.x);
-    assert!(instances.rect.right() <= connections.rect.x);
-    assert!(connections.rect.right() <= shortcuts.rect.x);
-    assert!(shortcuts.rect.right() <= settings.popup.close.right());
-    assert!(general.rect.y >= settings.popup.title.rect.bottom());
-    assert!(page(&layout).sections[0].rect.y >= general.rect.bottom());
+fn the_seven_tabs_fit_on_one_line_under_the_title_and_mark_the_open_one() {
+    let mut text = text_system();
+    for language in [Language::French, Language::English] {
+        let layout = with_settings(&mut text, &Preferences::default(), language.strings());
+        let settings = panel(&layout);
+        let controls = settings.tabs.each_ref().map(|tab| tab.control);
+        assert_eq!(controls, SettingsTab::ALL.map(SettingControl::Tab));
+        let open: Vec<_> = settings.tabs.iter().map(|tab| tab.selected).collect();
+        assert_eq!(open, [true, false, false, false, false, false, false]);
+        for pair in settings.tabs.windows(2) {
+            assert!(pair[0].rect.right() <= pair[1].rect.x);
+            assert_eq!(pair[0].rect.y, pair[1].rect.y);
+        }
+        let [first, .., last] = &settings.tabs;
+        assert!(last.rect.right() <= settings.popup.close.right());
+        assert!(first.rect.y >= settings.popup.title.rect.bottom());
+        assert!(page(&layout).sections[0].rect.y >= first.rect.bottom());
+    }
 }
 
 #[test]
 fn the_window_keeps_its_size_from_one_tab_to_the_other() {
-    let general = english(&Preferences::default());
+    let general = panel(&english(&Preferences::default())).popup.rect;
+    let wide = english(&Preferences::default()).metrics.px(360.0);
+    assert!(general.width > wide);
+    for tab in SettingsTab::ALL {
+        let layout = on_tab(&Preferences::default(), tab);
+        assert_eq!(panel(&layout).popup.rect, general);
+    }
     let saved = hosts(60);
     for layout in [opened(&[], 0, None), opened(&saved, 0, None)] {
-        assert_eq!(panel(&layout).popup.rect, panel(&general).popup.rect);
+        assert_eq!(panel(&layout).popup.rect, general);
     }
 }
 
 #[test]
 fn the_instances_tab_holds_the_three_number_switches() {
-    let mut text = crate::text_system();
-    let preferences = Preferences::default();
-    let mut request =
-        super::general_request(&preferences, trame::locale::Language::English.strings());
-    request.tab = SettingsTab::Instances;
-    let layout = super::placed(&mut text, &request);
+    let layout = on_tab(&Preferences::default(), SettingsTab::Instances);
     let settings = panel(&layout);
-    let trame::ui::frame::SettingsPage::Instances(page) = &settings.page else {
+    let SettingsPage::Instances(page) = &settings.page else {
         panic!("the instances page");
     };
-    let general = english(&preferences);
-    assert_eq!(settings.popup.rect, panel(&general).popup.rect);
     for toggle in &page.toggles {
         assert!(settings.popup.rect.contains(toggle.line.rect.center()));
         assert!(toggle.enabled);
         let hit = layout.hit(toggle.line.rect.center(), false);
-        assert_eq!(hit, Some(trame::ui::Hit::Setting(toggle.control)));
+        assert_eq!(hit, Some(Hit::Setting(toggle.control)));
     }
     assert!(page.toggles[0].on && page.toggles[1].on && !page.toggles[2].on);
 }

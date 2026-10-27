@@ -5,10 +5,10 @@ mod shortcuts;
 use crate::render::Scene;
 use crate::text::TextSystem;
 use crate::ui::chrome::{ChromeInput, Painter};
-use crate::ui::frame::{GeneralPage, InstancesPage, SettingControl, SettingsPage};
+use crate::ui::frame::{FormPage, InstancesPage, SettingControl, SettingsPage};
 use crate::ui::hit::Hit;
 use connections::draw_connections;
-use controls::{draw_chip, draw_choices, draw_command, draw_stepper, draw_toggle_row};
+use controls::{draw_chip, draw_row, draw_stepper, draw_toggle_row};
 use shortcuts::draw_shortcuts;
 
 use super::popup::draw_popup;
@@ -24,7 +24,7 @@ pub fn draw_settings(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInp
         draw_chip(&mut painter, tab);
     }
     match &settings.page {
-        SettingsPage::General(page) => draw_general(&mut painter, page),
+        SettingsPage::Form(page) => draw_form(&mut painter, page),
         SettingsPage::Instances(page) => draw_instances(&mut painter, page),
         SettingsPage::Connections(page) => draw_connections(&mut painter, page),
         SettingsPage::Shortcuts(page) => draw_shortcuts(&mut painter, page),
@@ -38,24 +38,19 @@ fn draw_instances(painter: &mut Painter, page: &InstancesPage) {
     }
 }
 
-fn draw_general(painter: &mut Painter, page: &GeneralPage) {
+fn draw_form(painter: &mut Painter, page: &FormPage) {
     let faint = painter.theme.text_faint;
     for section in &page.sections {
         painter.setting_line(section, faint);
     }
-    for toggle in page.all_toggles() {
+    for toggle in &page.toggles {
         draw_toggle_row(painter, toggle);
     }
-    draw_command(painter, page);
-    for (stepper, controls) in page.steppers() {
-        draw_stepper(painter, stepper, controls);
+    for stepper in &page.steppers {
+        let field = stepper.typed.and_then(|control| page.field_for(control));
+        draw_stepper(painter, stepper, field);
     }
-    for row in [
-        &page.language,
-        &page.panel_side,
-        &page.density,
-        &page.folder,
-    ] {
-        draw_choices(painter, row);
+    for row in &page.rows {
+        draw_row(painter, page, row);
     }
 }

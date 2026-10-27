@@ -14,7 +14,7 @@ pub use editor::{
 pub use label::{fit_label, fit_label_start, fit_text_start};
 pub use panes::{PaneFrame, TabFrame, TabStrip};
 pub use sidebar::{
-    Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, GeneralPage, HostList, HostRow,
+    Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, FormPage, HostList, HostRow,
     HostsView, InstancesPage, KeyControl, KeyDetail, KeyLine, KeyNotice, ListControl, MessageFrame,
     MessageRequest, NumberChoice, PopupFrame, RailFrame, RailSlot, ScrollBar, SettingControl,
     SettingLine, SettingsFrame, SettingsPage, SettingsRequest, SettingsTab, ShortcutsPage,

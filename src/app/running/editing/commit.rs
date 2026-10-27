@@ -1,12 +1,15 @@
 use trame::theme::{Emblem, Letters, Swatch};
-use trame::ui::frame::{EditTarget, FormAction};
+use trame::ui::frame::{EditTarget, FormAction, SettingControl};
 
 use super::{EditMode, Running};
 
 impl Running {
     pub(super) fn commit_edit(&mut self) {
-        if let Some(field) = self.command_field.take() {
-            let next = self.preferences.with_startup_command(field.text());
+        if let Some((control, field)) = self.setting_field.take() {
+            let next = match control {
+                SettingControl::HistoryLines => self.preferences.typed_history_lines(field.text()),
+                _ => self.preferences.with_startup_command(field.text()),
+            };
             return self.set_preferences(next);
         }
         if self.settings_form_open() {
@@ -49,7 +52,7 @@ impl Running {
             FormAction::Add => self.add_color(),
             FormAction::Image => self.ask_image(),
             FormAction::Cancel => self.step_back(),
-            FormAction::Close => self.cancel_edit(),
+            FormAction::Close | FormAction::Restart => self.cancel_edit(),
         }
     }
 
@@ -75,7 +78,7 @@ impl Running {
     }
 
     pub(super) fn cancel_edit(&mut self) {
-        self.command_field = None;
+        self.setting_field = None;
         if self.close_settings_form() {
             return;
         }

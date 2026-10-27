@@ -2,7 +2,7 @@ use crate::locale::Strings;
 use crate::preferences::{Preferences, Recall};
 
 use super::rows::{can_step, picker_row};
-use super::{ChoiceRow, SettingControl, SettingLine, Stepper, ToggleRow};
+use super::{ChoiceRow, SettingControl, Stepper, ToggleRow};
 use crate::ui::frame::sidebar::settings::column::Column;
 
 pub(super) fn recall_toggles(
@@ -28,31 +28,6 @@ pub(super) fn close_toggle(
 ) -> ToggleRow {
     let state = [preferences.confirm_close, true];
     column.toggle_row(strings.confirm_close, state, SettingControl::ConfirmClose)
-}
-
-pub(super) fn system_toggles(
-    column: &mut Column,
-    strings: &Strings,
-    preferences: &Preferences,
-) -> (Option<SettingLine>, Vec<ToggleRow>) {
-    if !cfg!(windows) {
-        return (None, Vec::new());
-    }
-    let section = column.section(strings.windows_section);
-    let toggles = [
-        (
-            strings.efficiency_mode,
-            preferences.efficiency,
-            SettingControl::Efficiency,
-        ),
-        (
-            strings.notify_waiting,
-            preferences.notify_waiting,
-            SettingControl::NotifyWaiting,
-        ),
-    ]
-    .map(|(label, on, control)| column.toggle_row(label, [on, true], control));
-    (Some(section), toggles.into())
 }
 
 pub(super) fn command_row(
@@ -81,6 +56,10 @@ pub(super) fn instance_tabs_stepper(
         strings.instance_tabs,
         &preferences.instance_tabs.to_string(),
         can_step(preferences, Preferences::step_instance_tabs),
+        [
+            SettingControl::InstanceTabsFewer,
+            SettingControl::InstanceTabsMore,
+        ],
     )
 }
 
@@ -89,9 +68,14 @@ pub(super) fn history_stepper(
     strings: &Strings,
     preferences: &Preferences,
 ) -> Stepper {
-    column.stepper(
+    let stepper = column.stepper(
         strings.history_lines,
         &preferences.history_lines.to_string(),
         can_step(preferences, Preferences::step_history_lines),
-    )
+        [SettingControl::HistoryFewer, SettingControl::HistoryMore],
+    );
+    Stepper {
+        typed: Some(SettingControl::HistoryLines),
+        ..stepper
+    }
 }

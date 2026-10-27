@@ -7,13 +7,15 @@ use crate::ui::metrics::UiMetrics;
 
 use super::chips::Choice;
 use super::column::{Column, LINE_HEIGHT, SECTION_GAP};
-use super::general::{general_height, general_page};
+use super::form::{form_page, page_height};
 use super::hosts::connections_page;
 use super::instances::instances_page;
 use super::shortcuts::shortcuts_page;
 use super::{
     Chip, HostsView, SettingControl, SettingsFrame, SettingsPage, SettingsRequest, SettingsTab,
 };
+
+const SETTINGS_WIDTH: f32 = 600.0;
 
 const NO_HOSTS: HostsView<'static> = HostsView {
     hosts: &[],
@@ -24,24 +26,48 @@ const NO_HOSTS: HostsView<'static> = HostsView {
 
 impl FrameLayout {
     pub fn place_settings(&mut self, text: &mut TextSystem, request: &SettingsRequest) {
-        let page_height = general_height(&self.metrics);
-        let content = page_height + tabs_height(&self.metrics);
-        let (popup, mut column) = self.open_popup(text, request.strings.settings, content);
+        let tabs_height = tabs_height(&self.metrics);
+        let page_height = page_height(&self.metrics, self.popup_room() - tabs_height);
+        let size = [SETTINGS_WIDTH, page_height + tabs_height];
+        let title = request.strings.settings;
+        let (popup, mut column) = self.open_wide_popup(text, title, size);
         let tabs = settings_tabs(&mut column, request);
         column.y += column.metrics.px(SECTION_GAP);
         let page = settings_page(&mut column, request, page_height);
         self.settings = Some(SettingsFrame { popup, tabs, page });
     }
 
-    pub fn place_command_field(&mut self, text: &mut TextSystem, field: &TextField) {
+    pub fn place_setting_field(
+        &mut self,
+        text: &mut TextSystem,
+        control: SettingControl,
+        field: &TextField,
+    ) {
         let metrics = self.metrics;
-        let Some(SettingsPage::General(page)) = self.settings.as_mut().map(|frame| &mut frame.page)
+        let Some(SettingsPage::Form(page)) = self.settings.as_mut().map(|frame| &mut frame.page)
         else {
             return;
         };
-        let line = page.command.line.rect;
-        let anchor = Rect::from_edges(line.center().x, line.y, line.right(), line.bottom());
-        page.command_field = Some(place_field(text, &metrics, anchor, line, field));
+        let spot = match control {
+            SettingControl::HistoryLines => page.stepper(control).map(|stepper| {
+                let line = stepper.line.rect;
+                let edges = (stepper.smaller.x, stepper.bigger.right());
+                (
+                    line,
+                    Rect::from_edges(edges.0, line.y, edges.1, line.bottom()),
+                )
+            }),
+            _ => page.row(control).map(|row| {
+                let line = row.line.rect;
+                let anchor = Rect::from_edges(line.center().x, line.y, line.right(), line.bottom());
+                (line, anchor)
+            }),
+        };
+        let Some((line, anchor)) = spot else {
+            return;
+        };
+        let frame = place_field(text, &metrics, anchor, line, field);
+        page.field = Some((control, frame));
     }
 }
 
@@ -49,11 +75,14 @@ fn tabs_height(metrics: &UiMetrics) -> f32 {
     metrics.px(LINE_HEIGHT) + metrics.px(SECTION_GAP)
 }
 
-fn settings_tabs(column: &mut Column, request: &SettingsRequest) -> [Chip; 4] {
+fn settings_tabs(column: &mut Column, request: &SettingsRequest) -> [Chip; 7] {
     let strings = request.strings;
     let choice = |tab: SettingsTab| -> Choice {
         let label = match tab {
             SettingsTab::General => strings.general,
+            SettingsTab::Terminals => strings.terminals,
+            SettingsTab::Display => strings.display,
+            SettingsTab::System => strings.system_section,
             SettingsTab::Instances => strings.instances_section,
             SettingsTab::Connections => strings.connections_tab,
             SettingsTab::Shortcuts => strings.keys.tab,
@@ -68,13 +97,10 @@ fn settings_page(column: &mut Column, request: &SettingsRequest, height: f32) ->
         preferences,
         strings,
         folder,
+        tab,
         ..
     } = *request;
-    match request.tab {
-        SettingsTab::General => {
-            let page = general_page(column, strings, preferences, folder);
-            SettingsPage::General(Box::new(page))
-        }
+    match tab {
         SettingsTab::Instances => {
             SettingsPage::Instances(Box::new(instances_page(column, strings, preferences)))
         }
@@ -84,6 +110,10 @@ fn settings_page(column: &mut Column, request: &SettingsRequest, height: f32) ->
         }
         SettingsTab::Shortcuts => {
             SettingsPage::Shortcuts(Box::new(shortcuts_page(column, request, height)))
+        }
+        _ => {
+            let page = form_page(column, tab, strings, preferences, folder);
+            SettingsPage::Form(Box::new(page))
         }
     }
 }
