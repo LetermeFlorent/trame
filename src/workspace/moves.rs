@@ -48,12 +48,7 @@ impl Workspace {
                 instance,
                 pane,
                 edge,
-            } => {
-                let new = self.new_pane_id();
-                self.transfer(tab, source, instance, |into| {
-                    into.split(pane, new, tab, edge)
-                })
-            }
+            } => self.split_into(tab, source, (instance, pane, edge)),
             DropTarget::Swap { instance, pane } => self.swap(tab, source, instance, pane),
             DropTarget::Instance(instance) if instance == source_id => false,
             DropTarget::Instance(instance) => {
@@ -66,6 +61,18 @@ impl Workspace {
                 true
             }
         }
+    }
+
+    fn split_into(
+        &mut self,
+        tab: SessionId,
+        source: TabLocation,
+        (instance, pane, edge): (InstanceId, PaneId, Edge),
+    ) -> bool {
+        let new = self.new_pane_id();
+        self.transfer(tab, source, instance, |into| {
+            into.split(pane, new, tab, edge)
+        })
     }
 
     fn reorder(&mut self, tab: SessionId, source: TabLocation, index: Option<usize>) -> bool {
