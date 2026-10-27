@@ -1,11 +1,10 @@
+use std::path::Path;
 use std::thread;
 use std::time::Duration;
 
-use super::UpdateStatus;
-use super::fetch;
 use super::route::Route;
-use super::setup;
 use super::version::Version;
+use super::{UpdateStatus, ahead, fetch, setup, staged};
 
 const CHECK_EVERY: Duration = Duration::from_secs(60 * 60);
 
@@ -15,33 +14,51 @@ pub fn newer_release() -> Option<Version> {
     newer.then_some(latest)
 }
 
-pub fn watch(route: Route, notify: &dyn Fn(UpdateStatus)) {
+pub fn watch(route: Route, exe: &Path, asset: &str, notify: &dyn Fn(UpdateStatus)) {
     if route == Route::Setup {
-        if offered(route, notify) {
-            return;
-        }
-        setup::clear();
+        return watch_installer(notify);
     }
+    let mut offered = None;
+    loop {
+        if let Some(latest) = newer_release() {
+            if offered != Some(latest) {
+                notify(UpdateStatus::Available(latest.number()));
+                offered = Some(latest);
+            }
+            let fetched = ahead().then(|| staged::fetch(exe, latest, asset));
+            if let Some(Err(error)) = fetched {
+                eprintln!("trame: the early download of {latest} failed: {error}");
+            }
+        }
+        thread::sleep(CHECK_EVERY);
+    }
+}
+
+fn watch_installer(notify: &dyn Fn(UpdateStatus)) {
+    if installer_offered(notify) {
+        return;
+    }
+    setup::clear();
     loop {
         thread::sleep(CHECK_EVERY);
-        if offered(route, notify) {
+        if installer_offered(notify) {
             return;
         }
     }
 }
 
-fn offered(route: Route, notify: &dyn Fn(UpdateStatus)) -> bool {
+fn installer_offered(notify: &dyn Fn(UpdateStatus)) -> bool {
     let Some(latest) = newer_release() else {
         return false;
     };
-    let ready = match route {
-        Route::Swap => true,
-        Route::Setup => setup::fetch(latest)
-            .inspect_err(|error| eprintln!("trame: the installer of {latest} failed: {error}"))
-            .is_ok(),
-    };
-    if ready {
-        notify(UpdateStatus::Available(latest.number()));
+    match setup::fetch(latest) {
+        Ok(()) => {
+            notify(UpdateStatus::Available(latest.number()));
+            true
+        }
+        Err(error) => {
+            eprintln!("trame: the installer of {latest} failed: {error}");
+            false
+        }
     }
-    ready
 }

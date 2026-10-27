@@ -37,7 +37,23 @@ pub fn download(
     target: &Path,
     on_percent: &dyn Fn(u8),
 ) -> io::Result<()> {
-    let mut child = curl()
+    transfer(curl(), version, asset, target, on_percent)
+}
+
+pub fn download_quietly(version: Version, asset: &str, target: &Path) -> io::Result<()> {
+    let mut command = curl();
+    lower_priority(&mut command);
+    transfer(command, version, asset, target, &|_| {})
+}
+
+fn transfer(
+    mut command: Command,
+    version: Version,
+    asset: &str,
+    target: &Path,
+    on_percent: &dyn Fn(u8),
+) -> io::Result<()> {
+    let mut child = command
         .args(["--progress-bar", "--fail", "--location"])
         .args(["--max-time", DOWNLOAD_SECONDS])
         .args(["--speed-limit", SLOWEST_BYTES_PER_SECOND])
@@ -88,3 +104,13 @@ fn hide_console(command: &mut Command) {
 
 #[cfg(not(windows))]
 fn hide_console(_: &mut Command) {}
+
+#[cfg(windows)]
+fn lower_priority(command: &mut Command) {
+    use std::os::windows::process::CommandExt;
+    use windows_sys::Win32::System::Threading::{BELOW_NORMAL_PRIORITY_CLASS, CREATE_NO_WINDOW};
+    command.creation_flags(CREATE_NO_WINDOW | BELOW_NORMAL_PRIORITY_CLASS);
+}
+
+#[cfg(not(windows))]
+fn lower_priority(_: &mut Command) {}

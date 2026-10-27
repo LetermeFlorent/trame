@@ -15,8 +15,9 @@ use std::path::{Path, PathBuf};
 
 use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
 
+use trame::preferences::Updates;
 use trame::session::SessionEvent;
-use trame::workspace::InstanceId;
+use trame::workspace::{InstanceId, Snapshot};
 
 use running::{FolderTarget, Running};
 use update::UpdateStatus;
@@ -33,12 +34,17 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let event_loop = EventLoop::<UserEvent>::with_user_event().build()?;
     let proxy = event_loop.create_proxy();
     let notifier = proxy.clone();
-    let update = update::start(move |status| {
+    let saved = persist::load();
+    let updates = saved
+        .as_ref()
+        .map_or_else(Updates::default, |snapshot| snapshot.preferences.updates);
+    let update = update::start(updates, move |status| {
         let _ = notifier.send_event(UserEvent::Update(status));
     });
     let mut app = App {
         proxy,
         update,
+        saved,
         running: None,
         failure: None,
     };
@@ -49,13 +55,15 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 struct App {
     proxy: EventLoopProxy<UserEvent>,
     update: UpdateStatus,
+    saved: Option<Snapshot>,
     running: Option<Running>,
     failure: Option<Box<dyn Error>>,
 }
 
 impl App {
     fn launch(&mut self, event_loop: &ActiveEventLoop) -> Result<Running, Box<dyn Error>> {
-        Running::open_window(event_loop, self.proxy.clone())?.show(&self.update)
+        let saved = self.saved.take();
+        Running::open_window(event_loop, self.proxy.clone(), saved)?.show(&self.update)
     }
 
     fn relaunch(&mut self, exe: &Path) -> io::Result<()> {

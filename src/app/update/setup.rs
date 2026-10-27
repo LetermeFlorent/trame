@@ -26,7 +26,7 @@ pub fn fetch(version: Version) -> io::Result<()> {
     clear();
     fs::create_dir_all(folder())?;
     let part = swap::sibling(&target, PART_SUFFIX);
-    let fetched = fetch::download(version, &asset(&number), &part, &|_| {})
+    let fetched = fetch::download_quietly(version, &asset(&number), &part)
         .and_then(|()| swap::check_executable(&part))
         .and_then(|()| fs::rename(&part, &target));
     if fetched.is_err() && part.exists() {

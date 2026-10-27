@@ -60,8 +60,8 @@ impl Running {
     pub fn open_window(
         event_loop: &ActiveEventLoop,
         proxy: EventLoopProxy<UserEvent>,
+        saved: Option<Snapshot>,
     ) -> Result<Opened, Box<dyn Error>> {
-        let saved = persist::load();
         let window = saved.as_ref().and_then(|snapshot| snapshot.window);
         let preferences = saved
             .as_ref()
@@ -102,7 +102,7 @@ impl Running {
         let (frame, motion, strings) = first_frame(&mut surface, &workspace, metrics);
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
-            power: Power::new(surface.preferences.efficiency),
+            power: Power::new(surface.preferences.power_switches()),
             notifier: Notifier::default(),
             window: surface.window,
             graphics: surface.graphics,
@@ -124,7 +124,7 @@ impl Running {
             pointer: Pointer::default(),
             drag: None,
             editing: None,
-            command_field: None,
+            setting_field: None,
             menu: None,
             settings: None,
             selecting: Selecting::default(),
