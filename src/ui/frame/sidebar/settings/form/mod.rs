@@ -23,7 +23,6 @@ use rows::{display_rows, folder_row, language_row, size_steppers};
 use system::system_page;
 
 const PAGE_HEIGHT: f32 = 640.0;
-const LEAST_PAGE_HEIGHT: f32 = 220.0;
 
 #[derive(Clone, Debug)]
 pub struct ToggleRow {
@@ -57,8 +56,7 @@ pub struct FormPage {
 }
 
 pub(super) fn page_height(metrics: &UiMetrics, room: f32) -> f32 {
-    let least = metrics.px(LEAST_PAGE_HEIGHT);
-    metrics.px(PAGE_HEIGHT).min(room).max(least)
+    metrics.px(PAGE_HEIGHT).min(room).max(0.0)
 }
 
 pub(super) fn form_page(
