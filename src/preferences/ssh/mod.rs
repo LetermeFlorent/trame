@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use super::Preferences;
 pub use config::{
     HostEntry, SshConfig, aliases_in, appended, entry_in, menu_hosts, with_host, without_host,
+    written_by_hand,
 };
 pub use form::{ConnectForm, FormField};
 pub use prompt::{ANSWER_WINDOW, Prompt, SecretAnswer, prompt_in};

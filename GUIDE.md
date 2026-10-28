@@ -61,7 +61,7 @@ System holds efficiency mode, on by default. trame slows down after 30 seconds w
 
 Instances shows numbers instead of icons and chooses whether they follow when an instance closes or moves.
 
-Connections lists the saved SSH connections with a pencil to change one and a cross to forget it, which also removes its block from `~/.ssh/config`. Add opens an empty form with Save and Cancel.
+Connections lists the saved SSH connections with a pencil to change one and a cross to forget it, which also removes its block from `~/.ssh/config`. When that block holds more than trame writes there (another name, a pattern, a comment or another setting), trame asks first, and a block shared with other names or patterns only loses this one. Add opens an empty form with Save and Cancel.
 
 Shortcuts changes the keys of every action, see [Keyboard shortcuts](#keyboard-shortcuts).
 

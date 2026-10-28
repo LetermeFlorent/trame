@@ -40,7 +40,7 @@ pub(super) fn is_filler(line: &str) -> bool {
     split_keyword(line).is_none()
 }
 
-pub(super) fn host_names(line: &str) -> Vec<&str> {
+fn host_tokens(line: &str) -> Vec<&str> {
     let Some((keyword, rest)) = split_keyword(line) else {
         return Vec::new();
     };
@@ -50,8 +50,18 @@ pub(super) fn host_names(line: &str) -> Vec<&str> {
     rest.split_whitespace()
         .take_while(|name| !name.starts_with(COMMENT))
         .map(|name| name.trim_matches(QUOTE))
+        .collect()
+}
+
+pub(super) fn host_names(line: &str) -> Vec<&str> {
+    host_tokens(line)
+        .into_iter()
         .filter(|name| !name.contains(NOT_A_NAME) && SshHost::parse(name).is_some())
         .collect()
+}
+
+pub(super) fn holds_only(line: &str, name: &str) -> bool {
+    host_tokens(line) == [name]
 }
 
 pub(super) fn name_range(line: &str, name: &str) -> Option<Range<usize>> {

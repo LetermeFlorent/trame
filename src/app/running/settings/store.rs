@@ -77,23 +77,6 @@ impl Running {
             panel.form = Some(HostForm::changing(host));
         }
     }
-
-    pub(super) fn forget_listed(&mut self, index: usize) {
-        let host = self
-            .panel_mut()
-            .and_then(|panel| panel.hosts.get(index).cloned());
-        let Some(host) = host else {
-            return;
-        };
-        if let (Some(alias), Some(config)) = (host.alias(), persist::ssh_config())
-            && let Err(error) = config.remove(alias)
-        {
-            eprintln!("trame: {alias} could not be removed from the SSH config: {error}");
-        }
-        vault::SSH.forget(&host);
-        self.set_preferences(self.preferences.forget_host(&host));
-        self.reload_hosts();
-    }
 }
 
 fn config_entry(alias: &str) -> Option<HostEntry> {

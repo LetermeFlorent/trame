@@ -1,3 +1,4 @@
+mod forget;
 mod hosts;
 mod list;
 mod shortcuts;

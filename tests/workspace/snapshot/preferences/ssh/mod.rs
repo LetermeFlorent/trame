@@ -1,5 +1,6 @@
 mod config;
 mod edit;
+mod forget;
 mod form;
 mod list;
 mod prompt;

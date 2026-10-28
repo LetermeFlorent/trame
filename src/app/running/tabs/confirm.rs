@@ -11,6 +11,8 @@ use crate::app::running::keys::is_escape;
 
 const CLOSE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Close];
 const UPDATE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Restart];
+const REMOVE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Remove];
+const ALIAS_SLOT: &str = "{alias}";
 
 struct Question {
     title: String,
@@ -37,8 +39,16 @@ impl Running {
         self.frame.place_message(&mut self.text, &request);
     }
 
-    fn question(&self, closing: Closing) -> Option<Question> {
+    fn question(&mut self, closing: Closing) -> Option<Question> {
         let strings = self.strings;
+        if let Closing::Forget(index) = closing {
+            let host = self.listed_host(index)?;
+            return Some(Question {
+                title: strings.remove_question.replace(ALIAS_SLOT, host.alias()?),
+                body: strings.hand_written.to_owned(),
+                actions: &REMOVE_ACTIONS,
+            });
+        }
         if let Closing::Update = closing {
             let offer = self.update_offer.as_ref()?;
             return Some(Question {
@@ -77,7 +87,9 @@ impl Running {
         if state == ElementState::Pressed && hit != Some(Hit::Dialog) {
             let confirmed = matches!(
                 hit,
-                Some(Hit::FormButton(FormAction::Close | FormAction::Restart))
+                Some(Hit::FormButton(
+                    FormAction::Close | FormAction::Restart | FormAction::Remove
+                ))
             );
             self.settle_closing(event_loop, confirmed);
         }

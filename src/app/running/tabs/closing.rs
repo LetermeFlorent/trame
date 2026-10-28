@@ -9,6 +9,7 @@ pub(in crate::app::running) enum Closing {
     Window,
     Instance(InstanceId),
     Update,
+    Forget(usize),
 }
 
 impl Running {
@@ -35,6 +36,7 @@ impl Running {
             Closing::Window => event_loop.exit(),
             Closing::Instance(id) => self.close_instance(event_loop, id),
             Closing::Update => self.restart_for_update(event_loop),
+            Closing::Forget(index) => self.forget_at(index),
         }
     }
 
@@ -56,7 +58,7 @@ impl Running {
                 .iter()
                 .find(|instance| instance.id == id)
                 .map_or(0, Instance::tab_count),
-            Closing::Update => 0,
+            Closing::Update | Closing::Forget(_) => 0,
         }
     }
 

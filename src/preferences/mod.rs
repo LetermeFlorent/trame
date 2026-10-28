@@ -26,6 +26,7 @@ use ssh::sanitized_hosts;
 pub use ssh::{
     ANSWER_WINDOW, ConnectForm, FormField, HostEntry, Prompt, SecretAnswer, SshConfig, SshHost,
     aliases_in, appended, entry_in, menu_hosts, prompt_in, vault, with_host, without_host,
+    written_by_hand,
 };
 pub use updates::Updates;
 

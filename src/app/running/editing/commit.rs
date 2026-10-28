@@ -52,7 +52,7 @@ impl Running {
             FormAction::Add => self.add_color(),
             FormAction::Image => self.ask_image(),
             FormAction::Cancel => self.step_back(),
-            FormAction::Close | FormAction::Restart => self.cancel_edit(),
+            FormAction::Close | FormAction::Restart | FormAction::Remove => self.cancel_edit(),
         }
     }
 

@@ -1,3 +1,5 @@
+#[cfg(unix)]
+mod atomic;
 mod icons;
 mod resample;
 

@@ -2,13 +2,14 @@ mod block;
 mod edit;
 mod names;
 
-use std::fs::{self, OpenOptions};
-use std::io::{self, Write};
+use std::fs;
+use std::io;
 use std::path::PathBuf;
 
 use super::SshHost;
+use crate::files::write_atomic;
 pub use block::{HostEntry, entry_in};
-pub use edit::{appended, with_host, without_host};
+pub use edit::{appended, with_host, without_host, written_by_hand};
 pub use names::{aliases_in, menu_hosts};
 
 pub struct SshConfig {
@@ -34,18 +35,16 @@ impl SshConfig {
         if aliases_in(&existing).iter().any(|alias| alias == name) {
             return Ok(host.clone());
         }
-        if let Some(folder) = self.path.parent() {
-            fs::create_dir_all(folder)?;
-        }
-        let mut file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&self.path)?;
-        file.write_all(appended(&existing, host).as_bytes())?;
+        let next = format!("{existing}{}", appended(&existing, host));
+        write_atomic(&self.path, next.as_bytes())?;
         Ok(SshHost {
             target: name.to_owned(),
             port: None,
         })
+    }
+
+    pub fn written_by_hand(&self, name: &str) -> io::Result<bool> {
+        Ok(written_by_hand(&self.text()?, name))
     }
 
     pub fn remove(&self, name: &str) -> io::Result<()> {
@@ -53,7 +52,7 @@ impl SshConfig {
         let next = without_host(&text, name);
         match next == text {
             true => Ok(()),
-            false => fs::write(&self.path, next),
+            false => write_atomic(&self.path, next.as_bytes()),
         }
     }
 
@@ -63,7 +62,7 @@ impl SshConfig {
             return self.keep(host);
         };
         if next != text {
-            fs::write(&self.path, next)?;
+            write_atomic(&self.path, next.as_bytes())?;
         }
         Ok(SshHost {
             target: alias,
