@@ -1,4 +1,4 @@
-use super::decode::{decode_base64, file_url_path, local_folder};
+use super::decode::{decode_base64, file_url_path, is_invisible_format, local_folder};
 use crate::term::MAX_CLIPBOARD_BYTES;
 use crate::term::screen::Screen;
 
@@ -79,7 +79,7 @@ fn printable_text(parts: &[&[u8]]) -> String {
     let joined = parts.join(&b';');
     let text: String = String::from_utf8_lossy(&joined)
         .chars()
-        .filter(|c| !c.is_control())
+        .filter(|&c| !c.is_control() && !is_invisible_format(c))
         .take(MAX_TITLE_LEN)
         .collect();
     text.trim().to_string()

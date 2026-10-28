@@ -72,3 +72,15 @@ fn osc_7_with_a_network_path_or_a_control_character_is_ignored() {
         assert_eq!(term.screen().cwd(), Some("C:\\work"), "{url}");
     }
 }
+
+#[test]
+fn a_folder_with_direction_controls_is_ignored() {
+    let reports = [
+        "\x1b]7;file:///home/%E2%80%AEfdp.exe\x07",
+        "\x1b]9;9;C:\\\u{2066}fdp.exe\x07",
+    ];
+    for report in reports {
+        let term = feed(1, 10, &format!("{LOCAL}{report}"));
+        assert_eq!(term.screen().cwd(), Some("C:\\work"), "{report:?}");
+    }
+}

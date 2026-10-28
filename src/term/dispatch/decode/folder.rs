@@ -1,4 +1,5 @@
 use super::host::is_this_machine;
+use super::invisible::is_invisible_format;
 
 pub(crate) fn file_url_path(url: &[u8]) -> Option<String> {
     let rest = url.strip_prefix(b"file://")?;
@@ -19,7 +20,9 @@ pub(crate) fn local_folder(path: String) -> Option<String> {
         && is_separator(bytes[2]);
     let from_root =
         bytes.first() == Some(&b'/') && !matches!(bytes.get(1), Some(b'/' | b'\\' | b'?'));
-    let printable = !path.chars().any(char::is_control);
+    let printable = !path
+        .chars()
+        .any(|c| c.is_control() || is_invisible_format(c));
     ((from_drive || from_root) && printable).then_some(path)
 }
 

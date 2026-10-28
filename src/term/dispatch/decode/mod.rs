@@ -1,7 +1,9 @@
 mod folder;
 mod host;
+mod invisible;
 
 pub(crate) use folder::{file_url_path, local_folder};
+pub(crate) use invisible::is_invisible_format;
 
 pub(crate) fn decode_base64(input: &[u8]) -> Option<Vec<u8>> {
     let mut output = Vec::with_capacity(input.len() / 4 * 3);
