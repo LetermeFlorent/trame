@@ -1,4 +1,4 @@
-use trame::session::{transcript_of, transcript_within};
+use trame::session::{MAX_TRANSCRIPT_BYTES, TranscriptCopy};
 use trame::term::{Cell, Color, Flags, Terminal};
 
 const ROWS: usize = 6;
@@ -9,6 +9,14 @@ fn terminal_with(bytes: &[u8]) -> Terminal {
     let mut terminal = Terminal::new(ROWS, COLS, HISTORY);
     terminal.feed(bytes);
     terminal
+}
+
+fn transcript_of(terminal: &Terminal) -> Vec<u8> {
+    transcript_within(terminal, MAX_TRANSCRIPT_BYTES)
+}
+
+fn transcript_within(terminal: &Terminal, budget: usize) -> Vec<u8> {
+    TranscriptCopy::of(terminal).encode(budget)
 }
 
 fn restored(terminal: &Terminal) -> Terminal {

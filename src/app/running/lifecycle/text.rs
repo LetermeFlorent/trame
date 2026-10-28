@@ -1,8 +1,7 @@
 use std::time::Instant;
 
-use trame::log_error;
 use trame::preferences::Recall;
-use trame::session::{SessionId, transcript_of};
+use trame::session::Session;
 
 use crate::app::running::Running;
 
@@ -28,7 +27,9 @@ impl Running {
     }
 
     fn save_everything(&mut self, resume: bool) {
+        self.transcripts.flush();
         self.save_transcripts(resume);
+        self.transcripts.flush();
         self.save_session(resume);
     }
 
@@ -38,27 +39,8 @@ impl Running {
             return;
         }
         let tabs = self.workspace.tabs();
-        self.transcripts.assign(&tabs);
-        for id in &tabs {
-            self.save_transcript(*id);
-        }
-        self.transcripts.prune(&tabs);
-    }
-
-    fn save_transcript(&mut self, id: SessionId) {
-        let Some(session) = self.sessions.get(id) else {
-            return;
-        };
-        let (generation, bytes) = {
-            let terminal = session.terminal();
-            let generation = terminal.generation();
-            if self.transcripts.is_current(id, generation) {
-                return;
-            }
-            (generation, transcript_of(&terminal))
-        };
-        if let Err(error) = self.transcripts.write(id, generation, &bytes) {
-            log_error!("a tab text could not be saved: {error}");
-        }
+        self.transcripts.save(&tabs, |id| {
+            self.sessions.get(id).map(Session::shared_terminal)
+        });
     }
 }

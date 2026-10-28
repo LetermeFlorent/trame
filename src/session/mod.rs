@@ -17,9 +17,7 @@ use crate::log_error;
 use crate::term::{DEFAULT_HISTORY, ReportedColors, Terminal};
 use pty::{Pty, PtyOptions, PtySize, ShellCommand};
 pub use title::starting_label;
-pub use transcript::{
-    MAX_TRANSCRIPT_BYTES, TRANSCRIPT_SAVE_INTERVAL, Transcripts, transcript_of, transcript_within,
-};
+pub use transcript::{MAX_TRANSCRIPT_BYTES, TRANSCRIPT_SAVE_INTERVAL, TranscriptCopy, Transcripts};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct SessionId(pub u64);
@@ -94,6 +92,10 @@ impl Session {
 
     pub fn terminal(&self) -> MutexGuard<'_, Terminal> {
         lock(&self.terminal)
+    }
+
+    pub fn shared_terminal(&self) -> Arc<Mutex<Terminal>> {
+        Arc::clone(&self.terminal)
     }
 
     pub fn write(&self, bytes: impl Into<Vec<u8>>) {

@@ -1,39 +1,20 @@
 use super::style::Style;
-use crate::term::grid::{Grid, Row};
-use crate::term::{Cell, Flags, Terminal};
+use crate::term::grid::Row;
+use crate::term::{Cell, Flags};
 
 pub const MAX_TRANSCRIPT_BYTES: usize = 4 << 20;
 
 const LINE_END: &[u8] = b"\r\n";
 const RESET: &[u8] = b"\x1b[0m";
 
-pub fn transcript_of(terminal: &Terminal) -> Vec<u8> {
-    transcript_within(terminal, MAX_TRANSCRIPT_BYTES)
-}
-
-pub fn transcript_within(terminal: &Terminal, budget: usize) -> Vec<u8> {
-    encode(&terminal.screen().primary, budget)
-}
-
-fn encode(grid: &Grid, budget: usize) -> Vec<u8> {
-    let Some(last) = last_written_line(grid) else {
-        return Vec::new();
-    };
+pub(super) fn encode(rows: &[Row], cols: usize, budget: usize) -> Vec<u8> {
     let mut out = Vec::new();
-    let mut starts = Vec::new();
-    for line in grid.first_line()..=last {
-        if let Some(row) = grid.line(line) {
-            starts.push(out.len());
-            encode_row(row, grid.cols(), line == last, &mut out);
-        }
+    let mut starts = Vec::with_capacity(rows.len());
+    for (index, row) in rows.iter().enumerate() {
+        starts.push(out.len());
+        encode_row(row, cols, index + 1 == rows.len(), &mut out);
     }
     keep_tail(out, &starts, budget)
-}
-
-fn last_written_line(grid: &Grid) -> Option<u64> {
-    (grid.first_line()..grid.end_line())
-        .rev()
-        .find(|line| grid.line(*line).is_some_and(|row| !row.is_blank()))
 }
 
 fn encode_row(row: &Row, cols: usize, last: bool, out: &mut Vec<u8>) {

@@ -35,7 +35,9 @@ fn a_guest_process_never_prunes() {
     fs::create_dir_all(&folder).expect("text folder");
     let kept = folder.join("owner.vt");
     fs::write(&kept, b"owner text").expect("owner text");
-    Transcripts::new(guest.transcript_dir()).prune(&[]);
+    let mut transcripts = Transcripts::new(guest.transcript_dir());
+    transcripts.save(&[], |_| None);
+    transcripts.flush();
     assert!(kept.exists());
 }
 
