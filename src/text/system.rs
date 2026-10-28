@@ -35,7 +35,7 @@ pub struct TextSystem {
     pub(super) glyphs: GlyphCache,
     pub(super) cells: CellCache,
     pub(super) images: HashMap<ImageKey, Option<AtlasRegion>>,
-    shaper: ShapeContext,
+    pub(super) shaper: ShapeContext,
     layouts: LayoutCache,
     previous_layouts: LayoutCache,
 }

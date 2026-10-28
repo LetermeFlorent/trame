@@ -1,16 +1,20 @@
+mod cluster;
+
 use std::collections::HashMap;
 
-use super::font::{BOLD, FontId, REGULAR};
+use super::font::{BOLD, FontId, FontKey, REGULAR};
 use super::metrics::CellMetrics;
 use super::raster::GlyphKey;
 use super::system::TextSystem;
 use crate::geometry::Point;
 use crate::render::{AtlasRegion, Scene};
+use crate::term::Marks;
 use crate::theme::Rgba;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CellText {
     pub ch: char,
+    pub marks: Marks,
     pub bold: bool,
     pub italic: bool,
     pub columns: u8,
@@ -23,10 +27,18 @@ pub struct CellGlyph {
     pub y: f32,
 }
 
+#[derive(Clone, Copy)]
+struct Placement {
+    font: FontKey,
+    size: f32,
+    offset: f32,
+}
+
 pub struct CellCache {
     primary: FontId,
     metrics: CellMetrics,
     glyphs: HashMap<CellText, Option<CellGlyph>>,
+    clusters: HashMap<CellText, Vec<CellGlyph>>,
 }
 
 impl CellCache {
@@ -35,6 +47,7 @@ impl CellCache {
             primary,
             metrics,
             glyphs: HashMap::new(),
+            clusters: HashMap::new(),
         }
     }
 
@@ -52,6 +65,7 @@ impl CellCache {
 
     pub fn clear(&mut self) {
         self.glyphs.clear();
+        self.clusters.clear();
     }
 }
 
@@ -70,38 +84,64 @@ impl TextSystem {
     }
 
     pub fn draw_cell(&mut self, scene: &mut Scene, text: CellText, origin: Point, color: Rgba) {
-        if let Some(glyph) = self.cell_glyph(text) {
+        let single;
+        let glyphs = if text.marks.is_empty() {
+            single = self.cell_glyph(text);
+            single.as_slice()
+        } else {
+            self.cluster_glyphs(text)
+        };
+        for glyph in glyphs {
             scene.glyph(glyph.region, origin.x + glyph.x, origin.y + glyph.y, color);
         }
     }
 
     fn place_cell_glyph(&mut self, key: CellText) -> Option<CellGlyph> {
+        let placement = self.placement(key)?;
+        let glyph = self.library.face(placement.font.id).glyph(key.ch);
+        self.raster_cell_glyph(placement, glyph, 0.0, 0.0)
+    }
+
+    fn placement(&mut self, key: CellText) -> Option<Placement> {
         let weight = if key.bold { BOLD } else { REGULAR };
         let primary = self.terminal.resolve(&self.library, weight, key.italic)?;
         let font = self
             .library
             .covering_font(primary, key.ch, weight, key.italic)?;
-        let glyph = self.library.face(font.id).glyph(key.ch);
         let metrics = self.cells.metrics;
-        let span = metrics.width * f32::from(key.columns);
-        let mut size = metrics.font_size;
-        let mut offset = 0.0;
+        let mut placement = Placement {
+            font,
+            size: metrics.font_size,
+            offset: 0.0,
+        };
         if font.id != primary.id {
-            let advance = self.library.face(font.id).advance(glyph, size);
+            let glyph = self.library.face(font.id).glyph(key.ch);
+            let span = metrics.width * f32::from(key.columns);
+            let advance = self.library.face(font.id).advance(glyph, placement.size);
             let ink = self
                 .glyphs
-                .ink_width(&self.library, font, glyph, size)
+                .ink_width(&self.library, font, glyph, placement.size)
                 .unwrap_or(advance);
             let scale = if ink > span { span / ink } else { 1.0 };
-            size *= scale;
-            offset = ((span - advance * scale) / 2.0).round();
+            placement.size *= scale;
+            placement.offset = ((span - advance * scale) / 2.0).round();
         }
-        let glyph_key = GlyphKey::hinted(font, glyph, size);
-        let raster = self.glyphs.get(&self.library, &mut self.atlas, glyph_key)?;
+        Some(placement)
+    }
+
+    fn raster_cell_glyph(
+        &mut self,
+        placement: Placement,
+        glyph: u16,
+        x: f32,
+        y: f32,
+    ) -> Option<CellGlyph> {
+        let key = GlyphKey::hinted(placement.font, glyph, placement.size);
+        let raster = self.glyphs.get(&self.library, &mut self.atlas, key)?;
         Some(CellGlyph {
             region: raster.region,
-            x: offset + raster.left as f32,
-            y: metrics.baseline - raster.top as f32,
+            x: placement.offset + x.round() + raster.left as f32,
+            y: self.cells.metrics.baseline - y.round() - raster.top as f32,
         })
     }
 }

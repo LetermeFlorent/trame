@@ -1,6 +1,8 @@
 mod atlas;
 mod images;
+mod marks;
 
+use trame::term::Marks;
 use trame::text::{BOLD, CellText, DEFAULT_LINE_HEIGHT, FontRole, REGULAR, TextStyle, TextSystem};
 
 const SIZE: f32 = 14.0;
@@ -20,6 +22,7 @@ fn interface(weight: u16) -> TextStyle {
 fn cell(ch: char, bold: bool, italic: bool, columns: u8) -> CellText {
     CellText {
         ch,
+        marks: Marks::default(),
         bold,
         italic,
         columns,
