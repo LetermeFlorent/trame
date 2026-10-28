@@ -101,8 +101,7 @@ impl Running {
     }
 
     fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>, saver: Saver) -> Self {
-        let border = window::frame_border(&surface.window);
-        let metrics = surface.preferences.ui_metrics(surface.window_scale, border);
+        let metrics = surface.metrics();
         let workspace = Workspace::numbered(surface.preferences.numbering);
         let (frame, motion, strings) = first_frame(&mut surface, &workspace, metrics, &saver);
         Self {

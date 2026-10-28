@@ -6,6 +6,7 @@ use winit::window::Window;
 
 use trame::preferences::Preferences;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
+use trame::ui::UiMetrics;
 use trame::workspace::WindowSnapshot;
 
 use crate::app::graphics::Graphics;
@@ -38,5 +39,10 @@ impl Surface {
             window_scale,
             preferences,
         })
+    }
+
+    pub(super) fn metrics(&self) -> UiMetrics {
+        let border = window::frame_border(&self.window);
+        self.preferences.ui_metrics(self.window_scale, border)
     }
 }
