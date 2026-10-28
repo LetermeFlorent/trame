@@ -21,6 +21,7 @@ pub use history::{DEFAULT_HISTORY_LINES, MAX_HISTORY_LINES, MIN_HISTORY_LINES};
 use history::{history_lines, sanitized_history};
 pub use launch::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Recall};
 use launch::{clamp_instance_tabs, instance_tabs, sanitized_command};
+pub use sizes::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE};
 use sizes::{clamp_font_size, clamp_interface_size, interface_size};
 use ssh::sanitized_hosts;
 pub use ssh::{
@@ -30,11 +31,6 @@ pub use ssh::{
 };
 pub use updates::Updates;
 
-pub const FONT_SIZE_STEP: f32 = 1.0;
-pub const INTERFACE_SIZE: u16 = 100;
-pub const MIN_INTERFACE_SIZE: u16 = 80;
-pub const MAX_INTERFACE_SIZE: u16 = 150;
-pub const INTERFACE_SIZE_STEP: u16 = 10;
 pub const CONFIRM_FROM_TABS: usize = 2;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -92,7 +88,7 @@ impl Default for Preferences {
             instance_tabs: MIN_INSTANCE_TABS,
             history_lines: DEFAULT_HISTORY_LINES,
             startup_command: None,
-            interface_size: INTERFACE_SIZE,
+            interface_size: interface_size(),
             language: LanguageChoice::Auto,
             default_folder: None,
             ssh_hosts: Vec::new(),

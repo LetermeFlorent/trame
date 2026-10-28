@@ -1,11 +1,13 @@
-use super::{
-    FONT_SIZE_STEP, INTERFACE_SIZE, INTERFACE_SIZE_STEP, MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE,
-    Preferences,
-};
+use super::Preferences;
 use crate::ui::metrics::{
     MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE, UiMetrics,
 };
 
+pub const MIN_INTERFACE_SIZE: u16 = 80;
+pub const MAX_INTERFACE_SIZE: u16 = 150;
+const INTERFACE_SIZE: u16 = 100;
+const INTERFACE_SIZE_STEP: u16 = 10;
+const FONT_SIZE_STEP: f32 = 1.0;
 const PERCENT: f32 = 100.0;
 
 impl Preferences {
