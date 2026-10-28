@@ -4,6 +4,7 @@ use swash::text::Codepoint;
 
 use super::{CellGlyph, CellText};
 use crate::term::Marks;
+use crate::text::insert_bounded;
 use crate::text::layout::{Shaping, script_of};
 use crate::text::system::TextSystem;
 
@@ -15,7 +16,7 @@ impl TextSystem {
         };
         if !self.cells.clusters.contains_key(&key) {
             let glyphs = self.place_cluster(key);
-            self.cells.clusters.insert(key, glyphs);
+            insert_bounded(&mut self.cells.clusters, key, glyphs);
         }
         &self.cells.clusters[&key]
     }

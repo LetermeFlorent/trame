@@ -1,8 +1,11 @@
 mod cluster;
+#[cfg(test)]
+mod tests;
 
 use std::collections::HashMap;
 
 use super::font::{BOLD, FontId, FontKey, REGULAR};
+use super::insert_bounded;
 use super::metrics::CellMetrics;
 use super::raster::GlyphKey;
 use super::system::TextSystem;
@@ -79,7 +82,7 @@ impl TextSystem {
             return *found;
         }
         let found = self.place_cell_glyph(key);
-        self.cells.glyphs.insert(key, found);
+        insert_bounded(&mut self.cells.glyphs, key, found);
         found
     }
 
