@@ -20,6 +20,7 @@ impl Running {
 
     pub(in crate::app::running) fn draw(&mut self) {
         let now = Instant::now();
+        self.text.receive_fonts();
         self.drop_gone_loader(now);
         self.relayout();
         if !window::has_area(&self.window) {

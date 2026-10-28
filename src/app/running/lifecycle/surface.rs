@@ -31,6 +31,12 @@ impl Surface {
         let window_scale = window.scale_factor() as f32;
         let font = preferences.font_pixels(window_scale);
         let mut text = TextSystem::new(font, DEFAULT_LINE_HEIGHT)?;
+        let redraw = Arc::downgrade(&window);
+        text.set_font_waker(move || {
+            if let Some(window) = redraw.upgrade() {
+                window.request_redraw();
+            }
+        });
         let graphics = Graphics::new(event_loop, window.clone(), text.atlas_mut())?;
         Ok(Self {
             window,

@@ -110,6 +110,18 @@ impl TextSystem {
         }
     }
 
+    pub fn set_font_waker(&mut self, wake: impl Fn() + Send + 'static) {
+        self.library.set_fallback_waker(Box::new(wake));
+    }
+
+    pub fn receive_fonts(&mut self) {
+        if self.library.receive_fallbacks() {
+            self.cells.clear();
+            self.layouts.clear();
+            self.previous_layouts.clear();
+        }
+    }
+
     pub fn end_frame(&mut self) -> bool {
         self.previous_layouts = std::mem::take(&mut self.layouts);
         if !self.atlas.finish_frame() {

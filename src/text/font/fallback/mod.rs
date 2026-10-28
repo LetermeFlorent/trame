@@ -1,3 +1,8 @@
+mod answers;
+mod lookups;
+#[cfg(test)]
+mod tests;
+
 use std::collections::{HashMap, VecDeque};
 use std::ops::RangeInclusive;
 
@@ -5,6 +10,7 @@ use unicode_width::UnicodeWidthChar;
 
 use super::discovery::{Finder, FontSource};
 use super::{FontId, FontKey, FontLibrary};
+use lookups::Lookups;
 
 const EMOJI_RANGES: [RangeInclusive<u32>; 2] = [0x2300..=0x2BFF, 0x1F000..=0x1FAFF];
 
@@ -25,7 +31,8 @@ pub struct Fallbacks {
     text: FallbackList,
     emoji: FallbackList,
     coverage: HashMap<char, Option<FontId>>,
-    finder: Option<Finder>,
+    lookups: Lookups,
+    found: bool,
 }
 
 impl Fallbacks {
@@ -40,7 +47,8 @@ impl Fallbacks {
                 pending: emoji.iter().cloned().collect(),
             },
             coverage: HashMap::new(),
-            finder,
+            lookups: Lookups::new(finder),
+            found: false,
         }
     }
 
@@ -78,13 +86,21 @@ impl FontLibrary {
         if let Some(found) = self.fallbacks.coverage.get(&ch) {
             return *found;
         }
-        let found = self.search_fallback(ch);
+        if self.fallbacks.lookups.is_asked(ch) {
+            return None;
+        }
+        let emoji = prefers_emoji(ch);
+        let found = self.search_lists(ch, emoji);
+        if found.is_none() && self.fallbacks.lookups.can_search() {
+            self.fallbacks.lookups.ask(ch, emoji);
+            self.send_next();
+            return None;
+        }
         self.fallbacks.coverage.insert(ch, found);
         found
     }
 
-    fn search_fallback(&mut self, ch: char) -> Option<FontId> {
-        let emoji = prefers_emoji(ch);
+    fn search_lists(&mut self, ch: char, emoji: bool) -> Option<FontId> {
         let order = if emoji {
             [Kind::Emoji, Kind::Text]
         } else {
@@ -93,7 +109,6 @@ impl FontLibrary {
         order
             .into_iter()
             .find_map(|kind| self.search_list(kind, ch))
-            .or_else(|| self.search_system(ch, emoji))
     }
 
     fn search_list(&mut self, kind: Kind, ch: char) -> Option<FontId> {
@@ -109,20 +124,6 @@ impl FontLibrary {
             }
         }
         None
-    }
-
-    fn search_system(&mut self, ch: char, emoji: bool) -> Option<FontId> {
-        let source = self.fallbacks.finder.as_mut()?(ch, emoji)?;
-        let id = self
-            .load(&source)
-            .into_iter()
-            .find(|id| self.face(*id).covers(ch))?;
-        let kind = if emoji { Kind::Emoji } else { Kind::Text };
-        let list = self.fallbacks.list_mut(kind);
-        if !list.loaded.contains(&id) {
-            list.loaded.push(id);
-        }
-        Some(id)
     }
 }
 
