@@ -8,7 +8,7 @@ pub mod vt;
 
 use vt::Parser;
 
-pub use cell::{Cell, Color, Flags};
+pub use cell::{Cell, Color, Flags, Marks};
 pub use cursor::CursorShape;
 pub use grid::SelectionKind;
 pub use modes::Modes;

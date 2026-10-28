@@ -1,3 +1,7 @@
+mod marks;
+
+pub use marks::Marks;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Color {
     #[default]
@@ -61,6 +65,7 @@ pub struct Cell {
     pub fg: Color,
     pub bg: Color,
     pub flags: Flags,
+    pub marks: Marks,
 }
 
 impl Default for Cell {
@@ -70,6 +75,7 @@ impl Default for Cell {
             fg: Color::Foreground,
             bg: Color::Background,
             flags: Flags::empty(),
+            marks: Marks::default(),
         }
     }
 }
@@ -87,5 +93,6 @@ impl Cell {
             && self.bg == Color::Background
             && !self.flags.intersects(Flags::INVERSE)
             && !self.flags.intersects(Flags::ANY_UNDERLINE)
+            && self.marks.is_empty()
     }
 }

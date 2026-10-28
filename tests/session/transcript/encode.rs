@@ -117,6 +117,13 @@ fn an_empty_terminal_gives_no_text() {
 }
 
 #[test]
+fn combining_marks_survive_a_restore() {
+    let lines = ["e\u{301}x", "\u{1F468}\u{200D}\u{1F469}", " \u{301}"];
+    let terminal = terminal_with(lines.join("\r\n").as_bytes());
+    assert_eq!(written_lines(&restored(&terminal)), lines);
+}
+
+#[test]
 fn generation_moves_when_output_arrives() {
     let mut terminal = Terminal::new(ROWS, COLS, HISTORY);
     let before = terminal.generation();

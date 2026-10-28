@@ -54,7 +54,9 @@ fn encode_row(row: &Row, cols: usize, last: bool, out: &mut Vec<u8>) {
             style = next;
         }
         let mut buffer = [0; 4];
-        out.extend_from_slice(printable(cell.ch).encode_utf8(&mut buffer).as_bytes());
+        for ch in std::iter::once(printable(cell.ch)).chain(cell.marks.chars()) {
+            out.extend_from_slice(ch.encode_utf8(&mut buffer).as_bytes());
+        }
     }
     if style != Style::PLAIN {
         out.extend_from_slice(RESET);
