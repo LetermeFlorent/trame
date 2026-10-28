@@ -35,14 +35,19 @@ impl Offer {
     }
 }
 
+#[derive(Default)]
+pub(in crate::app::running) struct UpdateState {
+    pub(in crate::app::running) offer: Option<Offer>,
+}
+
 impl Running {
     pub fn offer_update(&mut self, offer: Offer) {
-        self.update_offer = Some(offer);
+        self.update.offer = Some(offer);
         self.changed();
     }
 
     pub(in crate::app::running) fn restart_for_update(&mut self, event_loop: &ActiveEventLoop) {
-        let Some(offer) = self.update_offer.clone() else {
+        let Some(offer) = self.update.offer.clone() else {
             return;
         };
         let start = || match &offer.ready {

@@ -85,7 +85,8 @@ impl Running {
         let title = |id: SessionId| title_of(&self.workspace, &self.labels, &self.sessions, id);
         let folder = self.active_folder();
         let update = self
-            .update_offer
+            .update
+            .offer
             .as_ref()
             .map(|offer| offer.label(self.strings));
         let layout = LayoutInput {

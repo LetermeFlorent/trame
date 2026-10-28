@@ -32,6 +32,7 @@ use crate::app::{UserEvent, window};
 use first_frame::first_frame;
 use surface::Surface;
 pub use update::Offer;
+pub(super) use update::UpdateState;
 
 pub struct Opened {
     running: Running,
@@ -135,7 +136,7 @@ impl Running {
             modifiers: ModifiersState::empty(),
             visibility: Visibility::default(),
             loader: None,
-            update_offer: None,
+            update: UpdateState::default(),
             restarting: false,
             restarts: Restarts::default(),
             closing: None,

@@ -58,7 +58,7 @@ impl Running {
             });
         }
         if let Closing::Update = closing {
-            let offer = self.update_offer.as_ref()?;
+            let offer = self.update.offer.as_ref()?;
             return Some(Question {
                 title: offer.question(strings),
                 body: strings.update_restarts.to_owned(),

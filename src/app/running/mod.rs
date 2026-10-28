@@ -36,6 +36,7 @@ use super::{UserEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
 pub use lifecycle::Offer;
+use lifecycle::UpdateState;
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
 pub use tabs::FolderTarget;
@@ -70,7 +71,7 @@ pub struct Running {
     modifiers: ModifiersState,
     visibility: Visibility,
     loader: Option<Loader>,
-    update_offer: Option<Offer>,
+    update: UpdateState,
     restarting: bool,
     restarts: Restarts,
     power: Power,
