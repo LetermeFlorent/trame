@@ -79,5 +79,6 @@ pub const FRENCH: Strings = Strings {
     letters_or_image: "LETTRES OU IMAGE",
     image: "Image",
     pick_image: "Choisir une image",
+    unsaved_session: "session non enregistrée",
     keys: &FRENCH_KEYS,
 };

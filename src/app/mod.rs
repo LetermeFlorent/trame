@@ -4,6 +4,8 @@ mod notice;
 mod persist;
 mod power;
 mod running;
+#[cfg(test)]
+mod scratch;
 mod sessions;
 mod update;
 mod visibility;
@@ -11,6 +13,7 @@ mod window;
 
 use std::error::Error;
 use std::io;
+use std::mem;
 use std::path::{Path, PathBuf};
 
 use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
@@ -19,6 +22,7 @@ use trame::preferences::Updates;
 use trame::session::SessionEvent;
 use trame::workspace::{InstanceId, Snapshot};
 
+use persist::Role;
 use running::{FolderTarget, Offer, Running};
 use update::UpdateStatus;
 
@@ -34,7 +38,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let event_loop = EventLoop::<UserEvent>::with_user_event().build()?;
     let proxy = event_loop.create_proxy();
     let notifier = proxy.clone();
-    let saved = persist::load();
+    let role = persist::claim();
+    let saved = persist::load(&role);
     let updates = saved
         .as_ref()
         .map_or_else(Updates::default, |snapshot| snapshot.preferences.updates);
@@ -44,6 +49,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut app = App {
         proxy,
         update,
+        role,
         saved,
         running: None,
         failure: None,
@@ -55,6 +61,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 struct App {
     proxy: EventLoopProxy<UserEvent>,
     update: UpdateStatus,
+    role: Role,
     saved: Option<Snapshot>,
     running: Option<Running>,
     failure: Option<Box<dyn Error>>,
@@ -63,24 +70,25 @@ struct App {
 impl App {
     fn launch(&mut self, event_loop: &ActiveEventLoop) -> Result<Running, Box<dyn Error>> {
         let saved = self.saved.take();
-        Running::open_window(event_loop, self.proxy.clone(), saved)?.show(&self.update)
+        let role = mem::replace(&mut self.role, Role::Guest);
+        Running::open_window(event_loop, self.proxy.clone(), saved, role)?.show(&self.update)
     }
 
-    fn relaunch(&mut self, exe: &Path) -> io::Result<()> {
-        if let Some(running) = &mut self.running {
-            running.save_for_restart();
+    fn relaunch(&mut self, event_loop: &ActiveEventLoop, exe: &Path) -> io::Result<()> {
+        match &mut self.running {
+            Some(running) => running.restart_with(event_loop, || update::relaunch(exe)),
+            None => {
+                self.role.hand_over(|| update::relaunch(exe))?;
+                event_loop.exit();
+                Ok(())
+            }
         }
-        update::relaunch(exe)
     }
 
     fn updated(&mut self, event_loop: &ActiveEventLoop, status: UpdateStatus) {
         let status = match status {
-            UpdateStatus::Installed(exe) => match self.relaunch(&exe) {
-                Ok(()) => {
-                    self.running = None;
-                    event_loop.exit();
-                    return;
-                }
+            UpdateStatus::Installed(exe) => match self.relaunch(event_loop, &exe) {
+                Ok(()) => return,
                 Err(error) => {
                     eprintln!("trame: the new version did not start: {error}");
                     UpdateStatus::Done

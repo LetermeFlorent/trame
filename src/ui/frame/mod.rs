@@ -43,6 +43,7 @@ pub struct FrameInput<'a> {
     pub title: &'a dyn Fn(SessionId) -> String,
     pub folder: Option<&'a Path>,
     pub update: Option<&'a str>,
+    pub unsaved: bool,
     pub strings: &'static Strings,
 }
 

@@ -1,4 +1,7 @@
+mod role;
 mod saver;
+#[cfg(test)]
+mod tests;
 
 use std::fs;
 use std::io;
@@ -8,6 +11,7 @@ use trame::files::{home_dir, write_atomic};
 use trame::preferences::SshConfig;
 use trame::workspace::Snapshot;
 
+pub use role::Role;
 pub use saver::Saver;
 
 const APP_DIR: &str = "trame";
@@ -43,19 +47,19 @@ fn app_dir() -> Option<PathBuf> {
     state_dir().map(|dir| dir.join(APP_DIR))
 }
 
-pub fn session_path() -> Option<PathBuf> {
-    app_dir().map(|dir| dir.join(FILE_NAME))
+pub fn claim() -> Role {
+    Role::claim(app_dir())
 }
 
-pub fn transcript_dir() -> Option<PathBuf> {
-    app_dir().map(|dir| dir.join(TRANSCRIPT_DIR))
+fn session_path() -> Option<PathBuf> {
+    app_dir().map(|dir| dir.join(FILE_NAME))
 }
 
 pub fn icon_dir() -> Option<PathBuf> {
     app_dir().map(|dir| dir.join(ICON_DIR))
 }
 
-pub fn load() -> Option<Snapshot> {
+pub fn load(role: &Role) -> Option<Snapshot> {
     let path = session_path()?;
     let text = match fs::read_to_string(&path) {
         Ok(text) => text,
@@ -69,7 +73,9 @@ pub fn load() -> Option<Snapshot> {
         Ok(snapshot) => Some(snapshot),
         Err(error) => {
             eprintln!("trame: {error}, starting a fresh session");
-            keep_aside(&path);
+            if role.owns() {
+                keep_aside(&path);
+            }
             None
         }
     }

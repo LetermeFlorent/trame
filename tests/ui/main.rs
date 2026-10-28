@@ -70,6 +70,7 @@ pub fn input(workspace: &Workspace, metrics: UiMetrics) -> FrameInput<'_> {
         title: &title,
         folder: None,
         update: None,
+        unsaved: false,
         strings: Language::English.strings(),
     }
 }

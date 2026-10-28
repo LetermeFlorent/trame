@@ -22,7 +22,7 @@ use trame::workspace::{Snapshot, Workspace};
 use super::tabs::Placement;
 use super::{Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
-use crate::app::persist::{self, Saver};
+use crate::app::persist::{self, Role, Saver};
 use crate::app::power::Power;
 use crate::app::sessions::Sessions;
 use crate::app::update::UpdateStatus;
@@ -46,7 +46,8 @@ impl Opened {
             running.draw();
             running.window.set_visible(true);
         }
-        if !running.restore_session(saved.as_ref()) {
+        let restored = running.saver.owns() && running.restore_session(saved.as_ref());
+        if !restored {
             running.open(Placement::Instance)?;
         }
         if !running.preferences.recalls(Recall::Text) {
@@ -63,15 +64,19 @@ impl Running {
         event_loop: &ActiveEventLoop,
         proxy: EventLoopProxy<UserEvent>,
         saved: Option<Snapshot>,
+        role: Role,
     ) -> Result<Opened, Box<dyn Error>> {
-        let window = saved.as_ref().and_then(|snapshot| snapshot.window);
+        let window = saved
+            .as_ref()
+            .and_then(|snapshot| snapshot.window)
+            .filter(|_| role.owns());
         let preferences = saved
             .as_ref()
             .map_or_else(Preferences::default, |snapshot| {
                 snapshot.preferences.clone().sanitized()
             });
         let surface = Surface::open(event_loop, window, preferences)?;
-        let mut running = Self::with_surface(surface, proxy);
+        let mut running = Self::with_surface(surface, proxy, Saver::new(role));
         running
             .sessions
             .set_history(running.preferences.history_lines);
@@ -97,11 +102,11 @@ impl Running {
         event_loop.set_control_flow(wake.map_or(ControlFlow::Wait, ControlFlow::WaitUntil));
     }
 
-    fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>) -> Self {
+    fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>, saver: Saver) -> Self {
         let border = window::frame_border(&surface.window);
         let metrics = surface.preferences.ui_metrics(surface.window_scale, border);
         let workspace = Workspace::numbered(surface.preferences.numbering);
-        let (frame, motion, strings) = first_frame(&mut surface, &workspace, metrics);
+        let (frame, motion, strings) = first_frame(&mut surface, &workspace, metrics, &saver);
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
             power: Power::new(surface.preferences.power_switches()),
@@ -116,8 +121,8 @@ impl Running {
             workspace,
             sessions: Sessions::new(proxy.clone()),
             proxy,
-            saver: Saver::new(),
-            transcripts: Transcripts::new(persist::transcript_dir()),
+            transcripts: Transcripts::new(saver.transcript_dir()),
+            saver,
             icons: IconStore::new(persist::icon_dir()),
             labels: HashMap::new(),
             frame,

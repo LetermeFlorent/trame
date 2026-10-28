@@ -27,6 +27,7 @@ pub(super) struct LayoutInput<'a> {
     pub(super) metrics: UiMetrics,
     pub(super) folder: Option<&'a Path>,
     pub(super) update: Option<&'a str>,
+    pub(super) unsaved: bool,
     pub(super) strings: &'static Strings,
 }
 
@@ -47,6 +48,7 @@ pub(super) fn compute(
         title,
         folder: layout.folder,
         update: layout.update,
+        unsaved: layout.unsaved,
         strings: layout.strings,
     };
     let frame = FrameLayout::compute_with(text, &input, motion);
@@ -92,6 +94,7 @@ impl Running {
             metrics: self.metrics,
             folder: folder.as_deref(),
             update: update.as_deref(),
+            unsaved: !self.saver.owns(),
             strings: self.strings,
         };
         self.motion.tick(Instant::now());

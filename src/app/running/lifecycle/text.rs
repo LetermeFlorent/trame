@@ -7,7 +7,7 @@ use crate::app::running::Running;
 
 impl Running {
     pub(super) fn transcript_deadline(&mut self) -> Option<Instant> {
-        if !self.preferences.recalls(Recall::Text) {
+        if !self.saver.owns() || !self.preferences.recalls(Recall::Text) {
             return None;
         }
         if self.transcripts.due() <= Instant::now() {
@@ -22,7 +22,7 @@ impl Running {
         }
     }
 
-    pub fn save_for_restart(&mut self) {
+    pub(super) fn save_for_restart(&mut self) {
         self.save_everything(true);
     }
 
@@ -33,7 +33,7 @@ impl Running {
 
     fn save_transcripts(&mut self, every_tab: bool) {
         self.transcripts.schedule();
-        if !every_tab && !self.preferences.recalls(Recall::Text) {
+        if !self.saver.owns() || !every_tab && !self.preferences.recalls(Recall::Text) {
             return;
         }
         let tabs = self.workspace.tabs();

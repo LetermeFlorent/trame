@@ -1,14 +1,15 @@
+use std::io;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use trame::workspace::{Snapshot, WindowSnapshot, Workspace};
 
-use super::{session_path, write};
+use super::{Role, write};
 
 const SAVE_INTERVAL: Duration = Duration::from_secs(1);
 
 pub struct Saver {
-    path: Option<PathBuf>,
+    role: Role,
     last_layout: Option<Workspace>,
     last_write: Option<Instant>,
     last_window: Option<WindowSnapshot>,
@@ -16,14 +17,26 @@ pub struct Saver {
 }
 
 impl Saver {
-    pub fn new() -> Self {
+    pub fn new(role: Role) -> Self {
         Self {
-            path: session_path(),
+            role,
             last_layout: None,
             last_write: None,
             last_window: None,
             dirty: false,
         }
+    }
+
+    pub fn owns(&self) -> bool {
+        self.role.owns()
+    }
+
+    pub fn transcript_dir(&self) -> Option<PathBuf> {
+        self.role.transcript_dir()
+    }
+
+    pub fn hand_over(&mut self, start: impl FnOnce() -> io::Result<()>) -> io::Result<()> {
+        self.role.hand_over(start)
     }
 
     pub fn baseline(&mut self, workspace: &Workspace) {
@@ -49,7 +62,7 @@ impl Saver {
     }
 
     pub fn due(&self) -> Option<Instant> {
-        if !self.dirty {
+        if !self.dirty || !self.role.owns() {
             return None;
         }
         Some(
@@ -61,10 +74,10 @@ impl Saver {
     pub fn save(&mut self, snapshot: &Snapshot) {
         self.dirty = false;
         self.last_write = Some(Instant::now());
-        let Some(path) = &self.path else {
+        let Some(path) = self.role.session_path() else {
             return;
         };
-        if let Err(error) = write(path, snapshot) {
+        if let Err(error) = write(&path, snapshot) {
             eprintln!("trame: the session could not be saved: {error}");
         }
     }

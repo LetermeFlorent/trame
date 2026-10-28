@@ -4,11 +4,13 @@ use trame::workspace::Workspace;
 
 use super::super::frame;
 use super::surface::Surface;
+use crate::app::persist::Saver;
 
 pub(super) fn first_frame(
     surface: &mut Surface,
     workspace: &Workspace,
     metrics: UiMetrics,
+    saver: &Saver,
 ) -> (FrameLayout, Motion, &'static Strings) {
     let strings = surface.preferences.language.resolve().strings();
     let mut motion = Motion::default();
@@ -18,6 +20,7 @@ pub(super) fn first_frame(
         metrics,
         folder: None,
         update: None,
+        unsaved: !saver.owns(),
         strings,
     };
     let frame = frame::compute(&mut surface.text, &layout_input, &mut motion, &|_| {

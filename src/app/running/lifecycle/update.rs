@@ -48,34 +48,30 @@ impl Running {
             Some(exe) => update::relaunch(exe),
             None => update::restart(&offer.version),
         };
-        self.restart_with(event_loop, start, "the update restart did not start");
+        if let Err(error) = self.restart_with(event_loop, start) {
+            eprintln!("trame: the update restart did not start: {error}");
+        }
     }
 
     pub(in crate::app::running) fn restart_if_card_lost(&mut self, event_loop: &ActiveEventLoop) {
         if self.restarting || !self.graphics.is_lost() {
             return;
         }
-        self.restart_with(
-            event_loop,
-            update::start_again,
-            "trame could not start again",
-        );
+        if let Err(error) = self.restart_with(event_loop, update::start_again) {
+            eprintln!("trame: trame could not start again: {error}");
+        }
     }
 
-    fn restart_with(
+    pub fn restart_with(
         &mut self,
         event_loop: &ActiveEventLoop,
         start: impl FnOnce() -> io::Result<()>,
-        failure: &str,
-    ) {
+    ) -> io::Result<()> {
         self.save_for_restart();
-        match start() {
-            Ok(()) => {
-                self.restarting = true;
-                event_loop.exit();
-            }
-            Err(error) => eprintln!("trame: {failure}: {error}"),
-        }
+        self.saver.hand_over(start)?;
+        self.restarting = true;
+        event_loop.exit();
+        Ok(())
     }
 }
 

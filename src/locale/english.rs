@@ -79,5 +79,6 @@ pub const ENGLISH: Strings = Strings {
     letters_or_image: "LETTERS OR IMAGE",
     image: "Image",
     pick_image: "Choose an image",
+    unsaved_session: "unsaved session",
     keys: &ENGLISH_KEYS,
 };

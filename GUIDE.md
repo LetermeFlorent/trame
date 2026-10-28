@@ -43,6 +43,8 @@ At launch, trame reopens the last layout with each shell in the folder it was in
 
 Three switches in the settings change that, all on by default. "Remember instances" off starts a single new instance. "Remember terminals" off brings the instances back with their name, colour, icon and folder but with fresh terminals, as many as a new instance gets. "Restore tab text" off brings the tabs back empty.
 
+Only one trame at a time keeps the layout. A second one, opened while the first still runs, starts with a single new instance and saves nothing, not even its settings: its title bar says "unsaved session" after the name.
+
 Closing the window, or an instance from its cross in the side bar, while it holds two tabs or more first asks to confirm, with the number of tabs that will close. Enter or Close confirms; Escape, Cancel, the cross or a click outside keeps everything open. The switch "Ask before closing several tabs", on by default, turns the question off.
 
 ## Settings
@@ -174,7 +176,7 @@ On Windows, `trame.exe` weighs under 7 MB. With a couple of tabs open it holds a
 
 ## Build from source
 
-trame needs Rust 1.87 or newer.
+trame needs Rust 1.89 or newer.
 
 ```sh
 git clone https://github.com/LetermeFlorent/trame.git
