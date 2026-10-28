@@ -31,7 +31,7 @@ impl Graphics {
     pub fn new(
         event_loop: &ActiveEventLoop,
         window: Arc<Window>,
-        atlas: &Atlas,
+        atlas: &mut Atlas,
     ) -> Result<Self, Box<dyn Error>> {
         let size = window.inner_size();
         let (gpu, surface) = connect(event_loop, &window, PREFERRED_BACKENDS)

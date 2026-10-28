@@ -34,7 +34,7 @@ pub struct TextSystem {
     pub(super) atlas: Atlas,
     pub(super) glyphs: GlyphCache,
     pub(super) cells: CellCache,
-    pub(super) images: HashMap<ImageKey, AtlasRegion>,
+    pub(super) images: HashMap<ImageKey, Option<AtlasRegion>>,
     shaper: ShapeContext,
     layouts: LayoutCache,
     previous_layouts: LayoutCache,
@@ -124,7 +124,7 @@ impl TextSystem {
 
     pub fn end_frame(&mut self) -> bool {
         self.previous_layouts = std::mem::take(&mut self.layouts);
-        if !self.atlas.is_full() {
+        if !self.atlas.finish_frame() {
             return false;
         }
         self.forget_glyphs();

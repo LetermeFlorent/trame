@@ -65,9 +65,7 @@ impl TextSystem {
             return *found;
         }
         let found = self.place_cell_glyph(key);
-        if found.is_some() || !self.atlas.is_full() {
-            self.cells.glyphs.insert(key, found);
-        }
+        self.cells.glyphs.insert(key, found);
         found
     }
 

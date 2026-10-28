@@ -44,7 +44,7 @@ impl GlyphCache {
         }
         let raster = match self.rasterize(library, key) {
             Some(image) if image.placement.width > 0 && image.placement.height > 0 => {
-                Some(upload(atlas, image)?)
+                upload(atlas, image)
             }
             _ => None,
         };
