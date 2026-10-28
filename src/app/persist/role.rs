@@ -1,7 +1,9 @@
-use std::fs::{self, File, OpenOptions};
+use std::fs::{File, OpenOptions};
 use std::io;
 use std::mem;
 use std::path::{Path, PathBuf};
+
+use trame::files::private_folder;
 
 use super::{FILE_NAME, TRANSCRIPT_DIR};
 
@@ -69,7 +71,7 @@ impl Role {
 }
 
 fn lock(folder: &Path) -> io::Result<File> {
-    fs::create_dir_all(folder)?;
+    private_folder(folder)?;
     let file = OpenOptions::new()
         .read(true)
         .write(true)

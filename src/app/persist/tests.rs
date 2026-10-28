@@ -112,3 +112,17 @@ fn a_failed_save_stays_dirty() {
     saver.save(&snapshot());
     assert!(saver.due().is_none());
 }
+
+#[cfg(unix)]
+#[test]
+fn the_state_folder_is_private() {
+    use std::os::unix::fs::PermissionsExt;
+    let scratch = Scratch::new("persist-private");
+    let fresh = scratch.path().join("trame");
+    let _new = Role::claim(Some(fresh.clone()));
+    let _old = claim(&scratch);
+    for folder in [fresh.as_path(), scratch.path()] {
+        let found = fs::metadata(folder).expect("the folder").permissions();
+        assert_eq!(found.mode() & 0o777, 0o700);
+    }
+}

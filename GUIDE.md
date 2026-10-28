@@ -172,6 +172,8 @@ The settings live in the same file. Deleting it makes trame start over with a si
 
 The text of each tab goes into the `text` folder next to it, once a minute when something changed and once more when trame closes. Each tab keeps its last 4 MB. Turning off "Restore tab text", or one of the two switches above it, deletes that folder.
 
+On Linux and macOS, trame keeps its folder closed to the other accounts of the machine, and a `~/.ssh` folder or config file it has to create is readable by you only.
+
 ## How it is made
 
 The terminal itself, from the escape sequence parser to the screen grid and the scrollback, is written from scratch in Rust. Drawing goes through the graphics card with [wgpu](https://wgpu.rs): DirectX 12 on Windows, Metal on macOS and Vulkan on Linux, with Vulkan on Windows and OpenGL on Linux when those are missing. Nothing is drawn while the window is hidden or minimized.

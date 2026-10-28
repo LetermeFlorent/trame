@@ -62,3 +62,24 @@ fn first_save_waits_a_full_interval() {
     transcripts.schedule();
     assert!(transcripts.due() >= rescheduled + TRANSCRIPT_SAVE_INTERVAL);
 }
+
+#[cfg(unix)]
+#[test]
+fn a_transcript_is_private() {
+    use std::os::unix::fs::PermissionsExt;
+    let sandbox = Sandbox::new("private");
+    let mut transcripts = sandbox.transcripts();
+    transcripts.assign(&[FIRST]);
+    transcripts.write(FIRST, 1, b"secret").unwrap();
+    let key = key_of(&transcripts, FIRST);
+    let file = sandbox.text().join(format!("{key}.vt"));
+    let expected = [
+        (sandbox.root.clone(), 0o700),
+        (sandbox.text(), 0o700),
+        (file, 0o600),
+    ];
+    for (path, private) in expected {
+        let mode = fs::metadata(path).unwrap().permissions().mode();
+        assert_eq!(mode & 0o777, private);
+    }
+}

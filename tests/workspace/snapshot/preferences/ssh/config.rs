@@ -71,3 +71,19 @@ fn a_kept_connection_is_written_once_and_used_by_its_name() {
     fs::remove_dir_all(&folder).expect("the test folder is removed");
     assert_eq!(SshHost::parse("10.0.0.2"), Some(kept));
 }
+
+#[cfg(unix)]
+#[test]
+fn a_new_ssh_folder_is_private() {
+    use std::os::unix::fs::PermissionsExt;
+    let folder = std::env::temp_dir().join(format!("trame-ssh-private-{}", std::process::id()));
+    let ssh = folder.join(".ssh");
+    let config = SshConfig::at(ssh.join("config"));
+    let typed = host("box.lan", None);
+    config.keep(&typed).expect("the entry is written");
+    for (path, private) in [(ssh.clone(), 0o700), (ssh.join("config"), 0o600)] {
+        let mode = fs::metadata(path).expect("it exists").permissions().mode();
+        assert_eq!(mode & 0o777, private);
+    }
+    fs::remove_dir_all(&folder).expect("the test folder is removed");
+}
