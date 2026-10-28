@@ -1,4 +1,5 @@
 mod encode;
+mod folder;
 mod store;
 mod style;
 

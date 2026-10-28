@@ -1,18 +1,15 @@
 use std::collections::{HashMap, HashSet};
 use std::fs::{self, File};
-use std::io::{self, ErrorKind, Read};
+use std::io::{self, Read};
 use std::path::PathBuf;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use super::MAX_TRANSCRIPT_BYTES;
+use super::folder::{file_name, is_valid_key, remove_stale, report_unless_missing};
 use crate::files::write_atomic;
-use crate::log_error;
 use crate::session::SessionId;
 
 pub const TRANSCRIPT_SAVE_INTERVAL: Duration = Duration::from_secs(60);
-
-const EXTENSION: &str = "vt";
-const MAX_KEY_LENGTH: usize = 40;
 
 pub struct Transcripts {
     folder: Option<PathBuf>,
@@ -89,20 +86,11 @@ impl Transcripts {
         let live: HashSet<SessionId> = live.iter().copied().collect();
         self.keys.retain(|id, _| live.contains(id));
         self.written.retain(|id, _| live.contains(id));
-        let Some(entries) = self.folder.as_ref().and_then(|dir| fs::read_dir(dir).ok()) else {
+        let Some(folder) = &self.folder else {
             return;
         };
         let kept: HashSet<String> = self.keys.values().map(|key| file_name(key)).collect();
-        for entry in entries.flatten() {
-            let stale = entry.file_type().is_ok_and(|kind| kind.is_file())
-                && entry
-                    .file_name()
-                    .to_str()
-                    .is_some_and(|name| !kept.contains(name));
-            if stale && let Err(error) = fs::remove_file(entry.path()) {
-                report_unless_missing("deleted", &error);
-            }
-        }
+        remove_stale(folder, &kept);
     }
 
     pub fn clear(&mut self) {
@@ -121,26 +109,8 @@ impl Transcripts {
     }
 }
 
-fn file_name(key: &str) -> String {
-    format!("{key}.{EXTENSION}")
-}
-
-fn is_valid_key(key: &str) -> bool {
-    !key.is_empty()
-        && key.len() <= MAX_KEY_LENGTH
-        && key
-            .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
-}
-
 fn launch_stamp() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |elapsed| elapsed.as_millis() as u64)
-}
-
-fn report_unless_missing(action: &str, error: &io::Error) {
-    if error.kind() != ErrorKind::NotFound {
-        log_error!("a saved tab text could not be {action}: {error}");
-    }
 }
