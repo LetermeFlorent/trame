@@ -44,6 +44,7 @@ pub struct FrameInput<'a> {
     pub folder: Option<&'a Path>,
     pub update: Option<&'a str>,
     pub unsaved: bool,
+    pub update_failed: bool,
     pub strings: &'static Strings,
 }
 

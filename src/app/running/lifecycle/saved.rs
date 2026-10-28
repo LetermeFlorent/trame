@@ -41,7 +41,11 @@ impl Running {
         let mut snapshot = self.workspace.snapshot(self.preferences.clone(), &describe);
         snapshot.resume = resume;
         snapshot.window = self.saver.remember_window(window::snapshot(&self.window));
+        let kept = self.saver.keeps_session();
         self.saver.save(&snapshot);
+        if self.saver.keeps_session() != kept {
+            self.changed();
+        }
     }
 
     pub(super) fn restore_session(&mut self, saved: Option<&Snapshot>) -> bool {

@@ -89,6 +89,7 @@ pub const ENGLISH: Strings = Strings {
     image: "Image",
     pick_image: "Choose an image",
     unsaved_session: "unsaved session",
+    update_failed: "update failed",
     shell_exited_at_once: "The shell stopped as soon as it started. Close the tab to try again.",
     keys: &ENGLISH_KEYS,
 };

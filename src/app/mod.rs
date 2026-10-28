@@ -95,7 +95,7 @@ impl App {
                 Ok(()) => return,
                 Err(error) => {
                     log_error!("the new version did not start: {error}");
-                    UpdateStatus::Done
+                    UpdateStatus::Failed
                 }
             },
             UpdateStatus::Available(version) => {

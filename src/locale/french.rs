@@ -89,6 +89,7 @@ pub const FRENCH: Strings = Strings {
     image: "Image",
     pick_image: "Choisir une image",
     unsaved_session: "session non enregistrée",
+    update_failed: "échec de la mise à jour",
     shell_exited_at_once: "Le shell s'est arrêté au lancement. Fermer l'onglet pour réessayer.",
     keys: &FRENCH_KEYS,
 };

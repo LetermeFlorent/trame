@@ -33,6 +33,7 @@ pub enum UpdateStatus {
     Downloading { version: String, percent: u8 },
     Installing(String),
     Done,
+    Failed,
     Installed(PathBuf),
     Available(String),
     Ready { version: String, exe: PathBuf },
@@ -89,13 +90,14 @@ fn follow(route: Route, installs: bool, exe: PathBuf, notify: &dyn Fn(UpdateStat
 fn check(route: Route, exe: &Path, notify: &dyn Fn(UpdateStatus)) -> UpdateStatus {
     let staged = staged::newest(&route.target(exe));
     let Some(latest) = staged.or_else(watch::newer_release) else {
-        return UpdateStatus::Done;
+        log_error!("no newer release could be found to install");
+        return UpdateStatus::Failed;
     };
     match install(route, latest, exe, notify) {
         Ok(()) => UpdateStatus::Installed(exe.to_path_buf()),
         Err(error) => {
             log_error!("the update to {latest} failed: {error}");
-            UpdateStatus::Done
+            UpdateStatus::Failed
         }
     }
 }

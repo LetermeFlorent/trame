@@ -8,7 +8,7 @@ fn differ(pick: fn(&Strings) -> &'static str) {
 
 #[test]
 fn each_language_has_its_own_update_and_menu_texts() {
-    let picks: [fn(&Strings) -> &'static str; 11] = [
+    let picks: [fn(&Strings) -> &'static str; 12] = [
         |s| s.checking_updates,
         |s| s.downloading_version,
         |s| s.installing_version,
@@ -19,6 +19,7 @@ fn each_language_has_its_own_update_and_menu_texts() {
         |s| s.change_icon,
         |s| s.change_folder,
         |s| s.unsaved_session,
+        |s| s.update_failed,
         |s| s.shell_exited_at_once,
     ];
     picks.into_iter().for_each(differ);

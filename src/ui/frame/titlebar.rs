@@ -71,15 +71,25 @@ fn layout_brand(
     end: f32,
 ) -> Placed {
     let metrics = &input.metrics;
-    let name: Cow<str> = match input.unsaved {
-        true => format!("{APP_NAME} ({})", input.strings.unsaved_session).into(),
-        false => APP_NAME.into(),
-    };
-    let layout = text.layout(&name, metrics.label());
+    let layout = text.layout(&brand_name(input), metrics.label());
     let x = rect.centered_x(layout.width).round();
     let room = x - metrics.px(BRAND_GAP) - start;
     let fits = room >= metrics.px(HEADING_MIN) && x + layout.width <= end;
     fits.then_some((layout, x))
+}
+
+fn brand_name(input: &FrameInput) -> Cow<'static, str> {
+    let notes: Vec<&str> = [
+        (input.unsaved, input.strings.unsaved_session),
+        (input.update_failed, input.strings.update_failed),
+    ]
+    .into_iter()
+    .filter_map(|(shown, note)| shown.then_some(note))
+    .collect();
+    match notes.is_empty() {
+        true => APP_NAME.into(),
+        false => format!("{APP_NAME} ({})", notes.join(", ")).into(),
+    }
 }
 
 fn layout_heading(

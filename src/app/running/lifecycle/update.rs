@@ -38,6 +38,7 @@ impl Offer {
 #[derive(Default)]
 pub(in crate::app::running) struct UpdateState {
     pub(in crate::app::running) offer: Option<Offer>,
+    pub(in crate::app::running) failed: bool,
 }
 
 impl Running {
@@ -56,6 +57,8 @@ impl Running {
         };
         if let Err(error) = self.restart_with(event_loop, start) {
             log_error!("the update restart did not start: {error}");
+            self.update.failed = true;
+            self.changed();
         }
     }
 

@@ -20,7 +20,8 @@ pub(super) fn first_frame(
         metrics,
         folder: None,
         update: None,
-        unsaved: !saver.owns(),
+        unsaved: !saver.keeps_session(),
+        update_failed: false,
         strings,
     };
     let frame = frame::compute(&mut surface.text, &layout_input, &mut motion, &|_| {

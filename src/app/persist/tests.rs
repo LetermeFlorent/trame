@@ -113,6 +113,21 @@ fn a_failed_save_stays_dirty() {
     assert!(saver.due().is_none());
 }
 
+#[test]
+fn a_failed_save_leaves_the_session_unsaved_until_a_save_works() {
+    let scratch = Scratch::new("persist-unsaved");
+    let mut saver = Saver::new(claim(&scratch));
+    let blocker = scratch.path().join("session.json");
+    fs::create_dir(&blocker).expect("a folder in the way");
+    saver.touch();
+    assert!(saver.keeps_session());
+    saver.save(&snapshot());
+    assert!(!saver.keeps_session());
+    fs::remove_dir(&blocker).expect("the folder goes");
+    saver.save(&snapshot());
+    assert!(saver.keeps_session());
+}
+
 #[cfg(unix)]
 #[test]
 fn the_state_folder_is_private() {

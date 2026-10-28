@@ -28,6 +28,7 @@ pub(super) struct LayoutInput<'a> {
     pub(super) folder: Option<&'a Path>,
     pub(super) update: Option<&'a str>,
     pub(super) unsaved: bool,
+    pub(super) update_failed: bool,
     pub(super) strings: &'static Strings,
 }
 
@@ -49,6 +50,7 @@ pub(super) fn compute(
         folder: layout.folder,
         update: layout.update,
         unsaved: layout.unsaved,
+        update_failed: layout.update_failed,
         strings: layout.strings,
     };
     let frame = FrameLayout::compute_with(text, &input, motion);
@@ -95,7 +97,8 @@ impl Running {
             metrics: self.metrics,
             folder: folder.as_deref(),
             update: update.as_deref(),
-            unsaved: !self.saver.owns(),
+            unsaved: !self.saver.keeps_session(),
+            update_failed: self.update.failed,
             strings: self.strings,
         };
         self.motion.tick(Instant::now());

@@ -89,6 +89,7 @@ pub struct Strings {
     pub image: &'static str,
     pub pick_image: &'static str,
     pub unsaved_session: &'static str,
+    pub update_failed: &'static str,
     pub shell_exited_at_once: &'static str,
     pub keys: &'static KeyStrings,
 }

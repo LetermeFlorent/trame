@@ -48,6 +48,11 @@ impl Running {
                 format!("{} {version}", strings.installing_version),
                 Some(FULL),
             ),
+            UpdateStatus::Failed => {
+                self.update.failed = true;
+                self.changed();
+                return self.close_loader();
+            }
             UpdateStatus::Done
             | UpdateStatus::Installed(_)
             | UpdateStatus::Available(_)

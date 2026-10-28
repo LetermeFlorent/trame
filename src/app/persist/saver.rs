@@ -15,6 +15,7 @@ pub struct Saver {
     last_write: Option<Instant>,
     last_window: Option<WindowSnapshot>,
     dirty: bool,
+    failing: bool,
 }
 
 impl Saver {
@@ -25,11 +26,16 @@ impl Saver {
             last_write: None,
             last_window: None,
             dirty: false,
+            failing: false,
         }
     }
 
     pub fn owns(&self) -> bool {
         self.role.owns()
+    }
+
+    pub fn keeps_session(&self) -> bool {
+        self.role.owns() && !self.failing
     }
 
     pub fn transcript_dir(&self) -> Option<PathBuf> {
@@ -78,8 +84,15 @@ impl Saver {
             return;
         };
         match write(&path, snapshot) {
-            Ok(()) => self.dirty = false,
-            Err(error) => log_error!("the session could not be saved: {error}"),
+            Ok(()) => {
+                self.dirty = false;
+                self.failing = false;
+            }
+            Err(error) if !self.failing => {
+                log_error!("the session could not be saved: {error}");
+                self.failing = true;
+            }
+            Err(_) => {}
         }
     }
 }
