@@ -1,0 +1,41 @@
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-22.04, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the drivers and fonts
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mesa-vulkan-drivers fontconfig fonts-dejavu-core
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Lint
+        if: ${{ !cancelled() }}
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Test
+        if: ${{ !cancelled() }}
+        run: cargo test --locked --no-fail-fast
