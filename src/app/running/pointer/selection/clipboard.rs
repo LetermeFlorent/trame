@@ -1,3 +1,4 @@
+use trame::log_error;
 use trame::session::SessionId;
 
 use super::Running;
@@ -43,6 +44,6 @@ impl Running {
 fn write_clipboard(text: &str) {
     let written = arboard::Clipboard::new().and_then(|mut clipboard| clipboard.set_text(text));
     if let Err(error) = written {
-        eprintln!("trame: the clipboard could not be written: {error}");
+        log_error!("the clipboard could not be written: {error}");
     }
 }

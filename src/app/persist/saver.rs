@@ -2,6 +2,7 @@ use std::io;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
+use trame::log_error;
 use trame::workspace::{Snapshot, WindowSnapshot, Workspace};
 
 use super::{Role, write};
@@ -78,7 +79,7 @@ impl Saver {
         };
         match write(&path, snapshot) {
             Ok(()) => self.dirty = false,
-            Err(error) => eprintln!("trame: the session could not be saved: {error}"),
+            Err(error) => log_error!("the session could not be saved: {error}"),
         }
     }
 }

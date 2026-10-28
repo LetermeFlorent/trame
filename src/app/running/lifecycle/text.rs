@@ -1,5 +1,6 @@
 use std::time::Instant;
 
+use trame::log_error;
 use trame::preferences::Recall;
 use trame::session::{SessionId, transcript_of};
 
@@ -57,7 +58,7 @@ impl Running {
             (generation, transcript_of(&terminal))
         };
         if let Err(error) = self.transcripts.write(id, generation, &bytes) {
-            eprintln!("trame: a tab text could not be saved: {error}");
+            log_error!("a tab text could not be saved: {error}");
         }
     }
 }

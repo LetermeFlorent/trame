@@ -2,6 +2,8 @@ use std::fmt;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use crate::log_error;
+
 const DESCRIPTOR_SLOTS: u32 = 4096;
 
 pub struct Gpu {
@@ -53,13 +55,13 @@ impl Gpu {
         }))
         .map_err(GpuError::Device)?;
         device.on_uncaptured_error(Arc::new(|error| {
-            eprintln!("trame: the graphics card reported an error: {error}");
+            log_error!("the graphics card reported an error: {error}");
         }));
         let lost = Arc::new(AtomicBool::new(false));
         let flag = lost.clone();
         device.set_device_lost_callback(move |reason, message| {
             if reason == wgpu::DeviceLostReason::Unknown {
-                eprintln!("trame: the graphics card was lost: {message}");
+                log_error!("the graphics card was lost: {message}");
                 flag.store(true, Ordering::Release);
             }
         });

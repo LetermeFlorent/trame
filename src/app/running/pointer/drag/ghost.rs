@@ -3,6 +3,7 @@ use std::error::Error;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::{Cursor, CursorIcon, CustomCursor};
 
+use trame::log_error;
 use trame::ui::drop::{ghost_scene, stamp_arrow, straight_alpha};
 
 use super::Drag;
@@ -38,7 +39,7 @@ impl Running {
         self.pointer.ghost = match self.ghost_cursor(event_loop, &label) {
             Ok(cursor) => Ghost::Cursor(cursor),
             Err(error) => {
-                eprintln!("trame: the dragged tab is drawn in the window instead: {error}");
+                log_error!("the dragged tab is drawn in the window instead: {error}");
                 Ghost::Painted
             }
         };

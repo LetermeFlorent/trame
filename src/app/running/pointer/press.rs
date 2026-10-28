@@ -3,6 +3,7 @@ use std::time::{Duration, Instant};
 use winit::event_loop::ActiveEventLoop;
 
 use trame::input::Command;
+use trame::log_error;
 use trame::ui::Hit;
 use trame::ui::frame::SidebarItem;
 
@@ -115,6 +116,6 @@ impl Running {
 
 fn report(result: Result<(), winit::error::ExternalError>, action: &str) {
     if let Err(error) = result {
-        eprintln!("trame: the window could not {action}: {error}");
+        log_error!("the window could not {action}: {error}");
     }
 }

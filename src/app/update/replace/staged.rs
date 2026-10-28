@@ -2,6 +2,8 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
+use trame::log_error;
+
 use super::super::download::Progress;
 use super::super::route::Route;
 use super::super::version::Version;
@@ -66,7 +68,7 @@ fn clear(target: &Path) {
 
 fn remove(path: &Path) {
     if let Err(error) = swap::remove(path) {
-        eprintln!("trame: an early update download stays on disk: {error}");
+        log_error!("an early update download stays on disk: {error}");
     }
 }
 

@@ -3,6 +3,7 @@ use std::fs::{self, File};
 use std::io::BufWriter;
 use std::path::PathBuf;
 
+use trame::log_error;
 use trame::render::{Gpu, read_rgba};
 
 const DIRECTORY_VARIABLE: &str = "TRAME_CAPTURE";
@@ -22,7 +23,7 @@ impl Capture {
 
     pub fn save(&self, gpu: &Gpu, texture: &wgpu::Texture) {
         if let Err(error) = self.write(gpu, texture) {
-            eprintln!("trame: the frame capture failed: {error}");
+            log_error!("the frame capture failed: {error}");
         }
     }
 

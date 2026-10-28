@@ -1,5 +1,6 @@
 use trame::files::{PickRequest, import_icon, pick_image};
 use trame::input::TextField;
+use trame::log_error;
 use trame::theme::{Emblem, MAX_LETTERS};
 use trame::ui::frame::EditTarget;
 use trame::workspace::InstanceId;
@@ -54,7 +55,7 @@ impl Running {
             return;
         };
         let Some(dir) = self.icons.dir().map(ToOwned::to_owned) else {
-            eprintln!("trame: there is no folder to keep icons in");
+            log_error!("there is no folder to keep icons in");
             return;
         };
         let request = PickRequest {
@@ -67,7 +68,7 @@ impl Running {
             Ok(image) => {
                 let _ = proxy.send_event(UserEvent::Icon(id, image));
             }
-            Err(error) => eprintln!("trame: the image could not become an icon: {error}"),
+            Err(error) => log_error!("the image could not become an icon: {error}"),
         });
     }
 

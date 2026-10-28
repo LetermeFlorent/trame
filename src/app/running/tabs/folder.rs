@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use trame::files::{PickRequest, pick_folder};
+use trame::log_error;
 use trame::session::SessionId;
 use trame::ui::frame::EditTarget;
 use trame::workspace::{Instance, InstanceId};
@@ -95,7 +96,7 @@ impl Running {
         self.relayout();
         for id in fresh {
             if let Err(error) = self.start_shell(id, Some(folder), None) {
-                eprintln!("trame: the shell could not start in the new folder: {error}");
+                log_error!("the shell could not start in the new folder: {error}");
             }
         }
         self.changed();

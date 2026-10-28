@@ -4,6 +4,7 @@ use std::mem;
 use std::path::{Path, PathBuf};
 
 use trame::files::private_folder;
+use trame::log_error;
 
 use super::{FILE_NAME, TRANSCRIPT_DIR};
 
@@ -29,7 +30,7 @@ impl Role {
             },
             Err(error) if error.kind() == io::ErrorKind::WouldBlock => Self::Guest,
             Err(error) => {
-                eprintln!("trame: the session files could not be locked: {error}");
+                log_error!("the session files could not be locked: {error}");
                 Self::Owner {
                     folder,
                     _lock: None,

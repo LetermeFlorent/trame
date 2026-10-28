@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 
 use winit::event_loop::ActiveEventLoop;
 
+use trame::log_error;
 use trame::session::SessionId;
 
 use super::Placement;
@@ -43,7 +44,7 @@ impl Running {
         let cwd = self.start_folder(Placement::Tab);
         match self.open_in(Placement::Tab, cwd.as_deref(), None) {
             Ok(id) => self.restarts.opened(id, Instant::now()),
-            Err(error) => eprintln!("trame: a fresh tab could not start: {error}"),
+            Err(error) => log_error!("a fresh tab could not start: {error}"),
         }
     }
 

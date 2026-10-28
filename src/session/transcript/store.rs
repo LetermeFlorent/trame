@@ -6,6 +6,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use super::MAX_TRANSCRIPT_BYTES;
 use crate::files::write_atomic;
+use crate::log_error;
 use crate::session::SessionId;
 
 pub const TRANSCRIPT_SAVE_INTERVAL: Duration = Duration::from_secs(60);
@@ -140,6 +141,6 @@ fn launch_stamp() -> u64 {
 
 fn report_unless_missing(action: &str, error: &io::Error) {
     if error.kind() != ErrorKind::NotFound {
-        eprintln!("trame: a saved tab text could not be {action}: {error}");
+        log_error!("a saved tab text could not be {action}: {error}");
     }
 }

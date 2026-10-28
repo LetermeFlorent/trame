@@ -1,3 +1,4 @@
+use trame::log_error;
 use trame::preferences::{SshHost, SshLogin, menu_hosts, vault};
 use trame::session::SessionId;
 use trame::ui::frame::EditTarget;
@@ -10,7 +11,7 @@ impl Running {
     pub(in crate::app::running) fn known_hosts(&self) -> Vec<SshHost> {
         let aliases = persist::ssh_config().map_or(Ok(Vec::new()), |config| config.aliases());
         let aliases = aliases.unwrap_or_else(|error| {
-            eprintln!("trame: the SSH config could not be read: {error}");
+            log_error!("the SSH config could not be read: {error}");
             Vec::new()
         });
         menu_hosts(&self.preferences.ssh_hosts, &aliases)
@@ -23,7 +24,7 @@ impl Running {
         }
         let cwd = self.start_folder(Placement::Tab);
         if let Err(error) = self.open_in(Placement::Tab, cwd.as_deref(), Some(host.clone())) {
-            eprintln!("trame: the SSH tab could not start: {error}");
+            log_error!("the SSH tab could not start: {error}");
         }
         self.set_preferences(self.preferences.remember_host(host));
     }

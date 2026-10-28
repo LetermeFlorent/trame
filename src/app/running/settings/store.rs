@@ -1,3 +1,4 @@
+use trame::log_error;
 use trame::preferences::{ConnectForm, HostEntry, SshHost, vault};
 
 use super::hosts::settings_panel;
@@ -84,8 +85,8 @@ fn save_secret(host: &SshHost, secret: Option<&str>) {
         return;
     };
     if let Err(error) = vault::SSH.store(host, secret) {
-        eprintln!(
-            "trame: the password for {} could not be saved: {error}",
+        log_error!(
+            "the password for {} could not be saved: {error}",
             host.label()
         );
     }
@@ -96,8 +97,8 @@ fn kept_in_config(host: SshHost) -> SshHost {
         return host;
     };
     config.keep(&host).unwrap_or_else(|error| {
-        eprintln!(
-            "trame: {} could not be added to the SSH config: {error}",
+        log_error!(
+            "{} could not be added to the SSH config: {error}",
             host.label()
         );
         host
@@ -109,8 +110,8 @@ fn changed_in_config(original: &SshHost, host: SshHost) -> SshHost {
         return kept_in_config(host);
     };
     config.replace(alias, &host).unwrap_or_else(|error| {
-        eprintln!(
-            "trame: {} could not be changed in the SSH config: {error}",
+        log_error!(
+            "{} could not be changed in the SSH config: {error}",
             host.label()
         );
         host

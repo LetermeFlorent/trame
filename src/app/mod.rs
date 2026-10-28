@@ -18,6 +18,7 @@ use std::path::{Path, PathBuf};
 
 use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
 
+use trame::log_error;
 use trame::preferences::Updates;
 use trame::session::SessionEvent;
 use trame::workspace::{InstanceId, Snapshot};
@@ -35,6 +36,9 @@ pub enum UserEvent {
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
+    if let Some(path) = persist::log_path() {
+        trame::files::start_log(path);
+    }
     let event_loop = EventLoop::<UserEvent>::with_user_event().build()?;
     let proxy = event_loop.create_proxy();
     let notifier = proxy.clone();
@@ -90,7 +94,7 @@ impl App {
             UpdateStatus::Installed(exe) => match self.relaunch(event_loop, &exe) {
                 Ok(()) => return,
                 Err(error) => {
-                    eprintln!("trame: the new version did not start: {error}");
+                    log_error!("the new version did not start: {error}");
                     UpdateStatus::Done
                 }
             },

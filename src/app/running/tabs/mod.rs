@@ -12,6 +12,7 @@ use std::path::Path;
 
 use winit::event_loop::ActiveEventLoop;
 
+use trame::log_error;
 use trame::preferences::SshHost;
 use trame::session::SessionId;
 use trame::workspace::{Edge, InstanceId, PaneId};
@@ -93,7 +94,7 @@ impl Running {
 
     pub(super) fn open_or_report(&mut self, event_loop: &ActiveEventLoop, placement: Placement) {
         if let Err(error) = self.open(placement) {
-            eprintln!("trame: the shell could not start: {error}");
+            log_error!("the shell could not start: {error}");
             if self.workspace.is_empty() {
                 event_loop.exit();
             }

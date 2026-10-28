@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use winit::event_loop::ActiveEventLoop;
 
 use trame::locale::Strings;
+use trame::log_error;
 
 use crate::app::running::Running;
 use crate::app::update;
@@ -49,7 +50,7 @@ impl Running {
             None => update::restart(&offer.version),
         };
         if let Err(error) = self.restart_with(event_loop, start) {
-            eprintln!("trame: the update restart did not start: {error}");
+            log_error!("the update restart did not start: {error}");
         }
     }
 
@@ -58,7 +59,7 @@ impl Running {
             return;
         }
         if let Err(error) = self.restart_with(event_loop, update::start_again) {
-            eprintln!("trame: trame could not start again: {error}");
+            log_error!("trame could not start again: {error}");
         }
     }
 

@@ -13,6 +13,7 @@ use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::thread;
 
+use crate::log_error;
 use crate::term::{DEFAULT_HISTORY, ReportedColors, Terminal};
 use pty::{Pty, PtyOptions, PtySize, ShellCommand};
 pub use title::starting_label;
@@ -120,7 +121,7 @@ impl Session {
         if let Some(pty) = &self.pty
             && let Err(error) = pty.resize(PtySize::new(size.0, size.1))
         {
-            eprintln!("trame: resizing the terminal failed: {error}");
+            log_error!("resizing the terminal failed: {error}");
         }
     }
 

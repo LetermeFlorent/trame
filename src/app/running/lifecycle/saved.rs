@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 use trame::files::home_dir;
+use trame::log_error;
 use trame::preferences::Recall;
 use trame::session::SessionId;
 use trame::workspace::{Snapshot, TabSnapshot, Workspace};
@@ -60,7 +61,7 @@ impl Running {
                 self.workspace.set_numbering(self.preferences.numbering);
             }
             Err(error) => {
-                eprintln!("trame: {error}, starting a fresh session");
+                log_error!("{error}, starting a fresh session");
                 return false;
             }
         }

@@ -1,3 +1,4 @@
+use trame::log_error;
 use trame::preferences::{SshHost, vault};
 
 use crate::app::persist;
@@ -29,7 +30,7 @@ impl Running {
         if let (Some(alias), Some(config)) = (host.alias(), persist::ssh_config())
             && let Err(error) = config.remove(alias)
         {
-            eprintln!("trame: {alias} could not be removed from the SSH config: {error}");
+            log_error!("{alias} could not be removed from the SSH config: {error}");
         }
         vault::SSH.forget(host);
         self.set_preferences(self.preferences.forget_host(host));
@@ -42,7 +43,7 @@ fn written_by_hand(alias: &str) -> bool {
         return false;
     };
     config.written_by_hand(alias).unwrap_or_else(|error| {
-        eprintln!("trame: the SSH config could not be read: {error}");
+        log_error!("the SSH config could not be read: {error}");
         false
     })
 }

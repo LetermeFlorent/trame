@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use trame::input::{asks_before_pasting, paste_bytes, paste_preview};
+use trame::log_error;
 use trame::session::{Session, SessionId};
 
 use crate::app::running::Running;
@@ -63,7 +64,7 @@ pub(in crate::app::running) fn read_clipboard() -> Option<String> {
         Ok(text) => Some(text),
         Err(arboard::Error::ContentNotAvailable) => None,
         Err(error) => {
-            eprintln!("trame: the clipboard could not be read: {error}");
+            log_error!("the clipboard could not be read: {error}");
             None
         }
     }

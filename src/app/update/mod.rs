@@ -12,6 +12,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 
+use trame::log_error;
 use trame::preferences::Updates;
 
 pub use launch::{relaunch, restart, start_again};
@@ -58,7 +59,7 @@ pub fn start(updates: Updates, notify: impl Fn(UpdateStatus) + Send + 'static) -
         Ok(_) if installs => UpdateStatus::Checking,
         Ok(_) => UpdateStatus::Done,
         Err(error) => {
-            eprintln!("trame: the update check did not start: {error}");
+            log_error!("the update check did not start: {error}");
             UpdateStatus::Done
         }
     }
@@ -93,7 +94,7 @@ fn check(route: Route, exe: &Path, notify: &dyn Fn(UpdateStatus)) -> UpdateStatu
     match install(route, latest, exe, notify) {
         Ok(()) => UpdateStatus::Installed(exe.to_path_buf()),
         Err(error) => {
-            eprintln!("trame: the update to {latest} failed: {error}");
+            log_error!("the update to {latest} failed: {error}");
             UpdateStatus::Done
         }
     }

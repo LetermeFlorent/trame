@@ -34,6 +34,15 @@ pub(crate) fn create_file(path: &Path) -> io::Result<File> {
 }
 
 #[cfg(unix)]
+pub(crate) fn append_file(path: &Path) -> io::Result<File> {
+    fs::OpenOptions::new()
+        .append(true)
+        .create(true)
+        .mode(OWNER_ONLY_FILE)
+        .open(path)
+}
+
+#[cfg(unix)]
 pub(super) fn keep_mode(path: &Path, file: &File) -> io::Result<()> {
     match fs::metadata(path) {
         Ok(old) => file.set_permissions(old.permissions()),
@@ -55,6 +64,11 @@ pub(crate) fn create_folder(folder: &Path) -> io::Result<()> {
 #[cfg(not(unix))]
 pub(crate) fn create_file(path: &Path) -> io::Result<File> {
     File::create(path)
+}
+
+#[cfg(not(unix))]
+pub(crate) fn append_file(path: &Path) -> io::Result<File> {
+    fs::OpenOptions::new().append(true).create(true).open(path)
 }
 
 #[cfg(not(unix))]

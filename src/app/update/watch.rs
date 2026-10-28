@@ -2,6 +2,8 @@ use std::path::Path;
 use std::thread;
 use std::time::Duration;
 
+use trame::log_error;
+
 use super::route::Route;
 use super::version::Version;
 use super::{UpdateStatus, automatic, download, installer, replace};
@@ -44,7 +46,7 @@ fn put_in_place(route: Route, exe: &Path, version: Version) -> UpdateStatus {
             exe: exe.to_path_buf(),
         },
         Err(error) => {
-            eprintln!("trame: the update to {version} failed: {error}");
+            log_error!("the update to {version} failed: {error}");
             UpdateStatus::Available(version.number())
         }
     }
@@ -73,7 +75,7 @@ fn installer_offered(route: Route, notify: &dyn Fn(UpdateStatus)) -> bool {
             true
         }
         Err(error) => {
-            eprintln!("trame: the installer of {latest} failed: {error}");
+            log_error!("the installer of {latest} failed: {error}");
             false
         }
     }

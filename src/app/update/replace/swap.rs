@@ -4,6 +4,8 @@ use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::Duration;
 
+use trame::log_error;
+
 const OLD_SUFFIX: &str = ".old";
 const LEFTOVER_ATTEMPTS: u32 = 20;
 const LEFTOVER_PAUSE: Duration = Duration::from_millis(500);
@@ -30,7 +32,7 @@ pub fn remove_leftover(target: &Path) {
             }
         });
     if let Err(error) = spawned {
-        eprintln!("trame: the previous version stays on disk: {error}");
+        log_error!("the previous version stays on disk: {error}");
     }
 }
 
@@ -45,7 +47,7 @@ pub fn discard_partial(path: &Path, what: &str) {
     if path.exists()
         && let Err(error) = remove(path)
     {
-        eprintln!("trame: the partial {what} stays on disk: {error}");
+        log_error!("the partial {what} stays on disk: {error}");
     }
 }
 

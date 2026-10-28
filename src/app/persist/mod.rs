@@ -8,6 +8,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 use trame::files::{home_dir, write_atomic};
+use trame::log_error;
 use trame::preferences::{HostEntry, SshConfig};
 use trame::workspace::Snapshot;
 
@@ -18,6 +19,7 @@ const APP_DIR: &str = "trame";
 const FILE_NAME: &str = "session.json";
 const TRANSCRIPT_DIR: &str = "text";
 const ICON_DIR: &str = "icons";
+const LOG_NAME: &str = "trame.log";
 const SSH_DIR: &str = ".ssh";
 const SSH_CONFIG: &str = "config";
 
@@ -28,7 +30,7 @@ pub fn ssh_config() -> Option<SshConfig> {
 pub fn ssh_entry(name: &str) -> Option<HostEntry> {
     let config = ssh_config()?;
     config.entry(name).unwrap_or_else(|error| {
-        eprintln!("trame: the SSH config could not be read: {error}");
+        log_error!("the SSH config could not be read: {error}");
         None
     })
 }
@@ -67,6 +69,10 @@ pub fn icon_dir() -> Option<PathBuf> {
     app_dir().map(|dir| dir.join(ICON_DIR))
 }
 
+pub fn log_path() -> Option<PathBuf> {
+    app_dir().map(|dir| dir.join(LOG_NAME))
+}
+
 pub fn load(role: &mut Role) -> Option<Snapshot> {
     load_from(&session_path()?, role)
 }
@@ -80,7 +86,7 @@ fn load_from(path: &Path, role: &mut Role) -> Option<Snapshot> {
         Err(error) if error.kind() == io::ErrorKind::NotFound => return None,
         Err(error) => format!("the session file could not be read: {error}"),
     };
-    eprintln!("trame: {problem}, starting a fresh session");
+    log_error!("{problem}, starting a fresh session");
     if role.owns() && !keep_aside(path) {
         *role = Role::Guest;
     }
@@ -91,7 +97,7 @@ fn keep_aside(path: &Path) -> bool {
     let aside = path.with_extension("json.bad");
     let moved = fs::rename(path, &aside);
     if let Err(error) = &moved {
-        eprintln!("trame: the unreadable session file stays as it is: {error}");
+        log_error!("the unreadable session file stays as it is: {error}");
     }
     moved.is_ok()
 }

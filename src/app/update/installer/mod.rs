@@ -6,6 +6,8 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
+use trame::log_error;
+
 use super::replace::signed::{self, SignedList};
 use super::replace::{check, swap};
 use super::route::Route;
@@ -59,7 +61,7 @@ pub fn clear(route: Route) {
         return;
     };
     if let Err(error) = fs::remove_dir_all(&folder) {
-        eprintln!("trame: an old installer stays on disk: {error}");
+        log_error!("an old installer stays on disk: {error}");
     }
 }
 
