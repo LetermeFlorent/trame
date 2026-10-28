@@ -6,7 +6,8 @@ use crate::preferences::FormField;
 use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
 use crate::ui::frame::{
-    FormAction, FrameLayout, ListControl, MenuEntry, PickerPart, SettingControl, SidebarItem,
+    BarPart, FormAction, FrameLayout, ListControl, MenuEntry, PickerPart, SettingControl,
+    SidebarItem,
 };
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::{InstanceId, PaneId};
@@ -38,6 +39,7 @@ pub enum Hit {
     Maximize,
     Close,
     Sidebar,
+    SidebarBar(BarPart),
     NewInstance,
     Row(SidebarItem),
     RowClose(SidebarItem),

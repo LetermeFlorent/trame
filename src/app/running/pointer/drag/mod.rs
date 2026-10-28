@@ -9,7 +9,7 @@ use winit::window::{Cursor, CursorIcon};
 use trame::geometry::Point;
 use trame::session::SessionId;
 use trame::ui::Hit;
-use trame::ui::frame::{ListControl, PickerPart, SidebarItem};
+use trame::ui::frame::{BarPart, ListControl, PickerPart, SidebarItem};
 use trame::workspace::{Axis, Divider, InstanceId, Node, resized};
 
 use crate::app::running::Running;
@@ -46,6 +46,7 @@ impl Running {
             Hit::Divider(index) => self.divider_drag(index, origin).map(Drag::Divider),
             Hit::SidebarEdge => Some(Drag::Sidebar(self.sidebar_drag())),
             Hit::List(ListControl::Thumb) => self.list_drag(ListKind::Hosts, origin),
+            Hit::SidebarBar(BarPart::Thumb) => self.list_drag(ListKind::Sidebar, origin),
             Hit::Picker(part) => Some(Drag::Picker(part)),
             Hit::Row(SidebarItem::Instance(id)) | Hit::RailInstance(id) => {
                 Some(Drag::PendingInstance(id, origin))

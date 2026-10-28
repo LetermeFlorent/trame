@@ -7,6 +7,7 @@ use crate::app::running::{Drag, Running};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(in crate::app::running) enum ListKind {
     Hosts,
+    Sidebar,
 }
 
 impl Running {
@@ -24,7 +25,7 @@ impl Running {
         self.changed();
     }
 
-    fn page_list(&mut self, list: ListKind) {
+    pub(in crate::app::running) fn page_list(&mut self, list: ListKind) {
         let y = self.pointer.position.map(|point| point.y);
         if let (Some(bar), Some(y)) = (self.list_bar(list), y) {
             self.scroll_list_to(list, bar.paged(y));
@@ -46,6 +47,7 @@ impl Running {
         let point = self.pointer.position?;
         let area = match list {
             ListKind::Hosts => self.frame.host_list()?.rect,
+            ListKind::Sidebar => self.frame.sidebar.as_ref()?.list,
         };
         self.list_bar(list).filter(|_| area.contains(point))
     }
@@ -53,6 +55,7 @@ impl Running {
     pub(in crate::app::running) fn scroll_list_to(&mut self, list: ListKind, first: usize) {
         let shown = match list {
             ListKind::Hosts => self.list_first_mut(),
+            ListKind::Sidebar => Some(&mut self.workspace.sidebar_first),
         };
         let Some(shown) = shown else {
             return;
@@ -66,6 +69,7 @@ impl Running {
     fn list_bar(&self, list: ListKind) -> Option<ScrollBar> {
         match list {
             ListKind::Hosts => self.frame.host_list()?.bar,
+            ListKind::Sidebar => self.frame.sidebar.as_ref()?.bar,
         }
     }
 }

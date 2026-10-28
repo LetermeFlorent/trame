@@ -1,4 +1,5 @@
 mod footer;
+mod list;
 mod rail;
 mod row;
 mod scroll;
@@ -18,8 +19,8 @@ pub(super) use footer::layout_footer;
 pub use footer::{FooterButton, FooterFrame};
 pub(super) use rail::layout_rail;
 pub use rail::{RailFrame, RailSlot};
-use row::{RowSpec, layout_row, row_specs};
-pub use scroll::ScrollBar;
+use row::{RowSpec, row_specs};
+pub use scroll::{BarPart, ScrollBar};
 pub(super) use settings::{
     CAPTION_HEIGHT, Column, LINE_HEIGHT, LINE_INSET, ListSpec, SECTION_GAP, host_labels,
 };
@@ -63,7 +64,9 @@ pub struct SidebarFrame {
     pub caption: Arc<TextLayout>,
     pub caption_x: f32,
     pub new_instance: Rect,
+    pub list: Rect,
     pub rows: Vec<SidebarRow>,
+    pub bar: Option<ScrollBar>,
 }
 
 pub fn layout_sidebar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> SidebarFrame {
@@ -75,28 +78,21 @@ pub fn layout_sidebar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> 
         header.right() - metrics.px(HEADER_BUTTON_MARGIN) - button,
         button,
     );
-    let height = metrics.spaced(UiMetrics::SIDEBAR_ROW);
-    let step = height + metrics.px(ROW_SPACING);
     let specs: Vec<RowSpec> = workspace
         .instances
         .iter()
         .enumerate()
         .flat_map(|(index, instance)| row_specs(instance, index == workspace.active, input.title))
         .collect();
-    let rows = specs
-        .into_iter()
-        .enumerate()
-        .map(|(index, spec)| {
-            let slot = Rect::new(list.x, list.y + index as f32 * step, list.width, height);
-            layout_row(text, metrics, slot, spec)
-        })
-        .collect();
+    let (rows, bar) = list::layout_rows(text, input, list, specs);
     SidebarFrame {
         rect,
         header,
         caption: text.layout(input.strings.instances, metrics.caption()),
         caption_x: header.x + metrics.px(CAPTION_MARGIN),
         new_instance,
+        list,
         rows,
+        bar,
     }
 }

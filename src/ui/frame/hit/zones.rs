@@ -24,7 +24,10 @@ pub(super) fn hit_sidebar(sidebar: &SidebarFrame, point: Point) -> Hit {
     if sidebar.new_instance.contains(point) {
         return Hit::NewInstance;
     }
-    let Some(row) = sidebar.rows.iter().find(|row| row.rect.contains(point)) else {
+    if let Some(part) = sidebar.bar.and_then(|bar| bar.part_at(point)) {
+        return Hit::SidebarBar(part);
+    }
+    let Some(row) = sidebar.row_at(point).map(|index| &sidebar.rows[index]) else {
         return Hit::Sidebar;
     };
     match row.close.contains(point) {

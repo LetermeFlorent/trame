@@ -5,7 +5,7 @@ use super::{Icon, Painter, Press};
 use crate::geometry::Rect;
 use crate::theme::{Rgba, Swatch, Theme};
 use crate::ui::display::PanelSide;
-use crate::ui::frame::{RailFrame, RailSlot, SidebarFrame, SidebarItem, SidebarRow};
+use crate::ui::frame::{BarPart, RailFrame, RailSlot, SidebarFrame, SidebarItem, SidebarRow};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
@@ -94,6 +94,10 @@ pub(super) fn draw(painter: &mut Painter, sidebar: &SidebarFrame) {
         draw_row(painter, row);
     }
     painter.scene.pop_clip();
+    if let Some(bar) = sidebar.bar {
+        let track = Hit::SidebarBar(BarPart::Track);
+        draw_bar(painter, bar, track, Hit::SidebarBar(BarPart::Thumb));
+    }
 }
 
 fn draw_row(painter: &mut Painter, row: &SidebarRow) {

@@ -59,6 +59,11 @@ impl Running {
         if let Some(bar) = list {
             return self.scroll_list_to(ListKind::Hosts, bar.scrolled(-(whole as isize)));
         }
+        if self.editing.is_none()
+            && let Some(bar) = self.list_under_pointer(ListKind::Sidebar)
+        {
+            return self.scroll_list_to(ListKind::Sidebar, bar.scrolled(-(whole as isize)));
+        }
         if let Some(id) = self.session_under_pointer() {
             self.scroll_session(id, whole as isize);
         }

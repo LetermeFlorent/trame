@@ -14,11 +14,12 @@ pub use editor::{
 pub use label::{fit_label, fit_label_start, fit_text_start};
 pub use panes::{PaneFrame, TabFrame};
 pub use sidebar::{
-    Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, FormPage, HostList, HostRow,
-    HostsView, InstancesPage, KeyControl, KeyNotice, ListControl, MessageFrame, MessageRequest,
-    PopupFrame, RailFrame, RailSlot, ScrollBar, SettingControl, SettingLine, SettingsFrame,
-    SettingsPage, SettingsRequest, SettingsTab, ShortcutsPage, ShortcutsView, SidebarFrame,
-    SidebarItem, SidebarRow, Stepper, ToggleRow, dragged_width, key_label, shown_width,
+    BarPart, Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, FormPage, HostList,
+    HostRow, HostsView, InstancesPage, KeyControl, KeyNotice, ListControl, MessageFrame,
+    MessageRequest, PopupFrame, RailFrame, RailSlot, ScrollBar, SettingControl, SettingLine,
+    SettingsFrame, SettingsPage, SettingsRequest, SettingsTab, ShortcutsPage, ShortcutsView,
+    SidebarFrame, SidebarItem, SidebarRow, Stepper, ToggleRow, dragged_width, key_label,
+    shown_width,
 };
 pub use titlebar::{TitleBarFrame, WindowControls};
 

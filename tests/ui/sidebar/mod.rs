@@ -1,4 +1,5 @@
 mod footer;
+mod scroll;
 mod settings;
 mod side;
 mod update;

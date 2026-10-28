@@ -42,10 +42,7 @@ fn sidebar_drop(sidebar: &SidebarFrame, point: Point) -> Option<DropSpot> {
             mark: DropMark::Area(sidebar.new_instance),
         });
     }
-    let position = sidebar
-        .rows
-        .iter()
-        .position(|row| row.rect.contains(point))?;
+    let position = sidebar.row_at(point)?;
     let owner = sidebar.rows[..=position]
         .iter()
         .rev()
