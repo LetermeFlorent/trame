@@ -38,8 +38,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let event_loop = EventLoop::<UserEvent>::with_user_event().build()?;
     let proxy = event_loop.create_proxy();
     let notifier = proxy.clone();
-    let role = persist::claim();
-    let saved = persist::load(&role);
+    let mut role = persist::claim();
+    let saved = persist::load(&mut role);
     let updates = saved
         .as_ref()
         .map_or_else(Updates::default, |snapshot| snapshot.preferences.updates);

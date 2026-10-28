@@ -164,7 +164,7 @@ The layout of instances, tabs and splits, along with the window size, is saved o
 - Linux: `$XDG_STATE_HOME/trame/session.json`, which is `~/.local/state/trame/session.json` by default
 - macOS: `~/Library/Application Support/trame/session.json`
 
-The settings live in the same file. Deleting it makes trame start over with a single instance.
+The settings live in the same file. Deleting it makes trame start over with a single instance. A file trame cannot read is renamed `session.json.bad` and trame starts over. If even the rename fails, trame leaves the file as it is and saves nothing until the next launch, and its title bar says "unsaved session".
 
 The text of each tab goes into the `text` folder next to it, once a minute when something changed and once more when trame closes. Each tab keeps its last 4 MB. Turning off "Restore tab text", or one of the two switches above it, deletes that folder.
 

@@ -72,13 +72,13 @@ impl Saver {
     }
 
     pub fn save(&mut self, snapshot: &Snapshot) {
-        self.dirty = false;
         self.last_write = Some(Instant::now());
         let Some(path) = self.role.session_path() else {
             return;
         };
-        if let Err(error) = write(&path, snapshot) {
-            eprintln!("trame: the session could not be saved: {error}");
+        match write(&path, snapshot) {
+            Ok(()) => self.dirty = false,
+            Err(error) => eprintln!("trame: the session could not be saved: {error}"),
         }
     }
 }

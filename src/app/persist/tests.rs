@@ -1,13 +1,19 @@
 use std::fs;
 use std::io;
 
+use trame::preferences::Preferences;
 use trame::session::Transcripts;
+use trame::workspace::{Snapshot, TabSnapshot, Workspace};
 
-use super::Role;
+use super::{Role, Saver, load_from};
 use crate::app::scratch::Scratch;
 
 fn claim(scratch: &Scratch) -> Role {
     Role::claim(Some(scratch.path().to_owned()))
+}
+
+fn snapshot() -> Snapshot {
+    Workspace::new().snapshot(Preferences::default(), &|_| TabSnapshot::default())
 }
 
 #[test]
@@ -67,4 +73,42 @@ fn a_guest_stays_a_guest_when_a_restart_fails() {
     let started = guest.hand_over(|| Err(io::Error::other("no next process")));
     assert!(started.is_err());
     assert!(!guest.owns());
+}
+
+#[test]
+fn an_unreadable_session_is_set_aside() {
+    let scratch = Scratch::new("persist-unreadable");
+    let mut role = claim(&scratch);
+    let path = scratch.path().join("session.json");
+    fs::write(&path, b"\xff").expect("a damaged file");
+    assert!(load_from(&path, &mut role).is_none());
+    assert!(path.with_extension("json.bad").exists());
+    assert!(role.owns());
+}
+
+#[test]
+fn a_session_that_cannot_be_set_aside_is_never_replaced() {
+    let scratch = Scratch::new("persist-stuck");
+    let mut role = claim(&scratch);
+    let path = scratch.path().join("session.json");
+    let taken = path.with_extension("json.bad").join("taken");
+    fs::create_dir_all(taken).expect("a folder in the way");
+    fs::write(&path, b"\xff").expect("a damaged file");
+    assert!(load_from(&path, &mut role).is_none());
+    assert!(!role.owns());
+    assert_eq!(fs::read(&path).expect("the damaged file"), b"\xff");
+}
+
+#[test]
+fn a_failed_save_stays_dirty() {
+    let scratch = Scratch::new("persist-save");
+    let mut saver = Saver::new(claim(&scratch));
+    let blocker = scratch.path().join("session.json");
+    fs::create_dir(&blocker).expect("a folder in the way");
+    saver.touch();
+    saver.save(&snapshot());
+    assert!(saver.due().is_some());
+    fs::remove_dir(&blocker).expect("the folder goes");
+    saver.save(&snapshot());
+    assert!(saver.due().is_none());
 }

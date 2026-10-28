@@ -59,33 +59,33 @@ pub fn icon_dir() -> Option<PathBuf> {
     app_dir().map(|dir| dir.join(ICON_DIR))
 }
 
-pub fn load(role: &Role) -> Option<Snapshot> {
-    let path = session_path()?;
-    let text = match fs::read_to_string(&path) {
-        Ok(text) => text,
-        Err(error) if error.kind() == io::ErrorKind::NotFound => return None,
-        Err(error) => {
-            eprintln!("trame: the session file could not be read: {error}");
-            return None;
-        }
-    };
-    match Snapshot::from_json(&text) {
-        Ok(snapshot) => Some(snapshot),
-        Err(error) => {
-            eprintln!("trame: {error}, starting a fresh session");
-            if role.owns() {
-                keep_aside(&path);
-            }
-            None
-        }
-    }
+pub fn load(role: &mut Role) -> Option<Snapshot> {
+    load_from(&session_path()?, role)
 }
 
-fn keep_aside(path: &Path) {
-    let aside = path.with_extension("json.bad");
-    if let Err(error) = fs::rename(path, &aside) {
-        eprintln!("trame: the unreadable session file stays in place: {error}");
+fn load_from(path: &Path, role: &mut Role) -> Option<Snapshot> {
+    let problem = match fs::read_to_string(path) {
+        Ok(text) => match Snapshot::from_json(&text) {
+            Ok(snapshot) => return Some(snapshot),
+            Err(error) => error.to_string(),
+        },
+        Err(error) if error.kind() == io::ErrorKind::NotFound => return None,
+        Err(error) => format!("the session file could not be read: {error}"),
+    };
+    eprintln!("trame: {problem}, starting a fresh session");
+    if role.owns() && !keep_aside(path) {
+        *role = Role::Guest;
     }
+    None
+}
+
+fn keep_aside(path: &Path) -> bool {
+    let aside = path.with_extension("json.bad");
+    let moved = fs::rename(path, &aside);
+    if let Err(error) = &moved {
+        eprintln!("trame: the unreadable session file stays as it is: {error}");
+    }
+    moved.is_ok()
 }
 
 pub fn write(path: &Path, snapshot: &Snapshot) -> io::Result<()> {
