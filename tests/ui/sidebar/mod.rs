@@ -5,11 +5,15 @@ mod side;
 mod update;
 
 use trame::geometry::Point;
+use trame::session::SessionId;
 use trame::theme::Swatch;
 use trame::ui::frame::{SidebarItem, dragged_width, shown_width};
 use trame::ui::{FrameLayout, Hit, UiMetrics};
+use trame::workspace::{Edge, MIN_PANE};
 
-use crate::{frame, text_system, workspace};
+use crate::{frame, input, text_system, workspace};
+
+const NARROW_WINDOW: f32 = 520.0;
 
 fn middle_of_edge(layout: &FrameLayout) -> Point {
     Point::new(
@@ -42,6 +46,25 @@ fn the_width_stays_between_its_bounds() {
     assert_eq!(shown_width(None), UiMetrics::SIDEBAR_WIDTH);
     assert_eq!(shown_width(Some(20.0)), UiMetrics::SIDEBAR_MIN_WIDTH);
     assert_eq!(shown_width(Some(5000.0)), UiMetrics::SIDEBAR_MAX_WIDTH);
+}
+
+#[test]
+fn panes_keep_a_minimum_width_in_a_narrow_window() {
+    let mut text = text_system();
+    let mut workspace = workspace();
+    workspace.sidebar_width = Some(UiMetrics::SIDEBAR_MAX_WIDTH);
+    workspace.split_active(SessionId(9), Edge::Right);
+    let mut input = input(&workspace, UiMetrics::new(1.0));
+    input.width = NARROW_WINDOW;
+    let layout = FrameLayout::compute(&mut text, &input);
+    assert_eq!(layout.panes.len(), 2);
+    for pane in &layout.panes {
+        assert!(
+            pane.rect.width >= MIN_PANE,
+            "a pane is {} wide",
+            pane.rect.width
+        );
+    }
 }
 
 #[test]

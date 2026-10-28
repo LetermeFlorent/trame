@@ -3,6 +3,8 @@ use crate::ui::display::PanelSide;
 use crate::ui::frame::FrameInput;
 use crate::ui::metrics::UiMetrics;
 
+const MAX_WINDOW_SHARE: f32 = 0.5;
+
 pub fn shown_width(stored: Option<f32>) -> f32 {
     stored
         .unwrap_or(UiMetrics::SIDEBAR_WIDTH)
@@ -25,6 +27,7 @@ impl Columns {
         let rail_width = metrics.px(UiMetrics::RAIL_WIDTH);
         let full_width = metrics
             .px(shown_width(input.workspace.sidebar_width))
+            .min(rest.width * MAX_WINDOW_SHARE)
             .round();
         let visible_width = (rail_width + (full_width - rail_width) * reveal).round();
         let shown = if input.workspace.sidebar_open {
