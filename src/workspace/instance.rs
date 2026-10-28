@@ -4,10 +4,9 @@ use std::path::PathBuf;
 
 use super::pane::Pane;
 use super::tree::{Edge, Node, PaneId};
+use crate::locale::NUMBER_SLOT;
 use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
-
-const NUMBER_SLOT: &str = "{number}";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct InstanceId(pub u32);

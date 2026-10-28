@@ -3,13 +3,11 @@ use std::path::PathBuf;
 
 use winit::event_loop::ActiveEventLoop;
 
-use trame::locale::Strings;
+use trame::locale::{Strings, VERSION_SLOT};
 use trame::log_error;
 
 use crate::app::running::Running;
 use crate::app::update;
-
-const VERSION_SLOT: &str = "{version}";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Offer {

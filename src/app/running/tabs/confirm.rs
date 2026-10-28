@@ -2,6 +2,7 @@ use winit::event::{ElementState, KeyEvent};
 use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, NamedKey};
 
+use trame::locale::ALIAS_SLOT;
 use trame::ui::Hit;
 use trame::ui::frame::{FormAction, MessageRequest};
 
@@ -13,7 +14,6 @@ const CLOSE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Close];
 const UPDATE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Restart];
 const REMOVE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Remove];
 const PASTE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Paste];
-const ALIAS_SLOT: &str = "{alias}";
 
 struct Question {
     title: String,

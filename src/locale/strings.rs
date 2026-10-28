@@ -1,5 +1,9 @@
 use super::KeyStrings;
 
+pub const VERSION_SLOT: &str = "{version}";
+pub const ALIAS_SLOT: &str = "{alias}";
+pub const NUMBER_SLOT: &str = "{number}";
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Strings {
     pub checking_updates: &'static str,
