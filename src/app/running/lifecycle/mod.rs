@@ -138,7 +138,6 @@ impl Running {
             visibility: Visibility::default(),
             loader: None,
             update: UpdateState::default(),
-            restarting: false,
             restarts: Restarts::default(),
             closing: None,
             strings,

@@ -39,6 +39,7 @@ impl Offer {
 pub(in crate::app::running) struct UpdateState {
     pub(in crate::app::running) offer: Option<Offer>,
     pub(in crate::app::running) failed: bool,
+    pub(in crate::app::running) restarting: bool,
 }
 
 impl Running {
@@ -63,7 +64,7 @@ impl Running {
     }
 
     pub(in crate::app::running) fn restart_if_card_lost(&mut self, event_loop: &ActiveEventLoop) {
-        if self.restarting || !self.graphics.is_lost() {
+        if self.update.restarting || !self.graphics.is_lost() {
             return;
         }
         if let Err(error) = self.restart_with(event_loop, update::start_again) {
@@ -78,7 +79,7 @@ impl Running {
     ) -> io::Result<()> {
         self.save_for_restart();
         self.saver.hand_over(start)?;
-        self.restarting = true;
+        self.update.restarting = true;
         event_loop.exit();
         Ok(())
     }

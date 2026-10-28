@@ -72,7 +72,6 @@ pub struct Running {
     visibility: Visibility,
     loader: Option<Loader>,
     update: UpdateState,
-    restarting: bool,
     restarts: Restarts,
     power: Power,
     notifier: Notifier,

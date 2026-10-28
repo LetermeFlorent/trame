@@ -17,7 +17,7 @@ impl Running {
     }
 
     pub fn save_on_exit(&mut self) {
-        if !self.restarting {
+        if !self.update.restarting {
             self.save_everything(false);
         }
     }
