@@ -16,7 +16,7 @@ pub fn private_folder(folder: &Path) -> io::Result<()> {
 }
 
 #[cfg(unix)]
-pub(super) fn create_folder(folder: &Path) -> io::Result<()> {
+pub(crate) fn create_folder(folder: &Path) -> io::Result<()> {
     fs::DirBuilder::new()
         .recursive(true)
         .mode(OWNER_ONLY_FOLDER)
@@ -24,7 +24,7 @@ pub(super) fn create_folder(folder: &Path) -> io::Result<()> {
 }
 
 #[cfg(unix)]
-pub(super) fn create_file(path: &Path) -> io::Result<File> {
+pub(crate) fn create_file(path: &Path) -> io::Result<File> {
     fs::OpenOptions::new()
         .write(true)
         .create(true)
@@ -48,12 +48,12 @@ fn narrow(folder: &Path) -> io::Result<()> {
 }
 
 #[cfg(not(unix))]
-pub(super) fn create_folder(folder: &Path) -> io::Result<()> {
+pub(crate) fn create_folder(folder: &Path) -> io::Result<()> {
     fs::create_dir_all(folder)
 }
 
 #[cfg(not(unix))]
-pub(super) fn create_file(path: &Path) -> io::Result<File> {
+pub(crate) fn create_file(path: &Path) -> io::Result<File> {
     File::create(path)
 }
 

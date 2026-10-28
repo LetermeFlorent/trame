@@ -17,6 +17,7 @@ use std::path::{Path, PathBuf};
 pub use shell::{ShellCommand, default_shell};
 
 pub const TERM_PROGRAM: &str = "trame";
+pub(crate) const DUMP_VARIABLE: &str = "TRAME_DUMP";
 
 const MAX_DIMENSION: usize = i16::MAX as usize;
 

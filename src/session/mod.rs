@@ -1,3 +1,4 @@
+#[cfg(feature = "dump")]
 mod dump;
 pub mod pty;
 mod sync;

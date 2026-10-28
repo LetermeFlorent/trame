@@ -18,6 +18,7 @@ path = "src/main.rs"
 
 [features]
 capture = []
+dump = []
 
 [dependencies]
 winit = { version = "0.30.13", default-features = false, features = ["rwh_06", "x11", "wayland", "wayland-dlopen"] }

@@ -7,7 +7,9 @@ use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
-use modes::{create_file, create_folder, keep_mode};
+use modes::keep_mode;
+
+pub(crate) use modes::{create_file, create_folder};
 
 pub use icons::{ICON_SIZE, IconStore, fit, import_icon, load_icon};
 pub use modes::private_folder;

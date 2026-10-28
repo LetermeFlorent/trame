@@ -24,7 +24,7 @@ pub(crate) fn screen_text(terminal: &Terminal) -> String {
         .join("\n")
 }
 
-fn read_chunks(mut reader: std::fs::File) -> Receiver<Vec<u8>> {
+pub(crate) fn read_chunks(mut reader: std::fs::File) -> Receiver<Vec<u8>> {
     let (sender, receiver) = mpsc::channel();
     thread::spawn(move || {
         let mut buffer = [0; 4096];
@@ -37,7 +37,7 @@ fn read_chunks(mut reader: std::fs::File) -> Receiver<Vec<u8>> {
     receiver
 }
 
-fn pump_until(
+pub(crate) fn pump_until(
     terminal: &mut Terminal,
     chunks: &Receiver<Vec<u8>>,
     writer: &mut std::fs::File,

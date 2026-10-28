@@ -6,6 +6,7 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+#[cfg(feature = "dump")]
 use super::dump::Dump;
 use super::sync::SyncHold;
 use super::{Notifier, SessionEvent, SessionId, lock};
@@ -52,6 +53,7 @@ pub fn spawn_waiter(id: SessionId, child: Child, notify: Notifier) -> io::Result
 fn read_loop(mut reader: Reader) {
     let mut buffer = vec![0; READ_BUFFER];
     let mut hold = SyncHold::new(reader.id, reader.pending.clone(), reader.notify.clone());
+    #[cfg(feature = "dump")]
     let mut dump = Dump::open(reader.id);
     loop {
         let count = match reader.source.read(&mut buffer) {
@@ -60,6 +62,7 @@ fn read_loop(mut reader: Reader) {
             Err(error) if error.kind() == ErrorKind::Interrupted => continue,
             Err(_) => break,
         };
+        #[cfg(feature = "dump")]
         dump.record(&buffer[..count]);
         let shell_in_front = pty::shell_in_foreground(&reader.source, reader.shell);
         let (responses, synchronized) = {
