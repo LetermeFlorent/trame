@@ -31,6 +31,7 @@ serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 unicode-width = "0.2.2"
 png = "0.18.1"
+ed25519-compact = { version = "2.6.0", default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 wgpu = { version = "30.0.1", default-features = false, features = ["dx12", "vulkan"] }
@@ -39,6 +40,7 @@ windows-sys = { version = "0.61.2", features = [
     "Win32_Globalization",
     "Win32_Security",
     "Win32_Security_Credentials",
+    "Win32_Storage_FileSystem",
     "Win32_System_Com",
     "Win32_System_Console",
     "Win32_System_Diagnostics_ToolHelp",

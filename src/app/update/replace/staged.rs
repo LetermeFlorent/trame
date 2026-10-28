@@ -2,10 +2,10 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use super::super::download::{self, Progress};
+use super::super::download::Progress;
 use super::super::route::Route;
 use super::super::version::Version;
-use super::{bundle, check, swap};
+use super::{bundle, check, signed, swap};
 
 const READY_MARK: &str = ".ready";
 const PART_SUFFIX: &str = ".part";
@@ -37,7 +37,7 @@ pub fn fetch(route: Route, target: &Path, version: Version, shown: Progress) -> 
     let asset = route.asset(&version.number());
     let fetched = match route {
         Route::Bundle => bundle::fetch(version, &asset, &part, shown),
-        _ => download::download(version, &asset, &part, shown),
+        _ => signed::fetch(version, &asset, &part, shown).map(drop),
     };
     let placed = fetched
         .and_then(|()| check::release(&part))

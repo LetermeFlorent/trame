@@ -105,6 +105,8 @@ The macOS build is tested and opened on every release, like the Linux one, and h
 
 trame looks for a newer release on GitHub when it starts, then once an hour. What happens next depends on the system and on where trame is installed.
 
+Nothing is installed before it is checked. Each release carries `SHA512SUMS`, the checksums of its files, and `SHA512SUMS.sig`, a signature made with the project's release key. trame holds the public half of that key, the one in `packaging/release-key.der`, and throws away a download whose checksum is missing from the signed list or differs from it. To check a file you downloaded yourself, put it next to those two and run `openssl pkeyutl -verify -rawin -pubin -keyform DER -inkey release-key.der -in SHA512SUMS -sigfile SHA512SUMS.sig`, then `sha512sum -c --ignore-missing SHA512SUMS`.
+
 ### Windows and macOS
 
 "Update automatically", in the System tab of the settings and on by default, installs the new version in the background while you work. trame downloads it at low priority, straight to disk, and swaps its own program without stopping anything: `trame.exe` on Windows, the whole `trame.app` on macOS. Your shells keep running, and the next time you open trame it is the new version, with no update screen. Meanwhile a Restart into button shows at the bottom of the side bar with the new version number, for when you want it right away. Clicking it asks first, and warns that tabs and their text come back but commands that were running stop.
@@ -117,7 +119,7 @@ A Windows copy installed for all users cannot rewrite its own folder either, so 
 
 ### Linux
 
-The `.deb` and the `.rpm` belong to the system's package manager, so installing a new one takes your password. trame downloads the matching package in the background into `~/.cache/trame/update` and shows the Update button. Clicking it asks first, saves every tab and closes trame. The system's password window opens (through `pkexec`), the package manager installs the new version (`apt-get` on Debian and Ubuntu, `dnf`, `zypper` or `rpm` elsewhere), and trame opens again with your tabs. If you cancel the password window, trame opens again on the version you had.
+The `.deb` and the `.rpm` belong to the system's package manager, so installing a new one takes your password. trame downloads the matching package in the background into `~/.cache/trame/update` and shows the Update button. Clicking it asks first, saves every tab and closes trame. The system's password window opens (through `pkexec`), the package is copied into a folder only the administrator can write to and checked once more, the package manager installs that copy (`apt-get` on Debian and Ubuntu, `dnf`, `zypper` or `rpm` elsewhere), and trame opens again with your tabs. If you cancel the password window, trame opens again on the version you had.
 
 A copy that is not the packaged `/usr/bin/trame`, such as one built from source, leaves updates to you.
 
@@ -197,4 +199,4 @@ The first two need [cargo-deb](https://github.com/kornelski/cargo-deb) and [carg
 
 ### Releasing
 
-Raise `version` in `Cargo.toml`, commit, and push a tag with the same number, such as `v0.4.0`. The release workflow then tests and builds trame on Windows, Ubuntu and macOS. It installs the `.deb` and opens trame, installs the `.rpm` on Fedora, wraps the macOS build into `trame.app` and opens it. On Ubuntu and macOS it also builds a copy numbered 0.0.1 and checks that it fetches the latest release on its own: the package lands in the update folder and installs, and the Mac copy replaces its `trame.app`. Then it publishes everything as a GitHub release, and installed copies pick it up within the hour or at their next launch.
+Raise `version` in `Cargo.toml`, commit, and push a tag with the same number, such as `v0.4.0`. The release workflow then tests and builds trame on Windows, Ubuntu and macOS. It installs the `.deb` and opens trame, installs the `.rpm` on Fedora, wraps the macOS build into `trame.app` and opens it. Then it writes `SHA512SUMS`, signs it with the repository secret `TRAME_SIGNING_KEY`, checks the signature against `packaging/release-key.der` and publishes everything as a GitHub release. Without the secret, or with a key that does not match, nothing is published. Last, on Ubuntu and macOS, a copy numbered 0.0.1 checks that it fetches this release on its own: the package lands in the update folder and installs, and the Mac copy replaces its `trame.app`. Installed copies pick the release up within the hour or at their next launch.

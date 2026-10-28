@@ -6,6 +6,8 @@ use super::RELEASES;
 use super::version::Version;
 
 mod progress;
+#[cfg(test)]
+mod tests;
 
 pub type Progress<'a> = Option<&'a dyn Fn(u8)>;
 
@@ -13,6 +15,8 @@ const CHECK_SECONDS: &str = "1";
 const DOWNLOAD_SECONDS: &str = "120";
 const SLOWEST_BYTES_PER_SECOND: &str = "10000";
 const STALL_SECONDS: &str = "10";
+const LIST_SECONDS: &str = "30";
+const LARGEST_LIST_BYTES: &str = "65536";
 
 #[cfg(windows)]
 const NULL_DEVICE: &str = "NUL";
@@ -43,6 +47,30 @@ pub fn download(version: Version, asset: &str, target: &Path, shown: Progress) -
     transfer(command, version, asset, target, shown.unwrap_or(&|_| {}))
 }
 
+pub fn read(version: Version, asset: &str) -> io::Result<Vec<u8>> {
+    let output = curl()
+        .args(["--silent", "--fail", "--location"])
+        .args([
+            "--max-time",
+            LIST_SECONDS,
+            "--max-filesize",
+            LARGEST_LIST_BYTES,
+        ])
+        .arg(address(version, asset))
+        .output()?;
+    match output.status.success() {
+        true => Ok(output.stdout),
+        false => Err(io::Error::other(format!(
+            "{asset} did not download ({})",
+            output.status
+        ))),
+    }
+}
+
+fn address(version: Version, asset: &str) -> String {
+    format!("{RELEASES}/download/{version}/{asset}")
+}
+
 fn transfer(
     mut command: Command,
     version: Version,
@@ -56,7 +84,7 @@ fn transfer(
         .args(["--speed-limit", SLOWEST_BYTES_PER_SECOND])
         .args(["--speed-time", STALL_SECONDS, "--output"])
         .arg(target)
-        .arg(format!("{RELEASES}/download/{version}/{asset}"))
+        .arg(address(version, asset))
         .stderr(Stdio::piped())
         .spawn()?;
     if let Some(bar) = child.stderr.take() {
@@ -72,6 +100,7 @@ fn transfer(
 fn curl() -> Command {
     let mut command = Command::new(curl_program());
     command
+        .arg("-q")
         .args(["--proto", "=https", "--proto-redir", "=https"])
         .stdin(Stdio::null())
         .stderr(Stdio::null());
@@ -89,7 +118,7 @@ fn curl_program() -> PathBuf {
 
 #[cfg(not(windows))]
 fn curl_program() -> PathBuf {
-    PathBuf::from("curl")
+    PathBuf::from("/usr/bin/curl")
 }
 
 #[cfg(windows)]

@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::env;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -26,6 +29,15 @@ const RPM_TOOLS: [&[&str]; 3] = [
     &[RPM, "-U"],
 ];
 const CACHE_FOLDERS: [&str; 2] = ["trame", "update"];
+const ROOT_NAME: &str = "trame-update";
+const ROOT_SCRIPT: &str = r#"expected=$1 file=$2
+shift 2
+folder=$(mktemp -d) || exit
+copy=$folder/${file##*/}
+cp -- "$file" "$copy" && test "$(sha512sum < "$copy" | cut -d ' ' -f 1)" = "$expected" && "$@" "$copy"
+status=$?
+rm -rf -- "$folder"
+exit "$status""#;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Package {
@@ -57,15 +69,16 @@ impl Package {
         }
     }
 
-    pub fn install(self, file: &Path, exe: &Path) -> io::Result<()> {
+    pub fn install(self, file: &Path, expected: &str, exe: &Path) -> io::Result<()> {
         let tool = self
             .tool()
             .ok_or_else(|| io::Error::other("no package manager to install the update"))?;
         Command::new(SHELL)
             .args(["-c", &script()])
             .arg(exe)
-            .args(tool)
+            .args([ROOT_SCRIPT, ROOT_NAME, expected])
             .arg(file)
+            .args(tool)
             .stdin(Stdio::null())
             .spawn()
             .map(drop)
@@ -96,50 +109,9 @@ pub fn folder() -> Option<PathBuf> {
 }
 
 fn script() -> String {
-    format!("{PKEXEC} \"$@\"; exec \"$0\" {UPDATED_FLAG}")
+    format!("{PKEXEC} {SHELL} -c \"$@\"; exec \"$0\" {UPDATED_FLAG}")
 }
 
 fn exists(path: &str) -> bool {
     Path::new(path).exists()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const CARGO: &str = include_str!("../../../../Cargo.toml");
-
-    #[test]
-    fn a_debian_system_gets_the_deb_even_with_rpm_around() {
-        assert_eq!(Package::pick(true, true), Some(Package::Deb));
-        assert_eq!(Package::pick(false, true), Some(Package::Rpm));
-        assert_eq!(Package::pick(false, false), None);
-    }
-
-    #[test]
-    fn the_downloads_are_the_packages_the_release_publishes() {
-        assert_eq!(Package::Deb.asset("0.4.0"), "trame_0.4.0-1_amd64.deb");
-        assert_eq!(Package::Rpm.asset("0.4.0"), "trame-0.4.0-1.x86_64.rpm");
-        assert!(CARGO.contains("\"usr/bin/\""));
-        assert!(CARGO.contains("dest = \"/usr/bin/trame\""));
-    }
-
-    #[test]
-    fn the_password_prompt_installs_then_trame_opens_again_either_way() {
-        let script = script();
-        assert!(script.starts_with(&format!("{PKEXEC} \"$@\";")));
-        assert!(script.ends_with(&format!("exec \"$0\" {UPDATED_FLAG}")));
-    }
-
-    #[test]
-    fn a_copy_outside_the_package_place_is_left_to_its_owner() {
-        assert_eq!(Package::of(Path::new("/home/me/bin/trame")), None);
-    }
-
-    #[test]
-    fn downloads_wait_in_the_user_cache() {
-        if let Some(folder) = folder() {
-            assert!(folder.ends_with(Path::new("trame").join("update")));
-        }
-    }
 }
