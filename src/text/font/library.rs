@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use fontdb::{Database, ID, Query, Source};
 
-use super::discovery::{FontSource, SystemFonts};
+use super::discovery::{self, Finder, FontSource, SystemFonts};
 use super::fallback::Fallbacks;
 use super::{Face, Family, FontId};
 
@@ -17,13 +17,17 @@ pub struct FontLibrary {
 
 impl FontLibrary {
     pub fn new(system: &SystemFonts) -> Self {
+        Self::with_finder(system, discovery::system_finder())
+    }
+
+    pub fn with_finder(system: &SystemFonts, finder: Option<Finder>) -> Self {
         Self {
             database: Database::new(),
             faces: Vec::new(),
             sources: HashMap::new(),
             shared: HashMap::new(),
             scanned: false,
-            fallbacks: Fallbacks::new(&system.fallback, &system.emoji),
+            fallbacks: Fallbacks::new(&system.fallback, &system.emoji, finder),
         }
     }
 

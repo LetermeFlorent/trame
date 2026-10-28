@@ -3,7 +3,7 @@ use std::ops::RangeInclusive;
 
 use unicode_width::UnicodeWidthChar;
 
-use super::discovery::{self, FontSource};
+use super::discovery::{Finder, FontSource};
 use super::{FontId, FontKey, FontLibrary};
 
 const EMOJI_RANGES: [RangeInclusive<u32>; 2] = [0x2300..=0x2BFF, 0x1F000..=0x1FAFF];
@@ -25,10 +25,11 @@ pub struct Fallbacks {
     text: FallbackList,
     emoji: FallbackList,
     coverage: HashMap<char, Option<FontId>>,
+    finder: Option<Finder>,
 }
 
 impl Fallbacks {
-    pub fn new(text: &[FontSource], emoji: &[FontSource]) -> Self {
+    pub fn new(text: &[FontSource], emoji: &[FontSource], finder: Option<Finder>) -> Self {
         Self {
             text: FallbackList {
                 loaded: Vec::new(),
@@ -39,6 +40,7 @@ impl Fallbacks {
                 pending: emoji.iter().cloned().collect(),
             },
             coverage: HashMap::new(),
+            finder,
         }
     }
 
@@ -110,7 +112,7 @@ impl FontLibrary {
     }
 
     fn search_system(&mut self, ch: char, emoji: bool) -> Option<FontId> {
-        let source = discovery::fallback_for(ch, emoji)?;
+        let source = self.fallbacks.finder.as_mut()?(ch, emoji)?;
         let id = self
             .load(&source)
             .into_iter()

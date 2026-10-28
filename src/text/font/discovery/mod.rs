@@ -30,8 +30,20 @@ pub struct SystemFonts {
     pub fallback: Vec<FontSource>,
 }
 
+pub type Finder = Box<dyn FnMut(char, bool) -> Option<FontSource> + Send>;
+
 #[cfg(all(unix, not(target_os = "macos")))]
-pub use platform::{fallback_for, system_fonts};
+pub use platform::system_fonts;
+
+#[cfg(all(unix, not(target_os = "macos")))]
+pub fn system_finder() -> Option<Finder> {
+    Some(Box::new(platform::fallback_for))
+}
+
+#[cfg(any(windows, target_os = "macos"))]
+pub fn system_finder() -> Option<Finder> {
+    None
+}
 
 #[cfg(any(windows, target_os = "macos"))]
 pub fn system_fonts() -> SystemFonts {
@@ -42,11 +54,6 @@ pub fn system_fonts() -> SystemFonts {
         emoji: existing(&dirs, platform::EMOJI),
         fallback: existing(&dirs, platform::FALLBACK),
     }
-}
-
-#[cfg(any(windows, target_os = "macos"))]
-pub fn fallback_for(_: char, _: bool) -> Option<FontSource> {
-    None
 }
 
 #[cfg(any(windows, target_os = "macos"))]
