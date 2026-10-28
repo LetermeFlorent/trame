@@ -67,6 +67,9 @@ impl Screen {
     pub(crate) fn tab_forward(&mut self, count: usize) {
         let last = self.cols() - 1;
         for _ in 0..count {
+            if self.cursor.col == last {
+                break;
+            }
             let next = (self.cursor.col + 1..=last).find(|&col| self.tab_stops[col]);
             self.cursor.col = next.unwrap_or(last);
         }
@@ -74,6 +77,9 @@ impl Screen {
 
     pub(crate) fn tab_backward(&mut self, count: usize) {
         for _ in 0..count {
+            if self.cursor.col == 0 {
+                break;
+            }
             let previous = (0..self.cursor.col).rev().find(|&col| self.tab_stops[col]);
             self.cursor.col = previous.unwrap_or(0);
         }
