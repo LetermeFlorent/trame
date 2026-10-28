@@ -13,6 +13,7 @@ use trame::ui::frame::{ListControl, PickerPart, SidebarItem};
 use trame::workspace::{Axis, Divider, InstanceId, Node, resized};
 
 use crate::app::running::Running;
+use crate::app::running::settings::ListKind;
 pub(in crate::app::running) use ghost::Ghost;
 use sidebar::SidebarDrag;
 
@@ -29,7 +30,7 @@ pub(in crate::app::running) enum Drag {
     Tab(SessionId, Point),
     Divider(DividerDrag),
     Sidebar(SidebarDrag),
-    List(f32),
+    List(ListKind, f32),
     Picker(PickerPart),
     PendingInstance(InstanceId, Point),
     Instance(InstanceId, usize),
@@ -44,7 +45,7 @@ impl Running {
             Hit::Tab(_, tab) => Some(Drag::Pending(tab, origin)),
             Hit::Divider(index) => self.divider_drag(index, origin).map(Drag::Divider),
             Hit::SidebarEdge => Some(Drag::Sidebar(self.sidebar_drag())),
-            Hit::List(ListControl::Thumb) => self.list_grab(origin).map(Drag::List),
+            Hit::List(ListControl::Thumb) => self.list_drag(ListKind::Hosts, origin),
             Hit::Picker(part) => Some(Drag::Picker(part)),
             Hit::Row(SidebarItem::Instance(id)) | Hit::RailInstance(id) => {
                 Some(Drag::PendingInstance(id, origin))
@@ -86,9 +87,9 @@ impl Running {
                 self.drag_sidebar(drag, point);
                 Drag::Sidebar(drag)
             }
-            Some(Drag::List(grab)) => {
-                self.drag_list(point.y - grab);
-                Drag::List(grab)
+            Some(Drag::List(list, grab)) => {
+                self.drag_list(list, point.y - grab);
+                Drag::List(list, grab)
             }
             Some(Drag::Picker(part)) => {
                 self.drag_picker(part);

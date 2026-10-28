@@ -1,9 +1,15 @@
-use crate::geometry::Rect;
+use crate::geometry::{Point, Rect};
 use crate::ui::metrics::UiMetrics;
 
 pub(in crate::ui::frame) const BAR_WIDTH: f32 = 6.0;
 pub(in crate::ui::frame) const BAR_GAP: f32 = 4.0;
 const MIN_THUMB: f32 = 18.0;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BarPart {
+    Thumb,
+    Track,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ScrollBar {
@@ -40,6 +46,16 @@ impl ScrollBar {
             first,
             last_first,
             shown,
+        }
+    }
+
+    pub fn part_at(&self, point: Point) -> Option<BarPart> {
+        if !self.track.contains(point) {
+            return None;
+        }
+        match self.thumb.contains(point) {
+            true => Some(BarPart::Thumb),
+            false => Some(BarPart::Track),
         }
     }
 

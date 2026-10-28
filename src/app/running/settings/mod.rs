@@ -13,6 +13,7 @@ use trame::ui::frame::{SettingControl, SettingsRequest, SettingsTab, ShortcutsVi
 use super::Running;
 use super::keys::is_escape;
 pub(super) use hosts::HostsPanel;
+pub(super) use list::ListKind;
 
 pub(super) type SettingField = (SettingControl, TextField);
 

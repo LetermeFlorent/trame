@@ -6,6 +6,7 @@ use trame::term::Screen;
 use trame::ui::Motion;
 
 use crate::app::running::Running;
+use crate::app::running::settings::ListKind;
 
 const WHEEL_LINES: f32 = 3.0;
 
@@ -42,7 +43,7 @@ impl Running {
     }
 
     pub(in crate::app::running) fn wheel(&mut self, delta: MouseScrollDelta) {
-        let list = self.list_under_pointer();
+        let list = self.list_under_pointer(ListKind::Hosts);
         if list.is_none() && (self.frame.blocked || self.settings.is_some()) {
             return;
         }
@@ -56,7 +57,7 @@ impl Running {
         let whole = self.pointer.wheel.trunc();
         self.pointer.wheel -= whole;
         if let Some(bar) = list {
-            return self.scroll_list_to(bar.scrolled(-(whole as isize)));
+            return self.scroll_list_to(ListKind::Hosts, bar.scrolled(-(whole as isize)));
         }
         if let Some(id) = self.session_under_pointer() {
             self.scroll_session(id, whole as isize);

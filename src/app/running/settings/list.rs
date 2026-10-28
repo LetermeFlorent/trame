@@ -2,7 +2,12 @@ use trame::geometry::Point;
 use trame::ui::Hit;
 use trame::ui::frame::{ListControl, ScrollBar};
 
-use crate::app::running::Running;
+use crate::app::running::{Drag, Running};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(in crate::app::running) enum ListKind {
+    Hosts,
+}
 
 impl Running {
     pub(in crate::app::running) fn list_control(&mut self, control: ListControl) {
@@ -14,36 +19,42 @@ impl Running {
             ListControl::Change(index) => self.change_host(index),
             ListControl::Forget(index) => self.forget_listed(index),
             ListControl::Thumb => self.drag_pressed(Hit::List(control)),
-            ListControl::Track => self.page_list(),
+            ListControl::Track => self.page_list(ListKind::Hosts),
         }
         self.changed();
     }
 
-    fn page_list(&mut self) {
+    fn page_list(&mut self, list: ListKind) {
         let y = self.pointer.position.map(|point| point.y);
-        if let (Some(bar), Some(y)) = (self.list_bar(), y) {
-            self.scroll_list_to(bar.paged(y));
+        if let (Some(bar), Some(y)) = (self.list_bar(list), y) {
+            self.scroll_list_to(list, bar.paged(y));
         }
     }
 
-    pub(in crate::app::running) fn list_grab(&self, origin: Point) -> Option<f32> {
-        Some(origin.y - self.list_bar()?.thumb.y)
+    pub(in crate::app::running) fn list_drag(&self, list: ListKind, origin: Point) -> Option<Drag> {
+        let grab = origin.y - self.list_bar(list)?.thumb.y;
+        Some(Drag::List(list, grab))
     }
 
-    pub(in crate::app::running) fn drag_list(&mut self, thumb_top: f32) {
-        if let Some(bar) = self.list_bar() {
-            self.scroll_list_to(bar.first_at(thumb_top));
+    pub(in crate::app::running) fn drag_list(&mut self, list: ListKind, thumb_top: f32) {
+        if let Some(bar) = self.list_bar(list) {
+            self.scroll_list_to(list, bar.first_at(thumb_top));
         }
     }
 
-    pub(in crate::app::running) fn list_under_pointer(&self) -> Option<ScrollBar> {
+    pub(in crate::app::running) fn list_under_pointer(&self, list: ListKind) -> Option<ScrollBar> {
         let point = self.pointer.position?;
-        let list = self.frame.host_list()?;
-        list.bar.filter(|_| list.rect.contains(point))
+        let area = match list {
+            ListKind::Hosts => self.frame.host_list()?.rect,
+        };
+        self.list_bar(list).filter(|_| area.contains(point))
     }
 
-    pub(in crate::app::running) fn scroll_list_to(&mut self, first: usize) {
-        let Some(shown) = self.list_first_mut() else {
+    pub(in crate::app::running) fn scroll_list_to(&mut self, list: ListKind, first: usize) {
+        let shown = match list {
+            ListKind::Hosts => self.list_first_mut(),
+        };
+        let Some(shown) = shown else {
             return;
         };
         if *shown != first {
@@ -52,7 +63,9 @@ impl Running {
         }
     }
 
-    fn list_bar(&self) -> Option<ScrollBar> {
-        self.frame.host_list()?.bar
+    fn list_bar(&self, list: ListKind) -> Option<ScrollBar> {
+        match list {
+            ListKind::Hosts => self.frame.host_list()?.bar,
+        }
     }
 }

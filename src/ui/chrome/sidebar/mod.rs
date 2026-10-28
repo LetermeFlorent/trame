@@ -1,4 +1,5 @@
 mod footer;
+mod scroll;
 
 use super::{Icon, Painter, Press};
 use crate::geometry::Rect;
@@ -9,6 +10,7 @@ use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
 pub(super) use footer::draw_footer;
+pub(super) use scroll::draw_bar;
 
 const HOVER_OVER_TINT: f32 = 0.7;
 

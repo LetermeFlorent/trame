@@ -20,7 +20,7 @@ impl Running {
                 self.workspace.renumber_after_move();
                 true
             }
-            Some(Drag::Divider(_) | Drag::Sidebar(_) | Drag::List(_) | Drag::Picker(_)) => true,
+            Some(Drag::Divider(_) | Drag::Sidebar(_) | Drag::List(..) | Drag::Picker(_)) => true,
             _ => false,
         }
     }

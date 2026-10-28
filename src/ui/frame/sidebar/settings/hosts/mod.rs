@@ -4,7 +4,7 @@ mod place;
 use crate::geometry::{Point, Rect};
 use crate::preferences::{ConnectForm, SshHost};
 use crate::ui::frame::FrameLayout;
-use crate::ui::frame::sidebar::scroll::ScrollBar;
+use crate::ui::frame::sidebar::scroll::{BarPart, ScrollBar};
 
 use super::SettingLine;
 pub use page::ConnectionsPage;
@@ -50,10 +50,10 @@ pub struct HostList {
 
 impl HostList {
     pub fn control_at(&self, point: Point) -> Option<ListControl> {
-        if let Some(bar) = self.bar.filter(|bar| bar.track.contains(point)) {
-            return Some(match bar.thumb.contains(point) {
-                true => ListControl::Thumb,
-                false => ListControl::Track,
+        if let Some(part) = self.bar.and_then(|bar| bar.part_at(point)) {
+            return Some(match part {
+                BarPart::Thumb => ListControl::Thumb,
+                BarPart::Track => ListControl::Track,
             });
         }
         let row = self.rows.iter().find(|row| row.line.rect.contains(point))?;
