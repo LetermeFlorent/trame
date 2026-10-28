@@ -1,3 +1,6 @@
+const DARK_INK: Rgba = Rgba::hex(0x1b1b1b);
+const LIGHT_INK: Rgba = Rgba::hex(0xffffff);
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Rgba {
     pub r: f32,
@@ -42,7 +45,23 @@ impl Rgba {
     }
 
     pub fn luminance(self) -> f32 {
-        0.2126 * self.r + 0.7152 * self.g + 0.0722 * self.b
+        let linear = |channel: f32| match channel <= 0.04045 {
+            true => channel / 12.92,
+            false => ((channel + 0.055) / 1.055).powf(2.4),
+        };
+        0.2126 * linear(self.r) + 0.7152 * linear(self.g) + 0.0722 * linear(self.b)
+    }
+
+    pub fn contrast(self, other: Rgba) -> f32 {
+        let (first, second) = (self.luminance(), other.luminance());
+        (first.max(second) + 0.05) / (first.min(second) + 0.05)
+    }
+
+    pub fn ink(self) -> Rgba {
+        match self.contrast(DARK_INK) >= self.contrast(LIGHT_INK) {
+            true => DARK_INK,
+            false => LIGHT_INK,
+        }
     }
 
     pub fn to_rgb8(self) -> [u8; 3] {

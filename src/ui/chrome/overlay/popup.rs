@@ -6,7 +6,6 @@ use crate::ui::frame::PopupFrame;
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
-use super::ON_ACCENT;
 use super::connect::draw_form;
 
 const PANEL_BLUR: f32 = 8.0;
@@ -37,7 +36,7 @@ pub(super) fn draw_label_button(painter: &mut Painter, button: &LabelButton) {
     let color = match button.filled {
         true => {
             painter.shaded_fill(rect, button.hit, theme.accent, radius);
-            ON_ACCENT
+            theme.accent.ink()
         }
         false => {
             let stroke = painter.metrics.px(BUTTON_STROKE);

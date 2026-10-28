@@ -6,8 +6,6 @@ use crate::ui::frame::{FooterButton, FooterFrame};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
-const ON_UPDATE: Rgba = Rgba::hex(0x1b1b1b);
-
 pub(in crate::ui::chrome) fn draw_footer(
     painter: &mut Painter,
     footer: &FooterFrame,
@@ -37,7 +35,7 @@ fn draw_update(painter: &mut Painter, button: &FooterButton, reveal: f32) {
     let radius = painter.metrics.px(UiMetrics::RADIUS);
     let orange = painter.theme.swatch(Swatch::Orange);
     painter.shaded_fill(button.rect, Hit::Update, orange, radius);
-    draw_content(painter, button, Icon::Update, ON_UPDATE, reveal);
+    draw_content(painter, button, Icon::Update, orange.ink(), reveal);
 }
 
 fn draw_content(

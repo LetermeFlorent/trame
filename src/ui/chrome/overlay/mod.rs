@@ -13,7 +13,3 @@ pub use menu::draw_menu;
 pub use popup::draw_message;
 pub use settings::draw_settings;
 pub use tooltip::draw_tooltip;
-
-use crate::theme::Rgba;
-
-const ON_ACCENT: Rgba = Rgba::hex(0xFFFFFF);

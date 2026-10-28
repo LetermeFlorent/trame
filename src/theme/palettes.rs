@@ -13,7 +13,7 @@ pub fn dark() -> Theme {
         border_strong: Rgba::hex(0x3a3f49),
         text: Rgba::hex(0xdce0e5),
         text_muted: Rgba::hex(0x9ca3af),
-        text_faint: Rgba::hex(0x6b7280),
+        text_faint: Rgba::hex(0x858c99),
         accent,
         hover: Rgba::hex(0x2a2e36),
         pressed: Rgba::hex(0x323741),
@@ -25,7 +25,7 @@ pub fn dark() -> Theme {
 }
 
 pub fn light() -> Theme {
-    let accent = Rgba::hex(0x3b7ddd);
+    let accent = Rgba::hex(0x2f6fcf);
     Theme {
         appearance: Appearance::Light,
         chrome: Rgba::hex(0xebecef),
@@ -35,8 +35,8 @@ pub fn light() -> Theme {
         border: Rgba::hex(0xdcdfe4),
         border_strong: Rgba::hex(0xc8ccd3),
         text: Rgba::hex(0x24292f),
-        text_muted: Rgba::hex(0x5c6370),
-        text_faint: Rgba::hex(0x8b919c),
+        text_muted: Rgba::hex(0x4b5260),
+        text_faint: Rgba::hex(0x646a76),
         accent,
         hover: Rgba::hex(0xe1e3e8),
         pressed: Rgba::hex(0xd6d9df),
@@ -74,7 +74,7 @@ const LIGHT_ANSI: [Rgba; 16] = [
     Rgba::hex(0x2f6fcf),
     Rgba::hex(0x9a42b8),
     Rgba::hex(0x1d8494),
-    Rgba::hex(0x8f959f),
+    Rgba::hex(0x80868f),
     Rgba::hex(0x6b7280),
     Rgba::hex(0xd65b55),
     Rgba::hex(0x4b9d47),
@@ -82,5 +82,5 @@ const LIGHT_ANSI: [Rgba; 16] = [
     Rgba::hex(0x3b7ddd),
     Rgba::hex(0xad57cb),
     Rgba::hex(0x2896a6),
-    Rgba::hex(0xb5bac3),
+    Rgba::hex(0x8a909a),
 ];
