@@ -12,7 +12,9 @@ fn select(term: &mut Terminal, kind: SelectionKind, from: (usize, usize), to: (u
 }
 
 fn text(term: &Terminal) -> Option<String> {
-    term.screen().selected_text()
+    let text = term.screen().selected_text();
+    assert_eq!(term.screen().has_selected_text(), text.is_some());
+    text
 }
 
 #[test]
