@@ -75,8 +75,9 @@ impl Grid {
     pub fn row_mut(&mut self, row: usize) -> &mut Row {
         let line = self.screen_line(row);
         self.drop_selection_touching(line, line);
-        let start = self.screen_start();
-        &mut self.lines[start + row]
+        let index = self.screen_start() + row;
+        self.lines[index].truncate(self.cols);
+        &mut self.lines[index]
     }
 
     pub fn visible_row(&self, row: usize) -> &Row {

@@ -4,14 +4,7 @@ impl Grid {
     pub fn resize(&mut self, rows: usize, cols: usize, cursor_row: &mut usize) {
         self.selection = None;
         let rows = rows.max(1);
-        let cols = cols.max(1);
-        if cols < self.cols {
-            let start = self.screen_start();
-            for row in self.lines.iter_mut().skip(start) {
-                row.truncate(cols);
-            }
-        }
-        self.cols = cols;
+        self.cols = cols.max(1);
         if rows < self.rows {
             self.shrink_rows(self.rows - rows, cursor_row);
         } else if rows > self.rows {
