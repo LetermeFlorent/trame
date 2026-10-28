@@ -91,7 +91,7 @@ impl Running {
         true
     }
 
-    fn is_paste(&self, event: &KeyEvent) -> bool {
+    fn is_paste(&mut self, event: &KeyEvent) -> bool {
         self.shortcut_for(event) == Some(Command::Paste)
     }
 

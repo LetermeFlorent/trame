@@ -17,6 +17,7 @@ use winit::window::Window;
 
 use trame::files::IconStore;
 use trame::geometry::Point;
+use trame::input::{Keymap, Overrides};
 use trame::locale::Strings;
 use trame::preferences::Preferences;
 use trame::render::Scene;
@@ -35,6 +36,7 @@ use super::visibility::Visibility;
 use super::{UserEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
+use keys::Memo;
 pub use lifecycle::Offer;
 use lifecycle::UpdateState;
 use pointer::{Drag, Pointer, Selecting};
@@ -51,6 +53,7 @@ pub struct Running {
     metrics: UiMetrics,
     window_scale: f32,
     preferences: Preferences,
+    keymap: Memo<Overrides, Keymap>,
     workspace: Workspace,
     sessions: Sessions,
     proxy: EventLoopProxy<UserEvent>,

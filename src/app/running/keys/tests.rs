@@ -1,7 +1,11 @@
-use trame::input::Command;
+use std::cell::Cell;
+
+use trame::input::{Command, Keymap, Overrides};
 use trame::term::{SelectionKind, Terminal};
+use trame::ui::Platform;
 use winit::keyboard::ModifiersState;
 
+use super::Memo;
 use super::copy::{after_copy, takes_key};
 
 const CONTROL: ModifiersState = ModifiersState::CONTROL;
@@ -33,4 +37,23 @@ fn ctrl_shift_c_keeps_the_selection() {
     let mut terminal = selected("hello");
     after_copy(&mut terminal, CONTROL | ModifiersState::SHIFT);
     assert_eq!(terminal.screen().selected_text().as_deref(), Some("hello"));
+}
+
+#[test]
+fn the_keymap_is_built_once_per_change() {
+    let builds = Cell::new(0);
+    let build = |overrides: &Overrides| {
+        builds.set(builds.get() + 1);
+        Keymap::new(Platform::Windows, overrides)
+    };
+    let defaults = Overrides::default();
+    let changed = defaults.with_keys(0, Vec::new(), Platform::Windows);
+    let mut keymap = Memo::default();
+    for overrides in [&defaults, &defaults, &changed, &changed, &defaults] {
+        keymap.get(overrides, build);
+    }
+    assert_eq!(builds.get(), 3);
+    let expected = Keymap::new(Platform::Windows, &defaults);
+    assert_eq!(keymap.get(&defaults, build), &expected);
+    assert_eq!(builds.get(), 3);
 }

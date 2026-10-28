@@ -42,14 +42,17 @@ impl Running {
         self.write_to_active(|modes| encode(key_input, modes).unwrap_or_default());
     }
 
-    pub(in crate::app::running) fn shortcut_for(&self, event: &KeyEvent) -> Option<Command> {
+    pub(in crate::app::running) fn shortcut_for(&mut self, event: &KeyEvent) -> Option<Command> {
         let base = event.key_without_modifiers();
         let input = shortcut_input(event, &base, self.modifiers);
         self.keymap().command_for(input)
     }
 
-    pub(in crate::app::running) fn keymap(&self) -> Keymap {
-        Keymap::new(self.metrics.platform, &self.preferences.shortcuts)
+    pub(in crate::app::running) fn keymap(&mut self) -> &Keymap {
+        let platform = self.metrics.platform;
+        self.keymap.get(&self.preferences.shortcuts, |overrides| {
+            Keymap::new(platform, overrides)
+        })
     }
 
     fn claims(&self, command: Command) -> bool {

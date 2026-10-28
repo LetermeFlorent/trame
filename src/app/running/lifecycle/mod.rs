@@ -20,7 +20,7 @@ use trame::ui::FrameView;
 use trame::workspace::{Snapshot, Workspace};
 
 use super::tabs::{Placement, Restarts};
-use super::{Pointer, Running, Selecting};
+use super::{Memo, Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
 use crate::app::persist::{self, Role, Saver};
 use crate::app::power::Power;
@@ -117,6 +117,7 @@ impl Running {
             metrics,
             window_scale: surface.window_scale,
             preferences: surface.preferences,
+            keymap: Memo::default(),
             workspace,
             sessions: Sessions::new(proxy.clone()),
             proxy,
