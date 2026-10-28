@@ -1,3 +1,4 @@
+use trame::locale::Language;
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Swatch, Theme};
 use trame::ui::chrome::{draw_chrome, draw_tooltip};
@@ -9,6 +10,7 @@ use crate::paint::paint_with;
 use crate::{input, text_system, workspace};
 
 const LABEL: &str = "Restart into 9.8.7";
+const VERSION: &str = "0.3.20";
 
 fn offered(text: &mut TextSystem, workspace: &Workspace, update: Option<&str>) -> FrameLayout {
     let mut input = input(workspace, UiMetrics::new(1.0));
@@ -101,4 +103,21 @@ fn hovering_the_rail_icon_names_the_version_beside_it() {
     assert!(x >= rail.rect.right());
     assert!(y <= middle && y + height >= middle);
     assert!(width >= update.label.width);
+}
+
+#[test]
+fn every_language_shows_the_whole_label_in_the_narrowest_sidebar() {
+    let mut text = text_system();
+    let mut workspace = workspace();
+    workspace.sidebar_width = Some(UiMetrics::SIDEBAR_MIN_WIDTH);
+    for language in [Language::French, Language::English] {
+        let strings = language.strings();
+        for lead in [strings.update_to, strings.restart_into] {
+            let label = format!("{lead} {VERSION}");
+            let layout = offered(&mut text, &workspace, Some(&label));
+            let update = layout.footer.update.as_ref().expect("the update button");
+            let end = update.label_x + update.label.width;
+            assert!(end <= update.rect.right(), "{label} ends at {end}");
+        }
+    }
 }

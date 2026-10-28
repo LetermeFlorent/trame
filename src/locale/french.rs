@@ -5,7 +5,7 @@ pub const FRENCH: Strings = Strings {
     checking_updates: "Recherche de mises à jour",
     downloading_version: "Téléchargement de la version",
     installing_version: "Installation de la version",
-    update_to: "Mettre à jour en",
+    update_to: "Installer la",
     restart_into: "Relancer en",
     rename: "Renommer",
     change_color: "Changer de couleur",
