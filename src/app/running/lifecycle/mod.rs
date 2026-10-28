@@ -19,7 +19,7 @@ use trame::theme::Theme;
 use trame::ui::FrameView;
 use trame::workspace::{Snapshot, Workspace};
 
-use super::tabs::Placement;
+use super::tabs::{Placement, Restarts};
 use super::{Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
 use crate::app::persist::{self, Role, Saver};
@@ -137,6 +137,7 @@ impl Running {
             loader: None,
             update_offer: None,
             restarting: false,
+            restarts: Restarts::default(),
             closing: None,
             strings,
         }

@@ -2,7 +2,10 @@ mod closing;
 mod confirm;
 mod deferred;
 mod folder;
+mod restarts;
 mod ssh;
+#[cfg(test)]
+mod tests;
 
 use std::io;
 use std::path::Path;
@@ -17,6 +20,7 @@ use super::Running;
 use crate::app::sessions::ShellStart;
 pub(super) use closing::Closing;
 pub use folder::FolderTarget;
+pub(super) use restarts::Restarts;
 
 pub(super) const FALLBACK_GRID: (usize, usize) = (24, 80);
 
@@ -103,12 +107,6 @@ impl Running {
         if self.workspace.close_tab(id) {
             self.sessions.remove(id);
             self.after_close(event_loop);
-        }
-    }
-
-    fn replace_last_tab(&mut self) {
-        if let Err(error) = self.open(Placement::Tab) {
-            eprintln!("trame: a fresh tab could not start: {error}");
         }
     }
 

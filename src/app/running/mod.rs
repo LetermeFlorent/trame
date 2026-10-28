@@ -38,8 +38,8 @@ use frame::Loader;
 pub use lifecycle::Offer;
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
-use tabs::Closing;
 pub use tabs::FolderTarget;
+use tabs::{Closing, Restarts};
 
 pub struct Running {
     window: Arc<Window>,
@@ -72,6 +72,7 @@ pub struct Running {
     loader: Option<Loader>,
     update_offer: Option<Offer>,
     restarting: bool,
+    restarts: Restarts,
     power: Power,
     notifier: Notifier,
     closing: Option<Closing>,
@@ -85,7 +86,7 @@ impl Running {
                 self.power.output(id);
                 self.output(id);
             }
-            SessionEvent::Exited(id) => self.close_tab(event_loop, id),
+            SessionEvent::Exited(id) => self.shell_exited(event_loop, id),
         }
     }
 
