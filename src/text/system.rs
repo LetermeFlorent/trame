@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-use std::fmt;
 use std::sync::Arc;
 
 use swash::shape::ShapeContext;
 
 use super::cells::CellCache;
-use super::font::{self, Family, FontId, FontLibrary};
+use super::font::{self, Family, FontId, FontLibrary, MissingFont};
 use super::images::ImageKey;
 use super::layout::{FontRole, Shaping, TextLayout, TextStyle};
 use super::metrics::CellMetrics;
@@ -15,17 +14,6 @@ use crate::render::{Atlas, AtlasRegion, Scene};
 use crate::theme::Rgba;
 
 type LayoutCache = HashMap<String, Vec<Arc<TextLayout>>>;
-
-#[derive(Debug, Clone, Copy)]
-pub struct MissingFont;
-
-impl fmt::Display for MissingFont {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("no usable monospace font was found on this system")
-    }
-}
-
-impl std::error::Error for MissingFont {}
 
 pub struct TextSystem {
     pub(super) library: FontLibrary,
