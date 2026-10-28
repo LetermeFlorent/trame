@@ -3,6 +3,8 @@ use super::KeyStrings;
 pub const VERSION_SLOT: &str = "{version}";
 pub const ALIAS_SLOT: &str = "{alias}";
 pub const NUMBER_SLOT: &str = "{number}";
+pub const COUNT_SLOT: &str = "{count}";
+pub const ACTION_SLOT: &str = "{action}";
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Strings {

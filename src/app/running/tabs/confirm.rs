@@ -2,7 +2,7 @@ use winit::event::{ElementState, KeyEvent};
 use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, NamedKey};
 
-use trame::locale::ALIAS_SLOT;
+use trame::locale::{ALIAS_SLOT, COUNT_SLOT};
 use trame::ui::Hit;
 use trame::ui::frame::{FormAction, MessageRequest};
 
@@ -72,7 +72,9 @@ impl Running {
         };
         (count > 0).then(|| Question {
             title: title.to_owned(),
-            body: format!("{count} {}", strings.tabs_will_close),
+            body: strings
+                .tabs_will_close
+                .replace(COUNT_SLOT, &count.to_string()),
             actions: &CLOSE_ACTIONS,
         })
     }

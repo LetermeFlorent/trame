@@ -4,6 +4,8 @@ mod view;
 
 use std::time::{Duration, Instant};
 
+use trame::locale::VERSION_SLOT;
+
 use crate::app::running::Running;
 use crate::app::update::UpdateStatus;
 use view::FULL;
@@ -41,11 +43,11 @@ impl Running {
         let (message, percent) = match status {
             UpdateStatus::Checking => (strings.checking_updates.to_owned(), None),
             UpdateStatus::Downloading { version, percent } => (
-                format!("{} {version}", strings.downloading_version),
+                strings.downloading_version.replace(VERSION_SLOT, version),
                 Some(*percent),
             ),
             UpdateStatus::Installing(version) => (
-                format!("{} {version}", strings.installing_version),
+                strings.installing_version.replace(VERSION_SLOT, version),
                 Some(FULL),
             ),
             UpdateStatus::Failed => {

@@ -1,4 +1,4 @@
-use trame::locale::Language;
+use trame::locale::{Language, VERSION_SLOT};
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Swatch, Theme};
 use trame::ui::chrome::{draw_chrome, draw_tooltip};
@@ -112,8 +112,8 @@ fn every_language_shows_the_whole_label_in_the_narrowest_sidebar() {
     workspace.sidebar_width = Some(UiMetrics::SIDEBAR_MIN_WIDTH);
     for language in [Language::French, Language::English] {
         let strings = language.strings();
-        for lead in [strings.update_to, strings.restart_into] {
-            let label = format!("{lead} {VERSION}");
+        for phrase in [strings.update_to, strings.restart_into] {
+            let label = phrase.replace(VERSION_SLOT, VERSION);
             let layout = offered(&mut text, &workspace, Some(&label));
             let update = layout.footer.update.as_ref().expect("the update button");
             let end = update.label_x + update.label.width;

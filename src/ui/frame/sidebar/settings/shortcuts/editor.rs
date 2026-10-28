@@ -1,5 +1,5 @@
 use crate::input::MAX_KEYS;
-use crate::locale::KeyStrings;
+use crate::locale::{ACTION_SLOT, KeyStrings};
 use crate::ui::frame::sidebar::settings::chips::Choice;
 use crate::ui::frame::sidebar::settings::column::{Column, LINE_HEIGHT, SECTION_GAP};
 use crate::ui::frame::sidebar::settings::{ChoiceRow, SettingControl};
@@ -69,7 +69,9 @@ fn footer(column: &mut Column, strings: &KeyStrings, add: bool, reset: bool) -> 
 
 fn notice_text(strings: &KeyStrings, notice: KeyNotice) -> String {
     match notice {
-        KeyNotice::Taken(owner) => format!("{} {}", strings.taken_by, strings.actions[owner]),
+        KeyNotice::Taken(owner) => strings
+            .taken_by
+            .replace(ACTION_SLOT, strings.actions[owner]),
         KeyNotice::Typing => strings.typing.to_string(),
         KeyNotice::Unsupported => strings.unsupported.to_string(),
     }

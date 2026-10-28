@@ -17,11 +17,11 @@ pub struct Offer {
 
 impl Offer {
     pub fn label(&self, strings: &Strings) -> String {
-        let lead = match self.ready {
+        let phrase = match self.ready {
             Some(_) => strings.restart_into,
             None => strings.update_to,
         };
-        format!("{lead} {}", self.version)
+        phrase.replace(VERSION_SLOT, &self.version)
     }
 
     pub fn question(&self, strings: &Strings) -> String {

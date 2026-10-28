@@ -8,7 +8,7 @@ pub const ENGLISH_KEYS: KeyStrings = KeyStrings {
     add_key: "Add a key",
     press_keys: "Press the keys you want",
     no_key: "No key",
-    taken_by: "Already used by",
+    taken_by: "Already used by {action}",
     typing: "This key is kept for typing",
     unsupported: "This key is not supported",
     shift: "Shift",

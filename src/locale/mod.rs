@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 pub use detect::{language_of_id, language_of_tag, system_language};
 pub use keys::KeyStrings;
-pub use strings::{ALIAS_SLOT, NUMBER_SLOT, Strings, VERSION_SLOT};
+pub use strings::{ACTION_SLOT, ALIAS_SLOT, COUNT_SLOT, NUMBER_SLOT, Strings, VERSION_SLOT};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Language {

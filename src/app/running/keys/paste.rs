@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use trame::input::{asks_before_pasting, paste_bytes, paste_preview};
+use trame::locale::COUNT_SLOT;
 use trame::log_error;
 use trame::session::{Session, SessionId};
 
@@ -50,7 +51,8 @@ impl Running {
         let preview = paste_preview(text);
         let mut lines = preview.lines;
         if preview.line_count > lines.len() {
-            lines.push(format!("{} {}", preview.line_count, strings.lines_in_all));
+            let count = preview.line_count.to_string();
+            lines.push(strings.lines_in_all.replace(COUNT_SLOT, &count));
         }
         if preview.hidden_characters {
             lines.push(strings.hidden_removed.to_owned());

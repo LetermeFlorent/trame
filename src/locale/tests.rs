@@ -1,3 +1,4 @@
+mod slots;
 mod texts;
 
 use super::*;
