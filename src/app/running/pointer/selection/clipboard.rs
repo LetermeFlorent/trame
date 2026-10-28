@@ -14,7 +14,8 @@ impl Running {
     pub(in crate::app::running) fn forward_clipboard(&self, id: SessionId) {
         let session = self.sessions.get(id);
         let text = session.and_then(|session| session.terminal().screen_mut().take_clipboard());
-        if let Some(text) = text {
+        let focused = self.view.window_focused && self.workspace.active_tab() == Some(id);
+        if let Some(text) = text.filter(|_| focused) {
             write_clipboard(&text);
         }
     }

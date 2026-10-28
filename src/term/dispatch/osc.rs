@@ -1,4 +1,5 @@
-use super::decode::{decode_base64, file_url_path};
+use super::decode::{decode_base64, file_url_path, local_folder};
+use crate::term::MAX_CLIPBOARD_BYTES;
 use crate::term::screen::Screen;
 
 const MAX_TITLE_LEN: usize = 256;
@@ -18,7 +19,9 @@ impl Screen {
             b"9" if params.get(1) == Some(&&b"9"[..]) => {
                 if let Some(path) = params.get(2) {
                     let path = String::from_utf8_lossy(path);
-                    self.cwd = Some(path.trim_matches('"').to_string());
+                    if let Some(folder) = local_folder(path.trim_matches('"').to_string()) {
+                        self.cwd = Some(folder);
+                    }
                 }
                 self.forget_mouse();
             }
@@ -32,17 +35,19 @@ impl Screen {
             b"10" | b"11" | b"12" if params.get(1) == Some(&&b"?"[..]) => {
                 self.report_color(kind, bell_terminated);
             }
-            b"52" => {
-                let data = params.get(2).copied().unwrap_or_default();
-                if data != b"?" {
-                    let decoded = decode_base64(data)
-                        .and_then(|bytes| String::from_utf8(bytes).ok())
-                        .filter(|text| !text.is_empty());
-                    self.clipboard = decoded.or(self.clipboard.take());
-                }
-            }
+            b"52" => self.store_clipboard(params.get(2).copied().unwrap_or_default()),
             _ => {}
         }
+    }
+
+    fn store_clipboard(&mut self, data: &[u8]) {
+        if !self.clipboard_writes || data == b"?" {
+            return;
+        }
+        let decoded = decode_base64(data)
+            .and_then(|bytes| String::from_utf8(bytes).ok())
+            .filter(|text| !text.is_empty() && text.len() <= MAX_CLIPBOARD_BYTES);
+        self.clipboard = decoded.or(self.clipboard.take());
     }
 
     fn set_title(&mut self, parts: &[&[u8]]) {

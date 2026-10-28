@@ -101,6 +101,10 @@ impl Screen {
         self.colors = colors;
     }
 
+    pub fn set_clipboard_writes(&mut self, allowed: bool) {
+        self.clipboard_writes = allowed;
+    }
+
     pub fn set_history(&mut self, lines: usize) {
         self.primary.set_max_history(lines);
     }

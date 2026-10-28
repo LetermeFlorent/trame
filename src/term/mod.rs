@@ -15,6 +15,7 @@ pub use modes::Modes;
 pub use screen::{ReportedColors, Screen};
 
 pub const DEFAULT_HISTORY: usize = 10_000;
+pub const MAX_CLIPBOARD_BYTES: usize = 256 * 1024;
 
 #[derive(Debug)]
 pub struct Terminal {

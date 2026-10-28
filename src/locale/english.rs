@@ -56,6 +56,7 @@ pub const ENGLISH: Strings = Strings {
     efficiency_mode: "Efficiency mode when idle or hidden",
     rest_hidden_tabs: "Hidden tabs with no activity",
     notify_waiting: "Notify when a tab is waiting for you",
+    program_clipboard: "Let programs copy to the clipboard",
     updates: "Updates",
     update_automatically: "Update automatically",
     instances_section: "Instances",

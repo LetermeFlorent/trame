@@ -36,6 +36,7 @@ pub struct Sessions {
     shell: ShellCommand,
     notify: Notifier,
     history: usize,
+    program_clipboard: bool,
 }
 
 impl Sessions {
@@ -57,6 +58,7 @@ impl Sessions {
             shell: default_shell(),
             notify,
             history: DEFAULT_HISTORY_LINES,
+            program_clipboard: true,
         }
     }
 
@@ -76,7 +78,7 @@ impl Sessions {
             transcript: start.transcript,
         };
         let session = Session::spawn(id, &options, self.notify.clone())?;
-        session.terminal().screen_mut().set_history(self.history);
+        self.prepare(&session);
         self.map.insert(id, session);
         if let Some(path) = cwd {
             self.origins.insert(id, path.to_path_buf());

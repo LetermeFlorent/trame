@@ -43,11 +43,11 @@ fn osc_sets_title_and_cwd() {
     let term = feed(
         1,
         10,
-        "\x1b]0;mon titre\x07\x1b]7;file://pc/C:/Users/Me%20Doc\x1b\\",
+        "\x1b]0;mon titre\x07\x1b]7;file://localhost/C:/Users/Me%20Doc\x1b\\",
     );
     assert_eq!(term.screen().title(), Some("mon titre"));
     assert_eq!(term.screen().cwd(), Some("C:/Users/Me Doc"));
-    let term = feed(1, 10, "\x1b]7;file://host/home/me\x07");
+    let term = feed(1, 10, "\x1b]7;file:///home/me\x07");
     assert_eq!(term.screen().cwd(), Some("/home/me"));
     let term = feed(1, 10, "\x1b]9;9;\"D:\\work\"\x07");
     assert_eq!(term.screen().cwd(), Some("D:\\work"));

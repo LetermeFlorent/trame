@@ -41,6 +41,8 @@ The startup command, empty by default, is typed and run in every new shell. A ta
 
 At launch, trame reopens the last layout with each shell in the folder it was in, and each tab shows again the text it held when trame closed. Only the text comes back. A program that was running in the tab is not started again, except an SSH connection, which asks for its password again.
 
+The folder is the last one the shell reported on this computer. trame ignores a network path such as `\\server\share`, or a folder reported by another machine, for example over SSH, and keeps the last local one.
+
 Three switches in the settings change that, all on by default. "Remember instances" off starts a single new instance. "Remember terminals" off brings the instances back with their name, colour, icon and folder but with fresh terminals, as many as a new instance gets. "Restore tab text" off brings the tabs back empty.
 
 Only one trame at a time keeps the layout. A second one, opened while the first still runs, starts with a single new instance and saves nothing, not even its settings: its title bar says "unsaved session" after the name.
@@ -57,7 +59,7 @@ Terminals sets the startup command and how many terminals a new instance opens w
 
 Display changes the size of the terminal text and of the interface (80% to 150%), the language (Auto follows the system, or force French or English), the side of the panel and the spacing.
 
-System holds efficiency mode, on by default. trame slows down after 30 seconds without activity, and as soon as its window is minimized or behind another one it also lowers the priority of the programs running in its tabs, until the window comes back to the front. The switch under it, "Hidden tabs with no activity", also on by default, does the same for a tab you cannot see once it has printed nothing for 30 seconds, even while the window is in front, and gives back the memory that tab holds. On Windows, System can also show a notification when a tab waits for an answer. On Windows and macOS it holds the update switch described in [Updates](#updates).
+System holds efficiency mode, on by default. trame slows down after 30 seconds without activity, and as soon as its window is minimized or behind another one it also lowers the priority of the programs running in its tabs, until the window comes back to the front. The switch under it, "Hidden tabs with no activity", also on by default, does the same for a tab you cannot see once it has printed nothing for 30 seconds, even while the window is in front, and gives back the memory that tab holds. On Windows, System can also show a notification when a tab waits for an answer. The switch "Let programs copy to the clipboard", on by default, lets the program in the tab you are working in replace the clipboard, which is how vim or tmux copy over SSH. trame ignores the request when it comes from another tab, while its window is not in front, or with more than 256 KB of text. On Windows and macOS it holds the update switch described in [Updates](#updates).
 
 Instances shows numbers instead of icons and chooses whether they follow when an instance closes or moves.
 

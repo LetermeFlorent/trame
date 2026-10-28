@@ -56,6 +56,7 @@ pub const FRENCH: Strings = Strings {
     efficiency_mode: "Mode efficacité inactif ou en arrière-plan",
     rest_hidden_tabs: "Onglets cachés sans activité",
     notify_waiting: "Notifier quand un onglet attend une réponse",
+    program_clipboard: "Laisser les programmes copier dans le presse-papiers",
     updates: "Mises à jour",
     update_automatically: "Mettre à jour automatiquement",
     instances_section: "Instances",

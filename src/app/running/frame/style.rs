@@ -27,6 +27,10 @@ impl Running {
         if previous.history_lines != current.history_lines {
             self.sessions.set_history(current.history_lines);
         }
+        if previous.program_clipboard != current.program_clipboard {
+            self.sessions
+                .set_program_clipboard(current.program_clipboard);
+        }
         self.saver.touch();
         self.strings = current.language.resolve().strings();
         let layout = |kept: &Preferences| {

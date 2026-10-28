@@ -31,6 +31,9 @@ pub(super) fn system_page(
         let control = SettingControl::NotifyWaiting;
         toggles.push(column.toggle_row(strings.notify_waiting, notify, control));
     }
+    let clipboard = [preferences.program_clipboard, true];
+    let control = SettingControl::ProgramClipboard;
+    toggles.push(column.toggle_row(strings.program_clipboard, clipboard, control));
     if cfg!(any(windows, target_os = "macos")) {
         sections.push(column.section(strings.updates));
         let auto = [preferences.updates.auto, true];

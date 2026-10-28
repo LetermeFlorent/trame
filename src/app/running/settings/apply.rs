@@ -17,6 +17,7 @@ impl Running {
             SettingControl::Efficiency
             | SettingControl::RestHiddenTabs
             | SettingControl::NotifyWaiting
+            | SettingControl::ProgramClipboard
             | SettingControl::AutoUpdate => current.with(|next| flip(next, control)),
             SettingControl::Numbers(choice) => {
                 current.with(|next| choice.toggle(&mut next.numbering))
@@ -69,6 +70,7 @@ fn flip(next: &mut Preferences, control: SettingControl) {
         SettingControl::Efficiency => &mut next.efficiency,
         SettingControl::RestHiddenTabs => &mut next.rest_hidden_tabs,
         SettingControl::NotifyWaiting => &mut next.notify_waiting,
+        SettingControl::ProgramClipboard => &mut next.program_clipboard,
         SettingControl::AutoUpdate => &mut next.updates.auto,
         _ => return,
     };

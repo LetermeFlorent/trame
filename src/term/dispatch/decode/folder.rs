@@ -1,34 +1,30 @@
-pub(crate) fn decode_base64(input: &[u8]) -> Option<Vec<u8>> {
-    let mut output = Vec::with_capacity(input.len() / 4 * 3);
-    let mut buffer = 0u32;
-    let mut bits = 0u32;
-    for &byte in input {
-        let value = match byte {
-            b'A'..=b'Z' => byte - b'A',
-            b'a'..=b'z' => byte - b'a' + 26,
-            b'0'..=b'9' => byte - b'0' + 52,
-            b'+' | b'-' => 62,
-            b'/' | b'_' => 63,
-            b'=' | b'\r' | b'\n' => continue,
-            _ => return None,
-        };
-        buffer = (buffer << 6) | u32::from(value);
-        bits += 6;
-        if bits >= 8 {
-            bits -= 8;
-            output.push((buffer >> bits) as u8);
-            buffer &= (1 << bits) - 1;
-        }
-    }
-    Some(output)
-}
+use super::host::is_this_machine;
 
 pub(crate) fn file_url_path(url: &[u8]) -> Option<String> {
     let rest = url.strip_prefix(b"file://")?;
     let path_start = rest.iter().position(|&byte| byte == b'/')?;
-    let decoded = percent_decode(&rest[path_start..]);
-    let path = String::from_utf8(decoded).ok()?;
-    Some(strip_drive_slash(path))
+    let (host, path) = rest.split_at(path_start);
+    if !is_this_machine(host) {
+        return None;
+    }
+    let path = String::from_utf8(percent_decode(path)).ok()?;
+    local_folder(strip_drive_slash(path))
+}
+
+pub(crate) fn local_folder(path: String) -> Option<String> {
+    let bytes = path.as_bytes();
+    let from_drive = bytes.len() >= 3
+        && bytes[0].is_ascii_alphabetic()
+        && bytes[1] == b':'
+        && is_separator(bytes[2]);
+    let from_root =
+        bytes.first() == Some(&b'/') && !matches!(bytes.get(1), Some(b'/' | b'\\' | b'?'));
+    let printable = !path.chars().any(char::is_control);
+    ((from_drive || from_root) && printable).then_some(path)
+}
+
+fn is_separator(byte: u8) -> bool {
+    matches!(byte, b'/' | b'\\')
 }
 
 fn percent_decode(input: &[u8]) -> Vec<u8> {

@@ -56,6 +56,7 @@ pub struct Strings {
     pub efficiency_mode: &'static str,
     pub rest_hidden_tabs: &'static str,
     pub notify_waiting: &'static str,
+    pub program_clipboard: &'static str,
     pub updates: &'static str,
     pub update_automatically: &'static str,
     pub instances_section: &'static str,

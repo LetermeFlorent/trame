@@ -96,6 +96,7 @@ fn every_preference_changed() -> Preferences {
         efficiency: false,
         rest_hidden_tabs: false,
         notify_waiting: false,
+        program_clipboard: false,
         updates: Updates { auto: false },
         numbering: Numbering {
             shown: false,
