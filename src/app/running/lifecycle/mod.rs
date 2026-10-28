@@ -85,9 +85,10 @@ impl Running {
 
     pub fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         self.sync_graphics(event_loop);
+        let retry = self.visibility.retry(&self.window);
+        self.power.set_background(self.visibility.seen_hidden());
         let save = self.save_deadline();
         let text = self.transcript_deadline();
-        let retry = self.visibility.retry(&self.window);
         let loader = self.loader_wake(Instant::now());
         let secret = self.sessions.secret_deadline(Instant::now());
         let wake = save

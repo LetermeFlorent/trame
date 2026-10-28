@@ -42,6 +42,14 @@ fn a_quiet_window_in_front_only_slows_trame() {
 }
 
 #[test]
+fn the_same_window_state_again_is_not_activity() {
+    let mut power = Power::new([true, true]);
+    power.tick(power.last + IDLE_AFTER);
+    power.set_background(false);
+    assert_eq!(power.mode, Mode::Own);
+}
+
+#[test]
 fn the_switch_turned_off_keeps_full_speed_everywhere() {
     let mut power = Power::new([true, true]);
     power.set_background(true);

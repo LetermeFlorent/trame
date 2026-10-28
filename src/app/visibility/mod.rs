@@ -1,3 +1,5 @@
+#[cfg(test)]
+mod tests;
 #[cfg(windows)]
 mod windows;
 
@@ -6,6 +8,7 @@ use std::time::{Duration, Instant};
 use winit::window::Window;
 
 const RECHECK: Duration = Duration::from_millis(250);
+const LONGEST_RETRY: Duration = Duration::from_secs(2);
 
 #[derive(Default)]
 pub struct Visibility {
@@ -13,6 +16,7 @@ pub struct Visibility {
     hidden: bool,
     checked: Option<Instant>,
     retry: Option<Instant>,
+    misses: u32,
 }
 
 impl Visibility {
@@ -23,6 +27,7 @@ impl Visibility {
 
     pub fn forget(&mut self) {
         self.checked = None;
+        self.misses = 0;
         if self.retry.is_some() {
             self.retry = Some(Instant::now());
         }
@@ -37,30 +42,53 @@ impl Visibility {
             self.hidden = probe(window);
             self.checked = Some(now);
         }
+        self.seen_hidden()
+    }
+
+    pub fn seen_hidden(&self) -> bool {
         self.occluded || self.hidden
     }
 
     pub fn missed(&mut self) {
-        self.retry = Some(Instant::now() + RECHECK);
+        self.missed_at(Instant::now());
     }
 
     pub fn drawn(&mut self) {
         self.retry = None;
+        self.misses = 0;
     }
 
     pub fn retry(&mut self, window: &Window) -> Option<Instant> {
-        let due = self.retry?;
-        if Instant::now() < due {
-            return Some(due);
+        let now = Instant::now();
+        if self.retry.is_none_or(|due| now < due) {
+            return self.retry;
         }
         if self.is_hidden(window) {
-            self.missed();
-            return self.retry;
+            return Some(self.still_hidden(now));
         }
         self.retry = None;
         window.request_redraw();
         None
     }
+
+    fn missed_at(&mut self, now: Instant) {
+        if self.retry.is_none() {
+            self.retry = Some(now + retry_wait(self.misses));
+        }
+    }
+
+    fn still_hidden(&mut self, now: Instant) -> Instant {
+        self.misses = self.misses.saturating_add(1);
+        let due = now + retry_wait(self.misses);
+        self.retry = Some(due);
+        due
+    }
+}
+
+fn retry_wait(misses: u32) -> Duration {
+    RECHECK
+        .saturating_mul(2u32.saturating_pow(misses))
+        .min(LONGEST_RETRY)
 }
 
 fn probe(window: &Window) -> bool {
