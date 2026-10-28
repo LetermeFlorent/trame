@@ -16,7 +16,8 @@ const COMMAND_PROMPT: &str = r"$e]9;9;$P$e\$P$G";
 
 #[cfg(windows)]
 pub fn default_shell() -> ShellCommand {
-    if let Some(pwsh) = find_in_path("pwsh.exe") {
+    let path = std::env::var_os("PATH").unwrap_or_default();
+    if let Some(pwsh) = find_in_path(&path, "pwsh.exe") {
         return powershell(pwsh);
     }
     let system_root = std::env::var_os("SystemRoot")
@@ -52,9 +53,9 @@ fn command_prompt(system_root: PathBuf) -> ShellCommand {
 }
 
 #[cfg(windows)]
-fn find_in_path(name: &str) -> Option<PathBuf> {
-    let path = std::env::var_os("PATH")?;
-    std::env::split_paths(&path)
+pub fn find_in_path(path: &std::ffi::OsStr, name: &str) -> Option<PathBuf> {
+    std::env::split_paths(path)
+        .filter(|directory| directory.is_absolute())
         .map(|directory| directory.join(name))
         .find(|candidate| {
             std::fs::symlink_metadata(candidate).is_ok_and(|metadata| !metadata.is_dir())

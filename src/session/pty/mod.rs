@@ -14,6 +14,8 @@ use std::fs::File;
 use std::io;
 use std::path::{Path, PathBuf};
 
+#[cfg(windows)]
+pub use shell::find_in_path;
 pub use shell::{ShellCommand, default_shell};
 
 pub const TERM_PROGRAM: &str = "trame";
