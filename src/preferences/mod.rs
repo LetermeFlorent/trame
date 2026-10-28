@@ -1,3 +1,4 @@
+mod closing;
 mod colors;
 mod history;
 mod launch;
@@ -15,6 +16,7 @@ use crate::theme::Swatch;
 use crate::ui::display::{Density, PanelSide};
 use crate::ui::metrics::TERMINAL_FONT_SIZE;
 use crate::workspace::Numbering;
+pub use closing::CONFIRM_FROM_TABS;
 pub use colors::MAX_CUSTOM_COLORS;
 use colors::sanitized_colors;
 pub use history::{DEFAULT_HISTORY_LINES, MAX_HISTORY_LINES, MIN_HISTORY_LINES};
@@ -30,8 +32,6 @@ pub use ssh::{
     without_host, written_by_hand,
 };
 pub use updates::Updates;
-
-pub const CONFIRM_FROM_TABS: usize = 2;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Preferences {
@@ -127,14 +127,6 @@ impl Preferences {
         let mut next = self.clone();
         change(&mut next);
         next
-    }
-
-    pub fn toggle_confirm_close(&self) -> Self {
-        self.with(|next| next.confirm_close = !next.confirm_close)
-    }
-
-    pub fn confirms_closing(&self, tabs: usize) -> bool {
-        self.confirm_close && tabs >= CONFIRM_FROM_TABS
     }
 
     pub fn power_switches(&self) -> [bool; 2] {
