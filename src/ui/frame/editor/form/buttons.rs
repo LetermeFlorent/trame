@@ -20,6 +20,7 @@ pub enum FormAction {
     Image,
     Restart,
     Remove,
+    Paste,
 }
 
 impl FormAction {
@@ -39,6 +40,7 @@ impl FormAction {
             Self::Image => strings.image,
             Self::Restart => strings.restart,
             Self::Remove => strings.remove,
+            Self::Paste => strings.paste,
         }
     }
 }

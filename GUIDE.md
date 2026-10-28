@@ -49,6 +49,8 @@ Only one trame at a time keeps the layout. A second one, opened while the first 
 
 Closing the window, or an instance from its cross in the side bar, while it holds two tabs or more first asks to confirm, with the number of tabs that will close. Enter or Close confirms; Escape, Cancel, the cross or a click outside keeps everything open. The switch "Ask before closing several tabs", on by default, turns the question off.
 
+Pasting text that holds a line break asks first, because a shell runs each line as soon as it arrives. The question shows the first three lines and how many there are in all. It does not come up when the program in the tab has turned on bracketed paste, which marks the pasted text so the program does not run it on its own. trame removes control characters from every paste, keeping tabs and line breaks, and asks as well when the clipboard held some. Enter or Paste sends the text; Escape, Cancel, the cross or a click outside drops it. The switch "Ask before pasting several lines", on by default, turns the question off.
+
 ## Settings
 
 The Settings button at the bottom of the side bar (a gear with a tooltip when the bar is folded) opens the settings window in the middle of the screen. It has seven tabs, and Escape, the cross or a click outside closes it.

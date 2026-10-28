@@ -95,6 +95,18 @@ fn each_language_has_its_own_closing_texts() {
 }
 
 #[test]
+fn each_language_has_its_own_paste_texts() {
+    let picks: [fn(&Strings) -> &'static str; 5] = [
+        |s| s.confirm_paste,
+        |s| s.paste_question,
+        |s| s.lines_in_all,
+        |s| s.hidden_removed,
+        |s| s.paste,
+    ];
+    picks.into_iter().for_each(differ);
+}
+
+#[test]
 fn each_language_has_its_own_folder_window_texts() {
     let picks: [fn(&Strings) -> &'static str; 3] = [|s| s.change_folder, |s| s.change, |s| s.apply];
     picks.into_iter().for_each(differ);

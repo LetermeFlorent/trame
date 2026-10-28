@@ -14,7 +14,8 @@ impl Running {
             SettingControl::Keys(key) => return self.key_setting(key),
             SettingControl::Recall(recall) => current.toggle(recall),
             SettingControl::ConfirmClose => current.toggle_confirm_close(),
-            SettingControl::Efficiency
+            SettingControl::ConfirmPaste
+            | SettingControl::Efficiency
             | SettingControl::RestHiddenTabs
             | SettingControl::NotifyWaiting
             | SettingControl::ProgramClipboard
@@ -67,6 +68,7 @@ impl Running {
 
 fn flip(next: &mut Preferences, control: SettingControl) {
     let switch = match control {
+        SettingControl::ConfirmPaste => &mut next.confirm_paste,
         SettingControl::Efficiency => &mut next.efficiency,
         SettingControl::RestHiddenTabs => &mut next.rest_hidden_tabs,
         SettingControl::NotifyWaiting => &mut next.notify_waiting,

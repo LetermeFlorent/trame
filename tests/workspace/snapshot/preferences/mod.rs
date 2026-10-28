@@ -90,6 +90,7 @@ fn every_preference_changed() -> Preferences {
         default_folder: Some(PathBuf::from("projects")),
         ssh_hosts: SshHost::parse("me@box:2222").into_iter().collect(),
         confirm_close: false,
+        confirm_paste: false,
         custom_colors: vec![Swatch::custom(0x12ab34)],
         panel_side: PanelSide::Right,
         density: Density::Spacious,

@@ -12,6 +12,7 @@ use crate::app::running::keys::is_escape;
 const CLOSE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Close];
 const UPDATE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Restart];
 const REMOVE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Remove];
+const PASTE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Paste];
 const ALIAS_SLOT: &str = "{alias}";
 
 struct Question {
@@ -22,7 +23,7 @@ struct Question {
 
 impl Running {
     pub(in crate::app::running) fn place_message(&mut self) {
-        let Some(closing) = self.closing else {
+        let Some(closing) = self.closing.clone() else {
             return;
         };
         let Some(question) = self.question(closing) else {
@@ -49,6 +50,13 @@ impl Running {
                 actions: &REMOVE_ACTIONS,
             });
         }
+        if let Closing::Paste(pending) = &closing {
+            return Some(Question {
+                title: strings.paste_question.to_owned(),
+                body: pending.body.clone(),
+                actions: &PASTE_ACTIONS,
+            });
+        }
         if let Closing::Update = closing {
             let offer = self.update_offer.as_ref()?;
             return Some(Question {
@@ -57,7 +65,7 @@ impl Running {
                 actions: &UPDATE_ACTIONS,
             });
         }
-        let count = self.tabs_closing(closing);
+        let count = self.tabs_closing(&closing);
         let title = match closing {
             Closing::Instance(_) => strings.close_instance,
             _ => strings.close_window,
@@ -88,7 +96,10 @@ impl Running {
             let confirmed = matches!(
                 hit,
                 Some(Hit::FormButton(
-                    FormAction::Close | FormAction::Restart | FormAction::Remove
+                    FormAction::Close
+                        | FormAction::Restart
+                        | FormAction::Remove
+                        | FormAction::Paste
                 ))
             );
             self.settle_closing(event_loop, confirmed);

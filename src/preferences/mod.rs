@@ -58,6 +58,8 @@ pub struct Preferences {
     pub ssh_hosts: Vec<SshHost>,
     #[serde(default = "enabled")]
     pub confirm_close: bool,
+    #[serde(default = "enabled")]
+    pub confirm_paste: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub custom_colors: Vec<Swatch>,
     #[serde(default)]
@@ -95,6 +97,7 @@ impl Default for Preferences {
             default_folder: None,
             ssh_hosts: Vec::new(),
             confirm_close: true,
+            confirm_paste: true,
             custom_colors: Vec::new(),
             panel_side: PanelSide::Left,
             density: Density::Compact,

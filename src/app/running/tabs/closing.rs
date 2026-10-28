@@ -1,15 +1,19 @@
+use std::rc::Rc;
+
 use winit::event_loop::ActiveEventLoop;
 
 use trame::workspace::{Instance, InstanceId};
 
 use crate::app::running::Running;
+use crate::app::running::keys::PendingPaste;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub(in crate::app::running) enum Closing {
     Window,
     Instance(InstanceId),
     Update,
     Forget(usize),
+    Paste(Rc<PendingPaste>),
 }
 
 impl Running {
@@ -22,7 +26,7 @@ impl Running {
             Closing::Update => true,
             _ => self
                 .preferences
-                .confirms_closing(self.tabs_closing(closing)),
+                .confirms_closing(self.tabs_closing(&closing)),
         };
         if asks && self.loader.is_none() {
             self.closing = Some(closing);
@@ -37,6 +41,7 @@ impl Running {
             Closing::Instance(id) => self.close_instance(event_loop, id),
             Closing::Update => self.restart_for_update(event_loop),
             Closing::Forget(index) => self.forget_at(index),
+            Closing::Paste(pending) => self.send_paste(&pending),
         }
     }
 
@@ -50,15 +55,15 @@ impl Running {
         self.after_close(event_loop);
     }
 
-    pub(super) fn tabs_closing(&self, closing: Closing) -> usize {
+    pub(super) fn tabs_closing(&self, closing: &Closing) -> usize {
         let instances = &self.workspace.instances;
         match closing {
             Closing::Window => instances.iter().map(Instance::tab_count).sum(),
             Closing::Instance(id) => instances
                 .iter()
-                .find(|instance| instance.id == id)
+                .find(|instance| instance.id == *id)
                 .map_or(0, Instance::tab_count),
-            Closing::Update | Closing::Forget(_) => 0,
+            Closing::Update | Closing::Forget(_) | Closing::Paste(_) => 0,
         }
     }
 

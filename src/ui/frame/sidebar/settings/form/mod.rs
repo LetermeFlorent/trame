@@ -16,7 +16,9 @@ use crate::ui::metrics::UiMetrics;
 
 use super::column::Column;
 use super::{ChoiceRow, SettingControl, SettingLine, SettingsTab};
-use launch::{close_toggle, command_row, history_stepper, instance_tabs_stepper, recall_toggles};
+use launch::{
+    command_row, history_stepper, instance_tabs_stepper, question_toggles, recall_toggles,
+};
 use rows::{display_rows, folder_row, language_row, size_steppers};
 use system::system_page;
 
@@ -74,8 +76,7 @@ pub(super) fn form_page(
                 instance_tabs_stepper(column, strings, preferences),
                 history_stepper(column, strings, preferences),
             ];
-            page.toggles
-                .push(close_toggle(column, strings, preferences));
+            page.toggles = question_toggles(column, strings, preferences).into();
         }
         SettingsTab::Display => {
             page.steppers = size_steppers(column, strings, preferences).into();

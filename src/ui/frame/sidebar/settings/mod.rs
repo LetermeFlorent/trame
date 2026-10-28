@@ -75,6 +75,7 @@ pub enum SettingControl {
     ClearFolder,
     AddHost,
     ConfirmClose,
+    ConfirmPaste,
     Efficiency,
     RestHiddenTabs,
     NotifyWaiting,
