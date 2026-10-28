@@ -29,6 +29,6 @@ impl Grid {
                 text.push('\n');
             }
         }
-        Some(text)
+        (!text.is_empty()).then_some(text)
     }
 }

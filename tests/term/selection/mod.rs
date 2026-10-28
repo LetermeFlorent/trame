@@ -138,3 +138,10 @@ fn blank_rows_copy_as_empty_lines() {
     select(&mut term, SelectionKind::Line, (0, 0), (1, 3));
     assert_eq!(text(&term).as_deref(), Some("\n"));
 }
+
+#[test]
+fn a_blank_selection_has_no_text() {
+    let mut term = feed(2, 10, "ab");
+    select(&mut term, SelectionKind::Simple, (0, 4), (0, 8));
+    assert_eq!(text(&term), None);
+}
