@@ -1,4 +1,4 @@
-use trame::preferences::{SshHost, menu_hosts, vault};
+use trame::preferences::{SshHost, SshLogin, menu_hosts, vault};
 use trame::session::SessionId;
 use trame::ui::frame::EditTarget;
 
@@ -37,8 +37,12 @@ impl Running {
         if let (Some(line), Some(session)) = (line, self.sessions.get(id)) {
             session.write(line);
         }
-        if let Some(secret) = host.as_ref().and_then(|host| vault::SSH.load(host)) {
-            self.sessions.expect_secret(id, secret);
+        if let Some(host) = &host
+            && let Some(secret) = vault::SSH.load(host)
+        {
+            let entry = persist::ssh_entry(host.split().1);
+            let login = SshLogin::of(host, entry.as_ref());
+            self.sessions.expect_secret(id, secret, login);
         }
     }
 }

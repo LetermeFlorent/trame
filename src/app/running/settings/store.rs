@@ -18,7 +18,7 @@ impl HostForm {
     }
 
     fn changing(host: SshHost) -> Self {
-        let entry = host.alias().and_then(config_entry);
+        let entry = host.alias().and_then(persist::ssh_entry);
         let entry = entry.unwrap_or_else(|| HostEntry::of(&host));
         let secret = vault::SSH.load(&host);
         Self {
@@ -77,14 +77,6 @@ impl Running {
             panel.form = Some(HostForm::changing(host));
         }
     }
-}
-
-fn config_entry(alias: &str) -> Option<HostEntry> {
-    let config = persist::ssh_config()?;
-    config.entry(alias).unwrap_or_else(|error| {
-        eprintln!("trame: the SSH config could not be read: {error}");
-        None
-    })
 }
 
 fn save_secret(host: &SshHost, secret: Option<&str>) {

@@ -8,7 +8,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 use trame::files::{home_dir, write_atomic};
-use trame::preferences::SshConfig;
+use trame::preferences::{HostEntry, SshConfig};
 use trame::workspace::Snapshot;
 
 pub use role::Role;
@@ -23,6 +23,14 @@ const SSH_CONFIG: &str = "config";
 
 pub fn ssh_config() -> Option<SshConfig> {
     home_dir().map(|home| SshConfig::at(home.join(SSH_DIR).join(SSH_CONFIG)))
+}
+
+pub fn ssh_entry(name: &str) -> Option<HostEntry> {
+    let config = ssh_config()?;
+    config.entry(name).unwrap_or_else(|error| {
+        eprintln!("trame: the SSH config could not be read: {error}");
+        None
+    })
 }
 
 #[cfg(windows)]

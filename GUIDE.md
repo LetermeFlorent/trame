@@ -27,7 +27,7 @@ Change folder opens a small window with the current folder, which cannot be type
 
 The same menu opens an SSH connection in a new tab. The window lists the saved connections and the hosts of `~/.ssh/config`: a click on one connects, and its pencil fills the form below to change it.
 
-The form takes an address, a user, a port and a password, all optional but the address. Connect writes the host to `~/.ssh/config` (or changes its block there), keeps the password in the Windows Credential Manager on Windows, and opens the tab. trame types the system `ssh` command (OpenSSH, part of Windows 10 and 11) and answers the password prompt with the saved password. Each connection used goes first in the list, and a long list scrolls with the wheel or its bar.
+The form takes an address, a user, a port and a password, all optional but the address. Connect writes the host to `~/.ssh/config` (or changes its block there), keeps the password in the Windows Credential Manager on Windows, and opens the tab. trame types the system `ssh` command (OpenSSH, part of Windows 10 and 11) and types the saved password once, into the password prompt of that user and host only (the address and user set in `~/.ssh/config` count). A key passphrase or the password of a jump host is left to you, and trame stops waiting for the prompt after a minute or at the first line that is not part of connecting. Each connection used goes first in the list, and a long list scrolls with the wheel or its bar.
 
 ### Shells and themes
 

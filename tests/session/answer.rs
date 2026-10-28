@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use trame::preferences::SecretAnswer;
+use trame::preferences::{SecretAnswer, SshHost, SshLogin};
 
 use crate::pty::{TIMEOUT, screen_text};
 use crate::shell::start_shell;
@@ -14,7 +14,9 @@ const ASK: &[u8] = b"printf \"me@box's password: \"; read typed; echo got-$typed
 fn a_password_prompt_on_a_real_shell_gets_the_secret() {
     let (session, events) = start_shell(&[]);
     session.write(ASK);
-    let mut answer = SecretAnswer::new("hunter2".to_owned(), Instant::now());
+    let host = SshHost::parse("me@box").expect("a host");
+    let login = SshLogin::of(&host, None);
+    let mut answer = SecretAnswer::new("hunter2".to_owned(), login, Instant::now());
     let mut replies = 0;
     let deadline = Instant::now() + TIMEOUT;
     while !screen_text(&session.terminal()).contains("got-hunter2") {
