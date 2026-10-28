@@ -12,6 +12,29 @@ pub(in crate::app::running) use view::Loader;
 const STILL_FRAME: Duration = Duration::from_millis(33);
 const MOVING_FRAME: Duration = Duration::from_millis(16);
 
+enum Wake {
+    Rest,
+    Wait(Instant),
+    Draw(Instant),
+}
+
+impl Loader {
+    fn wake(&mut self, now: Instant, hidden: bool) -> Wake {
+        if hidden {
+            return Wake::Rest;
+        }
+        if now < self.next_frame {
+            return Wake::Wait(self.next_frame);
+        }
+        let pace = match self.is_moving(now) {
+            true => MOVING_FRAME,
+            false => STILL_FRAME,
+        };
+        self.next_frame = now + pace;
+        Wake::Draw(self.next_frame)
+    }
+}
+
 impl Running {
     pub fn set_update(&mut self, status: &UpdateStatus) {
         let strings = self.strings;
@@ -39,16 +62,22 @@ impl Running {
     }
 
     pub(in crate::app::running) fn loader_wake(&mut self, now: Instant) -> Option<Instant> {
-        let loader = self.loader.as_mut()?;
-        if now >= loader.next_frame && !self.visibility.is_hidden(&self.window) {
-            let pace = match loader.is_moving(now) {
-                true => MOVING_FRAME,
-                false => STILL_FRAME,
-            };
-            loader.next_frame = now + pace;
+        if self.drop_gone_loader(now) {
             self.window.request_redraw();
         }
-        Some(loader.next_frame)
+        let hidden = self.loader.is_some() && self.visibility.is_hidden(&self.window);
+        match self.loader.as_mut()?.wake(now, hidden) {
+            Wake::Rest => None,
+            Wake::Wait(next) => Some(next),
+            Wake::Draw(next) => {
+                self.window.request_redraw();
+                Some(next)
+            }
+        }
+    }
+
+    pub(in crate::app::running) fn drop_gone_loader(&mut self, now: Instant) -> bool {
+        self.loader.take_if(|loader| loader.is_gone(now)).is_some()
     }
 
     fn close_loader(&mut self) {

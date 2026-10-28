@@ -1,5 +1,7 @@
 mod deferred;
 mod secrets;
+#[cfg(test)]
+mod tests;
 
 use std::collections::HashMap;
 use std::io;
@@ -38,10 +40,13 @@ pub struct Sessions {
 impl Sessions {
     pub fn new(proxy: EventLoopProxy<UserEvent>) -> Self {
         let proxy = Mutex::new(proxy);
-        let notify: Notifier = Arc::new(move |event| {
+        Self::with_notifier(Arc::new(move |event| {
             let proxy = proxy.lock().unwrap_or_else(PoisonError::into_inner);
             let _ = proxy.send_event(UserEvent::Session(event));
-        });
+        }))
+    }
+
+    fn with_notifier(notify: Notifier) -> Self {
         Self {
             map: HashMap::new(),
             origins: HashMap::new(),
@@ -132,9 +137,10 @@ impl Sessions {
         }
     }
 
-    pub fn clear_output(&self) {
-        for session in self.map.values() {
+    pub fn output(&mut self, id: SessionId) {
+        if let Some(session) = self.map.get(&id) {
             session.take_output();
         }
+        self.answer_prompt(id);
     }
 }

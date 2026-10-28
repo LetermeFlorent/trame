@@ -1,5 +1,6 @@
 use std::time::{Duration, Instant};
 
+use super::Wake;
 use super::view::Loader;
 
 fn after(start: Instant, millis: u64) -> Instant {
@@ -73,4 +74,18 @@ fn closing_fades_everything_out_with_a_slight_drop() {
     assert!(!loader.is_gone(after(closing, 300)));
     assert!(loader.is_gone(after(closing, 350)));
     assert_eq!(loader.view(after(closing, 400)).opacity, 0.0);
+}
+
+#[test]
+fn a_shown_loader_draws_then_waits_for_its_next_frame() {
+    let (mut loader, start) = shown("Checking", None);
+    let now = after(start, 100);
+    assert!(matches!(loader.wake(now, false), Wake::Draw(next) if next > now));
+    assert!(matches!(loader.wake(now, false), Wake::Wait(next) if next > now));
+}
+
+#[test]
+fn a_hidden_loader_sets_no_deadline() {
+    let (mut loader, start) = shown("Checking", None);
+    assert!(matches!(loader.wake(after(start, 100), true), Wake::Rest));
 }

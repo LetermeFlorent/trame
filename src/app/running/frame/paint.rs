@@ -20,14 +20,7 @@ impl Running {
 
     pub(in crate::app::running) fn draw(&mut self) {
         let now = Instant::now();
-        self.sessions.clear_output();
-        if self
-            .loader
-            .as_ref()
-            .is_some_and(|loader| loader.is_gone(now))
-        {
-            self.loader = None;
-        }
+        self.drop_gone_loader(now);
         self.relayout();
         if !window::has_area(&self.window) {
             return;
@@ -84,23 +77,19 @@ impl Running {
     }
 
     pub(in crate::app::running) fn output(&mut self, id: SessionId) {
-        self.sessions.answer_prompt(id);
+        self.sessions.output(id);
         self.forward_clipboard(id);
         self.forward_attention(id);
-        if self.pane_showing(id).is_some() {
+        if self.pane_showing(id).is_some() || self.relabeled(id) {
             self.window.request_redraw();
-            return;
         }
+    }
+
+    fn relabeled(&self, id: SessionId) -> bool {
         let Some(session) = self.sessions.get(id) else {
-            return;
+            return false;
         };
-        session.take_output();
-        if self
-            .labels
-            .get(&id)
-            .is_some_and(|known| *known != session.label())
-        {
-            self.window.request_redraw();
-        }
+        let known = self.labels.get(&id);
+        known.is_some_and(|known| *known != session.label())
     }
 }

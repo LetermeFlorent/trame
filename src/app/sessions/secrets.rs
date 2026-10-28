@@ -11,7 +11,7 @@ impl Sessions {
             .insert(id, SecretAnswer::new(secret, Instant::now()));
     }
 
-    pub fn answer_prompt(&mut self, id: SessionId) {
+    pub(super) fn answer_prompt(&mut self, id: SessionId) {
         let (Some(answer), Some(session)) = (self.answers.get_mut(&id), self.map.get(&id)) else {
             return;
         };
