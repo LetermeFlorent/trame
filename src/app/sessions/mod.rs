@@ -1,4 +1,5 @@
 mod deferred;
+mod screens;
 mod secrets;
 #[cfg(test)]
 mod tests;
@@ -122,19 +123,6 @@ impl Sessions {
         }
         let cwd = self.origins.get(&id).map(PathBuf::as_path);
         starting_label(cwd, &self.shell.program)
-    }
-
-    pub fn set_colors(&self, colors: ReportedColors) {
-        for session in self.map.values() {
-            session.terminal().screen_mut().set_reported_colors(colors);
-        }
-    }
-
-    pub fn set_history(&mut self, lines: usize) {
-        self.history = lines;
-        for session in self.map.values() {
-            session.terminal().screen_mut().set_history(lines);
-        }
     }
 
     pub fn output(&mut self, id: SessionId) {
