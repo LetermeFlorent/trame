@@ -11,6 +11,7 @@ pub const ENGLISH: Strings = Strings {
     change_color: "Change colour",
     change_icon: "Change icon",
     instances: "INSTANCES",
+    instance_name: "Instance {number}",
     settings: "Settings",
     at_launch: "AT LAUNCH",
     remember_instances: "Remember instances",

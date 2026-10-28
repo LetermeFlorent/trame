@@ -50,7 +50,7 @@ impl Workspace {
     }
 
     pub fn rename_instance(&mut self, id: InstanceId, name: &str) {
-        let name = clean_name(name).unwrap_or_else(|| Instance::automatic_name(id));
+        let name = clean_name(name).unwrap_or_default();
         self.edit_instance(id, |instance| instance.name = name);
     }
 

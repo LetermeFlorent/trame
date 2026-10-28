@@ -92,9 +92,8 @@ impl Workspace {
     pub fn add_instance(&mut self, name: Option<String>, tab: SessionId) -> InstanceId {
         self.next_instance += 1;
         let id = InstanceId(self.next_instance);
-        let name = name.unwrap_or_else(|| Instance::automatic_name(id));
         let pane = self.new_pane_id();
-        let mut instance = Instance::new(id, name, pane, tab);
+        let mut instance = Instance::new(id, name.unwrap_or_default(), pane, tab);
         instance.emblem = Emblem::random(&self.emblems());
         instance.number = self.next_number();
         self.instances.push(instance);

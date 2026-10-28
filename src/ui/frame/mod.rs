@@ -85,8 +85,7 @@ impl FrameLayout {
         let footer = sidebar::layout_footer(text, input, side);
         let mut sidebar = (reveal > 0.0)
             .then(|| sidebar::layout_sidebar(text, input, footer.above(columns.sidebar)));
-        let rail = (reveal < 1.0)
-            .then(|| sidebar::layout_rail(&metrics, input.workspace, footer.above(side)));
+        let rail = (reveal < 1.0).then(|| sidebar::layout_rail(input, footer.above(side)));
         let mut context = panes::PaneContext {
             text,
             metrics,

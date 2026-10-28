@@ -136,7 +136,7 @@ impl Running {
             EditTarget::Instance(id) => self
                 .workspace
                 .instance(id)
-                .map(|instance| instance.name.clone())
+                .map(|instance| instance.shown_name(self.strings.instance_name).into_owned())
                 .unwrap_or_default(),
         }
     }

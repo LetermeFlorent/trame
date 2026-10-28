@@ -11,6 +11,7 @@ pub struct Strings {
     pub change_color: &'static str,
     pub change_icon: &'static str,
     pub instances: &'static str,
+    pub instance_name: &'static str,
     pub settings: &'static str,
     pub at_launch: &'static str,
     pub remember_instances: &'static str,

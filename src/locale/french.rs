@@ -11,6 +11,7 @@ pub const FRENCH: Strings = Strings {
     change_color: "Changer de couleur",
     change_icon: "Changer d'icône",
     instances: "INSTANCES",
+    instance_name: "Instance {number}",
     settings: "Paramètres",
     at_launch: "AU LANCEMENT",
     remember_instances: "Se rappeler des instances",

@@ -47,7 +47,6 @@ impl Restorer<'_> {
         let active_pane = *order.get(item.active_pane).or(order.first())?;
         self.workspace.next_instance += 1;
         let id = InstanceId(self.workspace.next_instance);
-        let name = clean_name(&item.name).unwrap_or_else(|| Instance::automatic_name(id));
         let emblem = item
             .emblem
             .unwrap_or_else(|| Emblem::random(&self.workspace.emblems()));
@@ -57,7 +56,7 @@ impl Restorer<'_> {
             .unwrap_or_else(|| self.workspace.next_number());
         Some(Instance {
             id,
-            name,
+            name: clean_name(&item.name).unwrap_or_default(),
             color: item.color,
             emblem,
             number,

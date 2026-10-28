@@ -113,7 +113,7 @@ fn dropping_on_a_new_instance_detaches_the_tab() {
     assert_eq!(workspace.instances.len(), 3);
     assert_eq!(workspace.instances[0].tabs(), tabs(&[1]));
     assert_eq!(workspace.instances[2].tabs(), tabs(&[2]));
-    assert_eq!(workspace.instances[2].name, "Instance 3");
+    assert_eq!(workspace.instances[2].shown_name("#{number}"), "#3");
     assert_eq!(workspace.active, 2);
 }
 

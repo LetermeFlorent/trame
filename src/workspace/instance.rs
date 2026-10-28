@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
@@ -5,6 +6,8 @@ use super::pane::Pane;
 use super::tree::{Edge, Node, PaneId};
 use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
+
+const NUMBER_SLOT: &str = "{number}";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct InstanceId(pub u32);
@@ -23,8 +26,11 @@ pub struct Instance {
 }
 
 impl Instance {
-    pub fn automatic_name(id: InstanceId) -> String {
-        format!("Instance {}", id.0)
+    pub fn shown_name(&self, phrase: &str) -> Cow<'_, str> {
+        match self.name.is_empty() {
+            true => phrase.replace(NUMBER_SLOT, &self.number.to_string()).into(),
+            false => Cow::Borrowed(&self.name),
+        }
     }
 
     pub fn new(id: InstanceId, name: String, pane: PaneId, tab: SessionId) -> Self {

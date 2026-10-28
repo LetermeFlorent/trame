@@ -93,9 +93,9 @@ fn instances_without_tabs_are_skipped() {
 }
 
 #[test]
-fn blank_names_get_a_default() {
+fn blank_names_come_back_unnamed() {
     let mut snapshot = single(pane(1));
     snapshot.instances[0].name = "   ".to_owned();
     let (restored, _) = restore(&snapshot);
-    assert_eq!(restored.instances[0].name, "Instance 1");
+    assert_eq!(restored.instances[0].name, "");
 }

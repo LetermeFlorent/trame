@@ -82,7 +82,7 @@ pub fn layout_sidebar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -> 
         .instances
         .iter()
         .enumerate()
-        .flat_map(|(index, instance)| row_specs(instance, index == workspace.active, input.title))
+        .flat_map(|(index, instance)| row_specs(instance, index == workspace.active, input))
         .collect();
     let (rows, bar) = list::layout_rows(text, input, list, specs);
     SidebarFrame {

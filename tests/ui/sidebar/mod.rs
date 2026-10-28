@@ -1,10 +1,12 @@
 mod footer;
+mod names;
 mod scroll;
 mod settings;
 mod side;
 mod update;
 
 use trame::geometry::Point;
+use trame::locale::Language;
 use trame::session::SessionId;
 use trame::theme::Swatch;
 use trame::ui::frame::{SidebarItem, dragged_width, shown_width};
@@ -109,12 +111,13 @@ fn a_closed_sidebar_leaves_a_rail_with_one_button_per_instance() {
     assert_eq!(rail.rect.width, UiMetrics::RAIL_WIDTH);
     assert_eq!(layout.content.x, rail.rect.right());
     assert_eq!(rail.slots.len(), workspace.instances.len());
+    let english = Language::English.strings();
     for (slot, instance) in rail.slots.iter().zip(&workspace.instances) {
         let hit = layout.hit(slot.rect.center(), false);
         assert_eq!(hit, Some(Hit::RailInstance(instance.id)));
         assert_eq!(slot.color, instance.color);
         assert_eq!(slot.emblem, workspace.shown_emblem(instance));
-        assert_eq!(slot.name, instance.name);
+        assert_eq!(slot.name, instance.shown_name(english.instance_name));
         assert!(rail.rect.contains(slot.icon.center()));
     }
     assert!(rail.slots[workspace.active].active);

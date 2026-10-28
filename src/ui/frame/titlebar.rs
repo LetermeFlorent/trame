@@ -99,10 +99,11 @@ fn layout_heading(
     limit: f32,
 ) -> (Placed, Placed) {
     let metrics = &input.metrics;
-    let name = input
-        .workspace
-        .active_instance()
-        .map(|instance| fit_label(text, &instance.name, metrics.strong(), limit - start));
+    let phrase = input.strings.instance_name;
+    let name = input.workspace.active_instance().map(|instance| {
+        let shown = instance.shown_name(phrase);
+        fit_label(text, &shown, metrics.strong(), limit - start)
+    });
     let folder_x = name
         .as_ref()
         .map_or(start, |name| start + name.width + metrics.px(SUBTITLE_GAP));
