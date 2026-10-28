@@ -4,6 +4,7 @@ mod place;
 use crate::geometry::{Point, Rect};
 use crate::preferences::{ConnectForm, SshHost};
 use crate::ui::frame::FrameLayout;
+use crate::ui::frame::sidebar::scroll::ScrollBar;
 
 use super::SettingLine;
 pub use page::ConnectionsPage;
@@ -37,37 +38,6 @@ pub struct HostRow {
     pub line: SettingLine,
     pub change: Rect,
     pub forget: Option<Rect>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ScrollBar {
-    pub track: Rect,
-    pub thumb: Rect,
-    pub first: usize,
-    pub last_first: usize,
-    pub shown: usize,
-}
-
-impl ScrollBar {
-    pub fn scrolled(&self, rows: isize) -> usize {
-        self.first.saturating_add_signed(rows).min(self.last_first)
-    }
-
-    pub fn first_at(&self, thumb_top: f32) -> usize {
-        let travel = self.track.height - self.thumb.height;
-        if travel <= 0.0 {
-            return self.first;
-        }
-        let ratio = ((thumb_top - self.track.y) / travel).clamp(0.0, 1.0);
-        (ratio * self.last_first as f32).round() as usize
-    }
-
-    pub fn paged(&self, y: f32) -> usize {
-        match y < self.thumb.y {
-            true => self.first.saturating_sub(self.shown),
-            false => (self.first + self.shown).min(self.last_first),
-        }
-    }
 }
 
 #[derive(Clone, Debug)]

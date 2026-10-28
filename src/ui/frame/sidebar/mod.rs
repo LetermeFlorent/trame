@@ -1,6 +1,7 @@
 mod footer;
 mod rail;
 mod row;
+mod scroll;
 mod settings;
 mod width;
 
@@ -18,14 +19,15 @@ pub use footer::{FooterButton, FooterFrame};
 pub(super) use rail::layout_rail;
 pub use rail::{RailFrame, RailSlot};
 use row::{RowSpec, layout_row, row_specs};
+pub use scroll::ScrollBar;
 pub(super) use settings::{
     CAPTION_HEIGHT, Column, LINE_HEIGHT, LINE_INSET, ListSpec, SECTION_GAP, host_labels,
 };
 pub use settings::{
     Chip, ChoiceRow, ConnectionsPage, FormPage, HostList, HostRow, HostsView, InstancesPage,
-    KeyControl, KeyNotice, ListControl, MessageFrame, MessageRequest, PopupFrame, ScrollBar,
-    SettingControl, SettingLine, SettingsFrame, SettingsPage, SettingsRequest, SettingsTab,
-    ShortcutsPage, ShortcutsView, Stepper, ToggleRow, key_label,
+    KeyControl, KeyNotice, ListControl, MessageFrame, MessageRequest, PopupFrame, SettingControl,
+    SettingLine, SettingsFrame, SettingsPage, SettingsRequest, SettingsTab, ShortcutsPage,
+    ShortcutsView, Stepper, ToggleRow, key_label,
 };
 pub(super) use width::Columns;
 pub use width::{dragged_width, shown_width};
