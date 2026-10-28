@@ -1,11 +1,25 @@
-use trame::locale::Language;
+use trame::locale::{Language, Strings};
 use trame::preferences::Preferences;
-use trame::ui::Hit;
 use trame::ui::frame::{SettingControl, SettingsPage, SettingsTab};
+use trame::ui::{FrameLayout, Hit, UiMetrics};
 
 use super::connections::{hosts, opened};
-use super::{english, on_tab, page, panel, with_settings};
-use crate::text_system;
+use super::{english, general_request, on_tab, page, panel, with_settings};
+use crate::{input, text_system, workspace};
+
+const SMALLEST_WIDTH: f32 = 520.0;
+
+fn tab_names(strings: &Strings) -> [&str; 7] {
+    [
+        strings.general,
+        strings.terminals,
+        strings.display,
+        strings.system_section,
+        strings.instances_section,
+        strings.connections_tab,
+        strings.keys.tab,
+    ]
+}
 
 #[test]
 fn the_seven_tabs_fit_on_one_line_under_the_title_and_mark_the_open_one() {
@@ -62,4 +76,28 @@ fn the_instances_tab_holds_the_three_number_switches() {
         assert_eq!(hit, Some(Hit::Setting(toggle.control)));
     }
     assert!(page.toggles[0].on && page.toggles[1].on && !page.toggles[2].on);
+}
+
+#[test]
+fn the_seven_tabs_keep_their_names_inside_the_smallest_window() {
+    let mut text = text_system();
+    let workspace = workspace();
+    let mut input = input(&workspace, UiMetrics::new(1.0));
+    input.width = SMALLEST_WIDTH;
+    let preferences = Preferences::default();
+    for language in [Language::French, Language::English] {
+        let strings = language.strings();
+        let mut layout = FrameLayout::compute(&mut text, &input);
+        layout.place_settings(&mut text, &general_request(&preferences, strings));
+        let settings = panel(&layout);
+        let last = settings.tabs.last().expect("the tabs");
+        assert!(
+            last.rect.right() <= settings.popup.close.right(),
+            "{language:?}"
+        );
+        for (tab, name) in settings.tabs.iter().zip(tab_names(strings)) {
+            let whole = text.layout(name, layout.metrics.label());
+            assert_eq!(tab.label.width, whole.width, "{name}");
+        }
+    }
 }
