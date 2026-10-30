@@ -121,6 +121,7 @@ impl Running {
                 self.mouse_button(event_loop, state, button)
             }
             WindowEvent::MouseWheel { delta, .. } => self.wheel(delta),
+            WindowEvent::DroppedFile(path) => self.file_dropped(&path),
             _ => {}
         }
     }

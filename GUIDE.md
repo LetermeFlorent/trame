@@ -37,6 +37,8 @@ When a program that asked for mouse reports quits without turning them off, afte
 
 The startup command, empty by default, is typed and run in every new shell. A tab that comes back with its text skips it, since it picks up where you left it, and a tab opened for an SSH connection only runs `ssh`.
 
+Files dropped on a pane from the Explorer or another app are typed at its prompt as their full paths, in drop order, each followed by a space and never quoted, so a program like Claude Code reads them as plain text. A drop outside the terminals goes to the active pane, and nothing is typed while the settings, a menu or a dialog is open.
+
 ## What comes back at launch
 
 At launch, trame reopens the last layout with each shell in the folder it was in, and each tab shows again the text it held when trame closed. Only the text comes back. A program that was running in the tab is not started again, except an SSH connection, which asks for its password again.
