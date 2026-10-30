@@ -7,7 +7,7 @@ mod updates;
 use std::path::PathBuf;
 
 use trame::locale::LanguageChoice;
-use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences, SshHost, Updates};
+use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences, SshHost};
 use trame::theme::Swatch;
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
 use trame::ui::{Density, PanelSide};
@@ -96,7 +96,6 @@ fn every_preference_changed() -> Preferences {
         efficiency: false,
         rest_hidden_tabs: false,
         notify_waiting: false,
-        updates: Updates { auto: false },
         numbering: Numbering {
             shown: false,
             on_close: false,

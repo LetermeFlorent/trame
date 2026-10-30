@@ -57,7 +57,7 @@ Terminals sets the startup command and how many terminals a new instance opens w
 
 Display changes the size of the terminal text and of the interface (80% to 150%), the language (Auto follows the system, or force French or English), the side of the panel and the spacing.
 
-System holds efficiency mode, on by default. trame slows down after 30 seconds without activity, and as soon as its window is minimized or behind another one it also lowers the priority of the programs running in its tabs, until the window comes back to the front. The switch under it, "Hidden tabs with no activity", also on by default, does the same for a tab you cannot see once it has printed nothing for 30 seconds, even while the window is in front, and gives back the memory that tab holds. On Windows, System can also show a notification when a tab waits for an answer. On Windows and macOS it holds the update switch described in [Updates](#updates).
+System holds efficiency mode, on by default. trame slows down after 30 seconds without activity, and as soon as its window is minimized or behind another one it also lowers the priority of the programs running in its tabs, until the window comes back to the front. The switch under it, "Hidden tabs with no activity", also on by default, does the same for a tab you cannot see once it has printed nothing for 30 seconds, even while the window is in front, and gives back the memory that tab holds. On Windows, System can also show a notification when a tab waits for an answer.
 
 Instances shows numbers instead of icons and chooses whether they follow when an instance closes or moves.
 
@@ -105,21 +105,21 @@ The macOS build is tested and opened on every release, like the Linux one, and h
 
 ## Updates
 
-trame looks for a newer release on GitHub when it starts, then once an hour. What happens next depends on the system and on where trame is installed.
+trame looks for a newer release on GitHub when it starts, then once an hour. When it finds one, an Update to button shows at the bottom of the side bar with the new version number. That is all it does on its own: nothing is downloaded or installed until you click it.
+
+Clicking the button asks "Update to 0.4.0?" and warns that tabs and their text come back but commands that were running stop. Cancel leaves everything as it was. Restart saves every instance and tab, then opens trame again on an update screen. It checks the release, fills a bar with the download percentage, installs, and reopens every instance and tab with its text, exactly as you left them, even when the launch settings say to forget them. Until the screen fades out, only the window itself can be moved, resized or closed. If the download fails, the screen fades out and you are back on the version you had, tabs included.
 
 ### Windows and macOS
 
-"Update automatically", in the System tab of the settings and on by default, installs the new version in the background while you work. trame downloads it at low priority, straight to disk, and swaps its own program without stopping anything: `trame.exe` on Windows, the whole `trame.app` on macOS. Your shells keep running, and the next time you open trame it is the new version, with no update screen. Meanwhile a Restart into button shows at the bottom of the side bar with the new version number, for when you want it right away. Clicking it asks first, and warns that tabs and their text come back but commands that were running stop.
-
-With the switch off, nothing is installed on its own. The button reads Update to and the version instead. Clicking it asks "Update to 0.4.0?" the same way, then Restart opens trame on an update screen: a bar fills with the download percentage, trame swaps its program and reopens every instance and tab with its text, exactly as you left them, even when the launch settings say to forget them. Until the screen fades out, only the window itself can be moved, resized or closed. Cancel leaves everything as it was.
+A copy trame can write to (a per-user install or a portable `trame.exe` on Windows, a `trame.app` in a writable folder on macOS) swaps its own program behind the update screen: `trame.exe` on Windows, the whole `trame.app` on macOS.
 
 On macOS this needs a `trame.app` in a folder you can write to, which `/Applications` is for an administrator account. A copy opened straight from the Downloads folder, still flagged by the browser, runs from a read-only place and does not update itself.
 
-A Windows copy installed for all users cannot rewrite its own folder either, so it goes through the installer. It downloads the new `setup.exe` in the background at low priority and shows the Update button. Clicking it closes trame, asks for administrator rights, installs the new version with a small progress window and opens trame again with your tabs. If you refuse the prompt, nothing changes and trame stays closed until you open it.
+A Windows copy installed for all users cannot rewrite its own folder, so the update screen downloads the new `setup.exe` instead and hands over to it. trame closes, Windows asks for administrator rights, the installer puts the new version in place with a small progress window and opens trame again with your tabs. If you refuse the prompt, nothing changes and trame stays closed until you open it.
 
 ### Linux
 
-The `.deb` and the `.rpm` belong to the system's package manager, so installing a new one takes your password. trame downloads the matching package in the background into `~/.cache/trame/update` and shows the Update button. Clicking it asks first, saves every tab and closes trame. The system's password window opens (through `pkexec`), the package manager installs the new version (`apt-get` on Debian and Ubuntu, `dnf`, `zypper` or `rpm` elsewhere), and trame opens again with your tabs. If you cancel the password window, trame opens again on the version you had.
+The `.deb` and the `.rpm` belong to the system's package manager, so installing a new one takes your password. The update screen downloads the matching package into `~/.cache/trame/update`, then trame closes. The system's password window opens (through `pkexec`), the package manager installs the new version (`apt-get` on Debian and Ubuntu, `dnf`, `zypper` or `rpm` elsewhere), and trame opens again with your tabs. If you cancel the password window, trame opens again on the version you had.
 
 A copy that is not the packaged `/usr/bin/trame`, such as one built from source, leaves updates to you.
 

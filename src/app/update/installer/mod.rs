@@ -6,7 +6,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use super::download;
+use super::download::{self, Progress};
 use super::replace::{check, swap};
 use super::route::Route;
 use super::version::Version;
@@ -16,7 +16,7 @@ pub use package::Package;
 const FOLDER: &str = "trame-update";
 const PART_SUFFIX: &str = ".part";
 
-pub fn fetch(route: Route, version: Version) -> io::Result<()> {
+pub fn fetch(route: Route, version: Version, shown: Progress) -> io::Result<()> {
     let number = version.number();
     let target = path(route, &number)?;
     if check::release(&target).is_ok() {
@@ -26,8 +26,9 @@ pub fn fetch(route: Route, version: Version) -> io::Result<()> {
     if let Some(folder) = target.parent() {
         fs::create_dir_all(folder)?;
     }
+    shown(0);
     let part = swap::sibling(&target, PART_SUFFIX);
-    let fetched = download::download(version, &route.asset(&number), &part, None)
+    let fetched = download::download(version, &route.asset(&number), &part, shown)
         .and_then(|()| check::release(&part))
         .and_then(|()| fs::rename(&part, &target));
     if fetched.is_err() {

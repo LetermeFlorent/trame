@@ -7,7 +7,7 @@ use super::version::Version;
 
 mod progress;
 
-pub type Progress<'a> = Option<&'a dyn Fn(u8)>;
+pub type Progress<'a> = &'a dyn Fn(u8);
 
 const CHECK_SECONDS: &str = "1";
 const DOWNLOAD_SECONDS: &str = "120";
@@ -36,21 +36,7 @@ pub fn latest() -> Option<Version> {
 }
 
 pub fn download(version: Version, asset: &str, target: &Path, shown: Progress) -> io::Result<()> {
-    let mut command = curl();
-    if shown.is_none() {
-        lower_priority(&mut command);
-    }
-    transfer(command, version, asset, target, shown.unwrap_or(&|_| {}))
-}
-
-fn transfer(
-    mut command: Command,
-    version: Version,
-    asset: &str,
-    target: &Path,
-    on_percent: &dyn Fn(u8),
-) -> io::Result<()> {
-    let mut child = command
+    let mut child = curl()
         .args(["--progress-bar", "--fail", "--location"])
         .args(["--max-time", DOWNLOAD_SECONDS])
         .args(["--speed-limit", SLOWEST_BYTES_PER_SECOND])
@@ -60,7 +46,7 @@ fn transfer(
         .stderr(Stdio::piped())
         .spawn()?;
     if let Some(bar) = child.stderr.take() {
-        progress::follow(bar, on_percent);
+        progress::follow(bar, shown);
     }
     let status = child.wait()?;
     match status.success() {
@@ -101,13 +87,3 @@ fn hide_console(command: &mut Command) {
 
 #[cfg(not(windows))]
 fn hide_console(_: &mut Command) {}
-
-#[cfg(windows)]
-fn lower_priority(command: &mut Command) {
-    use std::os::windows::process::CommandExt;
-    use windows_sys::Win32::System::Threading::{BELOW_NORMAL_PRIORITY_CLASS, CREATE_NO_WINDOW};
-    command.creation_flags(CREATE_NO_WINDOW | BELOW_NORMAL_PRIORITY_CLASS);
-}
-
-#[cfg(not(windows))]
-fn lower_priority(_: &mut Command) {}

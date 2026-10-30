@@ -1,6 +1,7 @@
 mod graphics;
 mod handler;
 mod notice;
+mod pending;
 mod persist;
 mod power;
 mod running;
@@ -11,16 +12,16 @@ mod window;
 
 use std::error::Error;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
 
-use trame::preferences::Updates;
 use trame::session::SessionEvent;
 use trame::workspace::{InstanceId, Snapshot};
 
+use pending::PendingOffer;
 use running::{FolderTarget, Offer, Running};
-use update::UpdateStatus;
+use update::{Handoff, UpdateStatus};
 
 #[derive(Clone, Debug)]
 pub enum UserEvent {
@@ -35,15 +36,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let proxy = event_loop.create_proxy();
     let notifier = proxy.clone();
     let saved = persist::load();
-    let updates = saved
-        .as_ref()
-        .map_or_else(Updates::default, |snapshot| snapshot.preferences.updates);
-    let update = update::start(updates, move |status| {
+    let update = update::start(move |status| {
         let _ = notifier.send_event(UserEvent::Update(status));
     });
     let mut app = App {
         proxy,
         update,
+        offer: PendingOffer::default(),
         saved,
         running: None,
         failure: None,
@@ -55,6 +54,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 struct App {
     proxy: EventLoopProxy<UserEvent>,
     update: UpdateStatus,
+    offer: PendingOffer,
     saved: Option<Snapshot>,
     running: Option<Running>,
     failure: Option<Box<dyn Error>>,
@@ -63,19 +63,22 @@ struct App {
 impl App {
     fn launch(&mut self, event_loop: &ActiveEventLoop) -> Result<Running, Box<dyn Error>> {
         let saved = self.saved.take();
-        Running::open_window(event_loop, self.proxy.clone(), saved)?.show(&self.update)
+        let opened = Running::open_window(event_loop, self.proxy.clone(), saved)?;
+        let mut running = opened.show(&self.update)?;
+        self.offer.opened(&mut running);
+        Ok(running)
     }
 
-    fn relaunch(&mut self, exe: &Path) -> io::Result<()> {
+    fn hand_over(&mut self, handoff: &Handoff) -> io::Result<()> {
         if let Some(running) = &mut self.running {
             running.save_for_restart();
         }
-        update::relaunch(exe)
+        handoff.start()
     }
 
     fn updated(&mut self, event_loop: &ActiveEventLoop, status: UpdateStatus) {
         let status = match status {
-            UpdateStatus::Installed(exe) => match self.relaunch(&exe) {
+            UpdateStatus::Installed(handoff) => match self.hand_over(&handoff) {
                 Ok(()) => {
                     self.running = None;
                     event_loop.exit();
@@ -87,16 +90,8 @@ impl App {
                 }
             },
             UpdateStatus::Available(version) => {
-                return self.offer(Offer {
-                    version,
-                    ready: None,
-                });
-            }
-            UpdateStatus::Ready { version, exe } => {
-                return self.offer(Offer {
-                    version,
-                    ready: Some(exe),
-                });
+                let offer = Offer { version };
+                return self.offer.send(offer, self.running.as_mut());
             }
             status => status,
         };
@@ -104,11 +99,5 @@ impl App {
             running.set_update(&status);
         }
         self.update = status;
-    }
-
-    fn offer(&mut self, offer: Offer) {
-        if let Some(running) = &mut self.running {
-            running.offer_update(offer);
-        }
     }
 }

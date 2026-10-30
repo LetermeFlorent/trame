@@ -25,20 +25,12 @@ pub(super) fn system_page(
             SettingControl::RestHiddenTabs,
         ),
     ];
-    let mut sections = Vec::new();
     if cfg!(windows) {
         let notify = [preferences.notify_waiting, true];
         let control = SettingControl::NotifyWaiting;
         toggles.push(column.toggle_row(strings.notify_waiting, notify, control));
     }
-    if cfg!(any(windows, target_os = "macos")) {
-        sections.push(column.section(strings.updates));
-        let auto = [preferences.updates.auto, true];
-        let control = SettingControl::AutoUpdate;
-        toggles.push(column.toggle_row(strings.update_automatically, auto, control));
-    }
     FormPage {
-        sections,
         toggles,
         ..FormPage::default()
     }

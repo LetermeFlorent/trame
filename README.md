@@ -48,7 +48,7 @@ The theme follows your system and switches the moment it does. Above is the same
 
 trame is a single program of under 7 MB, written in Rust from the escape sequence parser up. It draws through the graphics card with DirectX 12, Metal or Vulkan, opens in a blink and starts the shell your system already uses: PowerShell 7 or Windows PowerShell on Windows, your `$SHELL` everywhere else.
 
-It also keeps itself current. On Windows and macOS a new version installs in the background while you work and is simply there the next time you open trame. On Linux the update waits for one click and your password.
+It also tells you when a new version is out. Nothing installs on its own: one click on the update button, and trame restarts on the new version with your tabs back. On Linux, and on Windows when trame is installed for all users, it also asks for your password or administrator rights.
 
 ## Get it
 

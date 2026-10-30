@@ -9,7 +9,6 @@ use trame::theme::Rgba;
 
 use crate::app::power::Shown;
 use crate::app::running::Running;
-use crate::app::update;
 
 impl Running {
     pub(in crate::app::running) fn sync_graphics(&mut self, event_loop: &ActiveEventLoop) {
@@ -58,6 +57,5 @@ impl Running {
         if previous.power_switches() != wanted {
             self.power.set_enabled(wanted);
         }
-        update::allow_automatic(current.updates.auto);
     }
 }

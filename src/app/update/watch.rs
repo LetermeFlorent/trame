@@ -1,10 +1,8 @@
-use std::path::Path;
 use std::thread;
 use std::time::Duration;
 
-use super::route::Route;
 use super::version::Version;
-use super::{UpdateStatus, automatic, download, installer, replace};
+use super::{UpdateStatus, download};
 
 const CHECK_EVERY: Duration = Duration::from_secs(60 * 60);
 
@@ -14,67 +12,78 @@ pub fn newer_release() -> Option<Version> {
     newer.then_some(latest)
 }
 
-pub fn watch(route: Route, exe: &Path, notify: &dyn Fn(UpdateStatus)) {
-    if !route.replaces() {
-        return watch_installer(route, notify);
-    }
+pub fn watch(notify: &dyn Fn(UpdateStatus)) {
+    let wait = || {
+        thread::sleep(CHECK_EVERY);
+        true
+    };
+    follow(newer_release, wait, notify);
+}
+
+fn follow(
+    mut check: impl FnMut() -> Option<Version>,
+    mut wait: impl FnMut() -> bool,
+    notify: &dyn Fn(UpdateStatus),
+) {
     let mut offered = None;
     loop {
-        if let Some(latest) = newer_release() {
-            let status = match automatic() {
-                true => put_in_place(route, exe, latest),
-                false => UpdateStatus::Available(latest.number()),
-            };
-            if offered.as_ref() != Some(&status) {
-                notify(status.clone());
-            }
-            if matches!(status, UpdateStatus::Ready { .. }) {
-                return;
-            }
-            offered = Some(status);
+        let latest = check();
+        if let Some(status) = offer(latest, offered) {
+            notify(status);
         }
-        thread::sleep(CHECK_EVERY);
-    }
-}
-
-fn put_in_place(route: Route, exe: &Path, version: Version) -> UpdateStatus {
-    match replace::put_in_place(route, exe, version, None, &|| {}) {
-        Ok(()) => UpdateStatus::Ready {
-            version: version.number(),
-            exe: exe.to_path_buf(),
-        },
-        Err(error) => {
-            eprintln!("trame: the update to {version} failed: {error}");
-            UpdateStatus::Available(version.number())
-        }
-    }
-}
-
-fn watch_installer(route: Route, notify: &dyn Fn(UpdateStatus)) {
-    if installer_offered(route, notify) {
-        return;
-    }
-    installer::clear(route);
-    loop {
-        thread::sleep(CHECK_EVERY);
-        if installer_offered(route, notify) {
+        offered = latest.or(offered);
+        if !wait() {
             return;
         }
     }
 }
 
-fn installer_offered(route: Route, notify: &dyn Fn(UpdateStatus)) -> bool {
-    let Some(latest) = newer_release() else {
-        return false;
-    };
-    match installer::fetch(route, latest) {
-        Ok(()) => {
-            notify(UpdateStatus::Available(latest.number()));
-            true
-        }
-        Err(error) => {
-            eprintln!("trame: the installer of {latest} failed: {error}");
-            false
-        }
+fn offer(latest: Option<Version>, offered: Option<Version>) -> Option<UpdateStatus> {
+    latest
+        .filter(|latest| Some(*latest) != offered)
+        .map(|latest| UpdateStatus::Available(latest.number()))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+
+    use super::*;
+
+    fn version(text: &str) -> Version {
+        Version::parse(text).expect(text)
+    }
+
+    fn watched(checks: &[Option<&str>]) -> Vec<UpdateStatus> {
+        let mut answers = checks.iter().map(|check| check.map(version));
+        let mut rounds = checks.len();
+        let sent = RefCell::new(Vec::new());
+        let wait = || {
+            rounds -= 1;
+            rounds > 0
+        };
+        follow(|| answers.next().flatten(), wait, &|status| {
+            sent.borrow_mut().push(status)
+        });
+        sent.into_inner()
+    }
+
+    #[test]
+    fn the_watch_only_ever_offers_a_version() {
+        let sent = watched(&[None, Some("9.0.0"), Some("9.0.0"), None, Some("9.1.0")]);
+        let expected = ["9.0.0", "9.1.0"].map(|number| UpdateStatus::Available(number.into()));
+        assert_eq!(sent, expected);
+    }
+
+    #[test]
+    fn the_same_version_is_offered_once() {
+        assert_eq!(offer(Some(version("9.0.0")), Some(version("9.0.0"))), None);
+        assert_eq!(offer(None, Some(version("9.0.0"))), None);
+    }
+
+    #[test]
+    fn the_first_answer_comes_without_waiting() {
+        let sent = watched(&[Some("9.0.0")]);
+        assert_eq!(sent, [UpdateStatus::Available("9.0.0".into())]);
     }
 }

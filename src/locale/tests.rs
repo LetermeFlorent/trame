@@ -37,12 +37,11 @@ fn differ(pick: fn(&Strings) -> &'static str) {
 
 #[test]
 fn each_language_has_its_own_update_and_menu_texts() {
-    let picks: [fn(&Strings) -> &'static str; 9] = [
+    let picks: [fn(&Strings) -> &'static str; 8] = [
         |s| s.checking_updates,
         |s| s.downloading_version,
         |s| s.installing_version,
         |s| s.update_to,
-        |s| s.restart_into,
         |s| s.rename,
         |s| s.change_color,
         |s| s.change_icon,
@@ -53,7 +52,7 @@ fn each_language_has_its_own_update_and_menu_texts() {
 
 #[test]
 fn each_language_has_its_own_settings_texts() {
-    let picks: [fn(&Strings) -> &'static str; 29] = [
+    let picks: [fn(&Strings) -> &'static str; 27] = [
         |s| s.settings,
         |s| s.at_launch,
         |s| s.remember_instances,
@@ -81,8 +80,6 @@ fn each_language_has_its_own_settings_texts() {
         |s| s.no_connections,
         |s| s.system_section,
         |s| s.rest_hidden_tabs,
-        |s| s.updates,
-        |s| s.update_automatically,
     ];
     picks.into_iter().for_each(differ);
 }
@@ -108,14 +105,13 @@ fn each_language_has_its_own_ssh_texts() {
 
 #[test]
 fn each_language_has_its_own_closing_texts() {
-    let picks: [fn(&Strings) -> &'static str; 9] = [
+    let picks: [fn(&Strings) -> &'static str; 8] = [
         |s| s.confirm_close,
         |s| s.close_window,
         |s| s.close_instance,
         |s| s.tabs_will_close,
         |s| s.close,
         |s| s.update_question,
-        |s| s.restart_question,
         |s| s.update_restarts,
         |s| s.restart,
     ];

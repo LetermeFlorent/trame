@@ -29,28 +29,14 @@ fn the_hidden_tabs_switch_sits_indented_under_efficiency_and_follows_it() {
     }
 }
 
-#[cfg(any(windows, target_os = "macos"))]
 #[test]
-fn one_update_switch_closes_the_page_and_is_on_by_default() {
-    let toggles = switches(&Preferences::default());
-    let auto = position(&toggles, SettingControl::AutoUpdate);
-    assert_eq!(auto, toggles.len() - 1);
-    assert!(toggles[auto].on && toggles[auto].enabled);
-    let main = position(&toggles, SettingControl::Efficiency);
-    assert_eq!(toggles[auto].line.label_x, toggles[main].line.label_x);
-    let toggles = switches(&Preferences {
-        updates: trame::preferences::Updates { auto: false },
-        ..Preferences::default()
-    });
-    let auto = position(&toggles, SettingControl::AutoUpdate);
-    assert!(!toggles[auto].on && toggles[auto].enabled);
-}
-
-#[cfg(not(any(windows, target_os = "macos")))]
-#[test]
-fn only_the_efficiency_switches_show_on_linux() {
-    let toggles = switches(&Preferences::default());
-    let controls: Vec<_> = toggles.iter().map(|toggle| toggle.control).collect();
-    let expected = [SettingControl::Efficiency, SettingControl::RestHiddenTabs];
+fn the_system_page_has_no_update_switch() {
+    let layout = on_tab(&Preferences::default(), SettingsTab::System);
+    let controls: Vec<_> = page(&layout).toggles.iter().map(|t| t.control).collect();
+    let mut expected = vec![SettingControl::Efficiency, SettingControl::RestHiddenTabs];
+    if cfg!(windows) {
+        expected.push(SettingControl::NotifyWaiting);
+    }
     assert_eq!(controls, expected);
+    assert!(page(&layout).sections.is_empty());
 }

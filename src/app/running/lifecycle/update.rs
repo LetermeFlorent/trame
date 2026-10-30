@@ -1,5 +1,4 @@
 use std::io;
-use std::path::PathBuf;
 
 use winit::event_loop::ActiveEventLoop;
 
@@ -13,24 +12,15 @@ const VERSION_SLOT: &str = "{version}";
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Offer {
     pub version: String,
-    pub ready: Option<PathBuf>,
 }
 
 impl Offer {
     pub fn label(&self, strings: &Strings) -> String {
-        let lead = match self.ready {
-            Some(_) => strings.restart_into,
-            None => strings.update_to,
-        };
-        format!("{lead} {}", self.version)
+        format!("{} {}", strings.update_to, self.version)
     }
 
     pub fn question(&self, strings: &Strings) -> String {
-        let title = match self.ready {
-            Some(_) => strings.restart_question,
-            None => strings.update_question,
-        };
-        title.replace(VERSION_SLOT, &self.version)
+        strings.update_question.replace(VERSION_SLOT, &self.version)
     }
 }
 
@@ -41,14 +31,14 @@ impl Running {
     }
 
     pub(in crate::app::running) fn restart_for_update(&mut self, event_loop: &ActiveEventLoop) {
-        let Some(offer) = self.update_offer.clone() else {
+        if self.update_offer.is_none() {
             return;
-        };
-        let start = || match &offer.ready {
-            Some(exe) => update::relaunch(exe),
-            None => update::restart(&offer.version),
-        };
-        self.restart_with(event_loop, start, "the update restart did not start");
+        }
+        self.restart_with(
+            event_loop,
+            update::restart,
+            "the update restart did not start",
+        );
     }
 
     pub(in crate::app::running) fn restart_if_card_lost(&mut self, event_loop: &ActiveEventLoop) {
@@ -84,24 +74,23 @@ mod tests {
     use super::*;
     use trame::locale::Language;
 
-    fn offer(ready: bool) -> Offer {
+    fn offer() -> Offer {
         Offer {
             version: "9.8.7".to_owned(),
-            ready: ready.then(|| PathBuf::from("trame.exe")),
         }
     }
 
     #[test]
-    fn an_offer_still_to_download_asks_to_update() {
+    fn an_offer_asks_to_update() {
         let strings = Language::English.strings();
-        assert_eq!(offer(false).label(strings), "Update to 9.8.7");
-        assert_eq!(offer(false).question(strings), "Update to 9.8.7?");
+        assert_eq!(offer().label(strings), "Update to 9.8.7");
+        assert_eq!(offer().question(strings), "Update to 9.8.7?");
     }
 
     #[test]
-    fn a_version_already_in_place_only_asks_to_restart() {
-        let strings = Language::English.strings();
-        assert_eq!(offer(true).label(strings), "Restart into 9.8.7");
-        assert_eq!(offer(true).question(strings), "Restart into 9.8.7?");
+    fn the_french_question_names_the_version() {
+        let strings = Language::French.strings();
+        assert_eq!(offer().label(strings), "Mettre à jour en 9.8.7");
+        assert_eq!(offer().question(strings), "Mettre à jour en 9.8.7 ?");
     }
 }

@@ -80,8 +80,7 @@ impl Running {
             SettingControl::ConfirmClose => current.toggle_confirm_close(),
             SettingControl::Efficiency
             | SettingControl::RestHiddenTabs
-            | SettingControl::NotifyWaiting
-            | SettingControl::AutoUpdate => current.with(|next| flip(next, control)),
+            | SettingControl::NotifyWaiting => current.with(|next| flip(next, control)),
             SettingControl::Numbers(choice) => {
                 current.with(|next| choice.toggle(&mut next.numbering))
             }
@@ -144,7 +143,6 @@ fn flip(next: &mut Preferences, control: SettingControl) {
         SettingControl::Efficiency => &mut next.efficiency,
         SettingControl::RestHiddenTabs => &mut next.rest_hidden_tabs,
         SettingControl::NotifyWaiting => &mut next.notify_waiting,
-        SettingControl::AutoUpdate => &mut next.updates.auto,
         _ => return,
     };
     *switch = !*switch;

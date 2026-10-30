@@ -3,7 +3,6 @@ mod history;
 mod launch;
 mod sizes;
 mod ssh;
-mod updates;
 
 use std::path::PathBuf;
 
@@ -27,7 +26,6 @@ pub use ssh::{
     ANSWER_WINDOW, ConnectForm, FormField, HostEntry, Prompt, SecretAnswer, SshConfig, SshHost,
     aliases_in, appended, entry_in, menu_hosts, prompt_in, vault, with_host, without_host,
 };
-pub use updates::Updates;
 
 pub const FONT_SIZE_STEP: f32 = 1.0;
 pub const INTERFACE_SIZE: u16 = 100;
@@ -77,8 +75,6 @@ pub struct Preferences {
     pub shortcuts: Overrides,
     #[serde(flatten)]
     pub numbering: Numbering,
-    #[serde(flatten)]
-    pub updates: Updates,
 }
 
 impl Default for Preferences {
@@ -104,7 +100,6 @@ impl Default for Preferences {
             notify_waiting: true,
             shortcuts: Overrides::default(),
             numbering: Numbering::default(),
-            updates: Updates::default(),
         }
     }
 }

@@ -25,10 +25,7 @@ impl Running {
                 format!("{} {version}", strings.installing_version),
                 Some(FULL),
             ),
-            UpdateStatus::Done
-            | UpdateStatus::Installed(_)
-            | UpdateStatus::Available(_)
-            | UpdateStatus::Ready { .. } => {
+            UpdateStatus::Done | UpdateStatus::Installed(_) | UpdateStatus::Available(_) => {
                 return self.close_loader();
             }
         };

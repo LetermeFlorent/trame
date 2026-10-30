@@ -14,25 +14,13 @@ pub fn path(target: &Path, version: Version) -> PathBuf {
     swap::sibling(target, &format!(".{}{READY_MARK}", version.number()))
 }
 
-pub fn newest(target: &Path) -> Option<Version> {
-    let current = Version::current()?;
-    let newer = packages(target).into_iter().filter_map(|(version, path)| {
-        let ready = version.is_some_and(|version| version > current);
-        let whole = ready && check::release(&path).is_ok();
-        whole.then_some(version).flatten()
-    });
-    newer.max()
-}
-
 pub fn fetch(route: Route, target: &Path, version: Version, shown: Progress) -> io::Result<()> {
     let ready = path(target, version);
     if check::release(&ready).is_ok() {
         return Ok(());
     }
     clear(target);
-    if let Some(shown) = shown {
-        shown(0);
-    }
+    shown(0);
     let part = swap::sibling(&ready, PART_SUFFIX);
     let asset = route.asset(&version.number());
     let fetched = match route {
@@ -118,14 +106,6 @@ mod tests {
 
     fn version(text: &str) -> Version {
         Version::parse(text).expect(text)
-    }
-
-    #[test]
-    fn a_whole_newer_package_waits_for_the_next_launch() {
-        let (_scratch, exe) = scratch("newest");
-        fs::write(path(&exe, version("999.0.0")), program()).expect("a staged package");
-        fs::write(path(&exe, version("999.1.0")), b"MZ cut short").expect("a broken one");
-        assert_eq!(newest(&exe), Some(version("999.0.0")));
     }
 
     #[test]
