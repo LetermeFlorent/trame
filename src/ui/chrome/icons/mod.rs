@@ -70,7 +70,7 @@ pub fn draw_icon(pen: &mut Pen, icon: Icon, rect: Rect) {
         Icon::Restore => restore(pen, rect.snapped(), size),
         Icon::Terminal => terminal(pen, rect, size),
         Icon::Gear => gear(pen, rect, size),
-        Icon::Update => update(pen, rect, size),
+        Icon::Update => update(pen, center, size),
         Icon::Pencil => pencil(pen, center, size),
         Icon::Emblem(kind) => emblem(pen, kind, rect, size),
     }

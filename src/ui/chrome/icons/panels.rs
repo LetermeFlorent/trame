@@ -22,12 +22,12 @@ const GEAR_TOOTH_FROM: f32 = 0.24;
 const GEAR_TOOTH_TO: f32 = 0.45;
 const GEAR_TOOTH_WIDTH: f32 = 0.16;
 const GEAR_TEETH: usize = 8;
-const ARROW_TOP: f32 = 0.16;
-const ARROW_TIP: f32 = 0.64;
-const ARROW_WING: f32 = 0.22;
-const ARROW_WING_Y: f32 = 0.42;
-const TRAY_Y: f32 = 0.84;
-const TRAY_REACH: f32 = 0.3;
+const ARC_RADIUS: f32 = 0.34;
+const ARC_START: f32 = -TAU / 12.0;
+const ARC_SWEEP: f32 = TAU * 5.0 / 6.0;
+const ARC_SEGMENTS: usize = 20;
+const HEAD_REACH: f32 = 0.26;
+const HEAD_SPREAD: f32 = TAU / 9.0;
 
 pub(super) fn icon_frame(rect: Rect, size: f32) -> Rect {
     rect.inset((size * FRAME_INSET).round()).snapped()
@@ -100,16 +100,22 @@ pub(super) fn gear(pen: &mut Pen, rect: Rect, size: f32) {
     }
 }
 
-pub(super) fn update(pen: &mut Pen, rect: Rect, size: f32) {
-    let x = pen.crisp(rect.center().x);
-    let y = |fraction: f32| rect.y + size * fraction;
-    let tip = Point::new(x, y(ARROW_TIP));
-    pen.line(Point::new(x, y(ARROW_TOP)), tip);
-    for side in [-1.0, 1.0] {
-        let wing = Point::new(x + side * size * ARROW_WING, y(ARROW_WING_Y));
-        pen.line(wing, tip);
+pub(super) fn update(pen: &mut Pen, center: Point, size: f32) {
+    let radius = size * ARC_RADIUS;
+    let at = |angle: f32| {
+        let (sin, cos) = angle.sin_cos();
+        Point::new(center.x + cos * radius, center.y + sin * radius)
+    };
+    let step = ARC_SWEEP / ARC_SEGMENTS as f32;
+    for segment in 0..ARC_SEGMENTS {
+        let from = ARC_START + segment as f32 * step;
+        pen.line(at(from), at(from + step));
     }
-    let tray = pen.crisp(y(TRAY_Y));
-    let reach = size * TRAY_REACH;
-    pen.line(Point::new(x - reach, tray), Point::new(x + reach, tray));
+    let end = ARC_START + ARC_SWEEP;
+    let tip = at(end);
+    let reach = size * HEAD_REACH;
+    for side in [-1.0, 1.0] {
+        let (sin, cos) = (end - TAU / 4.0 + side * HEAD_SPREAD).sin_cos();
+        pen.line(tip, Point::new(tip.x + cos * reach, tip.y + sin * reach));
+    }
 }

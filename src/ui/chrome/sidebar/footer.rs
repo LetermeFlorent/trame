@@ -1,12 +1,10 @@
 use super::draw_backdrop;
 use crate::geometry::Rect;
-use crate::theme::{Rgba, Swatch};
+use crate::theme::Rgba;
 use crate::ui::chrome::{Icon, Painter, centered};
 use crate::ui::frame::{FooterButton, FooterFrame};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
-
-const ON_UPDATE: Rgba = Rgba::hex(0x1b1b1b);
 
 pub(in crate::ui::chrome) fn draw_footer(
     painter: &mut Painter,
@@ -34,10 +32,9 @@ pub(in crate::ui::chrome) fn draw_footer(
 }
 
 fn draw_update(painter: &mut Painter, button: &FooterButton, reveal: f32) {
-    let radius = painter.metrics.px(UiMetrics::RADIUS);
-    let orange = painter.theme.swatch(Swatch::Orange);
-    painter.shaded_fill(button.rect, Hit::Update, orange, radius);
-    draw_content(painter, button, Icon::Update, ON_UPDATE, reveal);
+    draw_backdrop(painter, button.rect, Hit::Update, false, None);
+    let color = painter.theme.muted_text(painter.glow(Hit::Update));
+    draw_content(painter, button, Icon::Update, color, reveal);
 }
 
 fn draw_content(
