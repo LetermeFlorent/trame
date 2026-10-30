@@ -25,7 +25,9 @@ impl Running {
             DropTarget::Focused => {}
         }
         self.write_to_active(|_| text.into_bytes());
-        self.window.focus_window();
+        if !self.view.window_focused {
+            self.window.focus_window();
+        }
         self.changed();
     }
 
