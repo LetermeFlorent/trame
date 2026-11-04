@@ -4,6 +4,7 @@ pub mod input;
 pub mod locale;
 pub mod preferences;
 pub mod render;
+pub mod secret;
 pub mod session;
 pub mod term;
 pub mod text;

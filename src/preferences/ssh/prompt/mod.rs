@@ -1,9 +1,10 @@
 mod login;
 
-use std::hint::black_box;
 use std::time::{Duration, Instant};
 
 pub use login::SshLogin;
+
+use crate::secret::wipe;
 
 pub const ANSWER_WINDOW: Duration = Duration::from_secs(60);
 
@@ -79,7 +80,6 @@ fn is_part_of_connecting(line: &str) -> bool {
 impl Drop for SecretAnswer {
     fn drop(&mut self) {
         let mut bytes = std::mem::take(&mut self.secret).into_bytes();
-        bytes.fill(0);
-        black_box(&bytes);
+        wipe(&mut bytes);
     }
 }
