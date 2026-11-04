@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 use super::{Found, LinkSpan, find_links};
-use crate::files::LinkTarget;
+use crate::files::is_web;
 use crate::term::grid::Grid;
 use crate::term::{Cell, Flags, Screen};
 
@@ -54,8 +54,8 @@ pub(super) fn chain_links(screen: &Screen, start: isize) -> (isize, Vec<LinkSpan
 impl Chain {
     fn add_row(&mut self, screen: &Screen, row: isize, cells: &[Cell]) {
         for (col, cell) in cells.iter().enumerate() {
-            if let Some(target) = screen.link(cell.link) {
-                self.mark(row, col, target);
+            if let Some(url) = screen.link(cell.link).filter(|url| is_web(url)) {
+                self.mark(row, col, url);
             }
             if cell.flags.contains(Flags::WIDE_SPACER) {
                 continue;
@@ -75,7 +75,7 @@ impl Chain {
         if let Some(LinkSpan {
             row: last_row,
             end,
-            target: LinkTarget::Uri(known),
+            target: known,
             ..
         }) = self.spans.last_mut()
             && *last_row == row
@@ -85,7 +85,7 @@ impl Chain {
             *end = col + 1;
             return;
         }
-        let target = LinkTarget::Uri(uri.to_owned());
+        let target = uri.to_owned();
         let (start, end) = (col, col + 1);
         self.spans.push(LinkSpan {
             row,

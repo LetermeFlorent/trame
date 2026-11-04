@@ -1,4 +1,3 @@
-use trame::files::LinkTarget;
 use trame::term::{MAX_LINKS, Terminal};
 use trame::ui::terminal::links::{link_at, view_links};
 
@@ -9,8 +8,8 @@ fn ids(term: &Terminal, row: usize) -> Vec<u16> {
     (0..line.len()).map(|col| line.cell(col).link).collect()
 }
 
-fn uri(url: &str) -> Option<LinkTarget> {
-    Some(LinkTarget::Uri(url.to_owned()))
+fn uri(url: &str) -> Option<String> {
+    Some(url.to_owned())
 }
 
 #[test]
@@ -45,6 +44,22 @@ fn the_text_of_an_osc_8_link_opens_its_address_not_itself() {
     );
     assert_eq!(link_at(term.screen(), 0, 3), uri("https://example.com"));
     assert_eq!(view_links(term.screen(), 0..1).len(), 1);
+}
+
+#[test]
+fn an_osc_8_link_that_is_not_web_is_not_a_link() {
+    for address in [
+        "file:///C:/dir/file.txt",
+        "ftp://example.com/x",
+        "vscode://file/x",
+    ] {
+        let input = format!("\x1b]8;;{address}\x07C:\\dir\\file.txt\x1b]8;;\x07");
+        let term = feed(1, 30, &input);
+        assert!(view_links(term.screen(), 0..1).is_empty(), "{address}");
+        assert_eq!(link_at(term.screen(), 0, 2), None, "{address}");
+    }
+    let term = feed(1, 30, "plain C:\\dir\\file.txt and /usr/bin/env");
+    assert!(view_links(term.screen(), 0..1).is_empty());
 }
 
 #[test]

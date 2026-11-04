@@ -8,8 +8,6 @@ pub mod vt;
 
 use vt::Parser;
 
-pub(crate) use dispatch::file_url_path;
-
 pub use cell::{Cell, Color, Flags, MAX_LINKS, Marks};
 pub use cursor::CursorShape;
 pub use grid::SelectionKind;

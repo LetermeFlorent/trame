@@ -18,7 +18,7 @@ impl Running {
         let Some(target) = target else {
             return false;
         };
-        open_link(target, self.sessions.cwd(id));
+        open_link(target);
         true
     }
 

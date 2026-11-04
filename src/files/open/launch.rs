@@ -1,17 +1,14 @@
-use std::ffi::OsString;
-use std::path::PathBuf;
 use std::thread;
 
-use super::{LinkTarget, Opening, plan_opening};
-use crate::files::home_dir;
+use super::is_web;
 use crate::log_error;
 
-pub fn open_link(target: LinkTarget, cwd: Option<PathBuf>) {
+pub fn open_link(url: String) {
     let spawned = thread::Builder::new()
         .name("open-link".to_owned())
         .spawn(move || {
-            if let Some(opening) = plan_opening(&target, cwd.as_deref(), home_dir().as_deref()) {
-                launch(&opening);
+            if is_web(&url) {
+                launch(&url);
             }
         });
     if let Err(error) = spawned {
@@ -19,15 +16,8 @@ pub fn open_link(target: LinkTarget, cwd: Option<PathBuf>) {
     }
 }
 
-fn argument(opening: &Opening) -> OsString {
-    match opening {
-        Opening::Browser(url) => OsString::from(url),
-        Opening::File(path) | Opening::Folder(path) => path.clone().into_os_string(),
-    }
-}
-
 #[cfg(windows)]
-fn launch(opening: &Opening) {
+fn launch(url: &str) {
     use windows_sys::Win32::System::Com::{
         COINIT_APARTMENTTHREADED, COINIT_DISABLE_OLE1DDE, CoInitializeEx, CoUninitialize,
     };
@@ -38,7 +28,7 @@ fn launch(opening: &Opening) {
 
     const LOWEST_SUCCESS: isize = 33;
     let verb = wide("open".as_ref());
-    let file = wide(&argument(opening));
+    let file = wide(url.as_ref());
     let mode = (COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE) as u32;
     let started = unsafe { CoInitializeEx(std::ptr::null(), mode) };
     let result = unsafe {
@@ -61,7 +51,7 @@ fn launch(opening: &Opening) {
 }
 
 #[cfg(not(windows))]
-fn launch(opening: &Opening) {
+fn launch(url: &str) {
     use std::process::{Command, Stdio};
 
     let program = if cfg!(target_os = "macos") {
@@ -70,11 +60,8 @@ fn launch(opening: &Opening) {
         "xdg-open"
     };
     let mut command = Command::new(program);
-    if cfg!(target_os = "macos") && reveals(opening) {
-        command.arg("-R");
-    }
     let started = command
-        .arg(argument(opening))
+        .arg(url)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -85,9 +72,4 @@ fn launch(opening: &Opening) {
         }
         Err(error) => log_error!("the link could not be opened: {error}"),
     }
-}
-
-#[cfg(not(windows))]
-fn reveals(opening: &Opening) -> bool {
-    matches!(opening, Opening::Folder(path) if path.extension().is_some())
 }

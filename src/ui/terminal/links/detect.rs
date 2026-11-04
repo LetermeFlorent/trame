@@ -1,17 +1,13 @@
-use super::paths::{is_path, without_line};
-use crate::files::LinkTarget;
-
 const WEB_STARTS: [&str; 3] = ["https://", "http://", "www."];
 const URL_STOPS: &[char] = &['<', '>', '"', '`', '{', '}', '|', '\\', '^'];
 const TRAILING: &[char] = &['.', ',', ';', ':', '!', '?', '\'', '"'];
-const OPENERS: &[char] = &['(', '[', '{', '<', '"', '\''];
 const PAIRS: [(char, char); 4] = [('(', ')'), ('[', ']'), ('{', '}'), ('<', '>')];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Found {
     pub start: usize,
     pub end: usize,
-    pub target: LinkTarget,
+    pub target: String,
 }
 
 pub fn find_links(text: &[char]) -> Vec<Found> {
@@ -26,7 +22,7 @@ pub fn find_links(text: &[char]) -> Vec<Found> {
             .iter()
             .position(|c| c.is_whitespace())
             .map_or(text.len(), |offset| start + offset);
-        found.extend(web_link(text, start, end).or_else(|| path_link(text, start, end)));
+        found.extend(web_link(text, start, end));
         start = end;
     }
     found
@@ -57,19 +53,7 @@ fn web_link(text: &[char], start: usize, end: usize) -> Option<Found> {
     Some(Found {
         start: from,
         end: stop,
-        target: LinkTarget::Web(url),
-    })
-}
-
-fn path_link(text: &[char], start: usize, end: usize) -> Option<Found> {
-    let from = (start..end).find(|&at| !OPENERS.contains(&text[at]))?;
-    let stop = trimmed(text, from, end);
-    let chars = &text[from..stop];
-    let path = &chars[..without_line(chars)];
-    is_path(path).then(|| Found {
-        start: from,
-        end: stop,
-        target: LinkTarget::Path(path.iter().collect()),
+        target: url,
     })
 }
 

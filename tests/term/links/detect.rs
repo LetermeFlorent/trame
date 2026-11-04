@@ -1,7 +1,6 @@
-use trame::files::LinkTarget;
 use trame::ui::terminal::links::find_links;
 
-fn links(text: &str) -> Vec<(String, LinkTarget)> {
+fn links(text: &str) -> Vec<(String, String)> {
     let chars: Vec<char> = text.chars().collect();
     find_links(&chars)
         .into_iter()
@@ -9,18 +8,14 @@ fn links(text: &str) -> Vec<(String, LinkTarget)> {
         .collect()
 }
 
-fn only(text: &str) -> (String, LinkTarget) {
+fn only(text: &str) -> (String, String) {
     let found = links(text);
     assert_eq!(found.len(), 1, "{text}: {found:?}");
     found[0].clone()
 }
 
-fn web(url: &str) -> LinkTarget {
-    LinkTarget::Web(url.to_owned())
-}
-
-fn path(path: &str) -> LinkTarget {
-    LinkTarget::Path(path.to_owned())
+fn web(url: &str) -> String {
+    url.to_owned()
 }
 
 #[test]
@@ -60,45 +55,12 @@ fn trailing_punctuation_stays_out_of_a_web_address() {
 }
 
 #[test]
-fn every_kind_of_path_is_found() {
-    for text in [
-        r"C:\dir\file.txt",
-        "C:/dir/file.txt",
-        r"\\server\share\file.txt",
-        "~/notes.md",
-        "./run",
-        "../up/file",
-        "/usr/bin/env",
-        "src/main.rs",
-        r"src\ui\mod.rs",
-    ] {
-        let found = only(&format!("open {text} now"));
-        assert_eq!(found, (text.to_owned(), path(text)));
-    }
-    assert_eq!(only("(src/main.rs)").1, path("src/main.rs"));
-}
-
-#[test]
-fn a_line_and_column_suffix_is_underlined_but_not_opened() {
-    let cases = [
-        ("src/main.rs:12:5", "src/main.rs:12:5", "src/main.rs"),
-        ("src/main.rs:12:", "src/main.rs:12", "src/main.rs"),
-        ("/usr/lib/x.so:3", "/usr/lib/x.so:3", "/usr/lib/x.so"),
-        (
-            r"C:\dir\file.txt:7",
-            r"C:\dir\file.txt:7",
-            r"C:\dir\file.txt",
-        ),
-    ];
-    for (text, shown, opened) in cases {
-        assert_eq!(only(text), (shown.to_owned(), path(opened)), "{text}");
-    }
-}
-
-#[test]
 fn plain_words_dates_and_bare_slashes_are_not_links() {
     for text in [
         "2026/11/04",
+        r"C:\dir\file.txt",
+        "src/main.rs",
+        "/usr/bin/env",
         "/",
         "/usr",
         "/usr/",
@@ -107,7 +69,6 @@ fn plain_words_dates_and_bare_slashes_are_not_links() {
         "km/h.",
         "1/2",
         "a//b.rs",
-        "foo=src/main.rs",
         r"C:\",
         r"\\server",
         "~/",
@@ -125,12 +86,13 @@ fn plain_words_dates_and_bare_slashes_are_not_links() {
 
 #[test]
 fn several_links_on_one_line_are_all_found() {
-    let found = links("a https://one.example b src/two.rs c /etc/three/file");
-    let targets: Vec<LinkTarget> = found.into_iter().map(|(_, target)| target).collect();
-    let wanted = [
-        web("https://one.example"),
-        path("src/two.rs"),
-        path("/etc/three/file"),
-    ];
-    assert_eq!(targets, wanted);
+    let found = links("a https://one.example b src/two.rs c www.three.example/x");
+    let targets: Vec<String> = found.into_iter().map(|(_, target)| target).collect();
+    assert_eq!(
+        targets,
+        [
+            web("https://one.example"),
+            web("https://www.three.example/x")
+        ]
+    );
 }

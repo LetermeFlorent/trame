@@ -1,11 +1,9 @@
 mod cache;
 mod chain;
 mod detect;
-mod paths;
 
 use std::ops::Range;
 
-use crate::files::LinkTarget;
 use crate::term::Screen;
 pub use cache::LinkCache;
 use chain::{chain_links, chain_start};
@@ -16,7 +14,7 @@ pub struct LinkSpan {
     pub row: isize,
     pub start: usize,
     pub end: usize,
-    pub target: LinkTarget,
+    pub target: String,
 }
 
 impl LinkSpan {
@@ -37,7 +35,7 @@ pub fn view_links(screen: &Screen, rows: Range<isize>) -> Vec<LinkSpan> {
     spans
 }
 
-pub fn link_at(screen: &Screen, row: isize, col: usize) -> Option<LinkTarget> {
+pub fn link_at(screen: &Screen, row: isize, col: usize) -> Option<String> {
     let (_, spans) = chain_links(screen, chain_start(screen.grid(), row));
     spans
         .into_iter()

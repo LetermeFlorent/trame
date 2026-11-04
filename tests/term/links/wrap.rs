@@ -1,4 +1,3 @@
-use trame::files::LinkTarget;
 use trame::ui::terminal::links::{link_at, view_links};
 
 use crate::feed;
@@ -8,7 +7,7 @@ const WRAPPED: &str = "go https://example.com/long/path end";
 #[test]
 fn a_link_that_wraps_continues_on_the_next_rows() {
     let term = feed(5, 10, WRAPPED);
-    let url = LinkTarget::Web("https://example.com/long/path".to_owned());
+    let url = "https://example.com/long/path".to_owned();
     let spans = view_links(term.screen(), 0..5);
     let places: Vec<_> = spans.iter().map(|s| (s.row, s.start, s.end)).collect();
     assert_eq!(places, [(0, 3, 10), (1, 0, 10), (2, 0, 10), (3, 0, 2)]);
@@ -37,8 +36,8 @@ fn a_line_break_ends_the_link() {
 
 #[test]
 fn rows_above_the_history_do_not_hide_the_links_below() {
-    let term = feed(3, 20, "x\r\nsee src/main.rs");
+    let term = feed(3, 20, "x\r\nsee https://a.io");
     let spans = view_links(term.screen(), -2..3);
     assert_eq!(spans.len(), 1);
-    assert_eq!((spans[0].row, spans[0].start, spans[0].end), (1, 4, 15));
+    assert_eq!((spans[0].row, spans[0].start, spans[0].end), (1, 4, 16));
 }
