@@ -32,12 +32,6 @@ pub fn detect_with(read: impl Fn(&str) -> Option<String>) -> Option<Appearance> 
         .or_else(|| read(GTK_THEME_KEY).as_deref().and_then(parse_gtk_theme))
 }
 
-pub fn kde_desktop(current: &str) -> bool {
-    current
-        .split(':')
-        .any(|name| name.trim().eq_ignore_ascii_case("kde"))
-}
-
 #[cfg(all(unix, not(target_os = "macos")))]
 pub fn detect() -> Option<Appearance> {
     detect_with(read_setting)

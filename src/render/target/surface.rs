@@ -1,15 +1,9 @@
 use crate::render::gpu::Gpu;
 
-const SEE_THROUGH: [wgpu::CompositeAlphaMode; 2] = [
-    wgpu::CompositeAlphaMode::PreMultiplied,
-    wgpu::CompositeAlphaMode::PostMultiplied,
-];
-
 pub struct WindowSurface {
     surface: wgpu::Surface<'static>,
     config: wgpu::SurfaceConfiguration,
     pending: Option<(u32, u32)>,
-    see_through: bool,
 }
 
 pub enum Frame {
@@ -23,7 +17,6 @@ impl WindowSurface {
         surface: wgpu::Surface<'static>,
         width: u32,
         height: u32,
-        see_through: bool,
     ) -> Option<Self> {
         let capabilities = surface.get_capabilities(&gpu.adapter);
         let mut config = surface.get_default_config(&gpu.adapter, width.max(1), height.max(1))?;
@@ -31,13 +24,15 @@ impl WindowSurface {
             config.format = format;
         }
         config.present_mode = wgpu::PresentMode::AutoVsync;
-        if let Some(mode) = alpha_mode(&capabilities.alpha_modes, see_through) {
-            config.alpha_mode = mode;
+        if capabilities
+            .alpha_modes
+            .contains(&wgpu::CompositeAlphaMode::Opaque)
+        {
+            config.alpha_mode = wgpu::CompositeAlphaMode::Opaque;
         }
         config.desired_maximum_frame_latency = 1;
         surface.configure(&gpu.device, &config);
         Some(Self {
-            see_through: see_through && SEE_THROUGH.contains(&config.alpha_mode),
             surface,
             config,
             pending: None,
@@ -46,10 +41,6 @@ impl WindowSurface {
 
     pub fn format(&self) -> wgpu::TextureFormat {
         self.config.format
-    }
-
-    pub fn see_through(&self) -> bool {
-        self.see_through
     }
 
     pub fn size(&self) -> (u32, u32) {
@@ -105,15 +96,4 @@ fn preferred_format(formats: &[wgpu::TextureFormat]) -> Option<wgpu::TextureForm
         .into_iter()
         .find(|format| formats.contains(format))
         .or_else(|| formats.first().copied())
-}
-
-pub fn alpha_mode(
-    modes: &[wgpu::CompositeAlphaMode],
-    see_through: bool,
-) -> Option<wgpu::CompositeAlphaMode> {
-    let clear = SEE_THROUGH.iter().filter(|_| see_through);
-    clear
-        .chain(&[wgpu::CompositeAlphaMode::Opaque])
-        .find(|mode| modes.contains(mode))
-        .copied()
 }

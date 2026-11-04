@@ -13,15 +13,10 @@ const CLOSE_RED: Rgba = Rgba::hex(0xc42b1c);
 const CLOSE_PRESSED_SHADE: f32 = 0.15;
 const ROUND_IDLE_ALPHA: f32 = 0.7;
 
-pub(super) fn draw(
-    painter: &mut Painter,
-    bar: &TitleBarFrame,
-    sidebar_open: bool,
-    glass: Option<Rect>,
-) {
+pub(super) fn draw(painter: &mut Painter, bar: &TitleBarFrame, sidebar_open: bool) {
     let theme = painter.theme;
     let line = painter.metrics.line();
-    draw_back(painter, bar.rect, glass);
+    painter.rule(bar.rect, theme.chrome);
     painter.rule(
         Rect::new(bar.rect.x, bar.rect.bottom() - line, bar.rect.width, line),
         theme.border,
@@ -96,19 +91,4 @@ fn draw_control(painter: &mut Painter, rect: Rect, hit: Hit, icon: Icon) {
     };
     let size = painter.metrics.px(glyph);
     painter.icon(icon, centered(rect, size), color);
-}
-
-fn draw_back(painter: &mut Painter, rect: Rect, glass: Option<Rect>) {
-    let theme = painter.theme;
-    let Some(glass) = glass else {
-        painter.rule(rect, theme.chrome);
-        return;
-    };
-    let (top, bottom) = (rect.y, rect.bottom());
-    painter.rule(glass, theme.panel());
-    painter.rule(Rect::from_edges(rect.x, top, glass.x, bottom), theme.chrome);
-    painter.rule(
-        Rect::from_edges(glass.right(), top, rect.right(), bottom),
-        theme.chrome,
-    );
 }

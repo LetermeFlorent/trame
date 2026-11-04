@@ -70,7 +70,6 @@ fn flip(next: &mut Preferences, control: SettingControl) {
         SettingControl::RestHiddenTabs => &mut next.rest_hidden_tabs,
         SettingControl::NotifyWaiting => &mut next.notify_waiting,
         SettingControl::ProgramClipboard => &mut next.program_clipboard,
-        SettingControl::Blur => &mut next.blur,
         _ => return,
     };
     *switch = !*switch;

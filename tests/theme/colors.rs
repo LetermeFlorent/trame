@@ -1,5 +1,5 @@
 use trame::term::Color;
-use trame::theme::{Appearance, PANEL_OVER_BACKDROP, Theme};
+use trame::theme::{Appearance, Theme};
 
 #[test]
 fn the_first_sixteen_colors_come_from_the_theme() {
@@ -37,22 +37,4 @@ fn light_and_dark_themes_differ_in_brightness() {
     assert!(light.terminal.luminance() > 0.8);
     assert!(dark.text.luminance() > dark.terminal.luminance());
     assert!(light.text.luminance() < light.terminal.luminance());
-}
-
-#[test]
-fn over_the_backdrop_only_the_panel_turns_see_through() {
-    for appearance in [Appearance::Dark, Appearance::Light] {
-        let solid = Theme::new(appearance);
-        assert!(!solid.backdrop);
-        assert_eq!(solid.panel(), solid.chrome);
-        assert_eq!(solid.clear(), solid.chrome);
-        let clear = Theme {
-            backdrop: true,
-            ..solid.clone()
-        };
-        assert_eq!(clear.panel(), solid.chrome.with_alpha(PANEL_OVER_BACKDROP));
-        assert_eq!(clear.clear().a, 0.0);
-        assert_eq!(clear.chrome.a, 1.0);
-        assert_eq!(clear.tinted(None).panel(), clear.panel());
-    }
 }

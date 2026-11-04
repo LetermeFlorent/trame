@@ -1,4 +1,3 @@
-mod blur;
 mod closing;
 mod history;
 mod launch;
@@ -101,7 +100,6 @@ fn every_preference_changed() -> Preferences {
         rest_hidden_tabs: false,
         notify_waiting: false,
         program_clipboard: false,
-        blur: true,
         numbering: Numbering {
             shown: false,
             on_close: false,
@@ -138,7 +136,6 @@ fn preferences_saved_before_the_language_choice_follow_the_system() {
     assert_eq!(preferences.interface_size, 110);
     assert_eq!(preferences.panel_side, PanelSide::Left);
     assert_eq!(preferences.density, Density::Compact);
-    assert!(!preferences.blur);
 }
 
 #[test]

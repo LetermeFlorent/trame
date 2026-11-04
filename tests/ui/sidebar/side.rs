@@ -1,9 +1,6 @@
-use trame::geometry::{Point, Rect};
-use trame::theme::{Appearance, Theme};
-use trame::ui::chrome::draw_chrome;
+use trame::geometry::Point;
 use trame::ui::{Density, FrameLayout, Hit, PanelSide, UiMetrics};
 
-use crate::paint::paint_with;
 use crate::{WIDTH, frame_in, text_system, workspace};
 
 fn on(panel: PanelSide, density: Density) -> UiMetrics {
@@ -92,46 +89,4 @@ fn compact_keeps_the_roomy_sizes() {
         frame.panes[0].strip.rect.height,
         (UiMetrics::TAB_BAR * 1.25).round()
     );
-}
-
-fn covers(quad: [f32; 4], rect: Rect) -> bool {
-    let [x, y, width, height] = quad;
-    x <= rect.x && y <= rect.y && x + width >= rect.right() && y + height >= rect.bottom()
-}
-
-fn beside(frame: &FrameLayout) -> Rect {
-    let side = frame.side;
-    match frame.metrics.panel {
-        PanelSide::Left => Rect::from_edges(side.right(), side.y, WIDTH, side.bottom()),
-        PanelSide::Right => Rect::from_edges(0.0, side.y, side.x, side.bottom()),
-    }
-}
-
-#[test]
-fn over_the_backdrop_only_the_panel_is_see_through() {
-    for panel in PanelSide::ALL {
-        let mut text = text_system();
-        let mut frame = frame_in(&mut text, &workspace(), on(panel, Density::Spacious));
-        frame.panes.clear();
-        for backdrop in [false, true] {
-            let theme = Theme {
-                backdrop,
-                ..Theme::new(Appearance::Dark)
-            };
-            let scene = paint_with(&mut text, &frame, &theme, None, draw_chrome);
-            let painted = |rect: Rect, color: [f32; 4]| {
-                let quads = scene.quads().iter();
-                quads
-                    .filter(|quad| quad.color == color)
-                    .any(|quad| covers(quad.rect, rect))
-            };
-            let glass = theme.panel();
-            assert_eq!(painted(frame.side, glass.to_array()), glass.a > 0.0);
-            let chrome = theme.chrome.to_array();
-            assert_eq!(painted(beside(&frame), chrome), backdrop, "{panel:?}");
-            let (side, bar) = (frame.side, frame.title_bar.rect);
-            let above = Rect::from_edges(side.x, bar.y, side.right(), bar.bottom());
-            assert_eq!(painted(above, chrome), !backdrop, "{panel:?}");
-        }
-    }
 }

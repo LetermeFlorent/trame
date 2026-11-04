@@ -32,13 +32,12 @@ impl Graphics {
         event_loop: &ActiveEventLoop,
         window: Arc<Window>,
         atlas: &mut Atlas,
-        see_through: bool,
     ) -> Result<Self, Box<dyn Error>> {
         let size = window.inner_size();
-        let (gpu, surface) = connect(event_loop, &window, PREFERRED_BACKENDS, see_through)
-            .or_else(|_| connect(event_loop, &window, wgpu::Backends::all(), see_through))?;
+        let (gpu, surface) = connect(event_loop, &window, PREFERRED_BACKENDS)
+            .or_else(|_| connect(event_loop, &window, wgpu::Backends::all()))?;
         #[cfg_attr(not(feature = "capture"), expect(unused_mut))]
-        let mut surface = WindowSurface::new(&gpu, surface, size.width, size.height, see_through)
+        let mut surface = WindowSurface::new(&gpu, surface, size.width, size.height)
             .ok_or("the graphics card cannot draw into this window")?;
         #[cfg(feature = "capture")]
         let capture = Capture::from_env();
@@ -71,10 +70,6 @@ impl Graphics {
         self.renderer.sync_atlas(&self.gpu, atlas);
         let clear = Rgba::new(0.0, 0.0, 0.0, 0.0);
         render_in_format(&self.gpu, &mut self.renderer, scene, clear, self.format)
-    }
-
-    pub fn see_through(&self) -> bool {
-        self.surface.see_through()
     }
 
     pub fn is_lost(&self) -> bool {

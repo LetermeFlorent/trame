@@ -36,7 +36,6 @@ pub struct UiMetrics {
     pub frame_border: f32,
     pub panel: PanelSide,
     pub density: Density,
-    pub backdrop: bool,
 }
 
 impl UiMetrics {
@@ -75,7 +74,6 @@ impl UiMetrics {
             frame_border: 0.0,
             panel: PanelSide::Left,
             density: Density::Compact,
-            backdrop: false,
         }
     }
 

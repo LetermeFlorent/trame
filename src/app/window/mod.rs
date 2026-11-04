@@ -6,12 +6,10 @@ use trame::ui::ResizeEdge;
 use trame::ui::chrome::logo;
 use trame::workspace::WindowSnapshot;
 
-mod backdrop;
 #[cfg(windows)]
 pub mod dwm;
 mod frame;
 
-pub use backdrop::{backdrop_supported, set_backdrop};
 pub use frame::{frame_border, round_corners};
 
 const APP_NAME: &str = "trame";
@@ -68,7 +66,6 @@ fn platform_attributes(attributes: WindowAttributes) -> WindowAttributes {
         .with_titlebar_transparent(true)
         .with_title_hidden(true)
         .with_fullsize_content_view(true)
-        .with_transparent(true)
 }
 
 #[cfg(all(unix, not(target_os = "macos")))]
@@ -76,9 +73,7 @@ fn platform_attributes(attributes: WindowAttributes) -> WindowAttributes {
     use winit::platform::wayland::WindowAttributesExtWayland;
     use winit::platform::x11::WindowAttributesExtX11;
     let attributes = WindowAttributesExtWayland::with_name(attributes, APP_NAME, APP_NAME);
-    WindowAttributesExtX11::with_name(attributes, APP_NAME, APP_NAME)
-        .with_decorations(false)
-        .with_transparent(backdrop::blur_desktop())
+    WindowAttributesExtX11::with_name(attributes, APP_NAME, APP_NAME).with_decorations(false)
 }
 
 pub fn has_area(window: &Window) -> bool {
