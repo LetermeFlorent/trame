@@ -1,5 +1,5 @@
 use crate::geometry::Rect;
-use crate::ui::frame::fit_label;
+use crate::ui::frame::{fit_label, stack_from_right};
 use crate::ui::metrics::UiMetrics;
 
 use super::column::{BUTTON_GAP, Column, LINE_HEIGHT, middle};
@@ -55,18 +55,13 @@ impl Column<'_> {
     ) -> ChoiceRow {
         let clear = clear.map(|control| (self.end_button(&line), control));
         let gap = self.metrics.px(BUTTON_GAP);
-        let mut right = clear.map_or(line.rect.right(), |(rect, _)| rect.x - gap);
-        let mut chips: Vec<Chip> = choices
-            .iter()
-            .rev()
-            .map(|&choice| {
-                let mut chip = self.chip_on(&line, choice);
-                chip.rect.x = right - chip.rect.width;
-                right = chip.rect.x - gap;
-                chip
-            })
-            .collect();
-        chips.reverse();
+        let right = clear.map_or(line.rect.right(), |(rect, _)| rect.x - gap);
+        let chips = stack_from_right(choices, right, gap, |choice, right| {
+            let mut chip = self.chip_on(&line, choice);
+            chip.rect.x = right - chip.rect.width;
+            let left = chip.rect.x;
+            (chip, left)
+        });
         ChoiceRow { line, chips, clear }
     }
 

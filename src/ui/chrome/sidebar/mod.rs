@@ -130,11 +130,7 @@ fn draw_row(painter: &mut Painter, row: &SidebarRow) {
     }
     let icon_ink = ink.unwrap_or_else(|| icon_color(theme, row.color, row.active));
     painter.icon(icon, row.icon, icon_ink);
-    let text_color = match (ink, row.active) {
-        (Some(ink), _) => ink,
-        (None, true) => theme.text,
-        (None, false) => theme.muted_text(glow),
-    };
+    let text_color = ink.unwrap_or_else(|| theme.label_text(row.active, glow));
     if !painter.renaming(|editor| editor.renames_row(row.item)) {
         painter.label(&row.label, row.label_x, row.rect, text_color);
     }

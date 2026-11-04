@@ -3,6 +3,7 @@ use std::sync::Arc;
 use crate::geometry::Rect;
 use crate::locale::Strings;
 use crate::text::{TextLayout, TextSystem};
+use crate::ui::frame::stack_from_right;
 use crate::ui::metrics::UiMetrics;
 
 const BUTTON_PAD_X: f32 = 12.0;
@@ -61,22 +62,15 @@ pub(in crate::ui::frame) fn place_buttons(
 ) -> Vec<FormButton> {
     let height = metrics.px(UiMetrics::BUTTON);
     let gap = metrics.px(BUTTON_GAP);
-    let mut right = area.right();
-    let mut buttons: Vec<FormButton> = actions
-        .iter()
-        .rev()
-        .map(|&action| {
-            let label = text.layout(action.label(strings), metrics.label());
-            let width = label.width.ceil() + 2.0 * metrics.px(BUTTON_PAD_X);
-            let rect = Rect::new(right - width, area.bottom() - height, width, height);
-            right = rect.x - gap;
-            FormButton {
-                rect,
-                label,
-                action,
-            }
-        })
-        .collect();
-    buttons.reverse();
-    buttons
+    stack_from_right(actions, area.right(), gap, |action, right| {
+        let label = text.layout(action.label(strings), metrics.label());
+        let width = label.width.ceil() + 2.0 * metrics.px(BUTTON_PAD_X);
+        let rect = Rect::new(right - width, area.bottom() - height, width, height);
+        let button = FormButton {
+            rect,
+            label,
+            action,
+        };
+        (button, rect.x)
+    })
 }

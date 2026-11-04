@@ -56,11 +56,7 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
     if !tab.active && !before_active {
         draw_separator(painter, rect);
     }
-    let color = match (ink, tab.active) {
-        (Some(ink), _) => ink,
-        (None, true) => theme.text,
-        (None, false) => theme.muted_text(glow),
-    };
+    let color = ink.unwrap_or_else(|| theme.label_text(tab.active, glow));
     if !painter.renaming(|editor| editor.renames_tab(pane.id, tab.id)) {
         painter.label(&tab.label, tab.label_x, rect, color);
     }

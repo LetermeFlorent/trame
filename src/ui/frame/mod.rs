@@ -129,3 +129,19 @@ impl FrameLayout {
         self.panes.iter().find(|pane| pane.id == id)
     }
 }
+
+fn stack_from_right<I: Copy, T>(
+    items: &[I],
+    mut right: f32,
+    gap: f32,
+    mut place: impl FnMut(I, f32) -> (T, f32),
+) -> Vec<T> {
+    let mut placed = Vec::with_capacity(items.len());
+    for &item in items.iter().rev() {
+        let (value, left) = place(item, right);
+        right = left - gap;
+        placed.push(value);
+    }
+    placed.reverse();
+    placed
+}

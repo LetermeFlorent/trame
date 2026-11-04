@@ -56,6 +56,13 @@ impl Theme {
         self.text_muted.mix(self.text, glow)
     }
 
+    pub fn label_text(&self, active: bool, glow: f32) -> Rgba {
+        match active {
+            true => self.text,
+            false => self.muted_text(glow),
+        }
+    }
+
     pub fn terminal_color(&self, color: Color) -> Rgba {
         match color {
             Color::Foreground => self.foreground,
