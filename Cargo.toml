@@ -1,6 +1,6 @@
 [package]
 name = "trame"
-version = "0.3.23"
+version = "0.3.24"
 edition = "2024"
 rust-version = "1.89"
 description = "A light terminal with instances, tabs and splits"
