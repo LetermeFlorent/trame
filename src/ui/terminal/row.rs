@@ -65,13 +65,8 @@ pub(super) fn draw_glyphs(
         let rect = cell_rect(grid, row, col, columns);
         let color = glyph_color(grid, row, col, cell);
         let ink = Ink { rect, color, light };
-        let mut flags = cell.flags;
-        if !flags.intersects(Flags::ANY_UNDERLINE) && links.iter().any(|link| link.covers(col)) {
-            flags.insert(Flags::UNDERLINE);
-        }
-        if flags.intersects(Flags::ANY_UNDERLINE) || flags.contains(Flags::STRIKE) {
-            style::draw_decorations(scene, flags, &grid.metrics, ink);
-        }
+        let linked = links.iter().any(|link| link.covers(col));
+        decorate(scene, grid, cell.flags, linked, ink);
         let marks = row.line.marks(col);
         let blank = matches!(cell.ch, ' ' | '\0') && marks.is_empty();
         if blank || cell.flags.contains(Flags::HIDDEN) {
@@ -88,6 +83,15 @@ pub(super) fn draw_glyphs(
             columns,
         };
         text.draw_cell(scene, glyph, Point::new(rect.x, rect.y), color);
+    }
+}
+
+fn decorate(scene: &mut Scene, grid: &GridPaint, mut flags: Flags, linked: bool, ink: Ink) {
+    if linked && !flags.intersects(Flags::ANY_UNDERLINE) {
+        flags.insert(Flags::UNDERLINE);
+    }
+    if flags.intersects(Flags::ANY_UNDERLINE) || flags.contains(Flags::STRIKE) {
+        style::draw_decorations(scene, flags, &grid.metrics, ink);
     }
 }
 

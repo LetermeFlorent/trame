@@ -59,6 +59,14 @@ struct Span {
     delta: f32,
 }
 
+fn swept(delta: f32, sweep: bool) -> f32 {
+    match (sweep, delta) {
+        (false, delta) if delta > 0.0 => delta - TAU,
+        (true, delta) if delta < 0.0 => delta + TAU,
+        (_, delta) => delta,
+    }
+}
+
 fn span(from: Point, shape: &Arc, to: Point) -> Span {
     let (mut rx, mut ry) = (shape.radii.x.abs(), shape.radii.y.abs());
     let (sin, cos) = shape.rotation.to_radians().sin_cos();
@@ -86,12 +94,7 @@ fn span(from: Point, shape: &Arc, to: Point) -> Span {
     let start = Point::new((x1 - cx1) / rx, (y1 - cy1) / ry);
     let end = Point::new((-x1 - cx1) / rx, (-y1 - cy1) / ry);
     let theta = angle(Point::new(1.0, 0.0), start);
-    let mut delta = angle(start, end);
-    if !shape.sweep && delta > 0.0 {
-        delta -= TAU;
-    } else if shape.sweep && delta < 0.0 {
-        delta += TAU;
-    }
+    let delta = swept(angle(start, end), shape.sweep);
     Span {
         center,
         rx,

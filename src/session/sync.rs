@@ -60,21 +60,22 @@ impl SyncHold {
     }
 
     fn waker(&mut self) -> Option<&Sender<(u64, Instant)>> {
-        if self.wake.is_none() {
-            let (sender, queue) = mpsc::channel::<(u64, Instant)>();
-            let (id, current) = (self.id, self.current.clone());
-            let (pending, notify) = (self.pending.clone(), self.notify.clone());
-            let spawned = spawn("trame-sync", move || {
-                for (generation, deadline) in queue {
-                    thread::sleep(deadline.saturating_duration_since(Instant::now()));
-                    let still_held = current.load(Ordering::Acquire) == generation;
-                    if still_held {
-                        wake_output(id, &pending, &notify);
-                    }
-                }
-            });
-            self.wake = spawned.ok().map(|()| sender);
+        if self.wake.is_some() {
+            return self.wake.as_ref();
         }
+        let (sender, queue) = mpsc::channel::<(u64, Instant)>();
+        let (id, current) = (self.id, self.current.clone());
+        let (pending, notify) = (self.pending.clone(), self.notify.clone());
+        let spawned = spawn("trame-sync", move || {
+            for (generation, deadline) in queue {
+                thread::sleep(deadline.saturating_duration_since(Instant::now()));
+                let still_held = current.load(Ordering::Acquire) == generation;
+                if still_held {
+                    wake_output(id, &pending, &notify);
+                }
+            }
+        });
+        self.wake = spawned.ok().map(|()| sender);
         self.wake.as_ref()
     }
 }

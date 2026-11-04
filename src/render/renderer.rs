@@ -67,10 +67,6 @@ impl Renderer {
             .write_buffer(&self.bindings.globals, 0, bytemuck::bytes_of(&globals));
         let quads = scene.quads();
         self.reserve(&gpu.device, quads.len());
-        if !quads.is_empty() {
-            gpu.queue
-                .write_buffer(&self.quads, 0, bytemuck::cast_slice(quads));
-        }
         let mut encoder = gpu
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -91,6 +87,8 @@ impl Renderer {
                 ..Default::default()
             });
             if !quads.is_empty() {
+                gpu.queue
+                    .write_buffer(&self.quads, 0, bytemuck::cast_slice(quads));
                 pass.set_pipeline(&self.pipeline);
                 pass.set_bind_group(0, &self.bind_group, &[]);
                 pass.set_vertex_buffer(0, self.quads.slice(..));

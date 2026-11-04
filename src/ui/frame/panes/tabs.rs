@@ -105,13 +105,11 @@ fn layout_tabs(
     let mut frames = Vec::with_capacity(widths.len());
     for (index, (tab, width)) in pane.tabs.iter().zip(&widths).enumerate() {
         let target = Rect::new(x, 0.0, *width, area.height);
-        let entry = placement
-            .grows
-            .then_some(Rect::new(x, 0.0, 0.0, area.height));
+        let start = Rect::new(x, 0.0, 0.0, area.height);
         let key = MotionKey::Tab(placement.pane_id, *tab);
         let rect = cx
             .motion
-            .place(key, target, entry)
+            .place(key, target, placement.grows.then_some(start))
             .translated(area.x, area.y);
         frames.push(TabFrame {
             id: *tab,

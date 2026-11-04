@@ -17,7 +17,7 @@ use trame::render::Scene;
 use trame::session::Transcripts;
 use trame::theme::Theme;
 use trame::ui::FrameView;
-use trame::workspace::{Snapshot, Workspace};
+use trame::workspace::Snapshot;
 
 use super::tabs::{Placement, Restarts};
 use super::{Memo, Pointer, Running, Selecting};
@@ -103,9 +103,7 @@ impl Running {
     }
 
     fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>, saver: Saver) -> Self {
-        let metrics = surface.metrics();
-        let workspace = Workspace::numbered(surface.preferences.numbering);
-        let (frame, motion, strings) = first_frame(&mut surface, &workspace, metrics, &saver);
+        let first = first_frame(&mut surface, &saver);
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
             power: Power::new(surface.preferences.power_switches()),
@@ -114,19 +112,19 @@ impl Running {
             graphics: surface.graphics,
             text: surface.text,
             scene: Scene::new(0.0, 0.0),
-            metrics,
+            metrics: first.metrics,
             window_scale: surface.window_scale,
             preferences: surface.preferences,
             keymap: Memo::default(),
-            workspace,
+            workspace: first.workspace,
             sessions: Sessions::new(proxy.clone()),
             proxy,
             transcripts: Transcripts::new(saver.transcript_dir()),
             saver,
             icons: IconStore::new(persist::icon_dir()),
             labels: HashMap::new(),
-            frame,
-            motion,
+            frame: first.frame,
+            motion: first.motion,
             view: FrameView::focused(),
             pointer: Pointer::default(),
             drag: None,
@@ -141,7 +139,7 @@ impl Running {
             update: UpdateState::default(),
             restarts: Restarts::default(),
             closing: None,
-            strings,
+            strings: first.strings,
         }
     }
 }

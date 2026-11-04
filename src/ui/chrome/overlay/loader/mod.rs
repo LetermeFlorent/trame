@@ -86,18 +86,11 @@ fn draw_column(
     let spaced = metrics.px(LOGO_GAP) + metrics.px(MESSAGE_GAP) + metrics.px(BAR_GAP);
     let center = area.center().x;
     let mut y = (area.center().y - (logo + 2.0 * ring + line + bar + spaced) / 2.0).round();
-    draw_logo(
-        scene,
-        Rect::new((center - logo / 2.0).round(), y, logo, logo),
-    );
+    let mark = Rect::new((center - logo / 2.0).round(), y, logo, logo);
+    draw_logo(scene, mark);
     y += logo + metrics.px(LOGO_GAP) + ring;
-    draw_ring(
-        scene,
-        Point::new(center, y),
-        metrics,
-        theme.accent,
-        loader.spin,
-    );
+    let hub = Point::new(center, y);
+    draw_ring(scene, hub, metrics, theme.accent, loader.spin);
     y += ring + metrics.px(MESSAGE_GAP);
     draw_message(scene, text, input, loader, Point::new(center, y));
     y += line + metrics.px(BAR_GAP);

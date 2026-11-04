@@ -108,22 +108,23 @@ pub fn straight_alpha(pixels: &mut [u8]) {
 pub fn stamp_arrow(pixels: &mut [u8], width: u32, metrics: UiMetrics) {
     let scale = arrow_scale(metrics) as usize;
     let width = width as usize;
-    for (row, line) in ARROW.iter().enumerate() {
-        for (col, mark) in line.bytes().enumerate() {
-            let shade = match mark {
-                b'B' => 0,
-                b'W' => OPAQUE,
-                _ => continue,
-            };
-            for dy in 0..scale {
-                for dx in 0..scale {
-                    let x = col * scale + dx;
-                    let at = ((row * scale + dy) * width + x) * BYTES_PER_PIXEL;
-                    if x < width && at + BYTES_PER_PIXEL <= pixels.len() {
-                        pixels[at..at + BYTES_PER_PIXEL]
-                            .copy_from_slice(&[shade, shade, shade, OPAQUE]);
-                    }
-                }
+    let marks = ARROW.iter().enumerate().flat_map(|(row, line)| {
+        line.bytes()
+            .enumerate()
+            .map(move |(col, mark)| (row, col, mark))
+    });
+    let block = |dy| (0..scale).map(move |dx| (dy, dx));
+    for (row, col, mark) in marks {
+        let shade = match mark {
+            b'B' => 0,
+            b'W' => OPAQUE,
+            _ => continue,
+        };
+        for (dy, dx) in (0..scale).flat_map(block) {
+            let x = col * scale + dx;
+            let at = ((row * scale + dy) * width + x) * BYTES_PER_PIXEL;
+            if x < width && at + BYTES_PER_PIXEL <= pixels.len() {
+                pixels[at..at + BYTES_PER_PIXEL].copy_from_slice(&[shade, shade, shade, OPAQUE]);
             }
         }
     }
