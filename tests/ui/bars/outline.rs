@@ -2,6 +2,7 @@ use trame::geometry::Rect;
 use trame::preferences::SshHost;
 use trame::render::Scene;
 use trame::session::SessionId;
+use trame::text::TextSystem;
 use trame::theme::{Appearance, Swatch, Theme};
 use trame::ui::chrome::draw_chrome;
 use trame::ui::{Density, PanelSide, UiMetrics};
@@ -30,14 +31,18 @@ fn an_ssh_tab_is_outlined_and_a_plain_tab_is_not() {
             let mut text = text_system();
             let theme = Theme::new(appearance);
             let metrics = UiMetrics::new(1.0).with_display(PanelSide::Left, density);
-            for ssh in [SessionId(1), SessionId(2)] {
-                let workspace = with_host(ssh);
-                let frame = frame_with_metrics(&mut text, &workspace, metrics);
-                let scene = paint_with(&mut text, &frame, &theme, None, draw_chrome);
-                for tab in &frame.panes[0].strip.tabs {
-                    assert_eq!(outlined(&scene, tab.rect, &theme), tab.id == ssh);
-                }
-            }
+            assert_only_ssh_outlined(&mut text, &theme, metrics);
+        }
+    }
+}
+
+fn assert_only_ssh_outlined(text: &mut TextSystem, theme: &Theme, metrics: UiMetrics) {
+    for ssh in [SessionId(1), SessionId(2)] {
+        let workspace = with_host(ssh);
+        let frame = frame_with_metrics(text, &workspace, metrics);
+        let scene = paint_with(text, &frame, theme, None, draw_chrome);
+        for tab in &frame.panes[0].strip.tabs {
+            assert_eq!(outlined(&scene, tab.rect, theme), tab.id == ssh);
         }
     }
 }

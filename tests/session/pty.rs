@@ -88,6 +88,14 @@ fn same_path(reported: &str, expected: &Path) -> bool {
     normalize(reported) == normalize(&expected.to_string_lossy())
 }
 
+fn reported_cwd(terminal: &Terminal, pty: &Pty) -> Option<String> {
+    terminal
+        .screen()
+        .cwd()
+        .map(str::to_owned)
+        .or_else(|| pty.cwd().map(|path| path.to_string_lossy().into_owned()))
+}
+
 #[test]
 fn shell_runs_a_command_and_exits() {
     let shell = default_shell();
@@ -110,11 +118,7 @@ fn shell_runs_a_command_and_exits() {
         screen_text(&terminal)
     );
 
-    let reported = terminal
-        .screen()
-        .cwd()
-        .map(str::to_owned)
-        .or_else(|| pty.cwd().map(|path| path.to_string_lossy().into_owned()));
+    let reported = reported_cwd(&terminal, &pty);
     assert!(
         reported.as_deref().is_some_and(|path| same_path(path, cwd)),
         "cwd not reported: {reported:?}"
