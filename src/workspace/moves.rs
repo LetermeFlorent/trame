@@ -76,10 +76,12 @@ impl Workspace {
     }
 
     fn reorder(&mut self, tab: SessionId, source: TabLocation, index: Option<usize>) -> bool {
-        if let Some(pane) = self.instances[source.instance].panes.get_mut(&source.pane) {
+        let instance = &mut self.instances[source.instance];
+        if let Some(pane) = instance.panes.get_mut(&source.pane) {
             let last = pane.tabs.len();
             pane.reorder(tab, index.unwrap_or(last));
         }
+        instance.focus(source.pane);
         true
     }
 

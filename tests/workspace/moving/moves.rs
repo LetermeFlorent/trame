@@ -33,6 +33,16 @@ fn dropping_in_the_own_pane_reorders_and_activates_the_tab() {
 }
 
 #[test]
+fn dropping_in_the_own_pane_focuses_that_pane() {
+    let mut workspace = two_panes();
+    let (source, other) = (pane_of(&workspace, 1), pane_of(&workspace, 4));
+    workspace.instances[0].focus(other);
+    assert!(workspace.move_tab(tab(3), into_pane(&workspace, source, Some(0))));
+    assert_eq!(workspace.instances[0].active_pane, source);
+    assert_eq!(workspace.active_tab(), Some(tab(3)));
+}
+
+#[test]
 fn dropping_in_the_own_pane_without_index_sends_the_tab_last() {
     let mut workspace = workspace_with(&[1, 2, 3]);
     let pane = pane_of(&workspace, 1);
