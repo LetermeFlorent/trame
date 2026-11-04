@@ -1,4 +1,4 @@
-use crate::text::{FontRole, REGULAR, SEMIBOLD, TextStyle};
+use crate::text::{REGULAR, SEMIBOLD, TextStyle};
 use crate::ui::display::{Density, PanelSide, SPACING};
 
 pub const TERMINAL_FONT_SIZE: f32 = 14.0;
@@ -127,7 +127,6 @@ impl UiMetrics {
 
     pub fn label(&self) -> TextStyle {
         TextStyle {
-            role: FontRole::Interface,
             size: Self::UI_FONT * self.scale,
             weight: REGULAR,
         }
@@ -144,7 +143,6 @@ impl UiMetrics {
         TextStyle {
             size: Self::SMALL_FONT * self.scale,
             weight: SEMIBOLD,
-            ..self.label()
         }
     }
 }

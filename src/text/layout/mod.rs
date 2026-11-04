@@ -9,14 +9,8 @@ use runs::{Run, split_runs};
 
 pub use runs::script_of;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum FontRole {
-    Interface,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TextStyle {
-    pub role: FontRole,
     pub size: f32,
     pub weight: u16,
 }

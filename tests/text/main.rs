@@ -5,7 +5,7 @@ mod marks;
 mod utf16;
 
 use trame::term::Marks;
-use trame::text::{BOLD, CellText, DEFAULT_LINE_HEIGHT, FontRole, REGULAR, TextStyle, TextSystem};
+use trame::text::{BOLD, CellText, DEFAULT_LINE_HEIGHT, REGULAR, TextStyle, TextSystem};
 
 const SIZE: f32 = 14.0;
 
@@ -14,11 +14,7 @@ fn system() -> TextSystem {
 }
 
 fn interface(weight: u16) -> TextStyle {
-    TextStyle {
-        role: FontRole::Interface,
-        size: 12.5,
-        weight,
-    }
+    TextStyle { size: 12.5, weight }
 }
 
 fn cell(ch: char, bold: bool, italic: bool, columns: u8) -> CellText {

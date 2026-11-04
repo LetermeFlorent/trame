@@ -4,6 +4,7 @@ mod windows;
 use std::io;
 
 use super::SshHost;
+use crate::log_error;
 
 const SSH_PREFIX: &str = "trame/ssh/";
 
@@ -32,7 +33,10 @@ impl Vault {
     }
 
     pub fn forget(self, host: &SshHost) {
-        backend::forget(&self.key(host));
+        let key = self.key(host);
+        if let Err(error) = backend::forget(&key) {
+            log_error!("the password of {key} could not be removed: {error}");
+        }
     }
 }
 
@@ -54,5 +58,7 @@ mod backend {
         None
     }
 
-    pub(super) fn forget(_key: &str) {}
+    pub(super) fn forget(_key: &str) -> io::Result<()> {
+        Ok(())
+    }
 }

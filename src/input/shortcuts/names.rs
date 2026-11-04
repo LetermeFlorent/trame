@@ -2,6 +2,8 @@ use winit::keyboard::{KeyCode, NamedKey};
 
 use super::combo::Trigger;
 
+const FIRST_FUNCTION_KEY: usize = 15;
+
 pub(super) const NAMED: [(NamedKey, &str); 27] = [
     (NamedKey::Tab, "Tab"),
     (NamedKey::Enter, "Enter"),
@@ -81,7 +83,9 @@ pub(super) const MODIFIER_KEYS: [NamedKey; 14] = [
 ];
 
 pub(super) fn is_function_key(named: NamedKey) -> bool {
-    NAMED[15..].iter().any(|(key, _)| *key == named)
+    NAMED[FIRST_FUNCTION_KEY..]
+        .iter()
+        .any(|(key, _)| *key == named)
 }
 
 impl Trigger {

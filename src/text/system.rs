@@ -6,7 +6,7 @@ use swash::shape::ShapeContext;
 use super::cells::CellCache;
 use super::font::{self, Family, FontId, FontLibrary, MissingFont};
 use super::images::ImageKey;
-use super::layout::{FontRole, Shaping, TextLayout, TextStyle};
+use super::layout::{Shaping, TextLayout, TextStyle};
 use super::metrics::CellMetrics;
 use super::raster::{GlyphCache, GlyphKey};
 use crate::geometry::Point;
@@ -81,14 +81,11 @@ impl TextSystem {
             return found;
         }
         let layout = find_layout(&self.previous_layouts, text, style).unwrap_or_else(|| {
-            let family = match style.role {
-                FontRole::Interface => &self.interface,
-            };
             let shaping = Shaping {
                 context: &mut self.shaper,
                 library: &mut self.library,
             };
-            Arc::new(shaping.shape(family, text, style))
+            Arc::new(shaping.shape(&self.interface, text, style))
         });
         self.layouts
             .entry(text.to_owned())
