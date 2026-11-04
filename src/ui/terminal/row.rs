@@ -2,12 +2,14 @@ use super::links::LinkSpan;
 use super::{GridPaint, Ink, boxes, style};
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
+use crate::term::grid::Row;
 use crate::term::{Cell, Flags};
 use crate::text::{CellText, TextSystem};
 use crate::theme::Rgba;
 
 pub(super) struct RowPaint<'a> {
     pub(super) cells: &'a [Cell],
+    pub(super) line: &'a Row,
     pub(super) row: isize,
     pub(super) y: f32,
 }
@@ -74,7 +76,8 @@ pub(super) fn draw_glyphs(
         if flags.intersects(Flags::ANY_UNDERLINE) || flags.contains(Flags::STRIKE) {
             style::draw_decorations(scene, flags, &grid.metrics, ink);
         }
-        let blank = matches!(cell.ch, ' ' | '\0') && cell.marks.is_empty();
+        let marks = row.line.marks(col);
+        let blank = matches!(cell.ch, ' ' | '\0') && marks.is_empty();
         if blank || cell.flags.contains(Flags::HIDDEN) {
             continue;
         }
@@ -83,7 +86,7 @@ pub(super) fn draw_glyphs(
         }
         let glyph = CellText {
             ch: cell.ch,
-            marks: cell.marks,
+            marks,
             bold: cell.flags.contains(Flags::BOLD),
             italic: cell.flags.contains(Flags::ITALIC),
             columns,

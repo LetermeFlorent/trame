@@ -22,12 +22,13 @@ fn encode_row(row: &Row, cols: usize, last: bool, out: &mut Vec<u8>) {
     let cells = row.cells();
     let end = match joined {
         true => cells.len(),
-        false => written_width(cells),
+        false => written_width(cells).max(row.marked_width()),
     };
     let mut style = Style::PLAIN;
-    for cell in cells[..end]
+    for (col, cell) in cells[..end]
         .iter()
-        .filter(|cell| !cell.flags.contains(Flags::WIDE_SPACER))
+        .enumerate()
+        .filter(|(_, cell)| !cell.flags.contains(Flags::WIDE_SPACER))
     {
         let next = Style::of(cell);
         if next != style {
@@ -35,7 +36,7 @@ fn encode_row(row: &Row, cols: usize, last: bool, out: &mut Vec<u8>) {
             style = next;
         }
         let mut buffer = [0; 4];
-        for ch in std::iter::once(printable(cell.ch)).chain(cell.marks.chars()) {
+        for ch in std::iter::once(printable(cell.ch)).chain(row.marks(col).chars()) {
             out.extend_from_slice(ch.encode_utf8(&mut buffer).as_bytes());
         }
     }

@@ -48,7 +48,7 @@ impl Grid {
                 self.cols - 1
             };
             let joined = row.wrapped && line < end.line;
-            let piece = printable((from..=to).map(|col| row.cell(col)));
+            let piece = printable(row, from..=to);
             let kept = if joined {
                 &piece
             } else {

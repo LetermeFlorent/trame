@@ -1,8 +1,13 @@
+mod marks;
+
+use marks::MarkStore;
+
 use crate::term::cell::{Cell, Flags};
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Row {
     cells: Vec<Cell>,
+    marks: MarkStore,
     pub wrapped: bool,
 }
 
@@ -12,11 +17,13 @@ impl Row {
         if blank == Cell::default() {
             return Self {
                 cells: Vec::with_capacity(cols),
+                marks: None,
                 wrapped: false,
             };
         }
         Self {
             cells: vec![blank; cols],
+            marks: None,
             wrapped: false,
         }
     }
@@ -45,10 +52,11 @@ impl Row {
     }
 
     pub fn is_blank(&self) -> bool {
-        self.cells.iter().all(Cell::is_blank)
+        self.marks.is_none() && self.cells.iter().all(Cell::is_blank)
     }
 
     pub fn clear_range(&mut self, start: usize, end: usize, template: &Cell) {
+        self.clear_marks(start..end);
         let blank = Cell::blank_with(template);
         if blank == Cell::default() && end >= self.cells.len() {
             self.cells.truncate(start.min(self.cells.len()));
@@ -78,6 +86,7 @@ impl Row {
             return;
         };
         self.cells[col..cols].rotate_right(count);
+        self.rotate_marks(col..cols, count);
         self.clear_range(col, col + count, template);
     }
 
@@ -86,19 +95,18 @@ impl Row {
             return;
         };
         self.cells[col..cols].rotate_left(count);
+        self.rotate_marks(col..cols, cols - col - count);
         self.clear_range(cols - count, cols, template);
     }
 
     pub fn truncate(&mut self, cols: usize) {
         self.cells.truncate(cols);
+        self.clear_marks(cols..usize::MAX);
     }
 
     pub fn trim(&mut self) {
-        while self
-            .cells
-            .last()
-            .is_some_and(|cell| *cell == Cell::default())
-        {
+        let kept = self.marked_width();
+        while self.cells.len() > kept && self.cells.last() == Some(&Cell::default()) {
             self.cells.pop();
         }
     }
@@ -115,19 +123,19 @@ impl Row {
     }
 
     pub fn text(&self) -> String {
-        let mut text = printable(self.cells.iter().copied());
+        let mut text = printable(self, 0..self.len());
         let trimmed = text.trim_end().len();
         text.truncate(trimmed);
         text
     }
 }
 
-pub(super) fn printable(cells: impl Iterator<Item = Cell>) -> String {
-    cells
-        .filter(|cell| !cell.flags.contains(Flags::WIDE_SPACER))
-        .flat_map(|cell| {
+pub(in crate::term::grid) fn printable(row: &Row, cols: impl Iterator<Item = usize>) -> String {
+    cols.map(|col| (col, row.cell(col)))
+        .filter(|(_, cell)| !cell.flags.contains(Flags::WIDE_SPACER))
+        .flat_map(|(col, cell)| {
             let ch = if cell.ch == '\0' { ' ' } else { cell.ch };
-            std::iter::once(ch).chain(cell.marks.chars())
+            std::iter::once(ch).chain(row.marks(col).chars())
         })
         .collect()
 }

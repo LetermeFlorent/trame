@@ -51,3 +51,38 @@ fn copying_keeps_the_marks() {
     screen.extend_selection(0, 1);
     assert_eq!(screen.selected_text().as_deref(), Some("e\u{301}x"));
 }
+
+#[test]
+fn a_cell_takes_sixteen_bytes() {
+    assert_eq!(std::mem::size_of::<trame::term::Cell>(), 16);
+}
+
+#[test]
+fn marks_survive_scrolling_and_resizing() {
+    let mut term = feed(2, 10, "e\u{301}a\r\nb\u{302}\r\nc");
+    let grid = term.screen().grid();
+    assert_eq!(grid.line(grid.first_line()).unwrap().text(), "e\u{301}a");
+    assert_eq!(lines(&term), vec!["b\u{302}", "c"]);
+    term.screen_mut().resize(2, 1);
+    term.screen_mut().resize(2, 10);
+    assert_eq!(lines(&term), vec!["b\u{302}", "c"]);
+}
+
+#[test]
+fn marks_move_with_inserted_and_deleted_cells() {
+    let term = feed(1, 10, "ae\u{301}x\x1b[1G\x1b[2@");
+    assert_eq!(lines(&term), vec!["  ae\u{301}x"]);
+    let term = feed(1, 10, "ae\u{301}x\x1b[1G\x1b[P");
+    assert_eq!(lines(&term), vec!["e\u{301}x"]);
+    let term = feed(1, 10, "ae\u{301}x\x1b[2G\x1b[P");
+    assert_eq!(lines(&term), vec!["ax"]);
+}
+
+#[test]
+fn narrowing_drops_marks_of_hidden_cells() {
+    let mut term = feed(1, 10, "abe\u{301}");
+    term.screen_mut().resize(1, 2);
+    term.feed(b"\x1b[1Gx");
+    term.screen_mut().resize(1, 10);
+    assert_eq!(lines(&term), vec!["xb"]);
+}

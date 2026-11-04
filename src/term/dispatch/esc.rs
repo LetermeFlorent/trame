@@ -25,6 +25,7 @@ impl Screen {
         let (rows, cols) = (self.rows(), self.cols());
         for row in 0..rows {
             let line = self.grid_mut().row_mut(row);
+            line.clear_marks(0..cols);
             for col in 0..cols {
                 *line.cell_mut(col) = Cell {
                     ch: 'E',

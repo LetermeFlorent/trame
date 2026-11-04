@@ -87,6 +87,7 @@ fn visible_rows<'a>(
             let line = grid.view_row(row)?;
             Some(RowPaint {
                 cells: &line.cells()[..cols.min(line.len())],
+                line,
                 row,
                 y: origin.y + row as f32 * metrics.height,
             })

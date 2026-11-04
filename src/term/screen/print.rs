@@ -1,7 +1,7 @@
 use unicode_width::UnicodeWidthChar;
 
 use super::Screen;
-use crate::term::cell::{Cell, Flags, Marks};
+use crate::term::cell::{Cell, Flags};
 use crate::term::grid::Row;
 use crate::term::modes::Modes;
 
@@ -67,6 +67,7 @@ impl Screen {
         };
         let line = self.grid_mut().row_mut(row);
         clear_wide_fragments(line, col, width);
+        line.clear_marks(col..col + width);
         let cell = line.cell_mut(col);
         *cell = Cell { ch: c, ..template };
         cell.flags.remove(Flags::WIDTH_MARKS);
@@ -93,8 +94,7 @@ impl Screen {
         if col > 0 && line.cell(col).flags.contains(Flags::WIDE_SPACER) {
             col -= 1;
         }
-        let cell = line.cell_mut(col);
-        cell.marks = cell.marks.with(mark);
+        line.add_mark(col, mark);
     }
 }
 
@@ -102,8 +102,8 @@ fn clear_wide_fragments(line: &mut Row, col: usize, width: usize) {
     if col > 0 && line.cell(col).flags.contains(Flags::WIDE_SPACER) {
         let leader = line.cell_mut(col - 1);
         leader.ch = ' ';
-        leader.marks = Marks::default();
         leader.flags.remove(Flags::WIDTH_MARKS);
+        line.clear_marks(col - 1..col);
     }
     let last = col + width - 1;
     if line.cell(last).flags.contains(Flags::WIDE) {
