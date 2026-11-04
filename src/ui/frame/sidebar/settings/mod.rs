@@ -76,6 +76,7 @@ pub enum SettingControl {
     AddHost,
     ConfirmClose,
     ConfirmPaste,
+    DetectLinks,
     Efficiency,
     RestHiddenTabs,
     NotifyWaiting,

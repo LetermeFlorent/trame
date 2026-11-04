@@ -4,6 +4,7 @@ mod secrets;
 #[cfg(test)]
 mod tests;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -15,6 +16,7 @@ use trame::preferences::{DEFAULT_HISTORY_LINES, SecretAnswer};
 use trame::session::pty::{ShellCommand, default_shell};
 use trame::session::{Notifier, Session, SessionId, SessionOptions, starting_label};
 use trame::term::ReportedColors;
+use trame::ui::terminal::links::LinkCache;
 use trame::workspace::Workspace;
 
 use super::UserEvent;
@@ -37,6 +39,7 @@ pub struct Sessions {
     notify: Notifier,
     history: usize,
     program_clipboard: bool,
+    links: RefCell<LinkCache>,
 }
 
 impl Sessions {
@@ -59,6 +62,7 @@ impl Sessions {
             notify,
             history: DEFAULT_HISTORY_LINES,
             program_clipboard: true,
+            links: RefCell::default(),
         }
     }
 
@@ -114,6 +118,10 @@ impl Sessions {
 
     pub fn map(&self) -> &HashMap<SessionId, Session> {
         &self.map
+    }
+
+    pub fn links(&self) -> &RefCell<LinkCache> {
+        &self.links
     }
 
     pub fn label(&self, id: SessionId) -> String {

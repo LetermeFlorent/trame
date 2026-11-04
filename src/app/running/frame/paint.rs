@@ -61,6 +61,7 @@ impl Running {
                 drag: drag.as_ref(),
                 loader: loader.as_ref(),
                 icons: &self.icons,
+                links: self.preferences.detect_links.then(|| self.sessions.links()),
             };
             draw_frame(&mut self.scene, &mut self.text, &sources);
             if !self.text.end_frame() {

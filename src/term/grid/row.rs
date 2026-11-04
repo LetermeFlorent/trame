@@ -108,6 +108,12 @@ impl Row {
         self.cells.shrink_to_fit();
     }
 
+    pub(crate) fn remap_links(&mut self, map: &[u16]) {
+        for cell in &mut self.cells {
+            cell.link = map.get(usize::from(cell.link)).copied().unwrap_or(0);
+        }
+    }
+
     pub fn text(&self) -> String {
         let mut text = printable(self.cells.iter().copied());
         let trimmed = text.trim_end().len();

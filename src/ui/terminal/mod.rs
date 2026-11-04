@@ -1,7 +1,10 @@
 mod boxes;
 mod cursor;
+pub mod links;
 mod row;
 mod style;
+
+use std::ops::Range;
 
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
@@ -11,6 +14,7 @@ use crate::theme::Rgba;
 use crate::theme::Theme;
 
 pub use cursor::CursorPlace;
+use links::LinkSpan;
 use row::{RowPaint, draw_backgrounds, draw_glyphs};
 
 pub struct TerminalPaint<'a> {
@@ -19,6 +23,7 @@ pub struct TerminalPaint<'a> {
     pub focused: bool,
     pub scroll: f32,
     pub selected: &'a dyn Fn(isize, usize) -> bool,
+    pub links: &'a [LinkSpan],
 }
 
 #[derive(Clone, Copy)]
@@ -77,9 +82,7 @@ fn visible_rows<'a>(
 ) -> Vec<RowPaint<'a>> {
     let grid = paint.screen.grid();
     let cols = grid.cols();
-    let first = (-paint.scroll).floor() as isize;
-    let last = (grid.rows() as f32 - paint.scroll).ceil() as isize;
-    (first..last)
+    drawn_rows(paint.screen, paint.scroll)
         .filter_map(|row| {
             let line = grid.view_row(row)?;
             Some(RowPaint {
@@ -89,4 +92,10 @@ fn visible_rows<'a>(
             })
         })
         .collect()
+}
+
+pub fn drawn_rows(screen: &Screen, scroll: f32) -> Range<isize> {
+    let first = (-scroll).floor() as isize;
+    let last = (screen.grid().rows() as f32 - scroll).ceil() as isize;
+    first..last
 }

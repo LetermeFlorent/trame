@@ -1,3 +1,4 @@
+use super::links::LinkSpan;
 use super::{GridPaint, Ink, boxes, style};
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
@@ -53,6 +54,7 @@ pub(super) fn draw_glyphs(
     row: &RowPaint,
 ) {
     let light = grid.metrics.underline_thickness.round().max(1.0);
+    let links = row_links(grid.paint.links, row.row);
     for (col, cell) in row.cells.iter().enumerate() {
         if cell.flags.contains(Flags::WIDE_SPACER) {
             continue;
@@ -65,8 +67,12 @@ pub(super) fn draw_glyphs(
         let rect = cell_rect(grid, row, col, columns);
         let color = glyph_color(grid, row, col, cell);
         let ink = Ink { rect, color, light };
-        if cell.flags.intersects(Flags::ANY_UNDERLINE) || cell.flags.contains(Flags::STRIKE) {
-            style::draw_decorations(scene, cell.flags, &grid.metrics, ink);
+        let mut flags = cell.flags;
+        if !flags.intersects(Flags::ANY_UNDERLINE) && links.iter().any(|link| link.covers(col)) {
+            flags.insert(Flags::UNDERLINE);
+        }
+        if flags.intersects(Flags::ANY_UNDERLINE) || flags.contains(Flags::STRIKE) {
+            style::draw_decorations(scene, flags, &grid.metrics, ink);
         }
         let blank = matches!(cell.ch, ' ' | '\0') && cell.marks.is_empty();
         if blank || cell.flags.contains(Flags::HIDDEN) {
@@ -84,6 +90,12 @@ pub(super) fn draw_glyphs(
         };
         text.draw_cell(scene, glyph, Point::new(rect.x, rect.y), color);
     }
+}
+
+fn row_links(links: &[LinkSpan], row: isize) -> &[LinkSpan] {
+    let start = links.partition_point(|link| link.row < row);
+    let end = links.partition_point(|link| link.row <= row);
+    &links[start..end]
 }
 
 fn cell_rect(grid: &GridPaint, row: &RowPaint, col: usize, columns: u8) -> Rect {

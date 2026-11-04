@@ -1,5 +1,6 @@
 use super::decode::{decode_base64, file_url_path, is_invisible_format, local_folder};
 use crate::term::MAX_CLIPBOARD_BYTES;
+use crate::term::cell::MAX_LINK_LEN;
 use crate::term::screen::Screen;
 
 const MAX_TITLE_LEN: usize = 256;
@@ -35,6 +36,7 @@ impl Screen {
             b"10" | b"11" | b"12" if params.get(1) == Some(&&b"?"[..]) => {
                 self.report_color(kind, bell_terminated);
             }
+            b"8" => self.set_link(params.get(2..).unwrap_or_default()),
             b"52" => self.store_clipboard(params.get(2).copied().unwrap_or_default()),
             _ => {}
         }
@@ -48,6 +50,27 @@ impl Screen {
             .and_then(|bytes| String::from_utf8(bytes).ok())
             .filter(|text| !text.is_empty() && text.len() <= MAX_CLIPBOARD_BYTES);
         self.clipboard = decoded.or(self.clipboard.take());
+    }
+
+    fn set_link(&mut self, parts: &[&[u8]]) {
+        self.link = 0;
+        let uri = parts.join(&b';');
+        let Some(uri) = String::from_utf8(uri).ok().filter(|uri| is_link(uri)) else {
+            return;
+        };
+        if self.links.is_full() {
+            self.collect_links();
+        }
+        self.link = self.links.intern(uri).unwrap_or(0);
+    }
+
+    fn collect_links(&mut self) {
+        let mut used = vec![false; self.links.len() + 1];
+        self.primary.mark_links(&mut used);
+        self.alternate.mark_links(&mut used);
+        let map = self.links.keep(&used);
+        self.primary.remap_links(&map);
+        self.alternate.remap_links(&map);
     }
 
     fn set_title(&mut self, parts: &[&[u8]]) {
@@ -83,6 +106,14 @@ fn printable_text(parts: &[&[u8]]) -> String {
         .take(MAX_TITLE_LEN)
         .collect();
     text.trim().to_string()
+}
+
+fn is_link(uri: &str) -> bool {
+    !uri.is_empty()
+        && uri.len() <= MAX_LINK_LEN
+        && !uri
+            .chars()
+            .any(|c| c.is_control() || c.is_whitespace() || is_invisible_format(c))
 }
 
 fn is_number(code: &[u8]) -> bool {

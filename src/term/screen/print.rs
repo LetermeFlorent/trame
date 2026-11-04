@@ -61,6 +61,10 @@ impl Screen {
 
     fn write_cell(&mut self, c: char, width: usize) {
         let (row, col, template) = (self.cursor.row, self.cursor.col, self.cursor.template);
+        let template = Cell {
+            link: self.link,
+            ..template
+        };
         let line = self.grid_mut().row_mut(row);
         clear_wide_fragments(line, col, width);
         let cell = line.cell_mut(col);

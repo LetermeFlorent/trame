@@ -107,6 +107,11 @@ fn each_language_has_its_own_paste_texts() {
 }
 
 #[test]
+fn each_language_has_its_own_link_switch() {
+    differ(|s| s.detect_links);
+}
+
+#[test]
 fn each_language_has_its_own_folder_window_texts() {
     let picks: [fn(&Strings) -> &'static str; 3] = [|s| s.change_folder, |s| s.change, |s| s.apply];
     picks.into_iter().for_each(differ);

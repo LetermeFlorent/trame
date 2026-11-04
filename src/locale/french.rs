@@ -55,6 +55,7 @@ pub const FRENCH: Strings = Strings {
     cancel: "Annuler",
     confirm_close: "Confirmer avant de fermer plusieurs onglets",
     confirm_paste: "Confirmer avant de coller plusieurs lignes",
+    detect_links: "Détecter les liens",
     system_section: "Système",
     efficiency_mode: "Mode efficacité inactif ou en arrière-plan",
     rest_hidden_tabs: "Onglets cachés sans activité",

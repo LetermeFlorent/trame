@@ -143,3 +143,17 @@ fn the_paste_switch_sits_below_the_close_switch_and_follows_its_preference() {
     let off = Preferences::default().with(|next| next.confirm_paste = false);
     assert!(!paste_switch(&on_tab(&off, SettingsTab::Terminals)).on);
 }
+
+#[test]
+fn the_link_switch_sits_below_the_paste_switch_and_follows_its_preference() {
+    let control = SettingControl::DetectLinks;
+    let layout = on_tab(&Preferences::default(), SettingsTab::Terminals);
+    let switch = page(&layout).toggle(control).expect("the link switch");
+    assert!(switch.on && switch.enabled);
+    assert!(paste_switch(&layout).line.rect.bottom() <= switch.line.rect.y);
+    let center = switch.line.rect.center();
+    assert_eq!(layout.hit(center, false), Some(Hit::Setting(control)));
+    let off = Preferences::default().with(|next| next.detect_links = false);
+    let layout = on_tab(&off, SettingsTab::Terminals);
+    assert!(!page(&layout).toggle(control).expect("the link switch").on);
+}

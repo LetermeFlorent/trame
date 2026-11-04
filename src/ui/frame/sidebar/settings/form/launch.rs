@@ -25,12 +25,14 @@ pub(super) fn question_toggles(
     column: &mut Column,
     strings: &Strings,
     preferences: &Preferences,
-) -> [ToggleRow; 2] {
+) -> [ToggleRow; 3] {
     let close = [preferences.confirm_close, true];
     let paste = [preferences.confirm_paste, true];
+    let links = [preferences.detect_links, true];
     [
         column.toggle_row(strings.confirm_close, close, SettingControl::ConfirmClose),
         column.toggle_row(strings.confirm_paste, paste, SettingControl::ConfirmPaste),
+        column.toggle_row(strings.detect_links, links, SettingControl::DetectLinks),
     ]
 }
 

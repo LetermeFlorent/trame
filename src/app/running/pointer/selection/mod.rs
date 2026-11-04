@@ -1,6 +1,7 @@
 mod cells;
 mod clicks;
 mod clipboard;
+mod links;
 mod report;
 
 use std::time::Instant;
@@ -85,6 +86,10 @@ impl Running {
             return false;
         }
         self.focus_pane(pane_id);
+        if !reports && self.open_link_at(id, cell) {
+            self.changed();
+            return true;
+        }
         self.selecting.cell = Some(cell);
         if reports {
             self.selecting.held = Some((id, button));

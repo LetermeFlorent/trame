@@ -77,6 +77,10 @@ impl Screen {
         self.cwd.as_deref()
     }
 
+    pub fn link(&self, id: u16) -> Option<&str> {
+        self.links.get(id)
+    }
+
     pub fn take_responses(&mut self) -> Vec<u8> {
         std::mem::take(&mut self.responses)
     }

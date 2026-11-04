@@ -15,12 +15,6 @@ impl Running {
             SettingControl::Fill => return self.toggle_fill(),
             SettingControl::Recall(recall) => current.toggle(recall),
             SettingControl::ConfirmClose => current.toggle_confirm_close(),
-            SettingControl::ConfirmPaste
-            | SettingControl::Efficiency
-            | SettingControl::RestHiddenTabs
-            | SettingControl::NotifyWaiting
-            | SettingControl::ProgramClipboard
-            | SettingControl::Blur => current.with(|next| flip(next, control)),
             SettingControl::Numbers(choice) => {
                 current.with(|next| choice.toggle(&mut next.numbering))
             }
@@ -44,6 +38,7 @@ impl Running {
                 return self.ask_folder(FolderTarget::Default, start);
             }
             SettingControl::ClearFolder => current.with(|next| next.default_folder = None),
+            _ => current.with(|next| flip(next, control)),
         };
         self.set_preferences(next);
     }
@@ -70,6 +65,7 @@ impl Running {
 fn flip(next: &mut Preferences, control: SettingControl) {
     let switch = match control {
         SettingControl::ConfirmPaste => &mut next.confirm_paste,
+        SettingControl::DetectLinks => &mut next.detect_links,
         SettingControl::Efficiency => &mut next.efficiency,
         SettingControl::RestHiddenTabs => &mut next.rest_hidden_tabs,
         SettingControl::NotifyWaiting => &mut next.notify_waiting,

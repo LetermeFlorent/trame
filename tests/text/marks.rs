@@ -40,6 +40,7 @@ fn painted(text: &mut TextSystem, input: &str) -> usize {
         focused: false,
         scroll: 0.0,
         selected: &|_, _| false,
+        links: &[],
     };
     draw_terminal(&mut scene, text, &Theme::new(Appearance::Dark), &paint);
     scene.quads().len()

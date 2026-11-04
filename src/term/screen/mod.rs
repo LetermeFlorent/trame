@@ -6,6 +6,7 @@ mod resize;
 mod select;
 mod view;
 
+use super::cell::Links;
 use super::cursor::charset::CharsetState;
 use super::cursor::{Cursor, CursorShape, SavedCursor};
 use super::grid::Grid;
@@ -35,6 +36,8 @@ pub struct Screen {
     pub(crate) clipboard_writes: bool,
     pub(crate) attention: Option<String>,
     pub(crate) colors: ReportedColors,
+    pub(crate) link: u16,
+    pub(crate) links: Links,
 }
 
 impl Screen {
@@ -60,6 +63,8 @@ impl Screen {
             clipboard_writes: true,
             attention: None,
             colors: ReportedColors::default(),
+            link: 0,
+            links: Links::default(),
         }
     }
 
@@ -88,6 +93,7 @@ impl Screen {
         fresh.title = self.title.take();
         fresh.cwd = self.cwd.take();
         fresh.colors = self.colors;
+        fresh.links = std::mem::take(&mut self.links);
         fresh.clipboard_writes = self.clipboard_writes;
         fresh.responses = std::mem::take(&mut self.responses);
         *self = fresh;

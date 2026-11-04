@@ -1,5 +1,6 @@
 mod dispatch;
 mod editing;
+mod links;
 mod marks;
 mod scrolling;
 mod selection;

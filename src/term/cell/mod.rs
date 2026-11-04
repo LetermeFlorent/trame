@@ -1,5 +1,7 @@
+mod links;
 mod marks;
 
+pub use links::{Links, MAX_LINK_LEN, MAX_LINKS};
 pub use marks::Marks;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -66,6 +68,7 @@ pub struct Cell {
     pub bg: Color,
     pub flags: Flags,
     pub marks: Marks,
+    pub link: u16,
 }
 
 impl Default for Cell {
@@ -76,6 +79,7 @@ impl Default for Cell {
             bg: Color::Background,
             flags: Flags::empty(),
             marks: Marks::default(),
+            link: 0,
         }
     }
 }

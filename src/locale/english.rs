@@ -55,6 +55,7 @@ pub const ENGLISH: Strings = Strings {
     cancel: "Cancel",
     confirm_close: "Ask before closing several tabs",
     confirm_paste: "Ask before pasting several lines",
+    detect_links: "Detect links",
     system_section: "System",
     efficiency_mode: "Efficiency mode when idle or hidden",
     rest_hidden_tabs: "Hidden tabs with no activity",

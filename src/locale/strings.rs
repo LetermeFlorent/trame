@@ -61,6 +61,7 @@ pub struct Strings {
     pub cancel: &'static str,
     pub confirm_close: &'static str,
     pub confirm_paste: &'static str,
+    pub detect_links: &'static str,
     pub system_section: &'static str,
     pub efficiency_mode: &'static str,
     pub rest_hidden_tabs: &'static str,

@@ -2,6 +2,7 @@
 mod atomic;
 mod icons;
 mod log;
+mod open;
 mod resample;
 
 use std::env;

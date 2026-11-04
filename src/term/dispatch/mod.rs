@@ -6,6 +6,8 @@ mod reports;
 mod set_mode;
 mod sgr;
 
+pub(crate) use decode::file_url_path;
+
 use crate::term::cursor::CursorShape;
 use crate::term::screen::Screen;
 use crate::term::vt::Params;

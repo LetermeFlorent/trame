@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
 
 use crate::files::IconStore;
@@ -11,7 +12,8 @@ use crate::ui::drop::{DragView, draw_drag};
 use crate::ui::frame::{FrameLayout, PaneFrame};
 use crate::ui::hit::Hit;
 use crate::ui::motion::Motion;
-use crate::ui::terminal::{TerminalPaint, draw_terminal};
+use crate::ui::terminal::links::LinkCache;
+use crate::ui::terminal::{TerminalPaint, draw_terminal, drawn_rows};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct FrameView {
@@ -38,6 +40,7 @@ pub struct FrameSources<'a> {
     pub drag: Option<&'a DragView>,
     pub loader: Option<&'a LoaderView<'a>>,
     pub icons: &'a IconStore,
+    pub links: Option<&'a RefCell<LinkCache>>,
 }
 
 pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSources) {
@@ -52,6 +55,9 @@ pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSourc
         icons: sources.icons,
     };
     chrome::draw_chrome(scene, text, &input);
+    if let Some(links) = sources.links {
+        links.borrow_mut().keep(sources.sessions);
+    }
     for pane in &frame.panes {
         draw_body(scene, text, pane, sources);
     }
@@ -84,14 +90,22 @@ fn draw_body(scene: &mut Scene, text: &mut TextSystem, pane: &PaneFrame, sources
     let terminal = session.terminal();
     let grid = terminal.screen().grid();
     let selected = |row: isize, col: usize| grid.is_selected_in_view(row, col);
+    let scroll = sources.motion.scroll_offset(session.id());
+    let mut cache = sources.links.map(RefCell::borrow_mut);
+    let links = cache.as_mut().map_or(&[][..], |cache| {
+        cache.spans(
+            session.id(),
+            &terminal,
+            drawn_rows(terminal.screen(), scroll),
+        )
+    });
     let paint = TerminalPaint {
         screen: terminal.screen(),
         origin: Point::new(pane.terminal.x, pane.terminal.y),
         focused: pane.focused && sources.view.window_focused,
-        scroll: pane
-            .active
-            .map_or(0.0, |id| sources.motion.scroll_offset(id)),
+        scroll,
         selected: &selected,
+        links,
     };
     scene.push_clip(pane.body);
     draw_terminal(scene, text, theme, &paint);

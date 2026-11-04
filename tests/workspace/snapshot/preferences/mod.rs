@@ -2,6 +2,7 @@ mod blur;
 mod closing;
 mod history;
 mod launch;
+mod links;
 mod ssh;
 mod updates;
 
@@ -92,6 +93,7 @@ fn every_preference_changed() -> Preferences {
         ssh_hosts: SshHost::parse("me@box:2222").into_iter().collect(),
         confirm_close: false,
         confirm_paste: false,
+        detect_links: false,
         custom_colors: vec![Swatch::custom(0x12ab34)],
         panel_side: PanelSide::Right,
         density: Density::Spacious,
