@@ -3,7 +3,17 @@ pub const RGB_MASK: u32 = 0x00ff_ffff;
 const HEX_DIGITS: usize = 6;
 const SHORT_DIGITS: usize = 3;
 const SECTORS: f32 = 6.0;
-const CHANNEL: f32 = 255.0;
+const CHANNEL: f32 = u8::MAX as f32;
+const BYTE_MASK: u32 = 0xFF;
+const RED_SHIFT: u32 = 16;
+const GREEN_SHIFT: u32 = 8;
+const HEX_RADIX: u32 = 16;
+const GREEN_SECTOR_OFFSET: f32 = 2.0;
+const BLUE_SECTOR_OFFSET: f32 = 4.0;
+const RAMP_WIDTH: f32 = 4.0;
+const RED_RAMP_OFFSET: f32 = 5.0;
+const GREEN_RAMP_OFFSET: f32 = 3.0;
+const BLUE_RAMP_OFFSET: f32 = 1.0;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Hsv {
@@ -20,8 +30,8 @@ impl Hsv {
         let sector = match () {
             _ if delta <= 0.0 => 0.0,
             _ if max == r => ((g - b) / delta).rem_euclid(SECTORS),
-            _ if max == g => (b - r) / delta + 2.0,
-            _ => (r - g) / delta + 4.0,
+            _ if max == g => (b - r) / delta + GREEN_SECTOR_OFFSET,
+            _ => (r - g) / delta + BLUE_SECTOR_OFFSET,
         };
         let saturation = match max > 0.0 {
             true => delta / max,
@@ -40,11 +50,13 @@ impl Hsv {
         let value = self.value.clamp(0.0, 1.0);
         let channel = |offset: f32| {
             let k = (offset + hue).rem_euclid(SECTORS);
-            let ramp = k.min(4.0 - k).clamp(0.0, 1.0);
+            let ramp = k.min(RAMP_WIDTH - k).clamp(0.0, 1.0);
             let level = value - value * saturation * ramp;
             (level * CHANNEL).round() as u32
         };
-        channel(5.0) << 16 | channel(3.0) << 8 | channel(1.0)
+        channel(RED_RAMP_OFFSET) << RED_SHIFT
+            | channel(GREEN_RAMP_OFFSET) << GREEN_SHIFT
+            | channel(BLUE_RAMP_OFFSET)
     }
 
     pub fn pure_hue(self) -> u32 {
@@ -58,7 +70,7 @@ impl Hsv {
 }
 
 fn channels(rgb: u32) -> [f32; 3] {
-    [16, 8, 0].map(|shift| ((rgb >> shift) & 0xff) as f32 / CHANNEL)
+    [RED_SHIFT, GREEN_SHIFT, 0].map(|shift| ((rgb >> shift) & BYTE_MASK) as f32 / CHANNEL)
 }
 
 pub fn hex_code(rgb: u32) -> String {
@@ -71,10 +83,10 @@ pub fn parse_hex(text: &str) -> Option<u32> {
         return None;
     }
     match digits.len() {
-        HEX_DIGITS => u32::from_str_radix(digits, 16).ok(),
+        HEX_DIGITS => u32::from_str_radix(digits, HEX_RADIX).ok(),
         SHORT_DIGITS => {
             let doubled: String = digits.chars().flat_map(|digit| [digit, digit]).collect();
-            u32::from_str_radix(&doubled, 16).ok()
+            u32::from_str_radix(&doubled, HEX_RADIX).ok()
         }
         _ => None,
     }
