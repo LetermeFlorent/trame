@@ -3,6 +3,8 @@ use std::thread;
 use super::is_web;
 use crate::log_error;
 
+const OPEN_FAILED: &str = "the link could not be opened";
+
 pub fn open_link(url: String) {
     let spawned = thread::Builder::new()
         .name("open-link".to_owned())
@@ -12,7 +14,7 @@ pub fn open_link(url: String) {
             }
         });
     if let Err(error) = spawned {
-        log_error!("the link could not be opened: {error}");
+        log_error!("{OPEN_FAILED}: {error}");
     }
 }
 
@@ -46,7 +48,7 @@ fn launch(url: &str) {
         unsafe { CoUninitialize() };
     }
     if (result as isize) < LOWEST_SUCCESS {
-        log_error!("the link could not be opened: code {}", result as isize);
+        log_error!("{OPEN_FAILED}: code {}", result as isize);
     }
 }
 
@@ -70,6 +72,6 @@ fn launch(url: &str) {
         Ok(mut child) => {
             let _ = child.wait();
         }
-        Err(error) => log_error!("the link could not be opened: {error}"),
+        Err(error) => log_error!("{OPEN_FAILED}: {error}"),
     }
 }

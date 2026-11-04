@@ -1,5 +1,8 @@
 use std::ops::Range;
 
+const CHANNELS: usize = 4;
+const ALPHA: usize = CHANNELS - 1;
+
 pub fn fit(pixels: &[u8], width: u32, height: u32, size: u32) -> Vec<u8> {
     if width == size && height == size {
         return pixels.to_vec();
@@ -9,14 +12,15 @@ pub fn fit(pixels: &[u8], width: u32, height: u32, size: u32) -> Vec<u8> {
     let (shown_width, shown_height) = (shown(width), shown(height));
     let left = (size - shown_width) / 2;
     let top = (size - shown_height) / 2;
-    let mut out = vec![0; (size * size * 4) as usize];
+    let stride = CHANNELS as u32;
+    let mut out = vec![0; (size * size * stride) as usize];
     for y in 0..shown_height {
         let rows = span(y, shown_height, height);
         for x in 0..shown_width {
             let columns = span(x, shown_width, width);
             let pixel = average(pixels, width, columns, rows.clone());
-            let at = (((top + y) * size + left + x) * 4) as usize;
-            out[at..at + 4].copy_from_slice(&pixel);
+            let at = (((top + y) * size + left + x) * stride) as usize;
+            out[at..at + CHANNELS].copy_from_slice(&pixel);
         }
     }
     out
@@ -28,26 +32,27 @@ fn span(index: u32, shown: u32, source: u32) -> Range<u32> {
     start..end.max(start + 1).min(source)
 }
 
-fn average(pixels: &[u8], width: u32, columns: Range<u32>, rows: Range<u32>) -> [u8; 4] {
-    let mut sum = [0u64; 4];
+fn average(pixels: &[u8], width: u32, columns: Range<u32>, rows: Range<u32>) -> [u8; CHANNELS] {
+    let stride = CHANNELS as u32;
+    let mut sum = [0u64; CHANNELS];
     let mut count = 0u64;
     for y in rows {
         for x in columns.clone() {
-            let at = ((y * width + x) * 4) as usize;
-            let Some(pixel) = pixels.get(at..at + 4) else {
+            let at = ((y * width + x) * stride) as usize;
+            let Some(pixel) = pixels.get(at..at + CHANNELS) else {
                 continue;
             };
-            let alpha = u64::from(pixel[3]);
-            for (total, value) in sum.iter_mut().zip(&pixel[..3]) {
+            let alpha = u64::from(pixel[ALPHA]);
+            for (total, value) in sum.iter_mut().zip(&pixel[..ALPHA]) {
                 *total += u64::from(*value) * alpha;
             }
-            sum[3] += alpha;
+            sum[ALPHA] += alpha;
             count += 1;
         }
     }
-    let alpha = sum[3];
+    let alpha = sum[ALPHA];
     if alpha == 0 {
-        return [0; 4];
+        return [0; CHANNELS];
     }
     let channel = |index: usize| ((sum[index] + alpha / 2) / alpha) as u8;
     let coverage = ((alpha + count / 2) / count) as u8;

@@ -4,6 +4,9 @@ use png::{BitDepth, ColorType, Decoder, Encoder, Transformations};
 
 use super::ICON_SIZE;
 
+const RGB_BYTES: usize = 3;
+const GRAY_ALPHA_BYTES: usize = 2;
+
 pub(super) struct Image {
     pub(super) width: u32,
     pub(super) height: u32,
@@ -31,13 +34,13 @@ fn to_rgba(data: &[u8], color: ColorType) -> io::Result<Vec<u8>> {
     let pixels = match color {
         ColorType::Rgba => data.to_vec(),
         ColorType::Rgb => data
-            .as_chunks::<3>()
+            .as_chunks::<RGB_BYTES>()
             .0
             .iter()
             .flat_map(|pixel| [pixel[0], pixel[1], pixel[2], u8::MAX])
             .collect(),
         ColorType::GrayscaleAlpha => data
-            .as_chunks::<2>()
+            .as_chunks::<GRAY_ALPHA_BYTES>()
             .0
             .iter()
             .flat_map(|pixel| [pixel[0], pixel[0], pixel[0], pixel[1]])
