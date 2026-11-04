@@ -1,31 +1,8 @@
 use std::collections::HashSet;
 
-use trame::theme::Rgba;
-use trame::theme::{Appearance, Swatch, Theme};
+use trame::theme::{Rgba, Swatch};
 
-pub(crate) const MIN_CONTRAST: f32 = 3.0;
-pub(crate) const MIN_TEXT_CONTRAST: f32 = 4.5;
-pub(crate) const MIN_MUTED_CONTRAST: f32 = 4.0;
-
-fn linear(channel: f32) -> f32 {
-    match channel <= 0.04045 {
-        true => channel / 12.92,
-        false => ((channel + 0.055) / 1.055).powf(2.4),
-    }
-}
-
-fn relative_luminance(color: Rgba) -> f32 {
-    0.2126 * linear(color.r) + 0.7152 * linear(color.g) + 0.0722 * linear(color.b)
-}
-
-pub(crate) fn contrast(first: Rgba, second: Rgba) -> f32 {
-    let (a, b) = (relative_luminance(first), relative_luminance(second));
-    (a.max(b) + 0.05) / (a.min(b) + 0.05)
-}
-
-pub(crate) fn themes() -> [Theme; 2] {
-    [Theme::new(Appearance::Dark), Theme::new(Appearance::Light)]
-}
+use crate::luminance::{MIN_CONTRAST, MIN_MUTED_CONTRAST, MIN_TEXT_CONTRAST, contrast, themes};
 
 fn over(tint: Rgba, backdrop: Rgba) -> Rgba {
     backdrop.mix(tint.with_alpha(1.0), tint.a)
@@ -105,4 +82,14 @@ fn swatches_serialize_as_lowercase_names() {
     assert_eq!(text, "\"teal\"");
     let back: Swatch = serde_json::from_str(&text).expect("parses");
     assert_eq!(back, Swatch::Teal);
+}
+
+#[test]
+fn a_custom_colour_is_stored_as_its_hex_code_and_a_preset_by_its_name() {
+    let custom = Swatch::custom(0x12ab34);
+    assert_eq!(String::from(custom), "#12AB34");
+    assert_eq!(String::from(Swatch::Teal), "teal");
+    assert_eq!(Swatch::parse("teal"), Some(Swatch::Teal));
+    assert_eq!(Swatch::parse("#12ab34"), Some(custom));
+    assert_eq!(Swatch::parse("mauve"), None);
 }

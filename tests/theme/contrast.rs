@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use trame::theme::{Appearance, Rgba, Swatch};
 
-use crate::swatches::{MIN_CONTRAST, MIN_MUTED_CONTRAST, MIN_TEXT_CONTRAST, contrast, themes};
+use crate::luminance::{MIN_CONTRAST, MIN_MUTED_CONTRAST, MIN_TEXT_CONTRAST, contrast, themes};
 
 #[track_caller]
 fn assert_contrast(
