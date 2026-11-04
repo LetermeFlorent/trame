@@ -110,7 +110,10 @@ impl Running {
                 self.visibility.forget();
                 self.focus_changed(focused);
             }
-            WindowEvent::ModifiersChanged(modifiers) => self.modifiers = modifiers.state(),
+            WindowEvent::ModifiersChanged(modifiers) => {
+                self.modifiers = modifiers.state();
+                self.refresh_hover();
+            }
             WindowEvent::KeyboardInput {
                 event,
                 is_synthetic: false,

@@ -65,7 +65,7 @@ impl Running {
         }
         let cursor = self
             .drag_cursor()
-            .unwrap_or_else(|| Cursor::Icon(cursor_for(hover, &self.frame)));
+            .unwrap_or_else(|| Cursor::Icon(self.hover_cursor(hover)));
         if cursor != self.pointer.cursor {
             self.pointer.cursor = cursor.clone();
             self.window.set_cursor(cursor);
@@ -100,6 +100,18 @@ impl Running {
     pub(super) fn resizable(&self) -> bool {
         self.metrics.platform.draws_window_controls() && !self.window.is_maximized()
     }
+
+    fn hover_cursor(&self, hover: Option<Hit>) -> CursorIcon {
+        let on_link = match (hover, self.pointer.position) {
+            (Some(Hit::Terminal(pane)), Some(point)) => self.link_under(pane, point),
+            _ => false,
+        };
+        if on_link {
+            CursorIcon::Pointer
+        } else {
+            cursor_for(hover, &self.frame)
+        }
+    }
 }
 
 fn cursor_for(hit: Option<Hit>, frame: &FrameLayout) -> CursorIcon {
@@ -114,6 +126,16 @@ fn cursor_for(hit: Option<Hit>, frame: &FrameLayout) -> CursorIcon {
         Some(
             Hit::Terminal(_) | Hit::EditField | Hit::FormField(_) | Hit::Picker(PickerPart::Field),
         ) => CursorIcon::Text,
-        _ => CursorIcon::Default,
+        None | Some(
+            Hit::TitleBar
+            | Hit::Sidebar
+            | Hit::TabBar(_)
+            | Hit::EditStrip
+            | Hit::SettingsPanel
+            | Hit::Menu
+            | Hit::Dialog
+            | Hit::Backdrop,
+        ) => CursorIcon::Default,
+        Some(_) => CursorIcon::Pointer,
     }
 }
