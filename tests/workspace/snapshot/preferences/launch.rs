@@ -1,6 +1,11 @@
 use trame::input::MAX_CHARS;
 use trame::preferences::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Preferences, Recall};
 
+pub(super) fn older_preferences() -> Preferences {
+    let saved = r#"{"font_size":14.0,"restore_text":true}"#;
+    serde_json::from_str(saved).expect("parses")
+}
+
 fn with_command(command: &str) -> Preferences {
     Preferences::default().with_startup_command(command)
 }
@@ -15,8 +20,7 @@ fn everything_is_remembered_and_new_instances_open_one_terminal_by_default() {
     assert_eq!(base.instance_tabs, 1);
     assert_eq!(base.startup_command, None);
     assert_eq!(base.startup_line(), None);
-    let saved = r#"{"font_size":14.0,"restore_text":true}"#;
-    let older: Preferences = serde_json::from_str(saved).expect("parses");
+    let older = older_preferences();
     assert_eq!(older, base);
     let json = serde_json::to_string(&base).expect("serializes");
     assert!(!json.contains("startup_command"));

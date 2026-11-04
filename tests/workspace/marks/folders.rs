@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
 use trame::theme::Swatch;
-use trame::workspace::{InstanceId, Snapshot, Workspace};
+use trame::workspace::{InstanceId, Workspace};
 
-use crate::snapshot::{restore, snapshot_of};
+use crate::snapshot::{restore, snapshot_of, through_json};
 use crate::{tab, tabs, workspace_with};
 
 fn first_instance(workspace: &Workspace) -> InstanceId {
@@ -36,8 +36,7 @@ fn the_instance_folder_survives_a_save() {
     let mut workspace = workspace_with(&[1]);
     let id = first_instance(&workspace);
     workspace.set_instance_folder(id, Some(PathBuf::from("projects")));
-    let text = snapshot_of(&workspace, &[]).to_json().expect("serializes");
-    let (restored, _) = restore(&Snapshot::from_json(&text).expect("parses"));
+    let (restored, _) = restore(&through_json(&snapshot_of(&workspace, &[])));
     assert_eq!(
         restored.instances[0].folder,
         Some(PathBuf::from("projects"))

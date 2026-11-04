@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use trame::preferences::Preferences;
 use trame::session::SessionId;
-use trame::workspace::{Snapshot, SnapshotError, TabSnapshot, Workspace};
+use trame::workspace::{Snapshot, SnapshotError, Workspace};
 
-use super::{pane, single, snapshot_of};
+use super::{pane, single, snapshot_of, through_json};
+use crate::workspace_with;
 
 const MINIMAL: &str = r#"{"version":1,"sidebar_open":true,"font_size":14.0,"active_instance":0,"instances":[{"name":"a","active_pane":0,"root":{"Pane":{"tabs":[{}],"active":0}}}]}"#;
 
@@ -21,7 +21,7 @@ fn corrupt_json_is_an_error_not_a_panic() {
 
 #[test]
 fn truncated_file_is_rejected() {
-    let snapshot = snapshot_of(&single_workspace(), &[(1, "/home/ada")]);
+    let snapshot = snapshot_of(&workspace_with(&[1]), &[(1, "/home/ada")]);
     let text = snapshot.to_json().expect("serializes");
     let cut = &text[..text.len() / 2];
     assert!(is_json_error(Snapshot::from_json(cut)));
@@ -95,7 +95,7 @@ fn unknown_extra_fields_are_ignored() {
 
 #[test]
 fn empty_workspace_has_nothing_to_restore() {
-    let snapshot = Workspace::new().snapshot(Preferences::default(), &|_| TabSnapshot::default());
+    let snapshot = snapshot_of(&Workspace::new(), &[]);
     assert!(snapshot.instances.is_empty());
     let result = Workspace::restore(&snapshot, &mut |_| SessionId(1));
     assert!(matches!(result, Err(SnapshotError::Empty)));
@@ -103,9 +103,8 @@ fn empty_workspace_has_nothing_to_restore() {
 
 #[test]
 fn empty_workspace_round_trips_through_json() {
-    let snapshot = Workspace::new().snapshot(Preferences::default(), &|_| TabSnapshot::default());
-    let text = snapshot.to_json().expect("serializes");
-    assert_eq!(Snapshot::from_json(&text).expect("parses"), snapshot);
+    let snapshot = snapshot_of(&Workspace::new(), &[]);
+    assert_eq!(through_json(&snapshot), snapshot);
 }
 
 #[test]
@@ -122,10 +121,4 @@ fn errors_describe_themselves() {
     for error in [json, version, empty] {
         assert!(!error.to_string().is_empty());
     }
-}
-
-fn single_workspace() -> Workspace {
-    let mut workspace = Workspace::new();
-    workspace.add_instance(None, SessionId(1));
-    workspace
 }

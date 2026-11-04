@@ -1,9 +1,8 @@
 use trame::geometry::Rect;
 use trame::workspace::{Axis, PaneId, PaneLayout};
 
+use super::AREA;
 use crate::{column, leaf, row, weighted};
-
-const AREA: Rect = Rect::new(0.0, 0.0, 200.0, 100.0);
 
 fn rect_of(layout: &PaneLayout, pane: u32) -> Rect {
     layout.rect_of(PaneId(pane)).expect("pane is placed")

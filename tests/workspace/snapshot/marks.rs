@@ -2,7 +2,8 @@ use trame::session::SessionId;
 use trame::theme::{Emblem, Swatch};
 use trame::workspace::{Snapshot, Workspace};
 
-use super::{FIRST_RESTORED_ID, restore, snapshot_of};
+use super::{FIRST_RESTORED_ID, restore, snapshot_of, through_json};
+use crate::workspace_with;
 
 const OLD_FILE: &str = r#"{"version":1,"sidebar_open":true,"font_size":14.0,"active_instance":0,"instances":[{"name":"old","active_pane":0,"root":{"Pane":{"tabs":[{"cwd":"/home/ada"},{}],"active":0}}}]}"#;
 
@@ -26,15 +27,12 @@ fn restored_id(position: u64) -> SessionId {
 #[test]
 fn names_and_colours_survive_a_json_round_trip() {
     let snapshot = snapshot_of(&marked(), &[]);
-    let text = snapshot.to_json().expect("serializes");
-    assert_eq!(Snapshot::from_json(&text).expect("parses"), snapshot);
+    assert_eq!(through_json(&snapshot), snapshot);
 }
 
 #[test]
 fn restoring_brings_back_every_name_and_colour() {
-    let text = snapshot_of(&marked(), &[]).to_json().expect("serializes");
-    let snapshot = Snapshot::from_json(&text).expect("parses");
-    let (workspace, _) = restore(&snapshot);
+    let (workspace, _) = restore(&through_json(&snapshot_of(&marked(), &[])));
     assert_eq!(workspace.instances[0].color, Some(Swatch::Orange));
     assert_eq!(workspace.instances[1].color, None);
     assert_eq!(workspace.tab_name(restored_id(1)), None);
@@ -45,9 +43,9 @@ fn restoring_brings_back_every_name_and_colour() {
 
 #[test]
 fn a_session_without_marks_writes_no_extra_keys() {
-    let mut workspace = Workspace::new();
-    workspace.add_instance(None, SessionId(1));
-    let text = snapshot_of(&workspace, &[]).to_json().expect("serializes");
+    let text = snapshot_of(&workspace_with(&[1]), &[])
+        .to_json()
+        .expect("serializes");
     assert!(!text.contains("color"));
     assert!(!text.contains("title"));
     assert!(!text.contains("fill"));

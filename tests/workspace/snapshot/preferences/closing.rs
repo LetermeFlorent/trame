@@ -1,5 +1,7 @@
 use trame::preferences::{CONFIRM_FROM_TABS, Preferences};
 
+use super::launch::older_preferences;
+
 #[test]
 fn closing_several_tabs_asks_first_until_the_switch_is_off() {
     let base = Preferences::default();
@@ -13,8 +15,7 @@ fn closing_several_tabs_asks_first_until_the_switch_is_off() {
 
 #[test]
 fn the_switch_survives_json_and_older_files_ask_before_closing() {
-    let saved = r#"{"font_size":14.0,"restore_text":true}"#;
-    let older: Preferences = serde_json::from_str(saved).expect("parses");
+    let older = older_preferences();
     assert!(older.confirm_close);
     let off = Preferences::default().toggle_confirm_close();
     let json = serde_json::to_string(&off).expect("serializes");

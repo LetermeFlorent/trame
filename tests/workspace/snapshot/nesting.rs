@@ -1,11 +1,11 @@
 use trame::session::SessionId;
-use trame::workspace::{Axis, Edge, Node, NodeSnapshot, Snapshot, Workspace};
+use trame::workspace::{Axis, Edge, Node, Snapshot, Workspace};
 
-use super::{pane, restore, shape, single, snapshot_of};
+use super::{pane, restore, shape, single, snapshot_of, split, split_row, through_json};
+use crate::workspace_with;
 
 fn nested() -> Workspace {
-    let mut workspace = Workspace::new();
-    workspace.add_instance(None, SessionId(1));
+    let mut workspace = workspace_with(&[1]);
     workspace.split_active(SessionId(2), Edge::Right);
     workspace.split_active(SessionId(3), Edge::Bottom);
     workspace.split_active(SessionId(4), Edge::Right);
@@ -38,9 +38,7 @@ fn nested_splits_alternate_axes() {
 #[test]
 fn nested_splits_survive_json() {
     let snapshot = snapshot_of(&nested(), &[(1, "/a"), (4, "/b")]);
-    let text = snapshot.to_json().expect("serializes");
-    let parsed = Snapshot::from_json(&text).expect("parses");
-    assert_eq!(parsed, snapshot);
+    assert_eq!(through_json(&snapshot), snapshot);
 }
 
 #[test]
@@ -53,30 +51,20 @@ fn the_focused_pane_is_the_last_one_created() {
 
 #[test]
 fn ratios_are_kept() {
-    let root = NodeSnapshot::Split {
-        axis: Axis::Row,
-        ratios: vec![3.0, 1.0],
-        pinned: Vec::new(),
-        children: vec![pane(1), pane(1)],
-    };
+    let root = split_row(vec![3.0, 1.0], vec![pane(1), pane(1)]);
     let (restored, _) = restore(&single(root));
     assert_eq!(shape(&restored.instances[0]), "Row(3:[1],1:[1])");
 }
 
 #[test]
 fn deep_trees_are_restored_pane_by_pane() {
-    let inner = NodeSnapshot::Split {
-        axis: Axis::Row,
-        ratios: vec![1.0, 2.0],
-        pinned: Vec::new(),
-        children: vec![pane(1), pane(2)],
-    };
-    let root = NodeSnapshot::Split {
-        axis: Axis::Column,
-        ratios: vec![1.0, 1.0],
-        pinned: Vec::new(),
-        children: vec![pane(3), inner],
-    };
+    let inner = split_row(vec![1.0, 2.0], vec![pane(1), pane(2)]);
+    let root = split(
+        Axis::Column,
+        vec![1.0, 1.0],
+        Vec::new(),
+        vec![pane(3), inner],
+    );
     let (restored, seen) = restore(&single(root));
     assert_eq!(
         shape(&restored.instances[0]),
@@ -87,12 +75,12 @@ fn deep_trees_are_restored_pane_by_pane() {
 
 #[test]
 fn pins_survive_a_round_trip() {
-    let root = NodeSnapshot::Split {
-        axis: Axis::Row,
-        ratios: vec![1.0, 1.0],
-        pinned: vec![true, false],
-        children: vec![pane(1), pane(1)],
-    };
+    let root = split(
+        Axis::Row,
+        vec![1.0, 1.0],
+        vec![true, false],
+        vec![pane(1), pane(1)],
+    );
     let (restored, _) = restore(&single(root));
     let Node::Split { pinned, .. } = &restored.instances[0].root else {
         panic!("root stays a split");
@@ -115,12 +103,12 @@ fn an_old_layout_without_pins_loads_as_unpinned() {
 
 #[test]
 fn a_pin_list_of_the_wrong_length_loads_as_unpinned() {
-    let root = NodeSnapshot::Split {
-        axis: Axis::Row,
-        ratios: vec![1.0, 1.0],
-        pinned: vec![true],
-        children: vec![pane(1), pane(1)],
-    };
+    let root = split(
+        Axis::Row,
+        vec![1.0, 1.0],
+        vec![true],
+        vec![pane(1), pane(1)],
+    );
     let (restored, _) = restore(&single(root));
     let Node::Split { pinned, .. } = &restored.instances[0].root else {
         panic!("root stays a split");

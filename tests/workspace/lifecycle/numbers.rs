@@ -1,15 +1,12 @@
 use trame::theme::{Emblem, Letters};
 use trame::workspace::{Numbering, Workspace};
 
-use crate::{tab, workspace_with};
+use crate::{tab, with_instances, workspace_with};
 
 fn four_instances(numbering: Numbering) -> Workspace {
     let mut workspace = workspace_with(&[1]);
     workspace.set_numbering(numbering);
-    for id in 2..=4 {
-        workspace.add_instance(None, tab(id));
-    }
-    workspace
+    with_instances(workspace, 2..=4)
 }
 
 fn numbers(workspace: &Workspace) -> Vec<u32> {

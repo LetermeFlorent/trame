@@ -63,6 +63,13 @@ pub fn workspace_with(ids: &[u64]) -> Workspace {
     workspace
 }
 
+pub fn with_instances(mut workspace: Workspace, ids: impl IntoIterator<Item = u64>) -> Workspace {
+    for id in ids {
+        workspace.add_instance(None, tab(id));
+    }
+    workspace
+}
+
 pub fn pane_of(workspace: &Workspace, id: u64) -> PaneId {
     workspace
         .locate(tab(id))

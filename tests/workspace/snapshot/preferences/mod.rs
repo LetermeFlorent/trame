@@ -14,7 +14,7 @@ use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINA
 use trame::ui::{Density, PanelSide};
 use trame::workspace::{NodeSnapshot, Numbering, PaneSnapshot, Snapshot, TabSnapshot};
 
-use super::{restore, single};
+use super::{restore, single, through_json};
 
 const OLDER_FILE: &str = r#"{"version":1,"sidebar_open":true,"font_size":16.0,"active_instance":0,"instances":[{"name":"a","active_pane":0,"root":{"Pane":{"tabs":[{}],"active":0}}}]}"#;
 
@@ -121,8 +121,7 @@ fn preferences_and_text_keys_survive_json() {
         active: 0,
     }));
     snapshot.preferences = every_preference_changed();
-    let text = snapshot.to_json().expect("serializes");
-    let parsed = Snapshot::from_json(&text).expect("parses");
+    let parsed = through_json(&snapshot);
     assert_eq!(parsed, snapshot);
     let (_, seen) = restore(&parsed);
     assert_eq!(seen[0].transcript.as_deref(), Some("abc-1"));

@@ -14,6 +14,11 @@ fn answer_for(target: &str, entry: Option<&HostEntry>, now: Instant) -> SecretAn
     SecretAnswer::new("hunter2".to_owned(), SshLogin::of(&host, entry), now)
 }
 
+fn root_answer() -> (Instant, SecretAnswer) {
+    let now = Instant::now();
+    (now, answer_for("root@10.0.0.2", None, now))
+}
+
 #[test]
 fn ssh_prompts_are_recognised() {
     let cases = [
@@ -45,8 +50,7 @@ fn other_prompts_are_left_to_the_user() {
 
 #[test]
 fn the_password_is_given_once() {
-    let now = Instant::now();
-    let mut answer = answer_for("root@10.0.0.2", None, now);
+    let (now, mut answer) = root_answer();
     assert_eq!(answer.reply(PASSWORD, now).as_deref(), REPLY);
     assert!(answer.is_over(now));
     assert_eq!(answer.reply(PASSWORD, now), None);
@@ -54,8 +58,7 @@ fn the_password_is_given_once() {
 
 #[test]
 fn the_secret_is_only_given_shortly_after_connecting() {
-    let now = Instant::now();
-    let mut answer = answer_for("root@10.0.0.2", None, now);
+    let (now, mut answer) = root_answer();
     let late = now + ANSWER_WINDOW;
     assert_eq!(answer.deadline(), late);
     assert!(!answer.is_over(late - Duration::from_millis(1)));
@@ -65,8 +68,7 @@ fn the_secret_is_only_given_shortly_after_connecting() {
 
 #[test]
 fn no_answer_for_another_host() {
-    let now = Instant::now();
-    let mut answer = answer_for("root@10.0.0.2", None, now);
+    let (now, mut answer) = root_answer();
     assert_eq!(answer.reply(TYPED, now), None);
     assert_eq!(answer.reply("me@bastion's password: ", now), None);
     assert_eq!(answer.reply("(root@10.0.0.3) Password: ", now), None);
@@ -75,8 +77,7 @@ fn no_answer_for_another_host() {
 
 #[test]
 fn no_answer_after_the_first_line_that_is_not_a_prompt() {
-    let now = Instant::now();
-    let mut answer = answer_for("root@10.0.0.2", None, now);
+    let (now, mut answer) = root_answer();
     assert_eq!(answer.reply(TYPED, now), None);
     assert_eq!(answer.reply("Welcome to Ubuntu 24.04 LTS", now), None);
     assert_eq!(answer.reply(PASSWORD, now), None);
@@ -85,8 +86,7 @@ fn no_answer_after_the_first_line_that_is_not_a_prompt() {
 
 #[test]
 fn no_password_for_a_passphrase_prompt() {
-    let now = Instant::now();
-    let mut answer = answer_for("root@10.0.0.2", None, now);
+    let (now, mut answer) = root_answer();
     assert_eq!(answer.reply(TYPED, now), None);
     assert_eq!(answer.reply(PASSPHRASE, now), None);
     assert_eq!(answer.reply(PASSWORD, now).as_deref(), REPLY);
@@ -94,8 +94,7 @@ fn no_password_for_a_passphrase_prompt() {
 
 #[test]
 fn the_lines_of_a_first_connection_keep_the_answer() {
-    let now = Instant::now();
-    let mut answer = answer_for("root@10.0.0.2", None, now);
+    let (now, mut answer) = root_answer();
     let lines = [
         "Windows PowerShell",
         TYPED,

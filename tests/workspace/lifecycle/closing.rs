@@ -1,6 +1,6 @@
 use trame::workspace::{Edge, InstanceId, Workspace};
 
-use crate::{pane_of, tab, tabs, workspace_with};
+use crate::{pane_of, tab, tabs, with_instances, workspace_with};
 
 fn three_panes() -> Workspace {
     let mut workspace = workspace_with(&[1]);
@@ -10,10 +10,7 @@ fn three_panes() -> Workspace {
 }
 
 fn three_instances() -> Workspace {
-    let mut workspace = workspace_with(&[1]);
-    workspace.add_instance(None, tab(2));
-    workspace.add_instance(None, tab(3));
-    workspace
+    with_instances(workspace_with(&[1]), 2..=3)
 }
 
 #[test]

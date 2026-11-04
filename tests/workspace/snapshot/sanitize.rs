@@ -1,16 +1,7 @@
 use trame::session::SessionId;
-use trame::workspace::{Axis, NodeSnapshot, PaneSnapshot, SnapshotError, TabSnapshot, Workspace};
+use trame::workspace::{NodeSnapshot, PaneSnapshot, SnapshotError, TabSnapshot, Workspace};
 
-use super::{instance_of, pane, restore, shape, single};
-
-fn split_row(ratios: Vec<f32>, children: Vec<NodeSnapshot>) -> NodeSnapshot {
-    NodeSnapshot::Split {
-        axis: Axis::Row,
-        ratios,
-        pinned: Vec::new(),
-        children,
-    }
-}
+use super::{instance_of, pane, restore, shape, single, split_row};
 
 #[test]
 fn unusable_ratios_fall_back_to_equal_shares() {

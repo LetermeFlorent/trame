@@ -1,9 +1,7 @@
-use trame::geometry::Rect;
 use trame::workspace::{Axis, Edge, Node, PaneId, PaneLayout};
 
+use super::AREA;
 use crate::{column, leaf, row, weighted};
-
-const AREA: Rect = Rect::new(0.0, 0.0, 200.0, 100.0);
 
 fn grid() -> Node {
     column(vec![

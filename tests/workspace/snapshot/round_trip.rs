@@ -4,7 +4,7 @@ use trame::preferences::Preferences;
 use trame::session::SessionId;
 use trame::workspace::{Edge, Snapshot, TabSnapshot, WindowSnapshot, Workspace};
 
-use super::{FIRST_RESTORED_ID, restore, shape, snapshot_of};
+use super::{FIRST_RESTORED_ID, restore, shape, snapshot_of, through_json};
 
 fn sample() -> Workspace {
     let mut workspace = Workspace::new();
@@ -85,7 +85,7 @@ fn sidebar_font_size_and_window_survive() {
         height: 800,
         maximized: true,
     });
-    let parsed = Snapshot::from_json(&snapshot.to_json().expect("serializes")).expect("parses");
+    let parsed = through_json(&snapshot);
     assert_eq!(parsed.preferences.font_size, 18.0);
     assert_eq!(parsed.window, snapshot.window);
     let (restored, _) = restore(&parsed);
@@ -97,8 +97,7 @@ fn the_sidebar_width_survives() {
     let mut workspace = sample();
     workspace.sidebar_width = Some(280.0);
     let snapshot = snapshot_of(&workspace, &[]);
-    let parsed = Snapshot::from_json(&snapshot.to_json().expect("serializes")).expect("parses");
-    let (restored, _) = restore(&parsed);
+    let (restored, _) = restore(&through_json(&snapshot));
     assert_eq!(restored.sidebar_width, Some(280.0));
 }
 

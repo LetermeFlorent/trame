@@ -1,7 +1,7 @@
 use trame::preferences::SshHost;
-use trame::workspace::{NodeSnapshot, Snapshot};
+use trame::workspace::NodeSnapshot;
 
-use crate::snapshot::{restore, snapshot_of};
+use crate::snapshot::{restore, snapshot_of, through_json};
 use crate::{tab, workspace_with};
 
 fn server() -> SshHost {
@@ -33,8 +33,7 @@ fn a_replaced_tab_keeps_its_connection() {
 fn the_connection_of_a_tab_survives_a_save() {
     let mut workspace = workspace_with(&[1, 2]);
     workspace.set_tab_host(tab(2), Some(server()));
-    let text = snapshot_of(&workspace, &[]).to_json().expect("serializes");
-    let (restored, seen) = restore(&Snapshot::from_json(&text).expect("parses"));
+    let (restored, seen) = restore(&through_json(&snapshot_of(&workspace, &[])));
     assert_eq!(seen[1].ssh, Some(server()));
     let second = restored.tabs()[1];
     assert_eq!(restored.tab_host(second), Some(&server()));

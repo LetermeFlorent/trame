@@ -1,6 +1,8 @@
 use trame::geometry::{Point, Rect};
 use trame::session::SessionId;
-use trame::workspace::{Divider, Edge, MIN_PANE, Node, PaneLayout, Workspace, resized};
+use trame::workspace::{Divider, Edge, MIN_PANE, Node, Workspace, resized};
+
+use super::{dividers, sizes, widths};
 
 const AREA: Rect = Rect::new(0.0, 0.0, 1001.0, 600.0);
 const GAP: f32 = 1.0;
@@ -16,20 +18,8 @@ fn split(edge: Edge) -> Node {
         .clone()
 }
 
-fn sizes(root: &Node, measure: fn(&Rect) -> f32) -> Vec<f32> {
-    PaneLayout::compute(root, AREA, GAP)
-        .panes
-        .iter()
-        .map(|(_, rect)| measure(rect))
-        .collect()
-}
-
-fn widths(root: &Node) -> Vec<f32> {
-    sizes(root, |rect| rect.width)
-}
-
 fn divider(root: &Node) -> Divider {
-    PaneLayout::compute(root, AREA, GAP).dividers[0].clone()
+    dividers(root, AREA, GAP).remove(0)
 }
 
 #[test]
@@ -46,7 +36,7 @@ fn delta_follows_the_divider_axis() {
 fn moving_the_divider_resizes_both_neighbours() {
     let root = split(Edge::Right);
     let moved = resized(&root, &divider(&root), 100.0);
-    assert_eq!(widths(&moved), vec![600.0, 400.0]);
+    assert_eq!(widths(&moved, AREA, GAP), vec![600.0, 400.0]);
 }
 
 #[test]
@@ -65,8 +55,8 @@ fn resizing_from_the_press_state_does_not_drift() {
 fn panes_never_shrink_below_the_minimum() {
     let root = split(Edge::Right);
     let line = divider(&root);
-    let narrow = widths(&resized(&root, &line, -2000.0));
-    let wide = widths(&resized(&root, &line, 2000.0));
+    let narrow = widths(&resized(&root, &line, -2000.0), AREA, GAP);
+    let wide = widths(&resized(&root, &line, 2000.0), AREA, GAP);
     assert!((narrow[0] - MIN_PANE).abs() <= 1.0);
     assert!((wide[1] - MIN_PANE).abs() <= 1.0);
 }
@@ -74,6 +64,11 @@ fn panes_never_shrink_below_the_minimum() {
 #[test]
 fn vertical_splits_resize_heights() {
     let root = split(Edge::Bottom);
-    let moved = sizes(&resized(&root, &divider(&root), -100.0), |rect| rect.height);
+    let moved = sizes(
+        &resized(&root, &divider(&root), -100.0),
+        AREA,
+        GAP,
+        |rect| rect.height,
+    );
     assert!(moved[0] < moved[1]);
 }

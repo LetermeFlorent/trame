@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use trame::preferences::Preferences;
 use trame::session::SessionId;
 use trame::workspace::{
-    Instance, InstanceSnapshot, Node, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot,
+    Axis, Instance, InstanceSnapshot, Node, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot,
     TabSnapshot, Workspace,
 };
 
@@ -27,6 +27,11 @@ pub fn snapshot_of(workspace: &Workspace, cwds: &[(u64, &str)]) -> Snapshot {
         cwd: known.get(&id).cloned(),
         ..TabSnapshot::default()
     })
+}
+
+pub fn through_json(snapshot: &Snapshot) -> Snapshot {
+    let text = snapshot.to_json().expect("serializes");
+    Snapshot::from_json(&text).expect("parses")
 }
 
 pub fn restore(snapshot: &Snapshot) -> (Workspace, Vec<TabSnapshot>) {
@@ -69,6 +74,24 @@ pub fn pane(tabs: usize) -> NodeSnapshot {
         tabs: vec![TabSnapshot::default(); tabs],
         active: 0,
     })
+}
+
+pub fn split(
+    axis: Axis,
+    ratios: Vec<f32>,
+    pinned: Vec<bool>,
+    children: Vec<NodeSnapshot>,
+) -> NodeSnapshot {
+    NodeSnapshot::Split {
+        axis,
+        ratios,
+        pinned,
+        children,
+    }
+}
+
+pub fn split_row(ratios: Vec<f32>, children: Vec<NodeSnapshot>) -> NodeSnapshot {
+    split(Axis::Row, ratios, Vec::new(), children)
 }
 
 pub fn single(root: NodeSnapshot) -> Snapshot {

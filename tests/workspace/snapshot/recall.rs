@@ -1,16 +1,14 @@
 use std::path::PathBuf;
 
 use trame::preferences::{Preferences, Recall};
-use trame::workspace::{Axis, NodeSnapshot, PaneSnapshot, Snapshot, TabSnapshot};
+use trame::workspace::{NodeSnapshot, PaneSnapshot, Snapshot, TabSnapshot};
 
-use super::{instance_of, pane, restore, shape, single};
+use super::{instance_of, pane, restore, shape, single, split_row};
 
 fn saved(preferences: Preferences) -> Snapshot {
-    let busy = NodeSnapshot::Split {
-        axis: Axis::Row,
-        ratios: vec![1.0, 1.0],
-        pinned: Vec::new(),
-        children: vec![
+    let busy = split_row(
+        vec![1.0, 1.0],
+        vec![
             pane(2),
             NodeSnapshot::Pane(PaneSnapshot {
                 tabs: vec![
@@ -24,7 +22,7 @@ fn saved(preferences: Preferences) -> Snapshot {
                 active: 2,
             }),
         ],
-    };
+    );
     let mut snapshot = single(busy);
     snapshot.instances[0].active_pane = 1;
     snapshot.instances.push(instance_of(pane(1)));
