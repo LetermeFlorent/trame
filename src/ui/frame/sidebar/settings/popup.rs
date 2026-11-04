@@ -11,6 +11,7 @@ use super::place::tabs_height;
 const PANEL_WIDTH: f32 = 360.0;
 const PANEL_PAD: f32 = 12.0;
 const TITLE_HEIGHT: f32 = 36.0;
+const POPUP_GAP: f32 = 16.0;
 
 #[derive(Clone, Debug)]
 pub struct PopupFrame {
@@ -38,17 +39,21 @@ impl FrameLayout {
         )
     }
 
+    fn popup_area(&self) -> Rect {
+        self.popup_backdrop().inset(self.metrics.px(POPUP_GAP))
+    }
+
     pub(in crate::ui::frame) fn popup_room(&self) -> f32 {
-        (self.popup_backdrop().height - self.popup_chrome()).max(0.0)
+        (self.popup_area().height - self.popup_chrome()).max(0.0)
     }
 
     fn popup_top(&self, height: f32) -> f32 {
         let metrics = &self.metrics;
-        let backdrop = self.popup_backdrop();
+        let area = self.popup_area();
         let page = page_height(metrics, self.popup_room() - tabs_height(metrics));
         let settings = self.popup_chrome() + tabs_height(metrics) + page;
-        let top = backdrop.centered_y(settings).max(backdrop.y);
-        top.min(backdrop.bottom() - height).max(backdrop.y)
+        let top = area.centered_y(settings).max(area.y);
+        top.min(area.bottom() - height).max(area.y)
     }
 
     fn popup_chrome(&self) -> f32 {
@@ -73,7 +78,7 @@ impl FrameLayout {
         let metrics = self.metrics;
         let backdrop = self.popup_backdrop();
         let pad = metrics.px(PANEL_PAD);
-        let width = metrics.px(wide).min(backdrop.width);
+        let width = metrics.px(wide).min(self.popup_area().width);
         let height = 2.0 * pad + metrics.px(TITLE_HEIGHT) + content;
         let x = backdrop.centered_x(width);
         let y = self.popup_top(height);

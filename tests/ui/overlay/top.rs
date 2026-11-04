@@ -113,3 +113,18 @@ fn a_tall_popup_is_pushed_up_to_fit() {
         assert!(popup.y >= 0.0);
     }
 }
+
+#[test]
+fn a_small_window_keeps_a_gap_around_every_popup() {
+    let mut text = text_system();
+    for height in [360.0, 260.0] {
+        let below_title = layout(&mut text, height).title_bar.rect.bottom();
+        let mut popups = all_but_settings(&mut text, height);
+        popups.push(settings(&mut text, height));
+        for popup in popups {
+            assert!(popup.y >= below_title + 16.0, "top {popup:?}");
+            let fits = height > 300.0;
+            assert!(!fits || popup.bottom() <= height - 16.0, "bottom {popup:?}");
+        }
+    }
+}
