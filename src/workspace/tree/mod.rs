@@ -1,4 +1,5 @@
 mod layout;
+mod normalize;
 mod resize;
 mod split;
 
