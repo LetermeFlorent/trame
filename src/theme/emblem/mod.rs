@@ -1,9 +1,11 @@
+mod letters;
+
 use std::hash::{BuildHasher, RandomState};
 
 use serde::{Deserialize, Serialize};
 
-use super::letters::Letters;
 use super::preset_named;
+pub use letters::{Letters, MAX_LETTERS};
 
 const LETTERS_PREFIX: &str = "letters:";
 const IMAGE_PREFIX: &str = "image:";

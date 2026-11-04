@@ -1,17 +1,17 @@
 use winit::keyboard::{Key, ModifiersState, PhysicalKey};
 
-use super::ShortcutInput;
-use super::combo::{Chord, Combo, Trigger, lower};
-use super::names::DIGITS;
+use crate::input::shortcuts::ShortcutInput;
+use crate::input::shortcuts::combo::{Chord, Combo, Trigger, lower};
+use crate::input::shortcuts::names::DIGITS;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum Fit {
+pub(in crate::input::shortcuts) enum Fit {
     Exact,
     Loose,
 }
 
 impl Combo {
-    pub(super) fn fit(&self, input: &ShortcutInput) -> Option<Fit> {
+    pub(in crate::input::shortcuts) fn fit(&self, input: &ShortcutInput) -> Option<Fit> {
         if alt_graph(input) {
             return None;
         }
@@ -63,7 +63,7 @@ impl Trigger {
     }
 }
 
-pub(super) fn chord_of(modifiers: ModifiersState) -> Chord {
+pub(in crate::input::shortcuts) fn chord_of(modifiers: ModifiersState) -> Chord {
     Chord::new(
         modifiers.control_key(),
         modifiers.shift_key(),
@@ -72,7 +72,7 @@ pub(super) fn chord_of(modifiers: ModifiersState) -> Chord {
     )
 }
 
-pub(super) fn char_of(key: &Key) -> Option<char> {
+pub(in crate::input::shortcuts) fn char_of(key: &Key) -> Option<char> {
     let Key::Character(text) = key else {
         return None;
     };
@@ -83,7 +83,7 @@ pub(super) fn char_of(key: &Key) -> Option<char> {
     }
 }
 
-pub(super) fn alt_graph(input: &ShortcutInput) -> bool {
+pub(in crate::input::shortcuts) fn alt_graph(input: &ShortcutInput) -> bool {
     let held = input.modifiers.control_key() && input.modifiers.alt_key();
     let printed = (char_of(input.key), char_of(input.base));
     held && matches!(printed, (Some(key), Some(base)) if key != base)

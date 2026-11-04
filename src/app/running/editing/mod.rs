@@ -1,10 +1,9 @@
-mod colors;
+mod color;
 mod commit;
 mod folder;
 mod icons;
 mod keys;
 mod menu;
-mod picker;
 mod pointer;
 
 use std::path::PathBuf;
@@ -17,9 +16,9 @@ use trame::ui::frame::{
 
 use super::Running;
 use super::settings::HostsPanel;
+use color::Picker;
 use folder::shown_folder;
 pub(super) use menu::Menu;
-use picker::Picker;
 
 enum EditMode {
     Text {

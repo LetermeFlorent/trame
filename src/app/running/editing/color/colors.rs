@@ -3,7 +3,8 @@ use trame::ui::Hit;
 use trame::ui::frame::{EditTarget, ListControl, PickerPart};
 
 use super::picker::{Picker, rgb_of};
-use super::{EditMode, Editing, Running};
+use crate::app::running::Running;
+use crate::app::running::editing::{EditMode, Editing};
 
 impl Running {
     pub(in crate::app::running) fn custom_control(&mut self, control: ListControl) -> bool {
@@ -54,7 +55,7 @@ impl Running {
         }
     }
 
-    pub(super) fn add_color(&mut self) {
+    pub(in crate::app::running::editing) fn add_color(&mut self) {
         let Some(editing) = &self.editing else {
             return;
         };
@@ -72,7 +73,11 @@ impl Running {
         }
     }
 
-    pub(super) fn apply_color(&mut self, target: EditTarget, picker: &Picker) {
+    pub(in crate::app::running::editing) fn apply_color(
+        &mut self,
+        target: EditTarget,
+        picker: &Picker,
+    ) {
         let color = Swatch::custom(picker.hsv.to_rgb());
         let custom = &self.preferences.custom_colors;
         let old = picker.slot.and_then(|slot| custom.get(slot).copied());
@@ -84,7 +89,7 @@ impl Running {
         self.paint_target(target, Some(color));
     }
 
-    pub(super) fn step_back(&mut self) {
+    pub(in crate::app::running::editing) fn step_back(&mut self) {
         let picker = self.editing.as_mut().and_then(Editing::picker_mut);
         match picker.map(|picker| picker.first) {
             Some(first) => self.open_colors(first),
@@ -92,14 +97,14 @@ impl Running {
         }
     }
 
-    pub(super) fn color_of(&self, target: EditTarget) -> Option<Swatch> {
+    pub(in crate::app::running::editing) fn color_of(&self, target: EditTarget) -> Option<Swatch> {
         match target {
             EditTarget::Tab(id) => self.workspace.tab_color(id),
             EditTarget::Instance(id) => self.workspace.instance(id)?.color,
         }
     }
 
-    pub(super) fn fill_of(&self, target: EditTarget) -> bool {
+    pub(in crate::app::running::editing) fn fill_of(&self, target: EditTarget) -> bool {
         match target {
             EditTarget::Tab(id) => self.workspace.tab_fill(id),
             EditTarget::Instance(id) => self.workspace.instance(id).is_some_and(|item| item.fill),
@@ -112,7 +117,7 @@ impl Running {
         }
     }
 
-    pub(super) fn press_picker(&mut self, part: PickerPart) {
+    pub(in crate::app::running::editing) fn press_picker(&mut self, part: PickerPart) {
         if part != PickerPart::Field {
             self.drag_picker(part);
             self.drag_pressed(Hit::Picker(part));

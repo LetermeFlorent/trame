@@ -1,8 +1,7 @@
 mod actions;
-mod capture;
 mod combo;
 mod defaults;
-mod fit;
+mod event;
 mod keymap;
 mod names;
 mod overrides;
@@ -12,9 +11,9 @@ use winit::keyboard::{Key, ModifiersState, PhysicalKey};
 use crate::input::Command;
 use crate::ui::Platform;
 pub use actions::{ACTIONS, action_of};
-pub use capture::{Pressed, pressed};
 pub use combo::{Combo, Trigger};
 pub use defaults::default_keys;
+pub use event::{Pressed, pressed};
 pub use keymap::Keymap;
 pub use overrides::{MAX_KEYS, Overrides};
 

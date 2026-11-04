@@ -2,7 +2,7 @@ use super::ShortcutInput;
 use super::actions::ACTIONS;
 use super::combo::Combo;
 use super::defaults::default_keys;
-use super::fit::Fit;
+use super::event::Fit;
 use super::overrides::Overrides;
 use crate::input::Command;
 use crate::ui::Platform;
