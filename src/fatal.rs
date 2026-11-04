@@ -1,11 +1,11 @@
 #[cfg(windows)]
 pub fn report(message: &str) {
     use std::ptr;
+    use trame::utf16::wide;
     use windows_sys::Win32::UI::WindowsAndMessaging::{MB_ICONERROR, MB_OK, MessageBoxW};
 
-    let wide = |text: &str| text.encode_utf16().chain([0]).collect::<Vec<u16>>();
-    let text = wide(message);
-    let caption = wide("trame");
+    let text = wide(message.as_ref());
+    let caption = wide("trame".as_ref());
     unsafe {
         MessageBoxW(
             ptr::null_mut(),
