@@ -15,7 +15,7 @@ pub use swatches::Swatch;
 
 use crate::term::{Color, ReportedColors};
 
-pub const PANEL_OVER_BACKDROP: f32 = 0.70;
+pub const PANEL_OVER_BACKDROP: f32 = 0.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum Appearance {

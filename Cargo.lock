@@ -1043,6 +1043,7 @@ dependencies = [
  "objc2 0.6.5",
  "objc2-core-graphics",
  "objc2-foundation 0.3.2",
+ "objc2-quartz-core 0.3.2",
 ]
 
 [[package]]
@@ -1981,6 +1982,10 @@ dependencies = [
  "ed25519-compact",
  "fontdb",
  "libc",
+ "objc2 0.6.5",
+ "objc2-app-kit 0.3.2",
+ "objc2-foundation 0.3.2",
+ "objc2-quartz-core 0.3.2",
  "png",
  "pollster",
  "serde",
@@ -1991,6 +1996,7 @@ dependencies = [
  "windows-sys 0.61.2",
  "winit",
  "winresource",
+ "x11rb",
 ]
 
 [[package]]

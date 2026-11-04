@@ -31,7 +31,7 @@ pub const FRENCH: Strings = Strings {
     spacing: "Espacement",
     compact: "Compact",
     spacious: "Aéré",
-    mica: "Flou Mica",
+    blur: "Flou",
     change_folder: "Changer de dossier",
     folders: "DOSSIERS",
     default_folder: "Dossier par défaut",

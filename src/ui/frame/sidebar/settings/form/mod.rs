@@ -80,11 +80,11 @@ pub(super) fn form_page(
             page.steppers = size_steppers(column, strings, preferences).into();
             page.rows.push(language_row(column, strings, preferences));
             page.rows.extend(display_rows(column, strings, preferences));
-            if cfg!(windows) && column.metrics.backdrop {
-                let mica = [preferences.mica, true];
-                let control = SettingControl::Mica;
+            if column.metrics.backdrop {
+                let blur = [preferences.blur, true];
+                let control = SettingControl::Blur;
                 page.toggles
-                    .push(column.toggle_row(strings.mica, mica, control));
+                    .push(column.toggle_row(strings.blur, blur, control));
             }
         }
         SettingsTab::System => return system_page(column, strings, preferences),

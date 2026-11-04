@@ -1,5 +1,5 @@
 use trame::geometry::Rect;
-use trame::render::{Atlas, Gpu, Renderer, Scene, render_in_format};
+use trame::render::{Atlas, Gpu, Renderer, Scene, alpha_mode, render_in_format};
 use trame::theme::Rgba;
 
 const SIDE: f32 = 8.0;
@@ -29,4 +29,21 @@ fn every_format_comes_back_in_rgba_order() {
         let right = (SIDE as usize - 1) * 4;
         assert_eq!(&pixels[right..right + 4], &[0, 0, 0, 0], "{format:?}");
     }
+}
+
+#[test]
+fn the_window_sees_through_only_when_asked_and_offered() {
+    use wgpu::CompositeAlphaMode::{Inherit, Opaque, PostMultiplied, PreMultiplied};
+    assert_eq!(
+        alpha_mode(&[Opaque, PreMultiplied], true),
+        Some(PreMultiplied)
+    );
+    assert_eq!(
+        alpha_mode(&[Opaque, PostMultiplied], true),
+        Some(PostMultiplied)
+    );
+    assert_eq!(alpha_mode(&[Opaque, PreMultiplied], false), Some(Opaque));
+    assert_eq!(alpha_mode(&[Opaque], true), Some(Opaque));
+    assert_eq!(alpha_mode(&[Inherit], true), None);
+    assert_eq!(alpha_mode(&[PreMultiplied], false), None);
 }

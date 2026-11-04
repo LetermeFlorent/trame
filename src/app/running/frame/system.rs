@@ -55,12 +55,12 @@ impl Running {
         if !self.metrics.backdrop {
             return;
         }
-        window::set_backdrop(&self.window, self.preferences.mica);
-        self.theme.backdrop = self.preferences.mica;
+        window::set_backdrop(&self.window, self.preferences.blur);
+        self.theme.backdrop = self.preferences.blur;
     }
 
     pub(in crate::app::running) fn apply_system(&mut self, previous: &Preferences) {
-        if previous.mica != self.preferences.mica {
+        if previous.blur != self.preferences.blur {
             self.apply_backdrop();
         }
         let current = &self.preferences;

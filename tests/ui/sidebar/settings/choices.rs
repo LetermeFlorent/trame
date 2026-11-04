@@ -80,7 +80,7 @@ fn steppers_stop_at_their_limits() {
 }
 
 #[test]
-fn the_mica_switch_shows_only_where_the_window_can_see_through() {
+fn the_blur_switch_shows_only_where_the_window_can_see_through() {
     let preferences = Preferences::default();
     let request = request_on(
         &preferences,
@@ -92,12 +92,12 @@ fn the_mica_switch_shows_only_where_the_window_can_see_through() {
         let mut layout = frame(&mut text, &workspace());
         layout.metrics.backdrop = backdrop;
         layout.place_settings(&mut text, &request);
-        let mica = page(&layout).toggle(SettingControl::Mica);
-        assert_eq!(mica.is_some(), backdrop && cfg!(windows));
-        if let Some(mica) = mica {
-            assert!(!mica.on && mica.enabled);
-            let hit = layout.hit(mica.line.rect.center(), false);
-            assert_eq!(hit, Some(Hit::Setting(SettingControl::Mica)));
+        let blur = page(&layout).toggle(SettingControl::Blur);
+        assert_eq!(blur.is_some(), backdrop);
+        if let Some(blur) = blur {
+            assert!(!blur.on && blur.enabled);
+            let hit = layout.hit(blur.line.rect.center(), false);
+            assert_eq!(hit, Some(Hit::Setting(SettingControl::Blur)));
         }
     }
 }

@@ -1,9 +1,15 @@
 use crate::render::gpu::Gpu;
 
+const SEE_THROUGH: [wgpu::CompositeAlphaMode; 2] = [
+    wgpu::CompositeAlphaMode::PreMultiplied,
+    wgpu::CompositeAlphaMode::PostMultiplied,
+];
+
 pub struct WindowSurface {
     surface: wgpu::Surface<'static>,
     config: wgpu::SurfaceConfiguration,
     pending: Option<(u32, u32)>,
+    see_through: bool,
 }
 
 pub enum Frame {
@@ -31,6 +37,7 @@ impl WindowSurface {
         config.desired_maximum_frame_latency = 1;
         surface.configure(&gpu.device, &config);
         Some(Self {
+            see_through: see_through && SEE_THROUGH.contains(&config.alpha_mode),
             surface,
             config,
             pending: None,
@@ -42,7 +49,7 @@ impl WindowSurface {
     }
 
     pub fn see_through(&self) -> bool {
-        self.config.alpha_mode == wgpu::CompositeAlphaMode::PreMultiplied
+        self.see_through
     }
 
     pub fn size(&self) -> (u32, u32) {
@@ -100,16 +107,13 @@ fn preferred_format(formats: &[wgpu::TextureFormat]) -> Option<wgpu::TextureForm
         .or_else(|| formats.first().copied())
 }
 
-fn alpha_mode(
+pub fn alpha_mode(
     modes: &[wgpu::CompositeAlphaMode],
     see_through: bool,
 ) -> Option<wgpu::CompositeAlphaMode> {
-    let wanted = [
-        see_through.then_some(wgpu::CompositeAlphaMode::PreMultiplied),
-        Some(wgpu::CompositeAlphaMode::Opaque),
-    ];
-    wanted
-        .into_iter()
-        .flatten()
+    let clear = SEE_THROUGH.iter().filter(|_| see_through);
+    clear
+        .chain(&[wgpu::CompositeAlphaMode::Opaque])
         .find(|mode| modes.contains(mode))
+        .copied()
 }

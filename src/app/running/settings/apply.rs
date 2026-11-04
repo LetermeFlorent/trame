@@ -20,7 +20,7 @@ impl Running {
             | SettingControl::RestHiddenTabs
             | SettingControl::NotifyWaiting
             | SettingControl::ProgramClipboard
-            | SettingControl::Mica => current.with(|next| flip(next, control)),
+            | SettingControl::Blur => current.with(|next| flip(next, control)),
             SettingControl::Numbers(choice) => {
                 current.with(|next| choice.toggle(&mut next.numbering))
             }
@@ -74,7 +74,7 @@ fn flip(next: &mut Preferences, control: SettingControl) {
         SettingControl::RestHiddenTabs => &mut next.rest_hidden_tabs,
         SettingControl::NotifyWaiting => &mut next.notify_waiting,
         SettingControl::ProgramClipboard => &mut next.program_clipboard,
-        SettingControl::Mica => &mut next.mica,
+        SettingControl::Blur => &mut next.blur,
         _ => return,
     };
     *switch = !*switch;

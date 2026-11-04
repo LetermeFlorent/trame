@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 use trame::theme::Appearance;
-use trame::theme::system::{detect_with, parse_color_scheme, parse_gtk_theme};
+use trame::theme::system::{detect_with, kde_desktop, parse_color_scheme, parse_gtk_theme};
 
 fn reader<'a>(
     color_scheme: Option<&'a str>,
@@ -86,4 +86,22 @@ fn the_gtk_theme_answers_when_the_color_scheme_does_not() {
 fn missing_gsettings_gives_no_answer() {
     let asked = RefCell::new(Vec::new());
     assert_eq!(detect_with(reader(None, None, &asked)), None);
+}
+
+#[test]
+fn only_a_kde_session_can_blur_behind_the_window() {
+    for current in ["KDE", "kde", "ubuntu:KDE", " KDE "] {
+        assert!(kde_desktop(current), "{current}");
+    }
+    for current in [
+        "",
+        "GNOME",
+        "ubuntu:GNOME",
+        "X-Cinnamon",
+        "XFCE",
+        "KDEish",
+        "LXQt",
+    ] {
+        assert!(!kde_desktop(current), "{current}");
+    }
 }

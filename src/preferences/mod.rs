@@ -73,7 +73,7 @@ pub struct Preferences {
     #[serde(default = "enabled")]
     pub program_clipboard: bool,
     #[serde(default)]
-    pub mica: bool,
+    pub blur: bool,
     #[serde(default, skip_serializing_if = "Overrides::is_empty")]
     pub shortcuts: Overrides,
     #[serde(flatten)]
@@ -103,7 +103,7 @@ impl Default for Preferences {
             rest_hidden_tabs: true,
             notify_waiting: true,
             program_clipboard: true,
-            mica: false,
+            blur: false,
             shortcuts: Overrides::default(),
             numbering: Numbering::default(),
         }

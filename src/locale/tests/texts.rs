@@ -46,7 +46,7 @@ fn each_language_has_its_own_settings_texts() {
         |s| s.right,
         |s| s.spacing,
         |s| s.spacious,
-        |s| s.mica,
+        |s| s.blur,
         |s| s.folders,
         |s| s.default_folder,
         |s| s.choose,

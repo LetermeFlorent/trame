@@ -65,8 +65,22 @@ libc = "0.2"
 [target.'cfg(target_vendor = "apple")'.dependencies]
 wgpu = { version = "30.0.1", default-features = false, features = ["metal"] }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6.5"
+objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSArray", "NSGeometry"] }
+objc2-app-kit = { version = "0.3.2", default-features = false, features = [
+    "std",
+    "NSGraphics",
+    "NSResponder",
+    "NSView",
+    "NSVisualEffectView",
+    "objc2-quartz-core",
+] }
+objc2-quartz-core = { version = "0.3.2", default-features = false, features = ["std", "CALayer"] }
+
 [target.'cfg(all(unix, not(target_vendor = "apple")))'.dependencies]
 wgpu = { version = "30.0.1", default-features = false, features = ["vulkan", "gles"] }
+x11rb = "0.13.2"
 
 [profile.release]
 opt-level = 3

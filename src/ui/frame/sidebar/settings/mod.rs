@@ -80,7 +80,7 @@ pub enum SettingControl {
     RestHiddenTabs,
     NotifyWaiting,
     ProgramClipboard,
-    Mica,
+    Blur,
     Numbers(NumberChoice),
     Keys(KeyControl),
     Fill,

@@ -68,6 +68,7 @@ fn platform_attributes(attributes: WindowAttributes) -> WindowAttributes {
         .with_titlebar_transparent(true)
         .with_title_hidden(true)
         .with_fullsize_content_view(true)
+        .with_transparent(true)
 }
 
 #[cfg(all(unix, not(target_os = "macos")))]
@@ -75,7 +76,9 @@ fn platform_attributes(attributes: WindowAttributes) -> WindowAttributes {
     use winit::platform::wayland::WindowAttributesExtWayland;
     use winit::platform::x11::WindowAttributesExtX11;
     let attributes = WindowAttributesExtWayland::with_name(attributes, APP_NAME, APP_NAME);
-    WindowAttributesExtX11::with_name(attributes, APP_NAME, APP_NAME).with_decorations(false)
+    WindowAttributesExtX11::with_name(attributes, APP_NAME, APP_NAME)
+        .with_decorations(false)
+        .with_transparent(backdrop::blur_desktop())
 }
 
 pub fn has_area(window: &Window) -> bool {

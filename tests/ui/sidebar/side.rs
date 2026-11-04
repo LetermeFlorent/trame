@@ -125,10 +125,13 @@ fn over_the_backdrop_only_the_panel_is_see_through() {
                     .filter(|quad| quad.color == color)
                     .any(|quad| covers(quad.rect, rect))
             };
-            assert!(painted(frame.side, theme.panel().to_array()));
+            let glass = theme.panel();
+            assert_eq!(painted(frame.side, glass.to_array()), glass.a > 0.0);
             let chrome = theme.chrome.to_array();
             assert_eq!(painted(beside(&frame), chrome), backdrop, "{panel:?}");
-            assert!(painted(frame.title_bar.rect, chrome));
+            let (side, bar) = (frame.side, frame.title_bar.rect);
+            let above = Rect::from_edges(side.x, bar.y, side.right(), bar.bottom());
+            assert_eq!(painted(above, chrome), !backdrop, "{panel:?}");
         }
     }
 }

@@ -40,7 +40,8 @@ pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
     let frame = input.frame;
     let mut painter = Painter::new(scene, text, input);
     let shown = frame.reveal >= SIDEBAR_SHOWN;
-    titlebar::draw(&mut painter, &frame.title_bar, shown);
+    let glass = input.theme.backdrop.then(|| above_panel(frame));
+    titlebar::draw(&mut painter, &frame.title_bar, shown, glass);
     if input.theme.backdrop {
         painter.rule(beside_panel(frame), input.theme.chrome);
     }
@@ -62,6 +63,11 @@ pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
     for pane in &frame.panes {
         tabbar::draw(&mut painter, pane);
     }
+}
+
+fn above_panel(frame: &FrameLayout) -> Rect {
+    let (side, bar) = (frame.side, frame.title_bar.rect);
+    Rect::from_edges(side.x, bar.y, side.right(), bar.bottom())
 }
 
 fn beside_panel(frame: &FrameLayout) -> Rect {
