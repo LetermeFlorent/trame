@@ -11,6 +11,8 @@ mod tests;
 
 pub type Progress<'a> = &'a dyn Fn(u8);
 
+#[cfg(windows)]
+const CURL_PROGRAM: &str = "curl.exe";
 const CHECK_SECONDS: &str = "1";
 const DOWNLOAD_SECONDS: &str = "120";
 const SLOWEST_BYTES_PER_SECOND: &str = "10000";
@@ -97,8 +99,8 @@ fn curl() -> Command {
 #[cfg(windows)]
 fn curl_program() -> PathBuf {
     std::env::var_os("SystemRoot").map_or_else(
-        || PathBuf::from("curl.exe"),
-        |root| PathBuf::from(root).join("System32").join("curl.exe"),
+        || PathBuf::from(CURL_PROGRAM),
+        |root| PathBuf::from(root).join("System32").join(CURL_PROGRAM),
     )
 }
 

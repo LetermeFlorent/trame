@@ -9,7 +9,9 @@ use trame::render::{Gpu, read_rgba};
 const DIRECTORY_VARIABLE: &str = "TRAME_CAPTURE";
 const LATEST: &str = "latest.png";
 const PARTIAL: &str = "latest.part";
-const OPAQUE: u8 = 255;
+const OPAQUE: u8 = u8::MAX;
+const BYTES_PER_PIXEL: usize = 4;
+const ALPHA: usize = 3;
 
 pub struct Capture {
     directory: PathBuf,
@@ -30,8 +32,8 @@ impl Capture {
     fn write(&self, gpu: &Gpu, texture: &wgpu::Texture) -> Result<(), Box<dyn Error>> {
         let (width, height) = (texture.width(), texture.height());
         let mut pixels = read_rgba(gpu, texture)?;
-        for pixel in pixels.as_chunks_mut::<4>().0 {
-            pixel[3] = OPAQUE;
+        for pixel in pixels.as_chunks_mut::<BYTES_PER_PIXEL>().0 {
+            pixel[ALPHA] = OPAQUE;
         }
         let partial = self.directory.join(PARTIAL);
         let mut encoder = png::Encoder::new(BufWriter::new(File::create(&partial)?), width, height);

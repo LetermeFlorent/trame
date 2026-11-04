@@ -63,14 +63,7 @@ impl Running {
 }
 
 pub(in crate::app::running) fn read_clipboard() -> Option<String> {
-    match arboard::Clipboard::new().and_then(|mut clipboard| clipboard.get_text()) {
-        Ok(text) => Some(text),
-        Err(arboard::Error::ContentNotAvailable) => None,
-        Err(error) => {
-            log_error!("the clipboard could not be read: {error}");
-            None
-        }
-    }
+    clipboard_part(arboard::Clipboard::new().and_then(|mut clipboard| clipboard.get_text()))
 }
 
 pub(in crate::app::running) fn read_terminal_clipboard() -> Option<String> {
