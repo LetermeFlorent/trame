@@ -19,6 +19,9 @@ const SOURCES: [Source; 3] = [
 const EMBOLDEN_RATIO: f32 = 0.035;
 const MIN_EMBOLDEN: f32 = 0.4;
 const SKEW_DEGREES: f32 = 12.0;
+const BYTES_PER_PIXEL: usize = 4;
+const ALPHA: usize = BYTES_PER_PIXEL - 1;
+const OPAQUE: u32 = u8::MAX as u32;
 
 #[derive(Clone, Copy, Debug)]
 pub struct RasterGlyph {
@@ -123,13 +126,13 @@ fn upload(atlas: &mut Atlas, image: Image) -> Option<RasterGlyph> {
 }
 
 fn unpremultiply(mut data: Vec<u8>) -> Vec<u8> {
-    for pixel in data.as_chunks_mut::<4>().0 {
-        let alpha = u32::from(pixel[3]);
-        if alpha == 0 || alpha == 255 {
+    for pixel in data.as_chunks_mut::<BYTES_PER_PIXEL>().0 {
+        let alpha = u32::from(pixel[ALPHA]);
+        if alpha == 0 || alpha == OPAQUE {
             continue;
         }
-        for channel in &mut pixel[..3] {
-            *channel = ((u32::from(*channel) * 255 + alpha / 2) / alpha).min(255) as u8;
+        for channel in &mut pixel[..ALPHA] {
+            *channel = ((u32::from(*channel) * OPAQUE + alpha / 2) / alpha).min(OPAQUE) as u8;
         }
     }
     data

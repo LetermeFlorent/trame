@@ -12,6 +12,7 @@ use super::discovery::{Finder, FontSource};
 use super::{FontId, FontKey, FontLibrary};
 use lookups::Lookups;
 
+const WIDE_WIDTH: usize = 2;
 const EMOJI_RANGES: [RangeInclusive<u32>; 2] = [0x2300..=0x2BFF, 0x1F000..=0x1FAFF];
 
 #[derive(Clone, Copy)]
@@ -129,5 +130,5 @@ impl FontLibrary {
 
 fn prefers_emoji(ch: char) -> bool {
     let code = u32::from(ch);
-    ch.width() == Some(2) && EMOJI_RANGES.iter().any(|range| range.contains(&code))
+    ch.width() == Some(WIDE_WIDTH) && EMOJI_RANGES.iter().any(|range| range.contains(&code))
 }

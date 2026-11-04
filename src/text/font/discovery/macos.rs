@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use crate::files::home_dir;
 
+const SF_PRO: &str = "SFNS.ttf";
+
 const SYSTEM_DIRS: &[&str] = &[
     "/System/Library/Fonts",
     "/System/Library/Fonts/Supplemental",
@@ -15,7 +17,7 @@ pub(super) const TERMINAL: &[&[&str]] = &[
 ];
 
 pub(super) const INTERFACE: &[&[&str]] = &[
-    &["SFNS.ttf", "SFNSItalic.ttf"],
+    &[SF_PRO, "SFNSItalic.ttf"],
     &["HelveticaNeue.ttc"],
     &["Helvetica.ttc"],
 ];
@@ -25,7 +27,7 @@ pub(super) const EMOJI: &[&str] = &["Apple Color Emoji.ttc"];
 pub(super) const FALLBACK: &[&str] = &[
     "Menlo.ttc",
     "Apple Symbols.ttf",
-    "SFNS.ttf",
+    SF_PRO,
     "PingFang.ttc",
     "Hiragino Sans GB.ttc",
     "AppleSDGothicNeo.ttc",
