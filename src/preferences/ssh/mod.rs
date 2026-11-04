@@ -33,11 +33,7 @@ impl SshHost {
             Some((target, port)) => (target, Some(port.parse().ok()?)),
             None => (text, None),
         };
-        let host = Self {
-            target: target.to_owned(),
-            port: custom_port(port),
-        };
-        host.is_valid().then_some(host)
+        Self::checked(target.to_owned(), port)
     }
 
     pub fn from_parts(address: &str, user: &str, port: &str) -> Option<Self> {
@@ -51,6 +47,10 @@ impl SshHost {
             "" => parsed.port,
             port => Some(port.parse().ok()?),
         };
+        Self::checked(target, port)
+    }
+
+    fn checked(target: String, port: Option<u16>) -> Option<Self> {
         let host = Self {
             target,
             port: custom_port(port),
