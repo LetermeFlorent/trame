@@ -3,6 +3,7 @@ use std::mem;
 use trame::preferences::{Preferences, Recall};
 use trame::text::DEFAULT_LINE_HEIGHT;
 use trame::theme::{Appearance, Theme};
+use trame::ui::UiMetrics;
 
 use crate::app::running::Running;
 use crate::app::window;
@@ -45,7 +46,11 @@ impl Running {
 
     fn apply_scale(&mut self) {
         let border = window::frame_border(&self.window);
-        self.metrics = self.preferences.ui_metrics(self.window_scale, border);
+        let metrics = self.preferences.ui_metrics(self.window_scale, border);
+        self.metrics = UiMetrics {
+            backdrop: self.graphics.see_through(),
+            ..metrics
+        };
         let font = self.preferences.font_pixels(self.window_scale);
         self.text.set_terminal_font(font, DEFAULT_LINE_HEIGHT);
         self.changed();
@@ -55,7 +60,10 @@ impl Running {
         if appearance == self.theme.appearance {
             return;
         }
-        self.theme = Theme::new(appearance);
+        self.theme = Theme {
+            backdrop: self.theme.backdrop,
+            ..Theme::new(appearance)
+        };
         self.sessions.set_colors(self.theme.reported_colors());
         self.window.request_redraw();
     }

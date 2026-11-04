@@ -15,6 +15,8 @@ pub use swatches::Swatch;
 
 use crate::term::{Color, ReportedColors};
 
+pub const PANEL_OVER_BACKDROP: f32 = 0.70;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum Appearance {
     #[default]
@@ -42,6 +44,7 @@ pub struct Theme {
     pub drop_target: Rgba,
     pub shadow: Rgba,
     pub ansi: [Rgba; 16],
+    pub backdrop: bool,
 }
 
 impl Theme {
@@ -49,6 +52,20 @@ impl Theme {
         match appearance {
             Appearance::Dark => palettes::dark(),
             Appearance::Light => palettes::light(),
+        }
+    }
+
+    pub fn panel(&self) -> Rgba {
+        match self.backdrop {
+            true => self.chrome.with_alpha(PANEL_OVER_BACKDROP),
+            false => self.chrome,
+        }
+    }
+
+    pub fn clear(&self) -> Rgba {
+        match self.backdrop {
+            true => Rgba::new(0.0, 0.0, 0.0, 0.0),
+            false => self.chrome,
         }
     }
 

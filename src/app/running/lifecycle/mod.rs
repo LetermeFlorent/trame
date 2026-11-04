@@ -78,6 +78,9 @@ impl Running {
             });
         let surface = Surface::open(event_loop, window, preferences)?;
         let mut running = Self::with_surface(surface, proxy, Saver::new(role));
+        if running.preferences.mica {
+            running.apply_backdrop();
+        }
         running.sessions.follow_preferences(&running.preferences);
         running.saver.remember_window(window);
         Ok(Opened { running, saved })

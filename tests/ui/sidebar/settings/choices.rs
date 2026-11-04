@@ -1,11 +1,11 @@
 use trame::locale::{Language, LanguageChoice};
 use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences};
-use trame::ui::FrameLayout;
 use trame::ui::frame::{SettingControl, SettingsTab, Stepper};
 use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE};
+use trame::ui::{FrameLayout, Hit};
 
-use super::{on_tab, page, panel, with_settings};
-use crate::text_system;
+use super::{on_tab, page, panel, request_on, with_settings};
+use crate::{frame, text_system, workspace};
 
 fn sizes(layout: &FrameLayout) -> [&Stepper; 2] {
     let size = |control| page(layout).stepper(control).expect("the stepper");
@@ -76,5 +76,28 @@ fn steppers_stop_at_their_limits() {
     let layout = on_tab(&largest, SettingsTab::Display);
     for stepper in sizes(&layout) {
         assert!(stepper.can_shrink && !stepper.can_grow);
+    }
+}
+
+#[test]
+fn the_mica_switch_shows_only_where_the_window_can_see_through() {
+    let preferences = Preferences::default();
+    let request = request_on(
+        &preferences,
+        Language::English.strings(),
+        SettingsTab::Display,
+    );
+    for backdrop in [false, true] {
+        let mut text = text_system();
+        let mut layout = frame(&mut text, &workspace());
+        layout.metrics.backdrop = backdrop;
+        layout.place_settings(&mut text, &request);
+        let mica = page(&layout).toggle(SettingControl::Mica);
+        assert_eq!(mica.is_some(), backdrop && cfg!(windows));
+        if let Some(mica) = mica {
+            assert!(!mica.on && mica.enabled);
+            let hit = layout.hit(mica.line.rect.center(), false);
+            assert_eq!(hit, Some(Hit::Setting(SettingControl::Mica)));
+        }
     }
 }

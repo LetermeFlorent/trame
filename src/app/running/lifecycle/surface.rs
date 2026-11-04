@@ -37,7 +37,8 @@ impl Surface {
                 window.request_redraw();
             }
         });
-        let graphics = Graphics::new(event_loop, window.clone(), text.atlas_mut())?;
+        let see_through = window::backdrop_supported(&window);
+        let graphics = Graphics::new(event_loop, window.clone(), text.atlas_mut(), see_through)?;
         Ok(Self {
             window,
             graphics,
@@ -49,6 +50,10 @@ impl Surface {
 
     pub(super) fn metrics(&self) -> UiMetrics {
         let border = window::frame_border(&self.window);
-        self.preferences.ui_metrics(self.window_scale, border)
+        let metrics = self.preferences.ui_metrics(self.window_scale, border);
+        UiMetrics {
+            backdrop: self.graphics.see_through(),
+            ..metrics
+        }
     }
 }

@@ -6,10 +6,12 @@ use trame::ui::ResizeEdge;
 use trame::ui::chrome::logo;
 use trame::workspace::WindowSnapshot;
 
+mod backdrop;
 #[cfg(windows)]
 pub mod dwm;
 mod frame;
 
+pub use backdrop::{backdrop_supported, set_backdrop};
 pub use frame::{frame_border, round_corners};
 
 const APP_NAME: &str = "trame";

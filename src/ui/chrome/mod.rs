@@ -14,9 +14,11 @@ pub use overlay::{
 
 use self::painter::{Painter, Press, centered};
 use crate::files::IconStore;
+use crate::geometry::Rect;
 use crate::render::Scene;
 use crate::text::TextSystem;
 use crate::theme::Theme;
+use crate::ui::display::PanelSide;
 use crate::ui::frame::FrameLayout;
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
@@ -39,6 +41,9 @@ pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
     let mut painter = Painter::new(scene, text, input);
     let shown = frame.reveal >= SIDEBAR_SHOWN;
     titlebar::draw(&mut painter, &frame.title_bar, shown);
+    if input.theme.backdrop {
+        painter.rule(beside_panel(frame), input.theme.chrome);
+    }
     sidebar::draw_panel(&mut painter, frame.side);
     if let Some(rail) = &frame.rail {
         painter.scene.push_opacity(1.0 - frame.reveal);
@@ -57,6 +62,15 @@ pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
     for pane in &frame.panes {
         tabbar::draw(&mut painter, pane);
     }
+}
+
+fn beside_panel(frame: &FrameLayout) -> Rect {
+    let (side, bounds) = (frame.side, frame.bounds);
+    let (left, right) = match frame.metrics.panel {
+        PanelSide::Left => (side.right(), bounds.right()),
+        PanelSide::Right => (bounds.x, side.x),
+    };
+    Rect::from_edges(left, side.y, right, side.bottom())
 }
 
 pub fn draw_dividers(scene: &mut Scene, theme: &Theme, frame: &FrameLayout, view: &FrameView) {

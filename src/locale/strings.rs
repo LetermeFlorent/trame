@@ -37,6 +37,7 @@ pub struct Strings {
     pub spacing: &'static str,
     pub compact: &'static str,
     pub spacious: &'static str,
+    pub mica: &'static str,
     pub change_folder: &'static str,
     pub folders: &'static str,
     pub default_folder: &'static str,

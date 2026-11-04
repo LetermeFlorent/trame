@@ -9,6 +9,7 @@ use trame::theme::Rgba;
 
 use crate::app::power::Shown;
 use crate::app::running::Running;
+use crate::app::window;
 
 impl Running {
     pub(in crate::app::running) fn sync_graphics(&mut self, event_loop: &ActiveEventLoop) {
@@ -47,10 +48,21 @@ impl Running {
     }
 
     pub(in crate::app::running) fn clear_color(&self) -> Rgba {
-        self.theme.chrome
+        self.theme.clear()
+    }
+
+    pub(in crate::app::running) fn apply_backdrop(&mut self) {
+        if !self.metrics.backdrop {
+            return;
+        }
+        window::set_backdrop(&self.window, self.preferences.mica);
+        self.theme.backdrop = self.preferences.mica;
     }
 
     pub(in crate::app::running) fn apply_system(&mut self, previous: &Preferences) {
+        if previous.mica != self.preferences.mica {
+            self.apply_backdrop();
+        }
         let current = &self.preferences;
         self.workspace.set_numbering(current.numbering);
         let wanted = current.power_switches();

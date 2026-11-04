@@ -31,6 +31,7 @@ pub const ENGLISH: Strings = Strings {
     spacing: "Spacing",
     compact: "Compact",
     spacious: "Spacious",
+    mica: "Mica blur",
     change_folder: "Change folder",
     folders: "FOLDERS",
     default_folder: "Default folder",

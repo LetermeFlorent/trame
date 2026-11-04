@@ -17,6 +17,7 @@ impl WindowSurface {
         surface: wgpu::Surface<'static>,
         width: u32,
         height: u32,
+        see_through: bool,
     ) -> Option<Self> {
         let capabilities = surface.get_capabilities(&gpu.adapter);
         let mut config = surface.get_default_config(&gpu.adapter, width.max(1), height.max(1))?;
@@ -24,11 +25,8 @@ impl WindowSurface {
             config.format = format;
         }
         config.present_mode = wgpu::PresentMode::AutoVsync;
-        if capabilities
-            .alpha_modes
-            .contains(&wgpu::CompositeAlphaMode::Opaque)
-        {
-            config.alpha_mode = wgpu::CompositeAlphaMode::Opaque;
+        if let Some(mode) = alpha_mode(&capabilities.alpha_modes, see_through) {
+            config.alpha_mode = mode;
         }
         config.desired_maximum_frame_latency = 1;
         surface.configure(&gpu.device, &config);
@@ -41,6 +39,10 @@ impl WindowSurface {
 
     pub fn format(&self) -> wgpu::TextureFormat {
         self.config.format
+    }
+
+    pub fn see_through(&self) -> bool {
+        self.config.alpha_mode == wgpu::CompositeAlphaMode::PreMultiplied
     }
 
     pub fn size(&self) -> (u32, u32) {
@@ -96,4 +98,18 @@ fn preferred_format(formats: &[wgpu::TextureFormat]) -> Option<wgpu::TextureForm
         .into_iter()
         .find(|format| formats.contains(format))
         .or_else(|| formats.first().copied())
+}
+
+fn alpha_mode(
+    modes: &[wgpu::CompositeAlphaMode],
+    see_through: bool,
+) -> Option<wgpu::CompositeAlphaMode> {
+    let wanted = [
+        see_through.then_some(wgpu::CompositeAlphaMode::PreMultiplied),
+        Some(wgpu::CompositeAlphaMode::Opaque),
+    ];
+    wanted
+        .into_iter()
+        .flatten()
+        .find(|mode| modes.contains(mode))
 }

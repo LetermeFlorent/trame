@@ -26,7 +26,7 @@ fn each_language_has_its_own_update_and_menu_texts() {
 
 #[test]
 fn each_language_has_its_own_settings_texts() {
-    let picks: [fn(&Strings) -> &'static str; 27] = [
+    let picks: [fn(&Strings) -> &'static str; 28] = [
         |s| s.settings,
         |s| s.at_launch,
         |s| s.remember_instances,
@@ -46,6 +46,7 @@ fn each_language_has_its_own_settings_texts() {
         |s| s.right,
         |s| s.spacing,
         |s| s.spacious,
+        |s| s.mica,
         |s| s.folders,
         |s| s.default_folder,
         |s| s.choose,
