@@ -6,8 +6,8 @@ use swash::scale::image::{Content, Image};
 use swash::scale::{Render, ScaleContext, Source, StrikeWith};
 use swash::zeno::{Angle, Format, Transform, Vector};
 
+use super::MAX_CACHED_GLYPHS;
 use super::font::{FontKey, FontLibrary, WEIGHT_AXIS};
-use super::insert_bounded;
 use crate::render::{Atlas, AtlasKind, AtlasRegion};
 pub use key::GlyphKey;
 
@@ -49,8 +49,15 @@ impl GlyphCache {
             }
             _ => None,
         };
-        insert_bounded(&mut self.glyphs, key, raster);
+        self.remember(atlas, key, raster);
         raster
+    }
+
+    fn remember(&mut self, atlas: &mut Atlas, key: GlyphKey, raster: Option<RasterGlyph>) {
+        if self.glyphs.len() >= MAX_CACHED_GLYPHS {
+            atlas.request_reset();
+        }
+        self.glyphs.insert(key, raster);
     }
 
     pub fn clear(&mut self) {
@@ -131,6 +138,24 @@ fn unpremultiply(mut data: Vec<u8>) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_full_cache_resets_the_atlas_with_it() {
+        let font = FontKey {
+            id: crate::text::font::FontId::first(),
+            weight: None,
+            embolden: false,
+            skew: false,
+        };
+        let mut cache = GlyphCache::default();
+        let mut atlas = Atlas::new();
+        atlas.finish_frame();
+        for glyph in 0..=MAX_CACHED_GLYPHS as u16 {
+            assert!(!atlas.finish_frame());
+            cache.remember(&mut atlas, GlyphKey::hinted(font, glyph, 14.0), None);
+        }
+        assert!(atlas.finish_frame());
+    }
 
     #[test]
     fn premultiplied_colors_are_restored() {

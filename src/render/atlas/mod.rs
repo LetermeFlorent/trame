@@ -112,6 +112,10 @@ impl Atlas {
         evict
     }
 
+    pub fn request_reset(&mut self) {
+        self.overflowed = true;
+    }
+
     pub fn clear(&mut self) {
         *self = Self::within(self.largest_side);
     }
