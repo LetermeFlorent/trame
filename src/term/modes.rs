@@ -1,3 +1,34 @@
+macro_rules! bit_flags {
+    ($name:ident) => {
+        impl $name {
+            pub const fn contains(self, other: Self) -> bool {
+                self.0 & other.0 == other.0
+            }
+
+            pub const fn intersects(self, other: Self) -> bool {
+                self.0 & other.0 != 0
+            }
+
+            pub fn insert(&mut self, other: Self) {
+                self.0 |= other.0;
+            }
+
+            pub fn remove(&mut self, other: Self) {
+                self.0 &= !other.0;
+            }
+
+            pub fn set(&mut self, other: Self, enabled: bool) {
+                if enabled {
+                    self.insert(other);
+                } else {
+                    self.remove(other);
+                }
+            }
+        }
+    };
+}
+pub(crate) use bit_flags;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Modes(u32);
 
@@ -20,23 +51,9 @@ impl Modes {
     pub const WIN32_INPUT: Self = Self(1 << 16);
     pub const MOUSE_ANY: Self =
         Self(Self::MOUSE_CLICK.0 | Self::MOUSE_DRAG.0 | Self::MOUSE_MOTION.0);
-
-    pub const fn contains(self, other: Self) -> bool {
-        self.0 & other.0 == other.0
-    }
-
-    pub const fn intersects(self, other: Self) -> bool {
-        self.0 & other.0 != 0
-    }
-
-    pub fn set(&mut self, other: Self, enabled: bool) {
-        if enabled {
-            self.0 |= other.0;
-        } else {
-            self.0 &= !other.0;
-        }
-    }
 }
+
+bit_flags!(Modes);
 
 impl Default for Modes {
     fn default() -> Self {

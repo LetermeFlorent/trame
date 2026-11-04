@@ -35,31 +35,9 @@ impl Flags {
     pub const fn empty() -> Self {
         Self(0)
     }
-
-    pub const fn contains(self, other: Self) -> bool {
-        self.0 & other.0 == other.0
-    }
-
-    pub const fn intersects(self, other: Self) -> bool {
-        self.0 & other.0 != 0
-    }
-
-    pub fn insert(&mut self, other: Self) {
-        self.0 |= other.0;
-    }
-
-    pub fn remove(&mut self, other: Self) {
-        self.0 &= !other.0;
-    }
-
-    pub fn set(&mut self, other: Self, enabled: bool) {
-        if enabled {
-            self.insert(other);
-        } else {
-            self.remove(other);
-        }
-    }
 }
+
+crate::term::modes::bit_flags!(Flags);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Cell {
