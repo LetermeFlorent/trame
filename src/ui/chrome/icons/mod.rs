@@ -46,7 +46,7 @@ fn glyph(icon: Icon) -> Glyph {
         Icon::Restore => Glyph::Copy,
         Icon::Terminal => Glyph::SquareTerminal,
         Icon::Gear => Glyph::Settings,
-        Icon::Update => Glyph::CircleArrowDown,
+        Icon::Update => Glyph::ArrowDown,
         Icon::Pencil => Glyph::Pencil,
         Icon::Ban => Glyph::Ban,
         Icon::Emblem(emblem) => match emblem {

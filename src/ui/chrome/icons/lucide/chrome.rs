@@ -21,11 +21,7 @@ const SETTINGS: &[Element] = &[
     ),
     Circle(12.0, 12.0, 3.0),
 ];
-const CIRCLE_ARROW_DOWN: &[Element] = &[
-    Circle(12.0, 12.0, 10.0),
-    Path("M12 8v8"),
-    Path("m8 12 4 4 4-4"),
-];
+const ARROW_DOWN: &[Element] = &[Path("M12 5v14"), Path("m19 12-7 7-7-7")];
 const PENCIL: &[Element] = &[
     Path(
         "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
@@ -46,7 +42,7 @@ pub(super) fn source(glyph: Glyph) -> Option<&'static [Element]> {
         Glyph::Copy => COPY,
         Glyph::SquareTerminal => SQUARE_TERMINAL,
         Glyph::Settings => SETTINGS,
-        Glyph::CircleArrowDown => CIRCLE_ARROW_DOWN,
+        Glyph::ArrowDown => ARROW_DOWN,
         Glyph::Pencil => PENCIL,
         Glyph::Ban => BAN,
         _ => return None,
