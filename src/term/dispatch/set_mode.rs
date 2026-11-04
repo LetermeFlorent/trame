@@ -1,3 +1,4 @@
+use super::codes::{MODE_RESET, MODE_SET, MODE_UNKNOWN, ansi_mode, private_mode as private};
 use crate::term::modes::Modes;
 use crate::term::screen::Screen;
 use crate::term::vt::Params;
@@ -6,8 +7,8 @@ impl Screen {
     pub(crate) fn set_ansi_modes(&mut self, params: &Params, enabled: bool) {
         for group in params.iter() {
             match group[0] {
-                4 => self.modes.set(Modes::INSERT, enabled),
-                20 => self.modes.set(Modes::NEW_LINE, enabled),
+                ansi_mode::INSERT => self.modes.set(Modes::INSERT, enabled),
+                ansi_mode::NEW_LINE => self.modes.set(Modes::NEW_LINE, enabled),
                 _ => {}
             }
         }
@@ -21,13 +22,13 @@ impl Screen {
 
     fn set_private_mode(&mut self, mode: u16, enabled: bool) {
         match mode {
-            6 => {
+            private::ORIGIN => {
                 self.modes.set(Modes::ORIGIN, enabled);
                 self.goto(0, 0);
             }
-            47 | 1047 => self.switch_screen(enabled),
-            1048 => self.save_or_restore(enabled),
-            1049 => {
+            private::ALT_SCREEN_LEGACY | private::ALT_SCREEN => self.switch_screen(enabled),
+            private::SAVE_CURSOR => self.save_or_restore(enabled),
+            private::ALT_SCREEN_AND_CURSOR => {
                 if enabled {
                     self.save_cursor();
                     self.switch_screen(true);
@@ -36,7 +37,7 @@ impl Screen {
                     self.restore_cursor();
                 }
             }
-            1000 | 1002 | 1003 => {
+            private::MOUSE_CLICK | private::MOUSE_DRAG | private::MOUSE_MOTION => {
                 self.modes.set(Modes::MOUSE_ANY, false);
                 if let Some(flag) = simple_private_mode(mode) {
                     self.modes.set(flag, enabled);
@@ -77,31 +78,37 @@ impl Screen {
 
     pub(crate) fn private_mode_state(&self, mode: u16) -> u8 {
         let flag = match mode {
-            47 | 1047 | 1049 => Modes::ALT_SCREEN,
+            private::ALT_SCREEN_LEGACY | private::ALT_SCREEN | private::ALT_SCREEN_AND_CURSOR => {
+                Modes::ALT_SCREEN
+            }
             _ => match simple_private_mode(mode) {
                 Some(flag) => flag,
-                None => return 0,
+                None => return MODE_UNKNOWN,
             },
         };
-        if self.modes.contains(flag) { 1 } else { 2 }
+        if self.modes.contains(flag) {
+            MODE_SET
+        } else {
+            MODE_RESET
+        }
     }
 }
 
 pub(crate) fn simple_private_mode(mode: u16) -> Option<Modes> {
     Some(match mode {
-        1 => Modes::APP_CURSOR,
-        6 => Modes::ORIGIN,
-        7 => Modes::AUTOWRAP,
-        25 => Modes::CURSOR_VISIBLE,
-        1000 => Modes::MOUSE_CLICK,
-        1002 => Modes::MOUSE_DRAG,
-        1003 => Modes::MOUSE_MOTION,
-        1004 => Modes::FOCUS_EVENTS,
-        1006 => Modes::MOUSE_SGR,
-        1007 => Modes::ALTERNATE_SCROLL,
-        2004 => Modes::BRACKETED_PASTE,
-        2026 => Modes::SYNC_UPDATE,
-        9001 => Modes::WIN32_INPUT,
+        private::APP_CURSOR => Modes::APP_CURSOR,
+        private::ORIGIN => Modes::ORIGIN,
+        private::AUTOWRAP => Modes::AUTOWRAP,
+        private::CURSOR_VISIBLE => Modes::CURSOR_VISIBLE,
+        private::MOUSE_CLICK => Modes::MOUSE_CLICK,
+        private::MOUSE_DRAG => Modes::MOUSE_DRAG,
+        private::MOUSE_MOTION => Modes::MOUSE_MOTION,
+        private::FOCUS_EVENTS => Modes::FOCUS_EVENTS,
+        private::MOUSE_SGR => Modes::MOUSE_SGR,
+        private::ALTERNATE_SCROLL => Modes::ALTERNATE_SCROLL,
+        private::BRACKETED_PASTE => Modes::BRACKETED_PASTE,
+        private::SYNC_UPDATE => Modes::SYNC_UPDATE,
+        private::WIN32_INPUT => Modes::WIN32_INPUT,
         _ => return None,
     })
 }

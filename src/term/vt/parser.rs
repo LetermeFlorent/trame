@@ -8,6 +8,11 @@ pub(super) const DEL: u8 = 0x7F;
 const CAN: u8 = 0x18;
 const SUB: u8 = 0x1A;
 const BEL: u8 = 0x07;
+pub(super) const C0_FIRST: u8 = 0x00;
+pub(super) const C0_LAST: u8 = 0x1F;
+pub(super) const INTERMEDIATE_FIRST: u8 = 0x20;
+pub(super) const INTERMEDIATE_LAST: u8 = 0x2F;
+const NON_ASCII_FIRST: u8 = 0x80;
 const REPLACEMENT: char = '\u{FFFD}';
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -56,10 +61,10 @@ impl Parser {
     }
 
     fn advance_byte<P: Perform>(&mut self, performer: &mut P, byte: u8) {
-        if byte >= 0x80 && self.state.breaks_on_text() {
+        if byte >= NON_ASCII_FIRST && self.state.breaks_on_text() {
             self.state = State::Ground;
         }
-        if self.state == State::Ground && (byte >= 0x80 || self.utf8.is_pending()) {
+        if self.state == State::Ground && (byte >= NON_ASCII_FIRST || self.utf8.is_pending()) {
             self.decode_utf8(performer, byte);
             return;
         }
@@ -88,7 +93,7 @@ impl Parser {
 
     fn ground<P: Perform>(&mut self, performer: &mut P, byte: u8) {
         match byte {
-            0x00..=0x1F => performer.execute(byte),
+            C0_FIRST..=C0_LAST => performer.execute(byte),
             DEL => {}
             _ => performer.print(char::from(byte)),
         }
@@ -121,7 +126,7 @@ impl Parser {
                 self.osc.dispatch(performer, true);
                 self.state = State::Ground;
             }
-            0x00..=0x1F => {}
+            C0_FIRST..=C0_LAST => {}
             _ => self.osc.push(byte),
         }
     }

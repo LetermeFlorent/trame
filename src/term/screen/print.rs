@@ -5,6 +5,8 @@ use crate::term::cell::{Cell, Flags};
 use crate::term::grid::Row;
 use crate::term::modes::Modes;
 
+const WIDE_WIDTH: usize = 2;
+
 impl Screen {
     pub(crate) fn print_char(&mut self, c: char) {
         let c = self.charsets.map(c);
@@ -19,8 +21,8 @@ impl Screen {
         if self.cursor.pending_wrap && autowrap {
             self.wrap_line();
         }
-        if width == 2 && self.cursor.col + 1 >= cols {
-            if !autowrap || cols < 2 {
+        if width == WIDE_WIDTH && self.cursor.col + 1 >= cols {
+            if !autowrap || cols < WIDE_WIDTH {
                 return;
             }
             self.wrap_line();
@@ -71,7 +73,7 @@ impl Screen {
         let cell = line.cell_mut(col);
         *cell = Cell { ch: c, ..template };
         cell.flags.remove(Flags::WIDTH_MARKS);
-        if width == 2 {
+        if width == WIDE_WIDTH {
             cell.flags.insert(Flags::WIDE);
             let spacer = line.cell_mut(col + 1);
             *spacer = Cell {

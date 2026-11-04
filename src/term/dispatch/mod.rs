@@ -1,3 +1,4 @@
+mod codes;
 mod decode;
 mod erase;
 mod esc;

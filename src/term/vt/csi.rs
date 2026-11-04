@@ -1,5 +1,11 @@
 use super::Perform;
-use super::parser::{DEL, Parser, State};
+use super::parser::{C0_FIRST, C0_LAST, DEL, INTERMEDIATE_FIRST, INTERMEDIATE_LAST, Parser, State};
+
+const FINAL_FIRST: u8 = 0x40;
+const FINAL_LAST: u8 = 0x7E;
+const MARKER_FIRST: u8 = 0x3C;
+const MARKER_LAST: u8 = 0x3F;
+const DECIMAL_BASE: u16 = 10;
 
 impl Parser {
     pub(super) fn enter_csi(&mut self) {
@@ -14,16 +20,16 @@ impl Parser {
 
     pub(super) fn csi<P: Perform>(&mut self, performer: &mut P, byte: u8) {
         match byte {
-            0x00..=0x1F => performer.execute(byte),
+            C0_FIRST..=C0_LAST => performer.execute(byte),
             DEL => {}
-            0x40..=0x7E => self.csi_final(performer, byte),
+            FINAL_FIRST..=FINAL_LAST => self.csi_final(performer, byte),
             _ if self.state == State::CsiIgnore => {}
-            0x20..=0x2F => {
+            INTERMEDIATE_FIRST..=INTERMEDIATE_LAST => {
                 self.collect(byte);
                 self.state = State::CsiIntermediate;
             }
             b'0'..=b'9' | b';' | b':' => self.csi_param(byte),
-            0x3C..=0x3F => self.csi_marker(byte),
+            MARKER_FIRST..=MARKER_LAST => self.csi_marker(byte),
             _ => {}
         }
     }
@@ -46,7 +52,10 @@ impl Parser {
             }
             _ => {
                 let digit = u16::from(byte - b'0');
-                self.param = self.param.saturating_mul(10).saturating_add(digit);
+                self.param = self
+                    .param
+                    .saturating_mul(DECIMAL_BASE)
+                    .saturating_add(digit);
             }
         }
     }

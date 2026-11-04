@@ -1,11 +1,11 @@
 use super::Perform;
-use super::parser::{DEL, Parser, State};
+use super::parser::{C0_FIRST, C0_LAST, DEL, INTERMEDIATE_FIRST, INTERMEDIATE_LAST, Parser, State};
 
 impl Parser {
     pub(super) fn escape<P: Perform>(&mut self, performer: &mut P, byte: u8) {
         match byte {
-            0x00..=0x1F => performer.execute(byte),
-            0x20..=0x2F => {
+            C0_FIRST..=C0_LAST => performer.execute(byte),
+            INTERMEDIATE_FIRST..=INTERMEDIATE_LAST => {
                 self.collect(byte);
                 self.state = State::EscapeIntermediate;
             }
@@ -25,8 +25,8 @@ impl Parser {
 
     pub(super) fn escape_intermediate<P: Perform>(&mut self, performer: &mut P, byte: u8) {
         match byte {
-            0x00..=0x1F => performer.execute(byte),
-            0x20..=0x2F => self.collect(byte),
+            C0_FIRST..=C0_LAST => performer.execute(byte),
+            INTERMEDIATE_FIRST..=INTERMEDIATE_LAST => self.collect(byte),
             DEL => {}
             _ => {
                 if !self.ignoring {

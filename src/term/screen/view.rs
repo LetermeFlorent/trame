@@ -3,6 +3,10 @@ use crate::term::cursor::CursorShape;
 use crate::term::grid::Grid;
 use crate::term::modes::Modes;
 
+const DEFAULT_FOREGROUND: [u8; 3] = [0xDC, 0xE0, 0xE5];
+const DEFAULT_BACKGROUND: [u8; 3] = [0x28, 0x2C, 0x33];
+const DEFAULT_CURSOR: [u8; 3] = [0x74, 0xAD, 0xE8];
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ReportedColors {
     pub foreground: [u8; 3],
@@ -13,9 +17,9 @@ pub struct ReportedColors {
 impl Default for ReportedColors {
     fn default() -> Self {
         Self {
-            foreground: [0xDC, 0xE0, 0xE5],
-            background: [0x28, 0x2C, 0x33],
-            cursor: [0x74, 0xAD, 0xE8],
+            foreground: DEFAULT_FOREGROUND,
+            background: DEFAULT_BACKGROUND,
+            cursor: DEFAULT_CURSOR,
         }
     }
 }
