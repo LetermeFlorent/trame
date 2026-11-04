@@ -4,9 +4,8 @@ use trame::preferences::Preferences;
 use trame::ui::Hit;
 use trame::ui::frame::{FormPage, SettingsTab};
 
-use super::super::footer::closed_sidebar;
 use super::{FORM_TABS, english, general_request, on_tab, page, panel};
-use crate::{frame, text_system};
+use crate::{closed_sidebar, frame, text_system};
 
 const PANEL_PAD: f32 = 12.0;
 

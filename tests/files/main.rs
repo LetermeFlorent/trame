@@ -19,7 +19,7 @@ struct Sandbox {
 
 impl Sandbox {
     fn new(name: &str) -> Self {
-        let root = env::temp_dir().join(format!("trame-icons-{}-{name}", process::id()));
+        let root = env::temp_dir().join(format!("trame-files-{}-{name}", process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(&root).expect("the sandbox folder is created");
         Self { root }

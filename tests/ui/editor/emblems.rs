@@ -7,7 +7,7 @@ use trame::ui::{FrameLayout, Hit, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::place;
-use crate::{text_system, workspace};
+use crate::{closed_sidebar, text_system, workspace};
 
 fn second_instance(
     text: &mut TextSystem,
@@ -24,12 +24,6 @@ fn icons(selected: Emblem, letters: &TextField) -> EditKind<'_> {
         selected: Some(selected),
         letters,
     })
-}
-
-fn collapsed() -> Workspace {
-    let mut workspace = workspace();
-    workspace.sidebar_open = false;
-    workspace
 }
 
 #[test]
@@ -59,7 +53,7 @@ fn a_rail_icon_opens_the_rename_field_beside_the_rail() {
     let mut text = text_system();
     let name = TextField::new("name");
     let kind = EditKind::Name(&name);
-    let frame = second_instance(&mut text, &collapsed(), EditAnchor::Rail, kind);
+    let frame = second_instance(&mut text, &closed_sidebar(), EditAnchor::Rail, kind);
     let rail = frame.rail.as_ref().expect("the rail");
     let row = rail.slots[1].rect.center().y;
     let field = frame
@@ -80,7 +74,7 @@ fn a_rail_icon_opens_the_same_icon_window_as_the_sidebar() {
     let mut text = text_system();
     let letters = TextField::new("");
     let kind = icons(Emblem::Gear, &letters);
-    let from_rail = second_instance(&mut text, &collapsed(), EditAnchor::Rail, kind);
+    let from_rail = second_instance(&mut text, &closed_sidebar(), EditAnchor::Rail, kind);
     let editor = from_rail.editor.as_ref().expect("an editor from the rail");
     let popup = editor.popup.as_ref().expect("a popup");
     assert!(popup.rect.contains(editor.strip.center()));
@@ -101,7 +95,7 @@ fn the_rail_anchor_needs_a_rail_and_an_instance() {
     let open = second_instance(&mut text, &workspace(), EditAnchor::Rail, kind);
     assert!(open.editor.is_none());
     let tab = EditTarget::Tab(SessionId(1));
-    let frame = place(&mut text, &collapsed(), tab, EditAnchor::Rail, kind);
+    let frame = place(&mut text, &closed_sidebar(), tab, EditAnchor::Rail, kind);
     assert!(frame.editor.is_none());
 }
 

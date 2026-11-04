@@ -3,7 +3,7 @@ use trame::workspace::{Axis, NodeSnapshot, PaneSnapshot, SnapshotError, TabSnaps
 
 use super::{instance_of, pane, restore, shape, single};
 
-fn row(ratios: Vec<f32>, children: Vec<NodeSnapshot>) -> NodeSnapshot {
+fn split_row(ratios: Vec<f32>, children: Vec<NodeSnapshot>) -> NodeSnapshot {
     NodeSnapshot::Split {
         axis: Axis::Row,
         ratios,
@@ -14,42 +14,44 @@ fn row(ratios: Vec<f32>, children: Vec<NodeSnapshot>) -> NodeSnapshot {
 
 #[test]
 fn unusable_ratios_fall_back_to_equal_shares() {
-    let root = row(vec![0.0, -1.0, f32::NAN], vec![pane(1), pane(1), pane(1)]);
+    let root = split_row(vec![0.0, -1.0, f32::NAN], vec![pane(1), pane(1), pane(1)]);
     let (restored, _) = restore(&single(root));
     assert_eq!(shape(&restored.instances[0]), "Row(1:[1],1:[1],1:[1])");
 }
 
 #[test]
 fn missing_ratios_fall_back_to_equal_shares() {
-    let root = row(Vec::new(), vec![pane(1), pane(2)]);
+    let root = split_row(Vec::new(), vec![pane(1), pane(2)]);
     let (restored, _) = restore(&single(root));
     assert_eq!(shape(&restored.instances[0]), "Row(1:[1],1:[2])");
 }
 
 #[test]
 fn extra_ratios_are_ignored() {
-    let root = row(vec![2.0, 3.0, 4.0], vec![pane(1), pane(1)]);
+    let root = split_row(vec![2.0, 3.0, 4.0], vec![pane(1), pane(1)]);
     let (restored, _) = restore(&single(root));
     assert_eq!(shape(&restored.instances[0]), "Row(2:[1],3:[1])");
 }
 
 #[test]
 fn empty_panes_are_dropped_and_the_split_collapses() {
-    let root = row(vec![1.0, 1.0], vec![pane(0), pane(2)]);
+    let root = split_row(vec![1.0, 1.0], vec![pane(0), pane(2)]);
     let (restored, _) = restore(&single(root));
     assert_eq!(shape(&restored.instances[0]), "[2]");
 }
 
 #[test]
 fn split_with_a_single_child_collapses() {
-    let root = row(vec![1.0], vec![pane(1)]);
+    let root = split_row(vec![1.0], vec![pane(1)]);
     let (restored, _) = restore(&single(root));
     assert_eq!(shape(&restored.instances[0]), "[1]");
 }
 
 #[test]
 fn split_without_children_is_dropped() {
-    let result = Workspace::restore(&single(row(Vec::new(), Vec::new())), &mut |_| SessionId(1));
+    let result = Workspace::restore(&single(split_row(Vec::new(), Vec::new())), &mut |_| {
+        SessionId(1)
+    });
     assert!(matches!(result, Err(SnapshotError::Empty)));
 }
 
@@ -66,7 +68,7 @@ fn out_of_range_active_tab_is_clamped() {
 
 #[test]
 fn out_of_range_active_pane_falls_back_to_the_first() {
-    let mut snapshot = single(row(vec![1.0, 1.0], vec![pane(1), pane(1)]));
+    let mut snapshot = single(split_row(vec![1.0, 1.0], vec![pane(1), pane(1)]));
     snapshot.instances[0].active_pane = 7;
     let (restored, _) = restore(&snapshot);
     let instance = &restored.instances[0];

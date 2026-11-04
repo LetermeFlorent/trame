@@ -1,7 +1,7 @@
 use trame::geometry::Point;
 use trame::ui::{Density, FrameLayout, Hit, PanelSide, UiMetrics};
 
-use crate::{WIDTH, frame_in, text_system, workspace};
+use crate::{WIDTH, frame_with_metrics, text_system, workspace};
 
 fn on(panel: PanelSide, density: Density) -> UiMetrics {
     UiMetrics::new(1.0).with_display(panel, density)
@@ -16,7 +16,7 @@ fn row_height(frame: &FrameLayout) -> f32 {
 #[test]
 fn a_right_panel_sits_after_the_terminals() {
     let mut text = text_system();
-    let frame = frame_in(
+    let frame = frame_with_metrics(
         &mut text,
         &workspace(),
         on(PanelSide::Right, Density::Compact),
@@ -33,12 +33,12 @@ fn a_right_panel_sits_after_the_terminals() {
 #[test]
 fn both_sides_leave_the_terminals_the_same_room() {
     let mut text = text_system();
-    let left = frame_in(
+    let left = frame_with_metrics(
         &mut text,
         &workspace(),
         on(PanelSide::Left, Density::Compact),
     );
-    let right = frame_in(
+    let right = frame_with_metrics(
         &mut text,
         &workspace(),
         on(PanelSide::Right, Density::Compact),
@@ -51,12 +51,12 @@ fn both_sides_leave_the_terminals_the_same_room() {
 #[test]
 fn spacious_sets_the_terminal_in_a_rounded_card() {
     let mut text = text_system();
-    let compact = frame_in(
+    let compact = frame_with_metrics(
         &mut text,
         &workspace(),
         on(PanelSide::Left, Density::Compact),
     );
-    let spacious = frame_in(
+    let spacious = frame_with_metrics(
         &mut text,
         &workspace(),
         on(PanelSide::Left, Density::Spacious),
@@ -79,7 +79,7 @@ fn spacious_sets_the_terminal_in_a_rounded_card() {
 #[test]
 fn compact_keeps_the_roomy_sizes() {
     let mut text = text_system();
-    let frame = frame_in(
+    let frame = frame_with_metrics(
         &mut text,
         &workspace(),
         on(PanelSide::Left, Density::Compact),

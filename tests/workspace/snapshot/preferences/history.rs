@@ -17,10 +17,10 @@ fn kept_lines_start_at_a_thousand_and_take_any_count_from_100_to_10_000() {
         base.step_history_lines(100).history_lines,
         MAX_HISTORY_LINES
     );
-    let typed = base.typed_history_lines(" 3500 ");
-    assert_eq!(typed.history_lines, 3_500);
-    assert_eq!(typed.step_history_lines(1).history_lines, 5_000);
-    assert_eq!(typed.step_history_lines(-1).history_lines, 2_000);
+    let spaced = base.typed_history_lines(" 3500 ");
+    assert_eq!(spaced.history_lines, 3_500);
+    assert_eq!(spaced.step_history_lines(1).history_lines, 5_000);
+    assert_eq!(spaced.step_history_lines(-1).history_lines, 2_000);
     for (typed, kept) in [
         ("42", MIN_HISTORY_LINES),
         ("250", 250),

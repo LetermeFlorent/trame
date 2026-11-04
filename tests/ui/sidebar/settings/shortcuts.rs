@@ -24,7 +24,7 @@ fn page(layout: &FrameLayout) -> &ShortcutsPage {
     panel(layout).shortcuts().expect("the shortcuts page")
 }
 
-fn copy() -> usize {
+fn copy_action_index() -> usize {
     ACTIONS
         .iter()
         .position(|command| *command == Command::Copy)
@@ -96,10 +96,10 @@ fn changed_keys_stand_out_and_can_all_go_back() {
 fn an_action_shows_its_keys_with_ways_to_remove_add_and_go_back() {
     let mut text = text_system();
     let preferences = Preferences::default();
-    let layout = opened(&mut text, &preferences, editing(copy()));
+    let layout = opened(&mut text, &preferences, editing(copy_action_index()));
     let page = page(&layout);
     assert!(page.list.is_none() && page.hint.is_none() && page.notice.is_none());
-    let keys = shown_keys(&layout, &preferences, copy());
+    let keys = shown_keys(&layout, &preferences, copy_action_index());
     assert_eq!(page.keys.len(), keys.len());
     for (line, key) in page.keys.iter().zip(&keys) {
         let expected = text.layout(key, layout.metrics.label());
@@ -126,7 +126,7 @@ fn while_waiting_for_keys_it_asks_for_them_and_says_why_one_is_refused() {
     let view = ShortcutsView {
         capturing: true,
         notice: Some(KeyNotice::Taken(0)),
-        ..editing(copy())
+        ..editing(copy_action_index())
     };
     let layout = opened(&mut text, &Preferences::default(), view);
     let page = page(&layout);

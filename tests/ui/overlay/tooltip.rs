@@ -9,12 +9,11 @@ use trame::ui::{FrameLayout, Hit};
 use trame::workspace::Workspace;
 
 use crate::paint::paint_with;
-use crate::{frame, text_system, workspace};
+use crate::{closed_sidebar, frame, text_system, workspace};
 
-fn collapsed() -> Workspace {
-    let mut workspace = workspace();
+fn renamed_rail() -> Workspace {
+    let mut workspace = closed_sidebar();
     workspace.rename_instance(workspace.instances[1].id, "backend");
-    workspace.sidebar_open = false;
     workspace
 }
 
@@ -26,7 +25,7 @@ fn paint(text: &mut TextSystem, frame: &FrameLayout, theme: &Theme, hover: Optio
 fn hovering_a_rail_icon_shows_the_instance_name_beside_the_rail() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
-    let workspace = collapsed();
+    let workspace = renamed_rail();
     let layout = frame(&mut text, &workspace);
     let rail = layout.rail.as_ref().expect("the rail");
     let slot = &rail.slots[1];
@@ -48,7 +47,7 @@ fn hovering_a_rail_icon_shows_the_instance_name_beside_the_rail() {
 fn nothing_is_shown_without_a_hovered_rail_icon() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
-    let layout = frame(&mut text, &collapsed());
+    let layout = frame(&mut text, &renamed_rail());
     assert!(paint(&mut text, &layout, &theme, None).quads().is_empty());
     let open = frame(&mut text, &workspace());
     let id = workspace().instances[0].id;
@@ -63,7 +62,7 @@ fn nothing_is_shown_without_a_hovered_rail_icon() {
 fn the_name_hides_while_the_editor_is_open() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
-    let workspace = collapsed();
+    let workspace = renamed_rail();
     let mut layout = frame(&mut text, &workspace);
     let id = workspace.instances[1].id;
     let field = TextField::new("backend");
@@ -86,7 +85,7 @@ fn the_name_hides_while_the_editor_is_open() {
 fn the_rail_gear_names_the_settings_beside_it() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
-    let layout = frame(&mut text, &collapsed());
+    let layout = frame(&mut text, &renamed_rail());
     let rail = layout.rail.as_ref().expect("the rail");
     let gear = layout.footer.settings.rect;
     let scene = paint(&mut text, &layout, &theme, Some(Hit::Settings));

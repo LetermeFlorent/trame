@@ -27,6 +27,12 @@ pub fn workspace() -> Workspace {
     workspace
 }
 
+pub fn closed_sidebar() -> Workspace {
+    let mut workspace = workspace();
+    workspace.sidebar_open = false;
+    workspace
+}
+
 pub fn text_system() -> TextSystem {
     TextSystem::new(FONT_SIZE, DEFAULT_LINE_HEIGHT).expect("a monospace font is installed")
 }
@@ -35,23 +41,27 @@ fn title(id: SessionId) -> String {
     format!("tab {}", id.0)
 }
 
-pub fn frame_with(
+pub fn frame_with_motion(
     text: &mut TextSystem,
     workspace: &Workspace,
     motion: &mut Motion,
 ) -> FrameLayout {
-    frame_measured(text, workspace, motion, UiMetrics::new(1.0))
+    frame_with_motion_and_metrics(text, workspace, motion, UiMetrics::new(1.0))
 }
 
-pub fn frame_at(text: &mut TextSystem, workspace: &Workspace, scale: f32) -> FrameLayout {
-    frame_in(text, workspace, UiMetrics::new(scale))
+pub fn frame_at_scale(text: &mut TextSystem, workspace: &Workspace, scale: f32) -> FrameLayout {
+    frame_with_metrics(text, workspace, UiMetrics::new(scale))
 }
 
-pub fn frame_in(text: &mut TextSystem, workspace: &Workspace, metrics: UiMetrics) -> FrameLayout {
-    frame_measured(text, workspace, &mut Motion::default(), metrics)
+pub fn frame_with_metrics(
+    text: &mut TextSystem,
+    workspace: &Workspace,
+    metrics: UiMetrics,
+) -> FrameLayout {
+    frame_with_motion_and_metrics(text, workspace, &mut Motion::default(), metrics)
 }
 
-fn frame_measured(
+fn frame_with_motion_and_metrics(
     text: &mut TextSystem,
     workspace: &Workspace,
     motion: &mut Motion,
@@ -78,5 +88,5 @@ pub fn input(workspace: &Workspace, metrics: UiMetrics) -> FrameInput<'_> {
 }
 
 pub fn frame(text: &mut TextSystem, workspace: &Workspace) -> FrameLayout {
-    frame_with(text, workspace, &mut Motion::default())
+    frame_with_motion(text, workspace, &mut Motion::default())
 }

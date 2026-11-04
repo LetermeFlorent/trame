@@ -25,7 +25,7 @@ fn with_interface(interface_size: u16) -> Preferences {
     }
 }
 
-fn close(left: f32, right: f32) -> bool {
+fn nearly_equal(left: f32, right: f32) -> bool {
     (left - right).abs() < 1e-4
 }
 
@@ -141,8 +141,8 @@ fn preferences_saved_before_the_language_choice_follow_the_system() {
 #[test]
 fn interface_size_scales_the_chrome_but_not_the_terminal_font() {
     let preferences = with_interface(120);
-    assert!(close(preferences.ui_scale(1.5), 1.8));
-    assert!(close(
+    assert!(nearly_equal(preferences.ui_scale(1.5), 1.8));
+    assert!(nearly_equal(
         preferences.font_pixels(1.5),
         TERMINAL_FONT_SIZE * 1.5
     ));

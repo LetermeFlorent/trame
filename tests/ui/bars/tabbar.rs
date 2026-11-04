@@ -8,7 +8,7 @@ use trame::ui::{Density, FrameLayout, PanelSide, UiMetrics};
 use trame::workspace::Workspace;
 
 use crate::paint::paint_with;
-use crate::{frame, frame_in, text_system, workspace};
+use crate::{frame, frame_with_metrics, text_system, workspace};
 
 const EPSILON: f32 = 0.01;
 
@@ -88,7 +88,7 @@ fn a_rounded_tab_keeps_its_colour_line_off_the_corners() {
     let theme = Theme::new(Appearance::Dark);
     let metrics = UiMetrics::new(1.0).with_display(PanelSide::Left, Density::Spacious);
     let workspace = coloured(Some(Swatch::Blue), Some(Swatch::Green));
-    let frame = frame_in(&mut text, &workspace, metrics);
+    let frame = frame_with_metrics(&mut text, &workspace, metrics);
     let scene = paint(&mut text, &frame, &theme);
     let pane = &frame.panes[0];
     assert!(pane.radius > 0.0);
@@ -104,7 +104,7 @@ fn the_bar_buttons_keep_room_above_and_below() {
     let mut text = text_system();
     let workspace = workspace();
     for scale in [1.0, 1.25, 1.5, 2.0] {
-        let frame = frame_in(&mut text, &workspace, UiMetrics::new(scale));
+        let frame = frame_with_metrics(&mut text, &workspace, UiMetrics::new(scale));
         let strip = &frame.panes[0].strip;
         for button in [strip.new_tab, strip.split] {
             let above = button.y - strip.rect.y;

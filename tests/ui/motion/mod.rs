@@ -10,7 +10,7 @@ use trame::text::TextSystem;
 use trame::ui::{FrameLayout, Motion};
 use trame::workspace::Workspace;
 
-use crate::frame_with;
+use crate::frame_with_motion;
 
 pub fn settle(text: &mut TextSystem, workspace: &Workspace) -> (Motion, Instant) {
     let start = Instant::now();
@@ -26,7 +26,7 @@ pub fn layout_at(
     now: Instant,
 ) -> FrameLayout {
     motion.tick(now);
-    let frame = frame_with(text, workspace, motion);
+    let frame = frame_with_motion(text, workspace, motion);
     motion.finish_layout();
     frame
 }

@@ -1,13 +1,6 @@
 use trame::ui::{Hit, Platform, UiMetrics};
-use trame::workspace::Workspace;
 
-use crate::{frame, frame_in, text_system, workspace};
-
-pub fn closed_sidebar() -> Workspace {
-    let mut workspace = workspace();
-    workspace.sidebar_open = false;
-    workspace
-}
+use crate::{closed_sidebar, frame, frame_with_metrics, text_system, workspace};
 
 #[test]
 fn the_settings_button_sits_at_the_bottom_of_the_side() {
@@ -69,7 +62,7 @@ fn the_settings_button_has_as_much_visible_room_above_as_below() {
     for scale in [1.0, 1.1, 1.25, 1.375, 1.5, 1.75, 2.0] {
         for border in [0.0, 1.0] {
             let metrics = on(Platform::Windows, scale).with_frame_border(border);
-            let layout = frame_in(&mut text, &workspace(), metrics);
+            let layout = frame_with_metrics(&mut text, &workspace(), metrics);
             let footer = &layout.footer;
             let visible = layout.side.bottom() - metrics.hidden_bottom(false);
             let above = footer.settings.rect.y - footer.rect.y - metrics.line();

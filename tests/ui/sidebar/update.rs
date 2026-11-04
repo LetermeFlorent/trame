@@ -7,9 +7,8 @@ use trame::ui::chrome::{draw_chrome, draw_tooltip};
 use trame::ui::{FrameLayout, Hit, UiMetrics};
 use trame::workspace::Workspace;
 
-use super::footer::closed_sidebar;
 use crate::paint::paint_with;
-use crate::{input, text_system, workspace};
+use crate::{closed_sidebar, input, text_system, workspace};
 
 const LABEL: &str = "Update to 9.8.7";
 const VERSION: &str = "0.3.20";

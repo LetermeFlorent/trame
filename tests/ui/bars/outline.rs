@@ -8,7 +8,7 @@ use trame::ui::{Density, PanelSide, UiMetrics};
 use trame::workspace::Workspace;
 
 use crate::paint::paint_with;
-use crate::{frame_in, text_system, workspace};
+use crate::{frame_with_metrics, text_system, workspace};
 
 fn with_host(tab: SessionId) -> Workspace {
     let mut workspace = workspace();
@@ -32,7 +32,7 @@ fn an_ssh_tab_is_outlined_and_a_plain_tab_is_not() {
             let metrics = UiMetrics::new(1.0).with_display(PanelSide::Left, density);
             for ssh in [SessionId(1), SessionId(2)] {
                 let workspace = with_host(ssh);
-                let frame = frame_in(&mut text, &workspace, metrics);
+                let frame = frame_with_metrics(&mut text, &workspace, metrics);
                 let scene = paint_with(&mut text, &frame, &theme, None, draw_chrome);
                 for tab in &frame.panes[0].strip.tabs {
                     assert_eq!(outlined(&scene, tab.rect, &theme), tab.id == ssh);
@@ -49,8 +49,8 @@ fn the_outline_keeps_the_label_and_the_colour_line() {
     let metrics = UiMetrics::new(1.0);
     let mut workspace = with_host(SessionId(1));
     workspace.set_tab_color(SessionId(1), Some(Swatch::Blue));
-    let frame = frame_in(&mut text, &workspace, metrics);
-    let plain = frame_in(&mut text, &crate::workspace(), metrics);
+    let frame = frame_with_metrics(&mut text, &workspace, metrics);
+    let plain = frame_with_metrics(&mut text, &crate::workspace(), metrics);
     let tab = &frame.panes[0].strip.tabs[0];
     assert_eq!(tab.label_x, plain.panes[0].strip.tabs[0].label_x);
     let scene = paint_with(&mut text, &frame, &theme, None, draw_chrome);

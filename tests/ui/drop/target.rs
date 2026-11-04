@@ -7,7 +7,7 @@ use trame::workspace::{DropTarget, Edge, InstanceId, Workspace};
 
 use crate::text_system;
 
-fn workspace() -> Workspace {
+fn workspace_of_four_tabs() -> Workspace {
     let mut workspace = Workspace::new();
     workspace.add_instance(None, SessionId(1));
     workspace.add_tab(SessionId(2));
@@ -17,7 +17,7 @@ fn workspace() -> Workspace {
     workspace
 }
 
-fn frame(workspace: &Workspace) -> FrameLayout {
+fn frame_of(workspace: &Workspace) -> FrameLayout {
     crate::frame(&mut text_system(), workspace)
 }
 
@@ -27,8 +27,8 @@ fn instance(workspace: &Workspace) -> InstanceId {
 
 #[test]
 fn the_tab_bar_gives_an_insertion_index_and_a_marker() {
-    let workspace = workspace();
-    let frame = frame(&workspace);
+    let workspace = workspace_of_four_tabs();
+    let frame = frame_of(&workspace);
     let pane = &frame.panes[0];
     let second = pane.strip.tabs[1].rect;
     let point = Point::new(second.x + 2.0, second.center().y);
@@ -47,8 +47,8 @@ fn the_tab_bar_gives_an_insertion_index_and_a_marker() {
 
 #[test]
 fn past_the_last_tab_inserts_at_the_end() {
-    let workspace = workspace();
-    let frame = frame(&workspace);
+    let workspace = workspace_of_four_tabs();
+    let frame = frame_of(&workspace);
     let last = frame.panes[0].strip.tabs.last().expect("tabs").rect;
     let point = Point::new(last.right() + 20.0, last.center().y);
     let spot = frame.drop_at(point, instance(&workspace)).expect("a spot");
@@ -60,8 +60,8 @@ fn past_the_last_tab_inserts_at_the_end() {
 
 #[test]
 fn the_pane_body_splits_on_an_edge_or_swaps_in_the_middle() {
-    let workspace = workspace();
-    let frame = frame(&workspace);
+    let workspace = workspace_of_four_tabs();
+    let frame = frame_of(&workspace);
     let body = frame.panes[0].body;
     let id = instance(&workspace);
     let middle = frame.drop_at(body.center(), id).expect("a spot");
@@ -80,8 +80,8 @@ fn the_pane_body_splits_on_an_edge_or_swaps_in_the_middle() {
 
 #[test]
 fn sidebar_rows_target_their_instance() {
-    let workspace = workspace();
-    let frame = frame(&workspace);
+    let workspace = workspace_of_four_tabs();
+    let frame = frame_of(&workspace);
     let sidebar = frame.sidebar.as_ref().expect("the sidebar is open");
     let other = workspace.instances[1].id;
     let target_of = |item: SidebarItem| {
@@ -100,8 +100,8 @@ fn sidebar_rows_target_their_instance() {
 
 #[test]
 fn the_title_bar_is_not_a_drop_spot() {
-    let workspace = workspace();
-    let frame = frame(&workspace);
+    let workspace = workspace_of_four_tabs();
+    let frame = frame_of(&workspace);
     let point = frame.title_bar.rect.center();
     assert_eq!(frame.drop_at(point, instance(&workspace)), None);
 }
