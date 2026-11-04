@@ -1,4 +1,6 @@
 const PADDING: u32 = 1;
+const GROWTH_FACTOR: u32 = 2;
+const MAX_SHELF_SLACK: u32 = 2;
 
 #[derive(Debug)]
 struct Shelf {
@@ -42,7 +44,7 @@ impl ShelfPacker {
             if self.size >= self.max_size {
                 return None;
             }
-            self.size *= 2;
+            self.size *= GROWTH_FACTOR;
         }
     }
 
@@ -51,7 +53,7 @@ impl ShelfPacker {
         let best = self
             .shelves
             .iter_mut()
-            .filter(|shelf| shelf.height >= height && shelf.height <= height * 2)
+            .filter(|shelf| shelf.height >= height && shelf.height <= height * MAX_SHELF_SLACK)
             .filter(|shelf| shelf.cursor + width <= size)
             .min_by_key(|shelf| shelf.height);
         if let Some(shelf) = best {

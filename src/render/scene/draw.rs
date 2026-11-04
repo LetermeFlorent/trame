@@ -4,6 +4,9 @@ use crate::geometry::{Point, Rect};
 use crate::render::atlas::{AtlasKind, AtlasRegion};
 use crate::theme::Rgba;
 
+const SHADOW_SPREAD: f32 = 2.0;
+const LINE_MARGIN: f32 = 1.0;
+
 impl Scene {
     pub fn fill(&mut self, rect: Rect, color: Rgba, radius: f32) {
         self.push(Shape::new(QuadKind::Fill, rect).radius(radius), color);
@@ -27,11 +30,11 @@ impl Scene {
         let shape = Shape::new(QuadKind::Shadow, rect)
             .radius(radius)
             .extent(blur);
-        self.push_within(shape, rect.inset(-blur * 2.0), color);
+        self.push_within(shape, rect.inset(-blur * SHADOW_SPREAD), color);
     }
 
     pub fn line(&mut self, from: Point, to: Point, width: f32, color: Rgba) {
-        let reach = width / 2.0 + 1.0;
+        let reach = width / 2.0 + LINE_MARGIN;
         let bounds = Rect::from_edges(
             from.x.min(to.x) - reach,
             from.y.min(to.y) - reach,

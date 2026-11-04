@@ -7,6 +7,11 @@ use super::scene::{INITIAL_QUAD_CAPACITY, Quad, Scene};
 use super::slack::Slack;
 use crate::theme::Rgba;
 
+const SRGB_LINEAR_LIMIT: f64 = 0.04045;
+const SRGB_LINEAR_SLOPE: f64 = 12.92;
+const SRGB_OFFSET: f64 = 0.055;
+const SRGB_GAMMA: f64 = 2.4;
+
 pub struct Renderer {
     pipeline: wgpu::RenderPipeline,
     bindings: Bindings,
@@ -127,10 +132,10 @@ impl Renderer {
 }
 
 fn srgb_to_linear(value: f64) -> f64 {
-    if value <= 0.04045 {
-        value / 12.92
+    if value <= SRGB_LINEAR_LIMIT {
+        value / SRGB_LINEAR_SLOPE
     } else {
-        ((value + 0.055) / 1.055).powf(2.4)
+        ((value + SRGB_OFFSET) / (1.0 + SRGB_OFFSET)).powf(SRGB_GAMMA)
     }
 }
 

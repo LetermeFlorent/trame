@@ -5,6 +5,11 @@ use bytemuck::{Pod, Zeroable};
 use super::atlas::{Atlas, AtlasKind, AtlasTexture};
 use super::scene::Quad;
 
+const SCENE_LABEL: &str = "scene";
+const GLOBALS_BINDING: u32 = 0;
+const MASK_BINDING: u32 = 1;
+const COLOR_BINDING: u32 = 2;
+
 const QUAD_ATTRIBUTES: [wgpu::VertexAttribute; 5] = wgpu::vertex_attr_array![
     0 => Float32x4,
     1 => Float32x4,
@@ -55,19 +60,19 @@ impl Bindings {
 
     pub(super) fn group(&self, device: &wgpu::Device) -> wgpu::BindGroup {
         device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("scene"),
+            label: Some(SCENE_LABEL),
             layout: &self.layout,
             entries: &[
                 wgpu::BindGroupEntry {
-                    binding: 0,
+                    binding: GLOBALS_BINDING,
                     resource: self.globals.as_entire_binding(),
                 },
                 wgpu::BindGroupEntry {
-                    binding: 1,
+                    binding: MASK_BINDING,
                     resource: wgpu::BindingResource::TextureView(self.mask.view()),
                 },
                 wgpu::BindGroupEntry {
-                    binding: 2,
+                    binding: COLOR_BINDING,
                     resource: wgpu::BindingResource::TextureView(self.color.view()),
                 },
             ],
@@ -87,10 +92,10 @@ fn bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         count: None,
     };
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("scene"),
+        label: Some(SCENE_LABEL),
         entries: &[
             wgpu::BindGroupLayoutEntry {
-                binding: 0,
+                binding: GLOBALS_BINDING,
                 visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
@@ -99,8 +104,8 @@ fn bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
                 },
                 count: None,
             },
-            texture(1),
-            texture(2),
+            texture(MASK_BINDING),
+            texture(COLOR_BINDING),
         ],
     })
 }
@@ -111,16 +116,16 @@ pub(super) fn render_pipeline(
     format: wgpu::TextureFormat,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("scene"),
+        label: Some(SCENE_LABEL),
         source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
     });
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("scene"),
+        label: Some(SCENE_LABEL),
         bind_group_layouts: &[Some(layout)],
         immediate_size: 0,
     });
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some("scene"),
+        label: Some(SCENE_LABEL),
         layout: Some(&pipeline_layout),
         vertex: wgpu::VertexState {
             module: &shader,
