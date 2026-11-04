@@ -84,3 +84,11 @@ fn a_folder_with_direction_controls_is_ignored() {
         assert_eq!(term.screen().cwd(), Some("C:\\work"), "{report:?}");
     }
 }
+
+#[test]
+fn osc_7_and_9_9_set_the_folder() {
+    let term = feed(1, 10, "\x1b]7;file://localhost/C:/Users/Me%20Doc\x1b\\");
+    assert_eq!(term.screen().cwd(), Some("C:/Users/Me Doc"));
+    let term = feed(1, 10, "\x1b]9;9;\"D:\\work\"\x07");
+    assert_eq!(term.screen().cwd(), Some("D:\\work"));
+}

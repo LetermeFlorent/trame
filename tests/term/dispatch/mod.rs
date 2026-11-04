@@ -4,3 +4,4 @@ mod folder;
 mod modes;
 mod reports;
 mod style;
+mod title;

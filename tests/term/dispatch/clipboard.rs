@@ -87,3 +87,12 @@ fn osc_52_is_ignored_when_the_setting_is_off() {
     term.feed(HI);
     assert_eq!(term.screen_mut().take_clipboard().as_deref(), Some("hi"));
 }
+
+#[test]
+fn osc_52_stores_clipboard_text() {
+    let mut term = feed(1, 10, "\x1b]52;c;aGVsbG8gd29ybGQ=\x07");
+    assert_eq!(
+        term.screen_mut().take_clipboard().as_deref(),
+        Some("hello world")
+    );
+}
