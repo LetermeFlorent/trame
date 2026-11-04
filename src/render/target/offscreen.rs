@@ -60,7 +60,9 @@ fn into_rgba(pixels: &mut [u8], format: wgpu::TextureFormat) {
         wgpu::TextureFormat::Bgra8Unorm | wgpu::TextureFormat::Bgra8UnormSrgb
     ) {
         pixels
-            .chunks_exact_mut(4)
+            .as_chunks_mut::<4>()
+            .0
+            .iter_mut()
             .for_each(|pixel| pixel.swap(0, 2));
     }
 }

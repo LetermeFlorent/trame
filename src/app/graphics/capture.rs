@@ -30,7 +30,7 @@ impl Capture {
     fn write(&self, gpu: &Gpu, texture: &wgpu::Texture) -> Result<(), Box<dyn Error>> {
         let (width, height) = (texture.width(), texture.height());
         let mut pixels = read_rgba(gpu, texture)?;
-        for pixel in pixels.chunks_exact_mut(4) {
+        for pixel in pixels.as_chunks_mut::<4>().0 {
             pixel[3] = OPAQUE;
         }
         let partial = self.directory.join(PARTIAL);

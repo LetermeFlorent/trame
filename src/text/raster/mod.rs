@@ -116,7 +116,7 @@ fn upload(atlas: &mut Atlas, image: Image) -> Option<RasterGlyph> {
 }
 
 fn unpremultiply(mut data: Vec<u8>) -> Vec<u8> {
-    for pixel in data.chunks_exact_mut(4) {
+    for pixel in data.as_chunks_mut::<4>().0 {
         let alpha = u32::from(pixel[3]);
         if alpha == 0 || alpha == 255 {
             continue;

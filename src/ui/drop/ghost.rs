@@ -89,7 +89,7 @@ pub fn ghost_scene(text: &mut TextSystem, theme: &Theme, metrics: UiMetrics, lab
 }
 
 pub fn straight_alpha(pixels: &mut [u8]) {
-    for pixel in pixels.chunks_exact_mut(4) {
+    for pixel in pixels.as_chunks_mut::<4>().0 {
         let alpha = u32::from(pixel[3]);
         if alpha == 0 {
             pixel[..3].fill(0);
