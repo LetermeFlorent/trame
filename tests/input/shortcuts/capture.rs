@@ -1,8 +1,8 @@
-use trame::input::{Combo, Pressed, ShortcutInput, pressed};
+use trame::input::{Combo, Pressed, pressed};
 use trame::ui::Platform;
-use winit::keyboard::{Key, KeyCode, ModifiersState, NamedKey, PhysicalKey};
+use winit::keyboard::{Key, KeyCode, ModifiersState, NamedKey};
 
-use super::{ALT, CONTROL, SHIFT};
+use super::{ALT, CONTROL, SHIFT, input};
 use crate::character;
 
 fn capture(
@@ -12,13 +12,7 @@ fn capture(
     code: KeyCode,
 ) -> Pressed {
     let (key, base) = key;
-    let input = ShortcutInput {
-        key: &key,
-        base: &base,
-        physical: PhysicalKey::Code(code),
-        modifiers,
-    };
-    pressed(input, platform)
+    pressed(input(&key, &base, code, modifiers), platform)
 }
 
 fn combo(text: &str) -> Pressed {

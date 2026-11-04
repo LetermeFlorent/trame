@@ -1,10 +1,8 @@
-use trame::input::{
-    ACTIONS, Combo, Command, Keymap, Overrides, ShortcutInput, action_of, default_keys,
-};
+use trame::input::{ACTIONS, Combo, Command, Keymap, Overrides, action_of, default_keys};
 use trame::ui::Platform;
-use winit::keyboard::{KeyCode, ModifiersState, PhysicalKey};
+use winit::keyboard::{KeyCode, ModifiersState};
 
-use super::{CONTROL, SHIFT};
+use super::{CONTROL, SHIFT, input};
 use crate::character;
 
 const WINDOWS: Platform = Platform::Windows;
@@ -27,13 +25,7 @@ fn letter(
     code: KeyCode,
 ) -> Option<Command> {
     let key = character(text);
-    let input = ShortcutInput {
-        key: &key,
-        base: &key,
-        physical: PhysicalKey::Code(code),
-        modifiers,
-    };
-    keymap.command_for(input)
+    keymap.command_for(input(&key, &key, code, modifiers))
 }
 
 #[test]

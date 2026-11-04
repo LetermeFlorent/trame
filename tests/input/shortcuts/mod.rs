@@ -14,19 +14,27 @@ const SHIFT: ModifiersState = ModifiersState::SHIFT;
 const ALT: ModifiersState = ModifiersState::ALT;
 const LOGO: ModifiersState = ModifiersState::SUPER;
 
+fn input<'a>(
+    key: &'a Key,
+    base: &'a Key,
+    code: KeyCode,
+    modifiers: ModifiersState,
+) -> ShortcutInput<'a> {
+    ShortcutInput {
+        key,
+        base,
+        physical: PhysicalKey::Code(code),
+        modifiers,
+    }
+}
+
 fn press(
     platform: Platform,
     modifiers: ModifiersState,
     key: Key,
     code: KeyCode,
 ) -> Option<Command> {
-    let input = ShortcutInput {
-        key: &key,
-        base: &key,
-        physical: PhysicalKey::Code(code),
-        modifiers,
-    };
-    shortcut(input, platform)
+    shortcut(input(&key, &key, code, modifiers), platform)
 }
 
 fn named(platform: Platform, modifiers: ModifiersState, key: NamedKey) -> Option<Command> {
