@@ -1,6 +1,8 @@
 mod atlas;
 mod images;
 mod marks;
+#[cfg(windows)]
+mod utf16;
 
 use trame::term::Marks;
 use trame::text::{BOLD, CellText, DEFAULT_LINE_HEIGHT, FontRole, REGULAR, TextStyle, TextSystem};

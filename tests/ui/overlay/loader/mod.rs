@@ -131,3 +131,23 @@ fn a_blocked_frame_only_lets_the_window_through() {
     let empty = Point::new(bar.center().x, bar.center().y);
     assert_eq!(layout.hit(empty, false), Some(Hit::TitleBar));
 }
+
+#[test]
+fn every_window_border_resizes_toward_its_own_side() {
+    let mut text = text_system();
+    let layout = frame(&mut text, &workspace());
+    let (right, bottom) = (WIDTH - 1.0, HEIGHT - 1.0);
+    let (middle_x, middle_y) = (WIDTH / 2.0, HEIGHT / 2.0);
+    let cases = [
+        (Point::new(middle_x, 1.0), ResizeEdge::North),
+        (Point::new(middle_x, bottom), ResizeEdge::South),
+        (Point::new(1.0, middle_y), ResizeEdge::West),
+        (Point::new(right, middle_y), ResizeEdge::East),
+        (Point::new(right, 1.0), ResizeEdge::NorthEast),
+        (Point::new(1.0, bottom), ResizeEdge::SouthWest),
+        (Point::new(right, bottom), ResizeEdge::SouthEast),
+    ];
+    for (point, edge) in cases {
+        assert_eq!(layout.hit(point, true), Some(Hit::Resize(edge)));
+    }
+}

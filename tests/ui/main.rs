@@ -6,6 +6,7 @@ mod motion;
 mod overlay;
 mod paint;
 mod sidebar;
+mod terminal;
 
 use trame::locale::Language;
 use trame::session::SessionId;

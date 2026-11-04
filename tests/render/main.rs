@@ -1,5 +1,6 @@
 mod atlas;
 mod formats;
+mod geometry;
 
 use std::sync::Arc;
 
