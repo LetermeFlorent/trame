@@ -46,11 +46,7 @@ fn trigger_of(input: &ShortcutInput) -> Option<Trigger> {
             return Some(Trigger::Numpad(code));
         }
     }
-    let single = char_of(input.base)?;
-    Some(match single.to_digit(10) {
-        Some(digit) => Trigger::Digit(digit as u8),
-        None => Trigger::Char(single),
-    })
+    char_of(input.base).map(Trigger::from_char)
 }
 
 fn types(chord: Chord, trigger: Trigger, platform: Platform) -> bool {

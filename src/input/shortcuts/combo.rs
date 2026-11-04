@@ -84,13 +84,17 @@ impl Combo {
 }
 
 impl Trigger {
+    pub(super) fn from_char(single: char) -> Self {
+        match single.to_digit(10) {
+            Some(digit) => Self::Digit(digit as u8),
+            None => Self::Char(single),
+        }
+    }
+
     fn parse(key: &str) -> Option<Self> {
         let mut chars = key.chars();
         if let (Some(single), None) = (chars.next(), chars.next()) {
-            return Some(match single.to_digit(10) {
-                Some(digit) => Trigger::Digit(digit as u8),
-                None => Trigger::Char(lower(single)?),
-            });
+            return lower(single).map(Self::from_char);
         }
         let named = NAMED
             .iter()
