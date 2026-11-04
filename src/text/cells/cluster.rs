@@ -35,18 +35,30 @@ impl TextSystem {
             library: &mut self.library,
         }
         .glyphs(placement.font, placement.size, script_of(key.ch), &cluster);
+        let span = self.cells.metrics.width * f32::from(key.columns);
         let mut pen = 0.0;
         let mut placed = Vec::new();
         for glyph in shaped {
             if glyph.id != 0
-                && let Some(found) =
+                && let Some(mut found) =
                     self.raster_cell_glyph(placement, glyph.id, pen + glyph.x, glyph.y)
             {
+                if !placed.is_empty() {
+                    keep_inside(&mut found, span);
+                }
                 placed.push(found);
             }
             pen += glyph.advance;
         }
         placed
+    }
+}
+
+fn keep_inside(mark: &mut CellGlyph, span: f32) {
+    let width = mark.region.width as f32;
+    let center = mark.x + width / 2.0;
+    if center <= 0.0 || center >= span {
+        mark.x = ((span - width) / 2.0).round();
     }
 }
 
@@ -60,4 +72,35 @@ fn composed(text: CellText) -> CellText {
         }
     }
     CellText { ch, marks, ..text }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::render::{AtlasKind, AtlasRegion};
+
+    fn mark_at(x: f32) -> CellGlyph {
+        let region = AtlasRegion {
+            kind: AtlasKind::Mask,
+            x: 0,
+            y: 0,
+            width: 4,
+            height: 3,
+        };
+        CellGlyph { region, x, y: 0.0 }
+    }
+
+    #[test]
+    fn a_mark_left_in_the_next_cell_comes_back_over_its_base() {
+        let mut mark = mark_at(9.0);
+        keep_inside(&mut mark, 10.0);
+        assert_eq!(mark.x, 3.0);
+    }
+
+    #[test]
+    fn a_mark_placed_by_the_font_stays_where_it_is() {
+        let mut mark = mark_at(2.0);
+        keep_inside(&mut mark, 10.0);
+        assert_eq!(mark.x, 2.0);
+    }
 }
