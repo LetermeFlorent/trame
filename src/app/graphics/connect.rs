@@ -7,7 +7,7 @@ use winit::window::Window;
 use trame::render::Gpu;
 
 #[cfg(windows)]
-pub(super) const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::DX12;
+pub(super) const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::VULKAN;
 #[cfg(not(windows))]
 pub(super) const PREFERRED_BACKENDS: wgpu::Backends =
     wgpu::Backends::VULKAN.union(wgpu::Backends::METAL);

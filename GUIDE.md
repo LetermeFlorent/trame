@@ -184,7 +184,7 @@ On Linux and macOS, trame keeps its folder closed to the other accounts of the m
 
 ## How it is made
 
-The terminal itself, from the escape sequence parser to the screen grid and the scrollback, is written from scratch in Rust. Drawing goes through the graphics card with [wgpu](https://wgpu.rs): DirectX 12 on Windows, Metal on macOS and Vulkan on Linux, with Vulkan on Windows and OpenGL on Linux when those are missing. Nothing is drawn while the window is hidden or minimized.
+The terminal itself, from the escape sequence parser to the screen grid and the scrollback, is written from scratch in Rust. Drawing goes through the graphics card with [wgpu](https://wgpu.rs): Vulkan on Windows and Linux and Metal on macOS, with DirectX 12 on Windows and OpenGL on Linux when Vulkan is missing. Nothing is drawn while the window is hidden or minimized.
 
 On Windows, `trame.exe` weighs under 7 MB. With a couple of tabs open it holds around 95 MB of memory, and on a PC with integrated graphics about 60 MB of that belongs to the graphics driver.
 
