@@ -8,9 +8,10 @@ use trame::render::Gpu;
 
 #[cfg(windows)]
 pub(super) const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::VULKAN;
-#[cfg(not(windows))]
-pub(super) const PREFERRED_BACKENDS: wgpu::Backends =
-    wgpu::Backends::VULKAN.union(wgpu::Backends::METAL);
+#[cfg(target_os = "macos")]
+pub(super) const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::METAL;
+#[cfg(not(any(windows, target_os = "macos")))]
+pub(super) const PREFERRED_BACKENDS: wgpu::Backends = wgpu::Backends::VULKAN;
 
 pub(super) fn connect(
     event_loop: &ActiveEventLoop,
