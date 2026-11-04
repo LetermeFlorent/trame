@@ -1,12 +1,8 @@
-use std::path::PathBuf;
+use trame::workspace::{Snapshot, SnapshotError};
 
-use trame::session::SessionId;
-use trame::workspace::{Snapshot, SnapshotError, Workspace};
-
-use super::{pane, single, snapshot_of, through_json};
+use super::MINIMAL;
+use crate::snapshot::snapshot_of;
 use crate::workspace_with;
-
-const MINIMAL: &str = r#"{"version":1,"sidebar_open":true,"font_size":14.0,"active_instance":0,"instances":[{"name":"a","active_pane":0,"root":{"Pane":{"tabs":[{}],"active":0}}}]}"#;
 
 fn is_json_error(result: Result<Snapshot, SnapshotError>) -> bool {
     matches!(result, Err(SnapshotError::Json(_)))
@@ -67,50 +63,6 @@ fn missing_or_odd_version_is_refused() {
             "{text}"
         );
     }
-}
-
-#[test]
-fn tab_without_a_directory_parses() {
-    let snapshot = Snapshot::from_json(MINIMAL).expect("parses");
-    let (workspace, seen) = super::restore(&snapshot);
-    assert_eq!(workspace.tabs().len(), 1);
-    assert_eq!(seen[0].cwd, None);
-    assert_eq!(seen[0].title, None);
-}
-
-#[test]
-fn directory_and_title_are_read_when_present() {
-    let text = MINIMAL.replace("{}", r#"{"cwd":"/srv/app","title":"deploy"}"#);
-    let snapshot = Snapshot::from_json(&text).expect("parses");
-    let (_, seen) = super::restore(&snapshot);
-    assert_eq!(seen[0].cwd, Some(PathBuf::from("/srv/app")));
-    assert_eq!(seen[0].title.as_deref(), Some("deploy"));
-}
-
-#[test]
-fn unknown_extra_fields_are_ignored() {
-    let text = MINIMAL.replace("\"sidebar_open\"", "\"theme\":\"dark\",\"sidebar_open\"");
-    assert!(Snapshot::from_json(&text).is_ok());
-}
-
-#[test]
-fn empty_workspace_has_nothing_to_restore() {
-    let snapshot = snapshot_of(&Workspace::new(), &[]);
-    assert!(snapshot.instances.is_empty());
-    let result = Workspace::restore(&snapshot, &mut |_| SessionId(1));
-    assert!(matches!(result, Err(SnapshotError::Empty)));
-}
-
-#[test]
-fn empty_workspace_round_trips_through_json() {
-    let snapshot = snapshot_of(&Workspace::new(), &[]);
-    assert_eq!(through_json(&snapshot), snapshot);
-}
-
-#[test]
-fn snapshot_with_only_empty_panes_has_nothing_to_restore() {
-    let result = Workspace::restore(&single(pane(0)), &mut |_| SessionId(1));
-    assert!(matches!(result, Err(SnapshotError::Empty)));
 }
 
 #[test]

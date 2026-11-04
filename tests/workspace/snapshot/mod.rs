@@ -1,4 +1,4 @@
-mod invalid;
+mod input;
 mod marks;
 mod nesting;
 mod preferences;

@@ -2,6 +2,7 @@ mod emblems;
 mod folders;
 mod hosts;
 mod names;
+mod replace;
 
 use trame::theme::Swatch;
 use trame::workspace::{Edge, Workspace};
