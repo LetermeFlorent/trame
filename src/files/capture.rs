@@ -5,23 +5,10 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use png::{BitDepth, ColorType, Compression, Encoder};
 
+use super::quote_path;
 use super::{create_folder, write_atomic};
 
 pub const CAPTURE_MAX_AGE: Duration = Duration::from_secs(7 * 24 * 60 * 60);
-
-pub fn quote_path(path: &Path) -> String {
-    let text = path.to_string_lossy();
-    if text.contains(' ') {
-        format!("\"{text}\"")
-    } else {
-        text.into_owned()
-    }
-}
-
-pub fn join_paths(paths: &[PathBuf]) -> String {
-    let quoted: Vec<String> = paths.iter().map(|path| quote_path(path)).collect();
-    quoted.join(" ")
-}
 
 pub fn capture_name(millis: u128) -> String {
     format!("capture-{millis}.png")

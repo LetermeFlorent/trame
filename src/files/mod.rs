@@ -5,6 +5,7 @@ mod modes;
 mod open;
 mod picker;
 mod places;
+mod quoting;
 
 use std::fs;
 use std::io::{self, Write};
@@ -15,8 +16,7 @@ use modes::keep_mode;
 pub(crate) use modes::{append_file, create_file, create_folder};
 
 pub use capture::{
-    CAPTURE_MAX_AGE, capture_name, captures_folder, encode_png, join_paths, quote_path,
-    remove_old_captures, save_capture,
+    CAPTURE_MAX_AGE, capture_name, captures_folder, encode_png, remove_old_captures, save_capture,
 };
 pub use icons::{ICON_SIZE, IconStore, fit, import_icon, load_icon};
 pub use log::{LogFile, record_error, start_log};
@@ -24,6 +24,7 @@ pub use modes::private_folder;
 pub use open::{is_web, open_link};
 pub use picker::{PickRequest, pick_folder, pick_image};
 pub use places::{home_dir, short_path};
+pub use quoting::{join_paths, quote_path};
 
 const TEMPORARY_SUFFIX: &str = ".tmp";
 
