@@ -1,26 +1,7 @@
-use std::sync::mpsc::Receiver;
-use std::time::Instant;
-
-use trame::session::{Session, SessionEvent};
-
-use crate::pty::{COMMAND, TIMEOUT, screen_text};
-use crate::shell::start_shell;
+use crate::pty::{COMMAND, screen_text};
+use crate::shell::{start_shell, wait_for};
 
 const SAVED: &str = "saved-before-restart";
-
-fn wait_for(session: &Session, events: &Receiver<SessionEvent>, needle: &str) -> bool {
-    let deadline = Instant::now() + TIMEOUT;
-    loop {
-        session.take_output();
-        if screen_text(&session.terminal()).contains(needle) {
-            return true;
-        }
-        let left = deadline.saturating_duration_since(Instant::now());
-        if events.recv_timeout(left).is_err() {
-            return false;
-        }
-    }
-}
 
 #[test]
 fn restored_text_stays_above_the_new_shell() {

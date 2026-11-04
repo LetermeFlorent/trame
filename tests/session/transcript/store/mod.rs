@@ -1,29 +1,19 @@
 mod reading;
 mod writing;
 
-use std::env;
 use std::fs;
 use std::path::PathBuf;
-use std::process;
 use std::sync::{Arc, Mutex};
 
 use trame::session::{SessionId, Transcripts};
 use trame::term::Terminal;
 
+use crate::sandbox::Sandbox;
+
 const FIRST: SessionId = SessionId(1);
 const SECOND: SessionId = SessionId(2);
 
-struct Sandbox {
-    root: PathBuf,
-}
-
 impl Sandbox {
-    fn new(name: &str) -> Self {
-        let root = env::temp_dir().join(format!("trame-test-{}-{name}", process::id()));
-        let _ = fs::remove_dir_all(&root);
-        Self { root }
-    }
-
     fn text(&self) -> PathBuf {
         self.root.join("text")
     }
@@ -43,12 +33,6 @@ impl Sandbox {
             .unwrap_or_default();
         names.sort();
         names
-    }
-}
-
-impl Drop for Sandbox {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.root);
     }
 }
 

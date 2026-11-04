@@ -1,10 +1,9 @@
 use std::io::Write;
 use std::path::Path;
 
-use trame::session::pty::{PtyOptions, PtySize, default_shell, spawn};
-use trame::term::Terminal;
+use trame::session::pty::default_shell;
 
-use crate::pty::{COLS, ROWS, pump_until, read_chunks, screen_text};
+use crate::pty::{Opened, open_shell, pump_until, screen_text};
 
 #[cfg(windows)]
 const PRINT_DUMP: &[u8] = b"echo ('dump-[' + $env:TRAME_DUMP + ']')\r";
@@ -15,15 +14,13 @@ const PRINT_DUMP: &[u8] = b"echo \"dump-[$TRAME_DUMP]\"\r";
 fn the_shell_environment_has_no_dump_variable() {
     let mut shell = default_shell();
     shell.env.push(("TRAME_DUMP".into(), "recorded".into()));
-    let options = PtyOptions {
-        shell: &shell,
-        cwd: Some(Path::new(env!("CARGO_MANIFEST_DIR"))),
-        size: PtySize::new(ROWS, COLS),
-    };
-    let spawned = spawn(&options).expect("shell should start");
-    let mut writer = spawned.writer;
-    let chunks = read_chunks(spawned.reader);
-    let mut terminal = Terminal::new(ROWS, COLS, 1_000);
+    let Opened {
+        pty: _pty,
+        child: _child,
+        mut writer,
+        chunks,
+        mut terminal,
+    } = open_shell(&shell, Path::new(env!("CARGO_MANIFEST_DIR")));
     writer.write_all(PRINT_DUMP).unwrap();
     pump_until(&mut terminal, &chunks, &mut writer, |terminal| {
         let text = screen_text(terminal);

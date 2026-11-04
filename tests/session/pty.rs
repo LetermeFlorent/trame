@@ -1,10 +1,11 @@
+use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use trame::session::pty::{PtyOptions, PtySize, default_shell, spawn};
+use trame::session::pty::{Child, Pty, PtyOptions, PtySize, ShellCommand, default_shell, spawn};
 use trame::term::Terminal;
 
 pub(crate) const ROWS: usize = 24;
@@ -24,7 +25,7 @@ pub(crate) fn screen_text(terminal: &Terminal) -> String {
         .join("\n")
 }
 
-pub(crate) fn read_chunks(mut reader: std::fs::File) -> Receiver<Vec<u8>> {
+pub(crate) fn read_chunks(mut reader: File) -> Receiver<Vec<u8>> {
     let (sender, receiver) = mpsc::channel();
     thread::spawn(move || {
         let mut buffer = [0; 4096];
@@ -37,10 +38,34 @@ pub(crate) fn read_chunks(mut reader: std::fs::File) -> Receiver<Vec<u8>> {
     receiver
 }
 
+pub(crate) struct Opened {
+    pub(crate) pty: Pty,
+    pub(crate) child: Child,
+    pub(crate) writer: File,
+    pub(crate) chunks: Receiver<Vec<u8>>,
+    pub(crate) terminal: Terminal,
+}
+
+pub(crate) fn open_shell(shell: &ShellCommand, cwd: &Path) -> Opened {
+    let options = PtyOptions {
+        shell,
+        cwd: Some(cwd),
+        size: PtySize::new(ROWS, COLS),
+    };
+    let spawned = spawn(&options).expect("shell should start");
+    Opened {
+        pty: spawned.pty,
+        child: spawned.child,
+        writer: spawned.writer,
+        chunks: read_chunks(spawned.reader),
+        terminal: Terminal::new(ROWS, COLS, 1_000),
+    }
+}
+
 pub(crate) fn pump_until(
     terminal: &mut Terminal,
     chunks: &Receiver<Vec<u8>>,
-    writer: &mut std::fs::File,
+    writer: &mut File,
     done: impl Fn(&Terminal) -> bool,
 ) -> bool {
     let deadline = Instant::now() + TIMEOUT;
@@ -67,15 +92,13 @@ fn same_path(reported: &str, expected: &Path) -> bool {
 fn shell_runs_a_command_and_exits() {
     let shell = default_shell();
     let cwd = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let options = PtyOptions {
-        shell: &shell,
-        cwd: Some(cwd),
-        size: PtySize::new(ROWS, COLS),
-    };
-    let spawned = spawn(&options).expect("shell should start");
-    let mut writer = spawned.writer;
-    let chunks = read_chunks(spawned.reader);
-    let mut terminal = Terminal::new(ROWS, COLS, 1_000);
+    let Opened {
+        pty,
+        child,
+        mut writer,
+        chunks,
+        mut terminal,
+    } = open_shell(&shell, cwd);
 
     writer.write_all(COMMAND).unwrap();
     let printed = pump_until(&mut terminal, &chunks, &mut writer, |terminal| {
@@ -87,25 +110,23 @@ fn shell_runs_a_command_and_exits() {
         screen_text(&terminal)
     );
 
-    let reported = terminal.screen().cwd().map(str::to_owned).or_else(|| {
-        spawned
-            .pty
-            .cwd()
-            .map(|path| path.to_string_lossy().into_owned())
-    });
+    let reported = terminal
+        .screen()
+        .cwd()
+        .map(str::to_owned)
+        .or_else(|| pty.cwd().map(|path| path.to_string_lossy().into_owned()));
     assert!(
         reported.as_deref().is_some_and(|path| same_path(path, cwd)),
         "cwd not reported: {reported:?}"
     );
 
-    spawned.pty.resize(PtySize::new(30, 80)).unwrap();
+    pty.resize(PtySize::new(30, 80)).unwrap();
     writer.write_all(b"exit\r").unwrap();
     let (sender, receiver) = mpsc::channel();
-    let child = spawned.child;
     thread::spawn(move || sender.send(child.wait()));
     let status = receiver.recv_timeout(TIMEOUT).expect("shell should exit");
     assert_eq!(status, Some(0));
-    drop(spawned.pty);
+    drop(pty);
     assert!(output_ends(&chunks), "reader never reached end of output");
 }
 

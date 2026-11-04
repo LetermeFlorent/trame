@@ -5,26 +5,16 @@ mod icons;
 mod log;
 mod open;
 mod resample;
+#[path = "../support/sandbox.rs"]
+mod sandbox;
 
-use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process;
 
 use png::{BitDepth, ColorType, Encoder};
-
-struct Sandbox {
-    root: PathBuf,
-}
+use sandbox::Sandbox;
 
 impl Sandbox {
-    fn new(name: &str) -> Self {
-        let root = env::temp_dir().join(format!("trame-files-{}-{name}", process::id()));
-        let _ = fs::remove_dir_all(&root);
-        fs::create_dir_all(&root).expect("the sandbox folder is created");
-        Self { root }
-    }
-
     fn icons(&self) -> PathBuf {
         self.root.join("icons")
     }
@@ -33,12 +23,6 @@ impl Sandbox {
         let path = self.root.join(name);
         write_png(&path, width, height, pixels);
         path
-    }
-}
-
-impl Drop for Sandbox {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.root);
     }
 }
 
