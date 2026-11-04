@@ -8,7 +8,6 @@ impl Sessions {
     pub(super) fn prepare(&self, session: &Session) {
         let mut terminal = session.terminal();
         let screen = terminal.screen_mut();
-        screen.set_history(self.history);
         screen.set_clipboard_writes(self.program_clipboard);
     }
 

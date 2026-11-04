@@ -78,6 +78,7 @@ impl Sessions {
             cwd,
             rows: start.size.0,
             cols: start.size.1,
+            history: self.history,
             colors: start.colors,
             transcript: start.transcript,
         };

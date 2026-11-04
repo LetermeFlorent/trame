@@ -4,7 +4,7 @@ use std::sync::mpsc::{self, Receiver};
 
 use trame::session::pty::default_shell;
 use trame::session::{Session, SessionEvent, SessionId, SessionOptions};
-use trame::term::ReportedColors;
+use trame::term::{DEFAULT_HISTORY, ReportedColors};
 
 use crate::pty::{COLS, ROWS};
 
@@ -15,6 +15,7 @@ pub(crate) fn start_shell(transcript: &[u8]) -> (Session, Receiver<SessionEvent>
         cwd: Some(Path::new(env!("CARGO_MANIFEST_DIR"))),
         rows: ROWS,
         cols: COLS,
+        history: DEFAULT_HISTORY,
         colors: ReportedColors::default(),
         transcript,
     };

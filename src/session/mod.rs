@@ -14,7 +14,7 @@ use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::thread;
 
 use crate::log_error;
-use crate::term::{DEFAULT_HISTORY, ReportedColors, Terminal};
+use crate::term::{ReportedColors, Terminal};
 use pty::{Pty, PtyOptions, PtySize, ShellCommand};
 pub use title::starting_label;
 pub use transcript::{MAX_TRANSCRIPT_BYTES, TRANSCRIPT_SAVE_INTERVAL, TranscriptCopy, Transcripts};
@@ -35,6 +35,7 @@ pub struct SessionOptions<'a> {
     pub cwd: Option<&'a Path>,
     pub rows: usize,
     pub cols: usize,
+    pub history: usize,
     pub colors: ReportedColors,
     pub transcript: &'a [u8],
 }
@@ -58,7 +59,7 @@ impl Session {
             cwd: options.cwd,
             size: PtySize::new(rows, cols),
         })?;
-        let mut terminal = Terminal::new(rows, cols, DEFAULT_HISTORY);
+        let mut terminal = Terminal::new(rows, cols, options.history);
         terminal.screen_mut().set_reported_colors(options.colors);
         terminal.feed(options.transcript);
         let terminal = Arc::new(Mutex::new(terminal));
