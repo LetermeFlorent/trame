@@ -72,7 +72,7 @@ impl FrameLayout {
     }
 }
 
-fn tabs_height(metrics: &UiMetrics) -> f32 {
+pub(super) fn tabs_height(metrics: &UiMetrics) -> f32 {
     metrics.px(LINE_HEIGHT) + metrics.px(SECTION_GAP)
 }
 

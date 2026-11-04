@@ -5,6 +5,8 @@ use crate::ui::metrics::UiMetrics;
 
 use super::SettingLine;
 use super::column::Column;
+use super::form::page_height;
+use super::place::tabs_height;
 
 const PANEL_WIDTH: f32 = 360.0;
 const PANEL_PAD: f32 = 12.0;
@@ -37,9 +39,20 @@ impl FrameLayout {
     }
 
     pub(in crate::ui::frame) fn popup_room(&self) -> f32 {
+        (self.popup_backdrop().height - self.popup_chrome()).max(0.0)
+    }
+
+    fn popup_top(&self, height: f32) -> f32 {
         let metrics = &self.metrics;
-        let chrome = 2.0 * metrics.px(PANEL_PAD) + metrics.px(TITLE_HEIGHT);
-        (self.popup_backdrop().height - chrome).max(0.0)
+        let backdrop = self.popup_backdrop();
+        let page = page_height(metrics, self.popup_room() - tabs_height(metrics));
+        let settings = self.popup_chrome() + tabs_height(metrics) + page;
+        let top = backdrop.centered_y(settings).max(backdrop.y);
+        top.min(backdrop.bottom() - height).max(backdrop.y)
+    }
+
+    fn popup_chrome(&self) -> f32 {
+        2.0 * self.metrics.px(PANEL_PAD) + self.metrics.px(TITLE_HEIGHT)
     }
 
     pub(in crate::ui::frame) fn open_popup<'a>(
@@ -63,7 +76,7 @@ impl FrameLayout {
         let width = metrics.px(wide).min(backdrop.width);
         let height = 2.0 * pad + metrics.px(TITLE_HEIGHT) + content;
         let x = backdrop.centered_x(width);
-        let y = backdrop.centered_y(height).max(backdrop.y);
+        let y = self.popup_top(height);
         let rect = Rect::new(x, y, width, height).snapped();
         let mut column = Column {
             text,

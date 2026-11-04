@@ -16,7 +16,7 @@ fn the_colours_open_in_a_window_like_the_settings() {
     assert_eq!(popup.backdrop.y, frame.title_bar.rect.bottom());
     assert_eq!(popup.backdrop.bottom(), frame.bounds.bottom());
     let (panel, backdrop) = (popup.rect.center(), popup.backdrop.center());
-    assert!((panel.x - backdrop.x).abs() <= 1.0 && (panel.y - backdrop.y).abs() <= 1.0);
+    assert!((panel.x - backdrop.x).abs() <= 1.0 && popup.rect.y >= popup.backdrop.y);
     assert!(popup.title.label.width > 0.0);
     assert!(popup.rect.contains(editor.strip.center()));
     assert!(editor.strip.y >= popup.title.rect.bottom());
