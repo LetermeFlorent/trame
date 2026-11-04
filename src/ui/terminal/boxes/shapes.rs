@@ -4,11 +4,15 @@ use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 
 const DASH_RATIO: f32 = 0.6;
+const HORIZONTAL_MASK: u16 = 0x0F00;
+const HEAVY_MASK: u16 = 0x2222;
+const UP_MASK: u16 = 0xF000;
+const ARC_REACH: f32 = 2.0;
 
 pub fn draw_dashes(scene: &mut Scene, code: u16, count: u8, ink: Ink) {
     let Ink { rect, color, light } = ink;
-    let horizontal = code & 0x0F00 != 0;
-    let heavy = code & 0x2222 != 0;
+    let horizontal = code & HORIZONTAL_MASK != 0;
+    let heavy = code & HEAVY_MASK != 0;
     let thickness = if heavy { light * HEAVY_WIDTH } else { light };
     let length = if horizontal { rect.width } else { rect.height };
     let slot = length / f32::from(count);
@@ -28,12 +32,12 @@ pub fn draw_dashes(scene: &mut Scene, code: u16, count: u8, ink: Ink) {
 
 pub fn draw_arc(scene: &mut Scene, code: u16, ink: Ink) {
     let Ink { rect, color, light } = ink;
-    let up = code & 0xF000 != 0;
-    let right = code & 0x0F00 != 0;
+    let up = code & UP_MASK != 0;
+    let right = code & HORIZONTAL_MASK != 0;
     let x = rect.x + ((rect.width - light) / 2.0).floor();
     let y = rect.y + ((rect.height - light) / 2.0).floor();
-    let reach_x = rect.width * 2.0;
-    let reach_y = rect.height * 2.0;
+    let reach_x = rect.width * ARC_REACH;
+    let reach_y = rect.height * ARC_REACH;
     let (left, right_edge) = if right {
         (x, x + reach_x)
     } else {

@@ -66,7 +66,7 @@ fn draw_control(painter: &mut Painter, rect: Rect, hit: Hit, icon: Icon) {
     let closing = hit == Hit::Close && state != Press::Idle;
     let background = match state {
         _ if closing && state == Press::Pressed => {
-            Some(CLOSE_RED.mix(Rgba::hex(0x000000), CLOSE_PRESSED_SHADE))
+            Some(CLOSE_RED.mix(Rgba::BLACK, CLOSE_PRESSED_SHADE))
         }
         _ if closing => Some(CLOSE_RED),
         Press::Hover => Some(theme.hover),
@@ -79,7 +79,7 @@ fn draw_control(painter: &mut Painter, rect: Rect, hit: Hit, icon: Icon) {
         painter.scene.fill(rect, color, radius);
     }
     let color = match state {
-        _ if closing => Rgba::hex(0xffffff),
+        _ if closing => Rgba::WHITE,
         Press::Idle => theme.text_muted,
         _ => theme.text,
     };

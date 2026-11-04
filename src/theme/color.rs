@@ -1,5 +1,5 @@
 const DARK_INK: Rgba = Rgba::hex(0x1b1b1b);
-const LIGHT_INK: Rgba = Rgba::hex(0xffffff);
+const LIGHT_INK: Rgba = Rgba::WHITE;
 
 const BYTE_MASK: u32 = 0xFF;
 const RED_SHIFT: u32 = 16;
@@ -23,6 +23,9 @@ pub struct Rgba {
 }
 
 impl Rgba {
+    pub const BLACK: Self = Self::hex(0x000000);
+    pub const WHITE: Self = Self::hex(0xffffff);
+
     pub const fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
         Self { r, g, b, a }
     }

@@ -14,7 +14,6 @@ use crate::ui::paint::FrameView;
 const SMALL_RADIUS: f32 = 3.0;
 const HOVER_SHADE: f32 = 0.12;
 const PRESSED_SHADE: f32 = 0.22;
-const SHADE: Rgba = Rgba::hex(0x000000);
 
 struct IconStyle {
     radius: f32,
@@ -119,7 +118,7 @@ impl<'a> Painter<'a> {
             Press::Pressed => PRESSED_SHADE,
             _ => HOVER_SHADE * self.glow(hit),
         };
-        self.scene.fill(rect, base.mix(SHADE, shade), radius);
+        self.scene.fill(rect, base.mix(Rgba::BLACK, shade), radius);
     }
 
     pub(super) fn renaming(&self, test: impl FnOnce(&EditorFrame) -> bool) -> bool {

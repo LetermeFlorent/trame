@@ -10,7 +10,11 @@ use crate::ui::metrics::UiMetrics;
 const GHOST_ALPHA: f32 = 0.85;
 const GHOST_OFFSET: f32 = 10.0;
 const GHOST_BLUR: f32 = 8.0;
-const OPAQUE: u8 = 255;
+const OPAQUE: u8 = u8::MAX;
+const MAX_CHANNEL: u32 = u8::MAX as u32;
+const BYTES_PER_PIXEL: usize = 4;
+const ALPHA: usize = BYTES_PER_PIXEL - 1;
+const BOTH_SIDES: f32 = 2.0;
 const ARROW: [&str; 19] = [
     "B...........",
     "BB..........",
@@ -40,7 +44,7 @@ pub(super) struct Ghost<'a> {
 
 fn fitted_label(text: &mut TextSystem, metrics: &UiMetrics, label: &str) -> (Arc<TextLayout>, f32) {
     let padding = metrics.px(UiMetrics::TAB_PADDING);
-    let widest = metrics.px(UiMetrics::TAB_MAX) - padding * 2.0;
+    let widest = metrics.px(UiMetrics::TAB_MAX) - padding * BOTH_SIDES;
     (fit_label(text, label, metrics.label(), widest), padding)
 }
 
@@ -56,7 +60,7 @@ pub(super) fn paint_ghost(
     let rect = Rect::new(
         (ghost.pointer.x + offset).round(),
         (ghost.pointer.y + offset).round(),
-        (label.width + padding * 2.0).ceil(),
+        (label.width + padding * BOTH_SIDES).ceil(),
         metrics.spaced(UiMetrics::TAB_BAR),
     );
     let radius = metrics.px(UiMetrics::RADIUS);
@@ -70,10 +74,10 @@ pub(super) fn paint_ghost(
 pub fn ghost_scene(text: &mut TextSystem, theme: &Theme, metrics: UiMetrics, label: &str) -> Scene {
     let (fitted, padding) = fitted_label(text, &metrics, label);
     let width = fitted.width;
-    let margin = metrics.px(GHOST_OFFSET) + 2.0 * metrics.px(GHOST_BLUR);
+    let margin = metrics.px(GHOST_OFFSET) + BOTH_SIDES * metrics.px(GHOST_BLUR);
     let arrow = arrow_scale(metrics);
     let mut scene = Scene::new(
-        (width + padding * 2.0 + margin)
+        (width + padding * BOTH_SIDES + margin)
             .ceil()
             .max(arrow_width(arrow)),
         (metrics.spaced(UiMetrics::TAB_BAR) + margin)
@@ -89,14 +93,14 @@ pub fn ghost_scene(text: &mut TextSystem, theme: &Theme, metrics: UiMetrics, lab
 }
 
 pub fn straight_alpha(pixels: &mut [u8]) {
-    for pixel in pixels.as_chunks_mut::<4>().0 {
-        let alpha = u32::from(pixel[3]);
+    for pixel in pixels.as_chunks_mut::<BYTES_PER_PIXEL>().0 {
+        let alpha = u32::from(pixel[ALPHA]);
         if alpha == 0 {
-            pixel[..3].fill(0);
+            pixel[..ALPHA].fill(0);
             continue;
         }
-        for channel in &mut pixel[..3] {
-            *channel = (u32::from(*channel) * 255 / alpha).min(255) as u8;
+        for channel in &mut pixel[..ALPHA] {
+            *channel = (u32::from(*channel) * MAX_CHANNEL / alpha).min(MAX_CHANNEL) as u8;
         }
     }
 }
@@ -114,9 +118,10 @@ pub fn stamp_arrow(pixels: &mut [u8], width: u32, metrics: UiMetrics) {
             for dy in 0..scale {
                 for dx in 0..scale {
                     let x = col * scale + dx;
-                    let at = ((row * scale + dy) * width + x) * 4;
-                    if x < width && at + 4 <= pixels.len() {
-                        pixels[at..at + 4].copy_from_slice(&[shade, shade, shade, OPAQUE]);
+                    let at = ((row * scale + dy) * width + x) * BYTES_PER_PIXEL;
+                    if x < width && at + BYTES_PER_PIXEL <= pixels.len() {
+                        pixels[at..at + BYTES_PER_PIXEL]
+                            .copy_from_slice(&[shade, shade, shade, OPAQUE]);
                     }
                 }
             }

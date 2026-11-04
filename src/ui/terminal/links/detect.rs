@@ -1,4 +1,6 @@
-const WEB_STARTS: [&str; 3] = ["https://", "http://", "www."];
+const SECURE_SCHEME: &str = "https://";
+const WWW_PREFIX: &str = "www.";
+const WEB_STARTS: [&str; 3] = [SECURE_SCHEME, "http://", WWW_PREFIX];
 const URL_STOPS: &[char] = &['<', '>', '"', '`', '{', '}', '|', '\\', '^'];
 const TRAILING: &[char] = &['.', ',', ';', ':', '!', '?', '\'', '"'];
 const PAIRS: [(char, char); 4] = [('(', ')'), ('[', ']'), ('{', '}'), ('<', '>')];
@@ -47,7 +49,7 @@ fn web_link(text: &[char], start: usize, end: usize) -> Option<Found> {
     }
     let link: String = text[from..stop].iter().collect();
     let url = match *kind {
-        "www." => format!("https://{link}"),
+        WWW_PREFIX => format!("{SECURE_SCHEME}{link}"),
         _ => link,
     };
     Some(Found {

@@ -10,8 +10,8 @@ const STRIP: f32 = 2.0;
 const THUMB: f32 = 10.0;
 const MARK: f32 = 4.0;
 const OUTLINE_ALPHA: f32 = 0.5;
-const WHITE: Rgba = Rgba::hex(0xFFFFFF);
-const BLACK: Rgba = Rgba::hex(0x000000);
+const OUTLINE_LINES: f32 = 2.0;
+const BOTH_SIDES: f32 = 2.0;
 
 pub(super) fn draw_picker(painter: &mut Painter, picker: &PickerFrame) {
     draw_square(painter, picker.square, picker.hsv);
@@ -43,11 +43,11 @@ fn draw_square(painter: &mut Painter, square: Rect, hsv: Hsv) {
     scene.fill(square, Rgba::hex(hsv.pure_hue()), 0.0);
     for (left, right, share) in bands(square.x, square.width, step) {
         let column = Rect::from_edges(left, square.y, right, square.bottom());
-        scene.fill(column, WHITE.with_alpha(1.0 - share), 0.0);
+        scene.fill(column, Rgba::WHITE.with_alpha(1.0 - share), 0.0);
     }
     for (top, bottom, share) in bands(square.y, square.height, step) {
         let row = Rect::from_edges(square.x, top, square.right(), bottom);
-        scene.fill(row, BLACK.with_alpha(share), 0.0);
+        scene.fill(row, Rgba::BLACK.with_alpha(share), 0.0);
     }
     let border = painter.theme.border_strong;
     painter
@@ -89,16 +89,16 @@ fn draw_marks(painter: &mut Painter, picker: &PickerFrame) {
     outlined(painter, thumb, size / 2.0, line);
     let height = painter.metrics.px(MARK);
     let y = (bar.y + hue * bar.height - height / 2.0).round();
-    let mark = Rect::new(bar.x - line, y, bar.width + 2.0 * line, height);
+    let mark = Rect::new(bar.x - line, y, bar.width + BOTH_SIDES * line, height);
     outlined(painter, mark, line, line);
 }
 
 fn outlined(painter: &mut Painter, rect: Rect, radius: f32, line: f32) {
     let scene = &mut *painter.scene;
-    scene.border(rect, WHITE, radius, 2.0 * line);
+    scene.border(rect, Rgba::WHITE, radius, OUTLINE_LINES * line);
     scene.border(
         rect.inset(-line),
-        BLACK.with_alpha(OUTLINE_ALPHA),
+        Rgba::BLACK.with_alpha(OUTLINE_ALPHA),
         radius + line,
         line,
     );

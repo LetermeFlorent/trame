@@ -6,6 +6,7 @@ use crate::term::grid::Grid;
 use crate::term::{Cell, Flags, Screen};
 
 const MAX_CHAIN: isize = 64;
+const EMPTY_CELL: char = '\0';
 
 #[derive(Clone, Copy)]
 struct Place {
@@ -60,13 +61,9 @@ impl Chain {
             if cell.flags.contains(Flags::WIDE_SPACER) {
                 continue;
             }
-            let plain = cell.link == 0 && cell.ch != '\0';
+            let plain = cell.link == 0 && cell.ch != EMPTY_CELL;
             self.text.push(if plain { cell.ch } else { ' ' });
-            let width = if cell.flags.contains(Flags::WIDE) {
-                2
-            } else {
-                1
-            };
+            let width = usize::from(cell.columns());
             self.places.push(Place { row, col, width });
         }
     }

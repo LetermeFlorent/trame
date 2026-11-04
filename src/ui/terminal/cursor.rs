@@ -7,6 +7,7 @@ use crate::theme::Theme;
 use super::GridPaint;
 
 const BAR_RATIO: f32 = 1.0 / 7.0;
+const HOLLOW_STROKE_RATIO: f32 = 0.5;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CursorPlace {
@@ -29,11 +30,7 @@ impl CursorPlace {
         if col > 0 && line.cell(col).flags.contains(Flags::WIDE_SPACER) {
             col -= 1;
         }
-        let columns = if line.cell(col).flags.contains(Flags::WIDE) {
-            2
-        } else {
-            1
-        };
+        let columns = usize::from(line.cell(col).columns());
         Some(Self {
             row,
             col,
@@ -68,7 +65,12 @@ impl CursorPlace {
         let stroke = (grid.metrics.font_size * BAR_RATIO).round().max(1.0);
         match self.shape {
             CursorShape::Block if !grid.paint.focused => {
-                scene.border(cell, theme.accent, 0.0, (stroke / 2.0).round().max(1.0));
+                scene.border(
+                    cell,
+                    theme.accent,
+                    0.0,
+                    (stroke * HOLLOW_STROKE_RATIO).round().max(1.0),
+                );
             }
             CursorShape::Block => {}
             CursorShape::Bar => {

@@ -82,7 +82,18 @@ impl Default for Cell {
     }
 }
 
+const WIDE_COLUMNS: u8 = 2;
+const NARROW_COLUMNS: u8 = 1;
+
 impl Cell {
+    pub fn columns(&self) -> u8 {
+        if self.flags.contains(Flags::WIDE) {
+            WIDE_COLUMNS
+        } else {
+            NARROW_COLUMNS
+        }
+    }
+
     pub fn blank_with(template: &Cell) -> Self {
         Self {
             bg: template.bg,

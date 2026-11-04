@@ -61,11 +61,7 @@ pub(super) fn draw_glyphs(
         if cell.flags.contains(Flags::WIDE_SPACER) {
             continue;
         }
-        let columns: u8 = if cell.flags.contains(Flags::WIDE) {
-            2
-        } else {
-            1
-        };
+        let columns = cell.columns();
         let rect = cell_rect(grid, row, col, columns);
         let color = glyph_color(grid, row, col, cell);
         let ink = Ink { rect, color, light };

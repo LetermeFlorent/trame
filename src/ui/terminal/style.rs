@@ -9,6 +9,10 @@ use super::Ink;
 
 const DIM_AMOUNT: f32 = 0.4;
 const CURL_SEGMENTS: u8 = 4;
+const DOUBLE_UNDERLINE_GAP: f32 = 2.0;
+const CURL_PERIOD: u8 = 4;
+const CURL_TROUGH_PHASE: u8 = 1;
+const CURL_CREST_PHASE: u8 = 3;
 const MIN_CURL_AMPLITUDE: f32 = 1.5;
 
 pub fn colors(theme: &Theme, cell: &Cell) -> (Rgba, Rgba) {
@@ -49,8 +53,9 @@ pub fn draw_decorations(scene: &mut Scene, flags: Flags, metrics: &CellMetrics, 
         );
     }
     if flags.contains(Flags::DOUBLE_UNDERLINE) {
-        let second = (underline_y + thickness * 2.0).min(cell.bottom() - thickness);
-        let first = (second - thickness * 2.0).min(underline_y);
+        let second =
+            (underline_y + thickness * DOUBLE_UNDERLINE_GAP).min(cell.bottom() - thickness);
+        let first = (second - thickness * DOUBLE_UNDERLINE_GAP).min(underline_y);
         for y in [first, second] {
             scene.fill(Rect::new(cell.x, y, cell.width, thickness), color, 0.0);
         }
@@ -74,9 +79,9 @@ fn draw_curl(scene: &mut Scene, cell: Rect, underline: Rect, color: Rgba) {
     let amplitude = thickness.max(MIN_CURL_AMPLITUDE);
     let middle = (y + thickness / 2.0).min(cell.bottom() - amplitude);
     let step = cell.width / f32::from(CURL_SEGMENTS);
-    let height = |index: u8| match index % 4 {
-        1 => -amplitude,
-        3 => amplitude,
+    let height = |index: u8| match index % CURL_PERIOD {
+        CURL_TROUGH_PHASE => -amplitude,
+        CURL_CREST_PHASE => amplitude,
         _ => 0.0,
     };
     scene.push_clip(cell);
