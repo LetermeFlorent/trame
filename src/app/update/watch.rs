@@ -17,10 +17,10 @@ pub fn watch(notify: &dyn Fn(UpdateStatus)) {
         thread::sleep(CHECK_EVERY);
         true
     };
-    follow(newer_release, wait, notify);
+    poll_releases(newer_release, wait, notify);
 }
 
-fn follow(
+fn poll_releases(
     mut check: impl FnMut() -> Option<Version>,
     mut wait: impl FnMut() -> bool,
     notify: &dyn Fn(UpdateStatus),
@@ -62,7 +62,7 @@ mod tests {
             rounds -= 1;
             rounds > 0
         };
-        follow(|| answers.next().flatten(), wait, &|status| {
+        poll_releases(|| answers.next().flatten(), wait, &|status| {
             sent.borrow_mut().push(status)
         });
         sent.into_inner()

@@ -17,7 +17,7 @@ pub(super) struct Shape {
     pub(super) rect: Rect,
     pub(super) uv: [f32; 4],
     pub(super) radius: f32,
-    pub(super) width: f32,
+    pub(super) extent: f32,
 }
 
 impl Shape {
@@ -27,7 +27,7 @@ impl Shape {
             rect,
             uv: [0.0; 4],
             radius: 0.0,
-            width: 0.0,
+            extent: 0.0,
         }
     }
 
@@ -35,7 +35,7 @@ impl Shape {
         Self { radius, ..self }
     }
 
-    pub(super) fn width(self, width: f32) -> Self {
-        Self { width, ..self }
+    pub(super) fn extent(self, extent: f32) -> Self {
+        Self { extent, ..self }
     }
 }

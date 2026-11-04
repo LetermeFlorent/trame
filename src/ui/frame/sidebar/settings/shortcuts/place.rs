@@ -89,14 +89,14 @@ fn list_page(column: &mut Column, book: &Book, view: ShortcutsView, bottom: f32)
         pickable: true,
         forgets: false,
     };
-    let mut list = column.host_list(&spec);
-    let details = list
+    let mut action_list = column.host_list(&spec);
+    let details = action_list
         .rows
         .iter_mut()
         .map(|row| detail(column, book, row))
         .collect();
     ShortcutsPage {
-        list: Some(list),
+        list: Some(action_list),
         details,
         ..empty(header)
     }

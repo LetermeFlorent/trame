@@ -19,14 +19,14 @@ impl Scene {
     pub fn border(&mut self, rect: Rect, color: Rgba, radius: f32, width: f32) {
         let shape = Shape::new(QuadKind::Border, rect)
             .radius(radius)
-            .width(width);
+            .extent(width);
         self.push(shape, color);
     }
 
     pub fn shadow(&mut self, rect: Rect, color: Rgba, radius: f32, blur: f32) {
         let shape = Shape::new(QuadKind::Shadow, rect)
             .radius(radius)
-            .width(blur);
+            .extent(blur);
         self.push_within(shape, rect.inset(-blur * 2.0), color);
     }
 
@@ -38,7 +38,7 @@ impl Scene {
             from.x.max(to.x) + reach,
             from.y.max(to.y) + reach,
         );
-        let mut shape = Shape::new(QuadKind::Line, bounds).width(width);
+        let mut shape = Shape::new(QuadKind::Line, bounds).extent(width);
         shape.uv = [from.x, from.y, to.x, to.y];
         self.push(shape, color);
     }

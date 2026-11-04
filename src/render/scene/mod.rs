@@ -110,7 +110,7 @@ impl Scene {
             rect: [rect.x, rect.y, rect.width, rect.height],
             uv: shape.uv,
             color: color.to_array(),
-            params: [shape.kind as u32 as f32, shape.radius, shape.width, 0.0],
+            params: [shape.kind as u32 as f32, shape.radius, shape.extent, 0.0],
             clip: [clip.x, clip.y, clip.right(), clip.bottom()],
         });
     }
