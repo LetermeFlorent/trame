@@ -88,6 +88,7 @@ impl Running {
             MenuEntry::Icon => self.emblem_mode(target),
             MenuEntry::Folder => self.folder_mode(target),
             MenuEntry::Ssh => EditMode::Form(HostsPanel::connecting(self.known_hosts())),
+            MenuEntry::NewTab => return,
         };
         self.editing = Some(Editing {
             target,

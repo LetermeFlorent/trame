@@ -31,6 +31,7 @@ pub struct Theme {
     pub foreground: Rgba,
     pub border: Rgba,
     pub border_strong: Rgba,
+    pub tab_outline: Rgba,
     pub text: Rgba,
     pub text_muted: Rgba,
     pub text_faint: Rgba,

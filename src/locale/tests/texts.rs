@@ -60,8 +60,9 @@ fn each_language_has_its_own_settings_texts() {
 
 #[test]
 fn each_language_has_its_own_ssh_texts() {
-    let picks: [fn(&Strings) -> &'static str; 12] = [
+    let picks: [fn(&Strings) -> &'static str; 13] = [
         |s| s.ssh_connection,
+        |s| s.new_tab,
         |s| s.general,
         |s| s.connections_tab,
         |s| s.change_connection,

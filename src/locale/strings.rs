@@ -43,6 +43,7 @@ pub struct Strings {
     pub choose: &'static str,
     pub pick_folder: &'static str,
     pub ssh_connection: &'static str,
+    pub new_tab: &'static str,
     pub servers: &'static str,
     pub new_connection: &'static str,
     pub connections: &'static str,

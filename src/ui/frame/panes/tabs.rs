@@ -25,6 +25,7 @@ pub struct TabFrame {
     pub label_x: f32,
     pub active: bool,
     pub color: Option<Swatch>,
+    pub ssh: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -120,6 +121,7 @@ fn layout_tabs(
             label_x: rect.x + sizing.padding,
             active: index == pane.active,
             color: None,
+            ssh: false,
         });
         x += width;
     }

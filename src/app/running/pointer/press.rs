@@ -89,10 +89,7 @@ impl Running {
             Hit::RowClose(SidebarItem::Tab(id)) | Hit::TabClose(_, id) => {
                 self.close_tab(event_loop, id)
             }
-            Hit::NewTab(pane) => {
-                self.focus_pane(pane);
-                self.command(event_loop, Command::NewTab);
-            }
+            Hit::NewTab(pane) => self.open_adding_menu(event_loop, pane),
             Hit::Split(pane) => {
                 self.focus_pane(pane);
                 let command = match self.modifiers.shift_key() {

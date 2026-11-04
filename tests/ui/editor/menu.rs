@@ -1,4 +1,5 @@
 use trame::geometry::Point;
+use trame::locale::Language;
 use trame::text::TextSystem;
 use trame::ui::frame::{MenuEntry, MenuRequest};
 use trame::ui::{FrameLayout, Hit};
@@ -85,4 +86,33 @@ fn near_the_corner_the_menu_stays_inside_the_window() {
     assert!(menu.rect.right() <= WIDTH);
     assert!(menu.rect.bottom() <= HEIGHT);
     assert!(menu.rect.x >= 0.0 && menu.rect.y >= 0.0);
+}
+
+#[test]
+fn the_tab_bar_plus_opens_a_menu_under_it_with_new_tab_and_ssh() {
+    let mut text = text_system();
+    let workspace = workspace();
+    let mut frame = frame(&mut text, &workspace);
+    let pane = frame.panes[0].clone();
+    let button = pane.strip.new_tab;
+    assert_eq!(
+        frame.hit(button.center(), false),
+        Some(Hit::NewTab(pane.id))
+    );
+    let entries = MenuEntry::adding(Language::English.strings());
+    let request = MenuRequest {
+        at: pane.adding_menu_at(),
+        entries: &entries,
+    };
+    frame.place_menu(&mut text, &request);
+    let menu = frame.menu.as_ref().expect("a menu");
+    assert!(menu.rect.y >= button.bottom());
+    assert!(menu.rect.x <= button.x && button.x < menu.rect.right());
+    let order: Vec<MenuEntry> = menu.rows.iter().map(|row| row.entry).collect();
+    assert_eq!(order, [MenuEntry::NewTab, MenuEntry::Ssh]);
+    assert_eq!(
+        entries.map(|(_, label)| label),
+        ["New tab", "SSH connection"]
+    );
+    assert_eq!(frame.panes[0].strip.tabs.len(), pane.strip.tabs.len());
 }

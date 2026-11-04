@@ -4,6 +4,7 @@ use crate::ui::frame::{PaneFrame, TabFrame};
 use crate::ui::hit::Hit;
 
 const ACCENT_HEIGHT: f32 = 2.0;
+const OUTLINE_WIDTH: f32 = 2.0;
 const TAB_RADIUS: f32 = 6.0;
 const SEPARATOR_INSET: f32 = 7.0;
 
@@ -85,11 +86,24 @@ fn draw_tab_fill(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, glow: 
         Some(swatch) => Some(theme.swatch(swatch)),
         None => current.then_some(theme.accent),
     };
+    if tab.ssh {
+        draw_outline(painter, rect, radius);
+    }
     if let Some(color) = accent {
         let height = painter.metrics.px(ACCENT_HEIGHT);
         let width = (rect.width - radius * 2.0).max(0.0);
         painter.rule(Rect::new(rect.x + radius, rect.y, width, height), color);
     }
+}
+
+fn draw_outline(painter: &mut Painter, rect: Rect, radius: f32) {
+    let width = painter.metrics.px(OUTLINE_WIDTH);
+    let open = Rect::new(rect.x, rect.y, rect.width, rect.height + radius);
+    painter.scene.push_clip(rect);
+    painter
+        .scene
+        .border(open, painter.theme.tab_outline, radius, width);
+    painter.scene.pop_clip();
 }
 
 fn draw_separator(painter: &mut Painter, rect: Rect) {

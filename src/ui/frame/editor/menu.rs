@@ -2,8 +2,9 @@ use std::sync::Arc;
 
 use super::clamp_x;
 use crate::geometry::{Point, Rect};
+use crate::locale::Strings;
 use crate::text::{TextLayout, TextSystem};
-use crate::ui::frame::FrameLayout;
+use crate::ui::frame::{FrameLayout, PaneFrame};
 use crate::ui::metrics::UiMetrics;
 
 const MENU_PAD: f32 = 4.0;
@@ -17,6 +18,16 @@ pub enum MenuEntry {
     Icon,
     Folder,
     Ssh,
+    NewTab,
+}
+
+impl MenuEntry {
+    pub fn adding(strings: &Strings) -> [(MenuEntry, &'static str); 2] {
+        [
+            (MenuEntry::NewTab, strings.new_tab),
+            (MenuEntry::Ssh, strings.ssh_connection),
+        ]
+    }
 }
 
 pub struct MenuRequest<'a> {
@@ -44,6 +55,13 @@ impl MenuFrame {
             .iter()
             .find(|row| row.rect.contains(point))
             .map(|row| row.entry)
+    }
+}
+
+impl PaneFrame {
+    pub fn adding_menu_at(&self) -> Point {
+        let button = self.strip.new_tab;
+        Point::new(button.x, button.bottom())
     }
 }
 

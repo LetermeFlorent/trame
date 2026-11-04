@@ -37,6 +37,7 @@ pub const ENGLISH: Strings = Strings {
     choose: "Choose",
     pick_folder: "Choose a folder",
     ssh_connection: "SSH connection",
+    new_tab: "New tab",
     servers: "SERVERS",
     new_connection: "NEW CONNECTION",
     connections: "SSH CONNECTIONS",
