@@ -1,15 +1,17 @@
 mod key;
+mod upload;
 
 use std::collections::HashMap;
 
-use swash::scale::image::{Content, Image};
+use swash::scale::image::Image;
 use swash::scale::{Render, ScaleContext, Source, StrikeWith};
 use swash::zeno::{Angle, Format, Transform, Vector};
 
 use super::MAX_CACHED_GLYPHS;
 use super::font::{FontKey, FontLibrary, WEIGHT_AXIS};
-use crate::render::{Atlas, AtlasKind, AtlasRegion};
+use crate::render::{Atlas, AtlasRegion};
 pub use key::GlyphKey;
+use upload::upload;
 
 const SOURCES: [Source; 3] = [
     Source::ColorOutline(0),
@@ -19,9 +21,6 @@ const SOURCES: [Source; 3] = [
 const EMBOLDEN_RATIO: f32 = 0.035;
 const MIN_EMBOLDEN: f32 = 0.4;
 const SKEW_DEGREES: f32 = 12.0;
-const BYTES_PER_PIXEL: usize = 4;
-const ALPHA: usize = BYTES_PER_PIXEL - 1;
-const OPAQUE: u32 = u8::MAX as u32;
 
 #[derive(Clone, Copy, Debug)]
 pub struct RasterGlyph {
@@ -108,36 +107,6 @@ impl GlyphCache {
     }
 }
 
-fn upload(atlas: &mut Atlas, image: Image) -> Option<RasterGlyph> {
-    let kind = match image.content {
-        Content::Color => AtlasKind::Color,
-        Content::Mask | Content::SubpixelMask => AtlasKind::Mask,
-    };
-    let data = match image.source {
-        Source::ColorOutline(_) => unpremultiply(image.data),
-        _ => image.data,
-    };
-    let region = atlas.insert(kind, image.placement.width, image.placement.height, data)?;
-    Some(RasterGlyph {
-        region,
-        left: image.placement.left,
-        top: image.placement.top,
-    })
-}
-
-fn unpremultiply(mut data: Vec<u8>) -> Vec<u8> {
-    for pixel in data.as_chunks_mut::<BYTES_PER_PIXEL>().0 {
-        let alpha = u32::from(pixel[ALPHA]);
-        if alpha == 0 || alpha == OPAQUE {
-            continue;
-        }
-        for channel in &mut pixel[..ALPHA] {
-            *channel = ((u32::from(*channel) * OPAQUE + alpha / 2) / alpha).min(OPAQUE) as u8;
-        }
-    }
-    data
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -158,11 +127,5 @@ mod tests {
             cache.remember(&mut atlas, GlyphKey::hinted(font, glyph, 14.0), None);
         }
         assert!(atlas.finish_frame());
-    }
-
-    #[test]
-    fn premultiplied_colors_are_restored() {
-        let restored = unpremultiply(vec![64, 32, 0, 128, 10, 20, 30, 0, 1, 2, 3, 255]);
-        assert_eq!(restored, vec![128, 64, 0, 128, 10, 20, 30, 0, 1, 2, 3, 255]);
     }
 }

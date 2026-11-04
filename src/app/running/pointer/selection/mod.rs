@@ -1,6 +1,7 @@
 mod cells;
 mod clicks;
 mod clipboard;
+mod drag;
 mod links;
 mod report;
 
@@ -14,7 +15,6 @@ use trame::session::SessionId;
 use trame::ui::Hit;
 
 use crate::app::running::Running;
-use clicks::CLICK_KINDS;
 
 type Cell = (usize, usize);
 
@@ -118,36 +118,5 @@ impl Running {
             self.send_report(id, MouseAction::Release, Some(button), cell);
         }
         true
-    }
-
-    fn begin_selection(&mut self, id: SessionId, cell: Cell) {
-        let count = self.selecting.count_click(cell);
-        let extend = self.modifiers.shift_key() && count == 1;
-        if let Some(session) = self.sessions.get(id) {
-            let mut terminal = session.terminal();
-            let screen = terminal.screen_mut();
-            if extend && screen.selection().is_some() {
-                screen.extend_selection(cell.0, cell.1);
-            } else {
-                screen.start_selection(CLICK_KINDS[count - 1], cell.0, cell.1);
-            }
-        }
-        self.selecting.drag = Some(id);
-    }
-
-    fn drag_selection(&mut self, id: SessionId, point: Point) {
-        let Some(cell) = self.cell_in_session(id, point) else {
-            return;
-        };
-        if self.selecting.cell.replace(cell) == Some(cell) {
-            return;
-        }
-        if let Some(session) = self.sessions.get(id) {
-            session
-                .terminal()
-                .screen_mut()
-                .extend_selection(cell.0, cell.1);
-        }
-        self.window.request_redraw();
     }
 }
