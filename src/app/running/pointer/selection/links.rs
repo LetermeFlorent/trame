@@ -24,7 +24,10 @@ impl Running {
             return false;
         };
         let reports = self.reports_mouse(id) && !self.modifiers.shift_key();
-        !reports && self.link_target(id, self.cell_in_pane(pane, point)).is_some()
+        !reports
+            && self
+                .link_target(id, self.cell_in_pane(pane, point))
+                .is_some()
     }
 
     fn link_target(&self, id: SessionId, cell: Cell) -> Option<String> {

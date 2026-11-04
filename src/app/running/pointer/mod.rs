@@ -126,7 +126,8 @@ fn cursor_for(hit: Option<Hit>, frame: &FrameLayout) -> CursorIcon {
         Some(
             Hit::Terminal(_) | Hit::EditField | Hit::FormField(_) | Hit::Picker(PickerPart::Field),
         ) => CursorIcon::Text,
-        None | Some(
+        None
+        | Some(
             Hit::TitleBar
             | Hit::Sidebar
             | Hit::TabBar(_)
