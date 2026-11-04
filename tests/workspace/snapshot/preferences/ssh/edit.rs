@@ -2,7 +2,7 @@ use std::fs;
 
 use trame::preferences::{HostEntry, SshConfig, entry_in, with_host, without_host};
 
-use super::host;
+use super::{TempFolder, host};
 
 const THREE: &str = "Host a\n    HostName 1.1.1.1\n\n\
 Host b\n    HostName b\n    User me\n\n\
@@ -104,7 +104,7 @@ Host other\n";
 
 #[test]
 fn the_file_loses_or_rewrites_only_the_chosen_block() {
-    let folder = std::env::temp_dir().join(format!("trame-ssh-edit-{}", std::process::id()));
+    let folder = TempFolder::new("edit");
     let path = folder.join("config");
     fs::create_dir_all(&folder).expect("the test folder is made");
     fs::write(&path, "Host a\n  HostName a\n\nHost b\n  HostName b\n").expect("written");
@@ -128,5 +128,4 @@ fn the_file_loses_or_rewrites_only_the_chosen_block() {
             .expect("read")
             .ends_with("\nHost d\n    HostName d\n")
     );
-    fs::remove_dir_all(&folder).expect("the test folder is removed");
 }

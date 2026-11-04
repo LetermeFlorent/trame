@@ -14,10 +14,6 @@ fn only(text: &str) -> (String, String) {
     found[0].clone()
 }
 
-fn web(url: &str) -> String {
-    url.to_owned()
-}
-
 #[test]
 fn web_addresses_are_found_with_their_scheme() {
     for url in [
@@ -27,11 +23,11 @@ fn web_addresses_are_found_with_their_scheme() {
     ] {
         let (shown, target) = only(&format!("see {url} now"));
         assert_eq!(shown, url);
-        assert_eq!(target, web(url));
+        assert_eq!(target, url);
     }
     let (shown, target) = only("go to www.example.com/docs");
     assert_eq!(shown, "www.example.com/docs");
-    assert_eq!(target, web("https://www.example.com/docs"));
+    assert_eq!(target, "https://www.example.com/docs");
 }
 
 #[test]
@@ -50,7 +46,7 @@ fn trailing_punctuation_stays_out_of_a_web_address() {
         ("<https://example.com/a>", "https://example.com/a"),
     ];
     for (text, url) in cases {
-        assert_eq!(only(text), (url.to_owned(), web(url)), "{text}");
+        assert_eq!(only(text), (url.to_owned(), url.to_owned()), "{text}");
     }
 }
 
@@ -90,9 +86,6 @@ fn several_links_on_one_line_are_all_found() {
     let targets: Vec<String> = found.into_iter().map(|(_, target)| target).collect();
     assert_eq!(
         targets,
-        [
-            web("https://one.example"),
-            web("https://www.three.example/x")
-        ]
+        ["https://one.example", "https://www.three.example/x"]
     );
 }

@@ -2,6 +2,8 @@ use std::fs;
 
 use trame::preferences::{SshConfig, without_host, written_by_hand};
 
+use super::TempFolder;
+
 #[test]
 fn a_block_with_a_pattern_is_never_removed() {
     let text = "Host work *.corp\n    User me\n";
@@ -33,14 +35,13 @@ fn only_blocks_trame_wrote_go_without_asking() {
 
 #[test]
 fn a_failed_write_leaves_the_old_file() {
-    let folder = std::env::temp_dir().join(format!("trame-ssh-forget-{}", std::process::id()));
+    let folder = TempFolder::new("forget");
     let path = folder.join("config");
     let text = "Host a\n    HostName a.example\n";
     fs::create_dir_all(folder.join("config.tmp")).expect("a folder in the way");
     fs::write(&path, text).expect("written");
     let removed = SshConfig::at(&path).remove("a");
     let left = fs::read_to_string(&path).expect("read");
-    fs::remove_dir_all(&folder).expect("the test folder is removed");
     assert!(removed.is_err());
     assert_eq!(left, text);
 }

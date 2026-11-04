@@ -16,6 +16,7 @@ fn each_connection_has_its_own_key() {
 fn a_stored_secret_comes_back_until_it_is_forgotten() {
     let vault = Vault::with_prefix("trame-test/vault/");
     let connection = host(&format!("me@box-{}", std::process::id()), None);
+    let _cleanup = Forgotten(vault, &connection);
     vault
         .store(&connection, "hunter2 é")
         .expect("the secret is stored");
@@ -27,6 +28,16 @@ fn a_stored_secret_comes_back_until_it_is_forgotten() {
     vault.forget(&connection);
     assert_eq!(vault.load(&connection), None);
     vault.forget(&connection);
+}
+
+#[cfg(windows)]
+struct Forgotten<'a>(Vault, &'a trame::preferences::SshHost);
+
+#[cfg(windows)]
+impl Drop for Forgotten<'_> {
+    fn drop(&mut self) {
+        self.0.forget(self.1);
+    }
 }
 
 #[cfg(not(windows))]

@@ -8,10 +8,6 @@ fn ids(term: &Terminal, row: usize) -> Vec<u16> {
     (0..line.len()).map(|col| line.cell(col).link).collect()
 }
 
-fn uri(url: &str) -> Option<String> {
-    Some(url.to_owned())
-}
-
 #[test]
 fn an_osc_8_link_keeps_its_address_on_the_cells_it_covers() {
     let input = "\x1b]8;id=7;https://example.com/a;b\x1b\\link\x1b]8;;\x1b\\ text";
@@ -20,7 +16,10 @@ fn an_osc_8_link_keeps_its_address_on_the_cells_it_covers() {
     assert!(ids[..4].iter().all(|&id| id != 0 && id == ids[0]));
     assert!(ids[4..].iter().all(|&id| id == 0));
     assert_eq!(term.screen().link(ids[0]), Some("https://example.com/a;b"));
-    assert_eq!(link_at(term.screen(), 0, 2), uri("https://example.com/a;b"));
+    assert_eq!(
+        link_at(term.screen(), 0, 2).as_deref(),
+        Some("https://example.com/a;b")
+    );
     assert_eq!(link_at(term.screen(), 0, 6), None);
     let spans = view_links(term.screen(), 0..2);
     assert_eq!(spans.len(), 1);
@@ -42,7 +41,10 @@ fn the_text_of_an_osc_8_link_opens_its_address_not_itself() {
         30,
         "\x1b]8;;https://example.com\x07src/main.rs\x1b]8;;\x07",
     );
-    assert_eq!(link_at(term.screen(), 0, 3), uri("https://example.com"));
+    assert_eq!(
+        link_at(term.screen(), 0, 3).as_deref(),
+        Some("https://example.com")
+    );
     assert_eq!(view_links(term.screen(), 0..1).len(), 1);
 }
 

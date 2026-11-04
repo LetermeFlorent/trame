@@ -33,7 +33,7 @@ fn the_seed_chooses_among_the_free_emblems() {
     assert_eq!(picks, Emblem::ALL.to_vec());
     assert_eq!(
         Emblem::pick(&[], u64::MAX),
-        Emblem::ALL[(u64::MAX % 8) as usize]
+        Emblem::ALL[(u64::MAX % Emblem::ALL.len() as u64) as usize]
     );
 }
 

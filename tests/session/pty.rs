@@ -51,8 +51,8 @@ pub(crate) fn pump_until(
         };
         terminal.feed(&chunk);
         let responses = terminal.screen_mut().take_responses();
-        if !responses.is_empty() {
-            let _ = writer.write_all(&responses);
+        if !responses.is_empty() && writer.write_all(&responses).is_err() {
+            return false;
         }
     }
     true

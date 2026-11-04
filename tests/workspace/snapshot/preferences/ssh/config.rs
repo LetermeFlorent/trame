@@ -2,7 +2,7 @@ use std::fs;
 
 use trame::preferences::{SshConfig, SshHost, aliases_in, appended, menu_hosts};
 
-use super::host;
+use super::{TempFolder, host};
 
 const CONFIG: &str = "\u{feff}# servers\n\
 Host syllabis-vps\n    HostName 31.97.199.70\n    User deploy\n\
@@ -57,7 +57,7 @@ fn the_menu_lists_recent_hosts_then_the_new_ones_from_the_config() {
 
 #[test]
 fn a_kept_connection_is_written_once_and_used_by_its_name() {
-    let folder = std::env::temp_dir().join(format!("trame-ssh-config-{}", std::process::id()));
+    let folder = TempFolder::new("config");
     let config = SshConfig::at(folder.join(".ssh").join("config"));
     assert_eq!(config.aliases().expect("a missing file is empty"), [""; 0]);
     let typed = host("root@10.0.0.2", Some(2222));
@@ -68,7 +68,6 @@ fn a_kept_connection_is_written_once_and_used_by_its_name() {
     assert_eq!(config.aliases().expect("the file is read"), ["10.0.0.2"]);
     let text = fs::read_to_string(folder.join(".ssh").join("config")).expect("the file exists");
     assert_eq!(text.matches("Host 10.0.0.2").count(), 1);
-    fs::remove_dir_all(&folder).expect("the test folder is removed");
     assert_eq!(SshHost::parse("10.0.0.2"), Some(kept));
 }
 
@@ -76,7 +75,7 @@ fn a_kept_connection_is_written_once_and_used_by_its_name() {
 #[test]
 fn a_new_ssh_folder_is_private() {
     use std::os::unix::fs::PermissionsExt;
-    let folder = std::env::temp_dir().join(format!("trame-ssh-private-{}", std::process::id()));
+    let folder = TempFolder::new("private");
     let ssh = folder.join(".ssh");
     let config = SshConfig::at(ssh.join("config"));
     let typed = host("box.lan", None);
@@ -85,5 +84,4 @@ fn a_new_ssh_folder_is_private() {
         let mode = fs::metadata(path).expect("it exists").permissions().mode();
         assert_eq!(mode & 0o777, private);
     }
-    fs::remove_dir_all(&folder).expect("the test folder is removed");
 }

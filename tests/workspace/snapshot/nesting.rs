@@ -39,7 +39,7 @@ fn nested_splits_alternate_axes() {
 fn nested_splits_survive_json() {
     let snapshot = snapshot_of(&nested(), &[(1, "/a"), (4, "/b")]);
     let text = snapshot.to_json().expect("serializes");
-    let parsed = trame::workspace::Snapshot::from_json(&text).expect("parses");
+    let parsed = Snapshot::from_json(&text).expect("parses");
     assert_eq!(parsed, snapshot);
 }
 
