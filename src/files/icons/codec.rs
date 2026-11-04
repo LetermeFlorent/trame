@@ -1,8 +1,9 @@
 use std::io::{self, Cursor};
 
-use png::{BitDepth, ColorType, Decoder, Encoder, Transformations};
+use png::{ColorType, Compression, Decoder, Transformations};
 
 use super::ICON_SIZE;
+use crate::files::capture::encode_rgba;
 
 const RGB_BYTES: usize = 3;
 const GRAY_ALPHA_BYTES: usize = 2;
@@ -55,12 +56,5 @@ fn to_rgba(data: &[u8], color: ColorType) -> io::Result<Vec<u8>> {
 }
 
 pub(super) fn encode(pixels: &[u8]) -> io::Result<Vec<u8>> {
-    let mut bytes = Vec::new();
-    let mut encoder = Encoder::new(&mut bytes, ICON_SIZE, ICON_SIZE);
-    encoder.set_color(ColorType::Rgba);
-    encoder.set_depth(BitDepth::Eight);
-    let mut writer = encoder.write_header().map_err(io::Error::other)?;
-    writer.write_image_data(pixels).map_err(io::Error::other)?;
-    writer.finish().map_err(io::Error::other)?;
-    Ok(bytes)
+    encode_rgba(ICON_SIZE, ICON_SIZE, pixels, Compression::default())
 }

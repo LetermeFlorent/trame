@@ -1,5 +1,5 @@
 #[cfg(windows)]
-mod com;
+pub(super) mod com;
 #[cfg(unix)]
 mod unix;
 #[cfg(windows)]

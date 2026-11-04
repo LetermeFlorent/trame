@@ -20,19 +20,16 @@ pub fn open_link(url: String) {
 
 #[cfg(windows)]
 fn launch(url: &str) {
-    use windows_sys::Win32::System::Com::{
-        COINIT_APARTMENTTHREADED, COINIT_DISABLE_OLE1DDE, CoInitializeEx, CoUninitialize,
-    };
     use windows_sys::Win32::UI::Shell::ShellExecuteW;
     use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
+    use crate::files::picker::com::Apartment;
     use crate::utf16::wide;
 
     const LOWEST_SUCCESS: isize = 33;
     let verb = wide("open".as_ref());
     let file = wide(url.as_ref());
-    let mode = (COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE) as u32;
-    let started = unsafe { CoInitializeEx(std::ptr::null(), mode) };
+    let apartment = Apartment::enter();
     let result = unsafe {
         let null = std::ptr::null();
         ShellExecuteW(
@@ -44,9 +41,7 @@ fn launch(url: &str) {
             SW_SHOWNORMAL,
         )
     };
-    if started >= 0 {
-        unsafe { CoUninitialize() };
-    }
+    drop(apartment);
     if (result as isize) < LOWEST_SUCCESS {
         log_error!("{OPEN_FAILED}: code {}", result as isize);
     }

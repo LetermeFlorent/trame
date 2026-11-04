@@ -10,10 +10,10 @@ const RELEASE: usize = 2;
 
 type Release = unsafe extern "system" fn(*mut c_void) -> u32;
 
-pub(super) struct Apartment;
+pub(in crate::files) struct Apartment;
 
 impl Apartment {
-    pub(super) fn enter() -> Option<Self> {
+    pub(in crate::files) fn enter() -> Option<Self> {
         let mode = COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE;
         let result = unsafe { CoInitializeEx(ptr::null(), mode as u32) };
         (result >= 0).then_some(Self)

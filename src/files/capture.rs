@@ -49,11 +49,20 @@ pub fn remove_old_captures(folder: &Path, now: SystemTime, max_age: Duration) {
 
 pub fn encode_png(width: usize, height: usize, rgba: &[u8]) -> io::Result<Vec<u8>> {
     let size = |value: usize| u32::try_from(value).map_err(io::Error::other);
+    encode_rgba(size(width)?, size(height)?, rgba, Compression::Fast)
+}
+
+pub(super) fn encode_rgba(
+    width: u32,
+    height: u32,
+    rgba: &[u8],
+    compression: Compression,
+) -> io::Result<Vec<u8>> {
     let mut bytes = Vec::new();
-    let mut encoder = Encoder::new(&mut bytes, size(width)?, size(height)?);
+    let mut encoder = Encoder::new(&mut bytes, width, height);
     encoder.set_color(ColorType::Rgba);
     encoder.set_depth(BitDepth::Eight);
-    encoder.set_compression(Compression::Fast);
+    encoder.set_compression(compression);
     let mut writer = encoder.write_header().map_err(io::Error::other)?;
     writer.write_image_data(rgba).map_err(io::Error::other)?;
     writer.finish().map_err(io::Error::other)?;
