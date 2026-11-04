@@ -1,18 +1,27 @@
-use trame::theme::{Appearance, Swatch};
+use std::fmt::Debug;
+
+use trame::theme::{Appearance, Rgba, Swatch};
 
 use crate::swatches::{MIN_CONTRAST, MIN_MUTED_CONTRAST, MIN_TEXT_CONTRAST, contrast, themes};
+
+#[track_caller]
+fn assert_contrast(
+    appearance: Appearance,
+    ink: Rgba,
+    surface: Rgba,
+    minimum: f32,
+    shown: impl Debug,
+) {
+    let found = contrast(ink, surface);
+    assert!(found >= minimum, "{appearance:?} {shown:?}: {found}");
+}
 
 #[test]
 fn interface_text_reaches_4_5_to_1() {
     for theme in themes() {
         for text in [theme.text, theme.text_muted, theme.text_faint] {
             for surface in [theme.chrome, theme.tab_bar] {
-                let found = contrast(text, surface);
-                let appearance = theme.appearance;
-                assert!(
-                    found >= MIN_TEXT_CONTRAST,
-                    "{appearance:?} {text:?}: {found}"
-                );
+                assert_contrast(theme.appearance, text, surface, MIN_TEXT_CONTRAST, text);
             }
         }
     }
@@ -22,12 +31,7 @@ fn interface_text_reaches_4_5_to_1() {
 fn labels_on_filled_buttons_reach_4_5_to_1() {
     for theme in themes() {
         for fill in [theme.accent, theme.swatch(Swatch::Orange)] {
-            let found = contrast(fill.ink(), fill);
-            let appearance = theme.appearance;
-            assert!(
-                found >= MIN_TEXT_CONTRAST,
-                "{appearance:?} {fill:?}: {found}"
-            );
+            assert_contrast(theme.appearance, fill.ink(), fill, MIN_TEXT_CONTRAST, fill);
         }
     }
 }
@@ -40,9 +44,13 @@ fn ansi_colors_but_the_dark_black_reach_3_to_1() {
             Appearance::Light => &theme.ansi[..],
         };
         for color in printed {
-            let found = contrast(*color, theme.terminal);
-            let appearance = theme.appearance;
-            assert!(found >= MIN_CONTRAST, "{appearance:?} {color:?}: {found}");
+            assert_contrast(
+                theme.appearance,
+                *color,
+                theme.terminal,
+                MIN_CONTRAST,
+                color,
+            );
         }
     }
 }
@@ -52,11 +60,12 @@ fn labels_on_a_filled_tab_reach_4_to_1_on_every_swatch() {
     for theme in themes() {
         for swatch in Swatch::ALL {
             let fill = theme.swatch(swatch);
-            let found = contrast(fill.ink(), fill);
-            let appearance = theme.appearance;
-            assert!(
-                found >= MIN_MUTED_CONTRAST,
-                "{appearance:?} {swatch:?}: {found}"
+            assert_contrast(
+                theme.appearance,
+                fill.ink(),
+                fill,
+                MIN_MUTED_CONTRAST,
+                swatch,
             );
         }
     }
@@ -70,11 +79,12 @@ fn a_tinted_terminal_keeps_its_text_readable() {
         for swatch in Swatch::ALL.into_iter().chain(extremes) {
             let tinted = theme.terminal_under(Some(swatch));
             assert_ne!(tinted, theme.terminal);
-            let found = contrast(theme.foreground, tinted);
-            let appearance = theme.appearance;
-            assert!(
-                found >= MIN_TEXT_CONTRAST,
-                "{appearance:?} {swatch:?}: {found}"
+            assert_contrast(
+                theme.appearance,
+                theme.foreground,
+                tinted,
+                MIN_TEXT_CONTRAST,
+                swatch,
             );
         }
     }
