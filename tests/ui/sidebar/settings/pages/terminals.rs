@@ -5,7 +5,7 @@ use trame::text::TextSystem;
 use trame::ui::frame::{ChoiceRow, SettingControl, SettingsTab, Stepper};
 use trame::ui::{FrameLayout, Hit};
 
-use super::{page, placed, request_on};
+use crate::sidebar::settings::{page, placed, request_on};
 use crate::text_system;
 
 fn terminals(

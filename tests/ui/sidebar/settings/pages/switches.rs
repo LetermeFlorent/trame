@@ -4,7 +4,7 @@ use trame::ui::frame::{SettingControl, SettingsTab, ToggleRow};
 use trame::ui::{FrameLayout, Hit};
 
 use super::terminals::stepper;
-use super::{on_tab, page};
+use crate::sidebar::settings::{on_tab, page};
 
 fn switch(layout: &FrameLayout, control: SettingControl) -> &ToggleRow {
     page(layout).toggle(control).expect("the switch")

@@ -5,7 +5,7 @@ use trame::ui::frame::{EditKind, FormAction, PickerFrame, PickerPart, PickerView
 use trame::ui::{FrameLayout, Hit};
 use trame::workspace::Workspace;
 
-use super::{closing_popup, on_strip};
+use crate::editor::{closing_popup, on_strip};
 use crate::{TEAL, text_system, workspace};
 
 fn picker(text: &mut TextSystem, workspace: &Workspace, editing: bool) -> FrameLayout {

@@ -1,7 +1,7 @@
 use trame::preferences::Preferences;
 use trame::ui::frame::{SettingControl, SettingsTab, ToggleRow};
 
-use super::{on_tab, page};
+use crate::sidebar::settings::{on_tab, page};
 
 fn switches(preferences: &Preferences) -> Vec<ToggleRow> {
     let layout = on_tab(preferences, SettingsTab::System);

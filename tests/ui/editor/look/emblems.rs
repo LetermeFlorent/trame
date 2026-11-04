@@ -6,7 +6,7 @@ use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EmblemView, FormAction}
 use trame::ui::{FrameLayout, Hit, UiMetrics};
 use trame::workspace::Workspace;
 
-use super::place;
+use crate::editor::place;
 use crate::{closed_sidebar, text_system, workspace};
 
 fn second_instance(

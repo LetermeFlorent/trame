@@ -1,12 +1,9 @@
-mod custom;
-mod emblems;
 mod form;
+mod look;
 mod menu;
-mod picker;
 mod rename;
 mod servers;
 mod sidebar;
-mod swatches;
 
 use trame::geometry::Point;
 use trame::locale::Language;

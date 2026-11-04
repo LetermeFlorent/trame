@@ -2,7 +2,7 @@ use trame::preferences::{Preferences, Recall};
 use trame::ui::frame::{SettingControl, ToggleRow};
 use trame::ui::{FrameLayout, Hit};
 
-use super::{english, page};
+use crate::sidebar::settings::{english, page};
 
 fn recalls(layout: &FrameLayout) -> [&ToggleRow; 3] {
     std::array::from_fn(|index| &page(layout).toggles[index])

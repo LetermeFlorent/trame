@@ -5,7 +5,7 @@ use trame::ui::frame::{ColorsView, EditKind, FormAction, ListControl};
 use trame::ui::{FrameLayout, Hit};
 use trame::workspace::Workspace;
 
-use super::on_strip;
+use crate::editor::on_strip;
 use crate::{text_system, workspace};
 
 fn custom(count: u32) -> Vec<Swatch> {

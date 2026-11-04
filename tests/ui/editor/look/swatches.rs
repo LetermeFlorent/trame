@@ -3,7 +3,7 @@ use trame::theme::Swatch;
 use trame::ui::Hit;
 use trame::ui::frame::SettingControl;
 
-use super::{closing_popup, colors, on_strip};
+use crate::editor::{closing_popup, colors, on_strip};
 use crate::{text_system, workspace};
 
 #[test]
