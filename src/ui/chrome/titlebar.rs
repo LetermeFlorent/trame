@@ -5,10 +5,10 @@ use crate::ui::frame::{TitleBarFrame, WindowControls};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::Platform;
 
-const SQUARE_GLYPH: f32 = 10.0;
-const SQUARE_CROSS: f32 = 14.0;
-const ROUND_GLYPH: f32 = 8.0;
-const ROUND_CROSS: f32 = 12.0;
+const SQUARE_GLYPH: f32 = 13.0;
+const SQUARE_CROSS: f32 = 16.0;
+const ROUND_GLYPH: f32 = 11.0;
+const ROUND_CROSS: f32 = 13.0;
 const CLOSE_RED: Rgba = Rgba::hex(0xc42b1c);
 const CLOSE_PRESSED_SHADE: f32 = 0.15;
 const ROUND_IDLE_ALPHA: f32 = 0.7;

@@ -78,3 +78,5 @@ The program lands in `target/release`. Packaging and releasing are described in 
 ## License
 
 MIT, see [LICENSE](LICENSE). trame is free to use and to change.
+
+Icons from Lucide (ISC licence), see assets/lucide/LICENSE.

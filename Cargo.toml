@@ -89,6 +89,7 @@ assets = [
     ["packaging/linux/trame.desktop", "usr/share/applications/", "644"],
     ["assets/logo-256.png", "usr/share/icons/hicolor/256x256/apps/trame.png", "644"],
     ["assets/logo-512.png", "usr/share/icons/hicolor/512x512/apps/trame.png", "644"],
+    ["assets/lucide/LICENSE", "usr/share/doc/trame/LICENSE-lucide", "644"],
 ]
 
 [package.metadata.generate-rpm]
@@ -98,6 +99,7 @@ assets = [
     { source = "assets/logo-256.png", dest = "/usr/share/icons/hicolor/256x256/apps/trame.png", mode = "644" },
     { source = "assets/logo-512.png", dest = "/usr/share/icons/hicolor/512x512/apps/trame.png", mode = "644" },
     { source = "LICENSE", dest = "/usr/share/licenses/trame/LICENSE", mode = "644", doc = true },
+    { source = "assets/lucide/LICENSE", dest = "/usr/share/licenses/trame/LICENSE-lucide", mode = "644", doc = true },
 ]
 
 [package.metadata.generate-rpm.requires]

@@ -40,6 +40,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "target\release\trame.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
+Source: "assets\lucide\LICENSE"; DestDir: "{app}"; DestName: "LICENSE-lucide.txt"; Flags: ignoreversion
 
 [InstallDelete]
 Type: files; Name: "{app}\trame.exe.old"
