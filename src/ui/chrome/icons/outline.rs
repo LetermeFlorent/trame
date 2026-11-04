@@ -27,8 +27,10 @@ fn shapes(element: &Element) -> Vec<Shape> {
         }
         Element::Polyline(points) => vec![Shape::Stroke(
             points
-                .chunks_exact(2)
-                .map(|pair| Point::new(pair[0], pair[1]))
+                .as_chunks::<2>()
+                .0
+                .iter()
+                .map(|&[x, y]| Point::new(x, y))
                 .collect(),
         )],
         Element::Ellipse(x, y, rx, ry) => vec![Shape::Stroke(ellipse(Point::new(x, y), rx, ry))],
