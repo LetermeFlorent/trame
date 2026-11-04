@@ -27,6 +27,10 @@ fn cell(ch: char, bold: bool, italic: bool, columns: u8) -> CellText {
     }
 }
 
+fn plain(ch: char) -> CellText {
+    cell(ch, false, false, 1)
+}
+
 #[test]
 fn cell_metrics_fit_the_glyphs() {
     let metrics = system().cell_metrics();
@@ -59,14 +63,14 @@ fn larger_fonts_give_larger_cells() {
 #[test]
 fn blank_cells_have_no_glyph() {
     let mut text = system();
-    assert!(text.cell_glyph(cell(' ', false, false, 1)).is_none());
-    assert!(text.cell_glyph(cell('a', false, false, 1)).is_some());
+    assert!(text.cell_glyph(plain(' ')).is_none());
+    assert!(text.cell_glyph(plain('a')).is_some());
 }
 
 #[test]
 fn bold_and_italic_draw_different_glyphs() {
     let mut text = system();
-    let regular = text.cell_glyph(cell('a', false, false, 1)).unwrap();
+    let regular = text.cell_glyph(plain('a')).unwrap();
     let bold = text.cell_glyph(cell('a', true, false, 1)).unwrap();
     let italic = text.cell_glyph(cell('a', false, true, 1)).unwrap();
     assert_ne!(
@@ -82,8 +86,8 @@ fn bold_and_italic_draw_different_glyphs() {
 #[test]
 fn repeated_cells_reuse_the_atlas() {
     let mut text = system();
-    let first = text.cell_glyph(cell('x', false, false, 1)).unwrap();
-    let second = text.cell_glyph(cell('x', false, false, 1)).unwrap();
+    let first = text.cell_glyph(plain('x')).unwrap();
+    let second = text.cell_glyph(plain('x')).unwrap();
     assert_eq!(
         (first.region.x, first.region.y),
         (second.region.x, second.region.y)

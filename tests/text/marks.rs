@@ -5,7 +5,7 @@ use trame::text::{CellText, TextSystem};
 use trame::theme::{Appearance, Rgba, Theme};
 use trame::ui::terminal::{TerminalPaint, draw_terminal};
 
-use crate::{cell, system};
+use crate::{plain, system};
 
 const ORIGIN: Point = Point::new(20.0, 20.0);
 
@@ -16,7 +16,7 @@ fn marked(ch: char, marks: &[char]) -> CellText {
         marks: marks
             .iter()
             .fold(Marks::default(), |marks, &mark| marks.with(mark)),
-        ..cell(ch, false, false, 1)
+        ..plain(ch)
     }
 }
 
@@ -49,7 +49,7 @@ fn painted(text: &mut TextSystem, input: &str) -> usize {
 #[test]
 fn a_composable_mark_draws_the_precomposed_glyph() {
     let mut text = system();
-    let precomposed = drawn(&mut text, cell('\u{e9}', false, false, 1));
+    let precomposed = drawn(&mut text, plain('\u{e9}'));
     assert_eq!(precomposed.len(), 1);
     assert_eq!(drawn(&mut text, marked('e', &['\u{301}'])), precomposed);
 }
@@ -58,7 +58,7 @@ fn a_composable_mark_draws_the_precomposed_glyph() {
 fn other_marks_are_drawn_over_their_base() {
     let mut text = system();
     let width = text.cell_metrics().width;
-    let base = drawn(&mut text, cell('x', false, false, 1));
+    let base = drawn(&mut text, plain('x'));
     let glyphs = drawn(&mut text, marked('x', &['\u{301}']));
     assert_eq!(glyphs.len(), 2);
     assert_eq!(glyphs[0], base[0]);
@@ -74,9 +74,9 @@ fn other_marks_are_drawn_over_their_base() {
 #[test]
 fn joiners_and_selectors_add_no_glyph() {
     let mut text = system();
-    let plain = drawn(&mut text, cell('a', false, false, 1));
+    let unmarked = drawn(&mut text, plain('a'));
     for mark in ['\u{200D}', '\u{FE0F}'] {
-        assert_eq!(drawn(&mut text, marked('a', &[mark])), plain);
+        assert_eq!(drawn(&mut text, marked('a', &[mark])), unmarked);
     }
 }
 
