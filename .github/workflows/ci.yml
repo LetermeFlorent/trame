@@ -25,9 +25,7 @@ jobs:
 
       - name: Install the drivers and fonts
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mesa-vulkan-drivers fontconfig fonts-dejavu-core
+        uses: ./.github/actions/linux-packages
 
       - name: Format
         run: cargo fmt --all -- --check

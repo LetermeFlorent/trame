@@ -52,9 +52,7 @@ jobs:
           persist-credentials: false
 
       - name: Install the drivers and fonts
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mesa-vulkan-drivers fontconfig fonts-dejavu-core
+        uses: ./.github/actions/linux-packages
 
       - name: Test
         run: cargo test --locked --no-fail-fast
@@ -67,9 +65,9 @@ jobs:
           persist-credentials: false
 
       - name: Install the display and drivers
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb mesa-vulkan-drivers fontconfig fonts-dejavu-core
+        uses: ./.github/actions/linux-packages
+        with:
+          extra: xvfb
 
       - uses: taiki-e/install-action@5488ac5a951645ce95062214902ac4b6bc1a1037
         with:
@@ -193,9 +191,9 @@ jobs:
           persist-credentials: false
 
       - name: Install the display and the password prompt
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb mesa-vulkan-drivers fontconfig fonts-dejavu-core policykit-1
+        uses: ./.github/actions/linux-packages
+        with:
+          extra: xvfb policykit-1
 
       - uses: taiki-e/install-action@5488ac5a951645ce95062214902ac4b6bc1a1037
         with:

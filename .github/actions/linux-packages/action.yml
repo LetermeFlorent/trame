@@ -1,0 +1,18 @@
+name: Install the Linux packages
+description: Install the graphics drivers and fonts trame needs, plus any extra packages.
+
+inputs:
+  extra:
+    description: More packages to install, separated by spaces.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        EXTRA: ${{ inputs.extra }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mesa-vulkan-drivers fontconfig fonts-dejavu-core $EXTRA
