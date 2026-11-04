@@ -6,6 +6,8 @@ use crate::theme::Rgba;
 
 const TINT_DARK: f32 = 0.16;
 const TINT_LIGHT: f32 = 0.12;
+const TERMINAL_TINT_DARK: f32 = 0.12;
+const TERMINAL_TINT_LIGHT: f32 = 0.08;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(into = "String", try_from = "String")]
@@ -108,5 +110,22 @@ impl Theme {
             Appearance::Light => TINT_LIGHT,
         };
         self.swatch(swatch).with_alpha(strength)
+    }
+
+    pub fn terminal_under(&self, tint: Option<Swatch>) -> Rgba {
+        let strength = match self.appearance {
+            Appearance::Dark => TERMINAL_TINT_DARK,
+            Appearance::Light => TERMINAL_TINT_LIGHT,
+        };
+        tint.map_or(self.terminal, |swatch| {
+            self.terminal.mix(self.swatch(swatch), strength)
+        })
+    }
+
+    pub fn tinted(&self, tint: Option<Swatch>) -> Theme {
+        Theme {
+            terminal: self.terminal_under(tint),
+            ..self.clone()
+        }
     }
 }

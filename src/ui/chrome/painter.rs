@@ -16,6 +16,11 @@ const HOVER_SHADE: f32 = 0.12;
 const PRESSED_SHADE: f32 = 0.22;
 const SHADE: Rgba = Rgba::hex(0x000000);
 
+struct IconStyle {
+    radius: f32,
+    ink: Option<Rgba>,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Press {
     Idle,
@@ -72,22 +77,27 @@ impl<'a> Painter<'a> {
 
     pub(super) fn button(&mut self, rect: Rect, hit: Hit, icon: Icon) {
         let radius = self.metrics.px(UiMetrics::RADIUS);
-        self.icon_button(rect, hit, icon, radius);
+        self.icon_button(rect, hit, icon, IconStyle { radius, ink: None });
     }
 
     pub(super) fn small_button(&mut self, rect: Rect, hit: Hit, icon: Icon) {
+        self.small_inked(rect, hit, icon, None);
+    }
+
+    pub(super) fn small_inked(&mut self, rect: Rect, hit: Hit, icon: Icon, ink: Option<Rgba>) {
         let radius = self.metrics.px(SMALL_RADIUS);
-        self.icon_button(rect, hit, icon, radius);
+        self.icon_button(rect, hit, icon, IconStyle { radius, ink });
     }
 
     pub(super) fn glow(&self, hit: Hit) -> f32 {
         self.motion.glow(hit)
     }
 
-    fn icon_button(&mut self, rect: Rect, hit: Hit, icon: Icon, radius: f32) {
+    fn icon_button(&mut self, rect: Rect, hit: Hit, icon: Icon, style: IconStyle) {
+        let IconStyle { radius, ink } = style;
         let glow = self.press_fill(rect, hit, radius);
         let size = self.metrics.px(UiMetrics::ICON);
-        let color = self.theme.muted_text(glow);
+        let color = ink.unwrap_or_else(|| self.theme.muted_text(glow));
         self.icon(icon, centered(rect, size), color);
     }
 

@@ -61,6 +61,7 @@ fn editor_popups(text: &mut TextSystem) -> Vec<(String, Rect)> {
         selected: None,
         custom: &[],
         first: 0,
+        filled: false,
     };
     let picker = PickerView {
         hsv: TEAL,

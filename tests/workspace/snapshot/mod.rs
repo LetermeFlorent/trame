@@ -88,6 +88,7 @@ pub fn instance_of(root: NodeSnapshot) -> InstanceSnapshot {
     InstanceSnapshot {
         name: "work".to_owned(),
         color: None,
+        fill: false,
         emblem: None,
         number: None,
         folder: None,

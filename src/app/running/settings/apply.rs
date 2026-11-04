@@ -12,6 +12,7 @@ impl Running {
             SettingControl::Tab(tab) => return self.show_tab(tab),
             SettingControl::AddHost => return self.add_host(),
             SettingControl::Keys(key) => return self.key_setting(key),
+            SettingControl::Fill => return self.toggle_fill(),
             SettingControl::Recall(recall) => current.toggle(recall),
             SettingControl::ConfirmClose => current.toggle_confirm_close(),
             SettingControl::ConfirmPaste

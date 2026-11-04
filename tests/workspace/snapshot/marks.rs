@@ -50,6 +50,7 @@ fn a_session_without_marks_writes_no_extra_keys() {
     let text = snapshot_of(&workspace, &[]).to_json().expect("serializes");
     assert!(!text.contains("color"));
     assert!(!text.contains("title"));
+    assert!(!text.contains("fill"));
 }
 
 #[test]
@@ -61,6 +62,8 @@ fn an_old_session_file_still_loads_without_marks() {
     assert_eq!(seen.len(), 2);
     assert_eq!(workspace.tab_name(restored_id(1)), None);
     assert_eq!(workspace.tab_color(restored_id(1)), None);
+    assert!(!workspace.instances[0].fill);
+    assert!(!workspace.tab_fill(restored_id(1)) && !workspace.tab_fill(restored_id(2)));
 }
 
 #[test]
@@ -103,4 +106,22 @@ fn an_old_session_file_gets_distinct_emblems() {
 fn an_unknown_emblem_name_is_a_parse_error() {
     let text = OLD_FILE.replace(r#""name":"old""#, r#""name":"old","emblem":"rocket""#);
     assert!(Snapshot::from_json(&text).is_err());
+}
+
+#[test]
+fn the_coloured_background_switch_survives_a_json_round_trip() {
+    let mut workspace = marked();
+    let first = workspace.instances[0].id;
+    workspace.set_instance_fill(first, true);
+    workspace.set_tab_fill(SessionId(2), true);
+    let snapshot = snapshot_of(&workspace, &[]);
+    let text = snapshot.to_json().expect("serializes");
+    assert!(text.contains("\"fill\": true"));
+    let parsed = Snapshot::from_json(&text).expect("parses");
+    assert_eq!(parsed, snapshot);
+    let (restored, _) = restore(&parsed);
+    assert!(restored.instances[0].fill);
+    assert!(!restored.instances[1].fill);
+    assert!(restored.tab_fill(restored_id(2)));
+    assert!(!restored.tab_fill(restored_id(1)) && !restored.tab_fill(restored_id(3)));
 }

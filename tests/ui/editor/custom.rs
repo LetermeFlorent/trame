@@ -19,6 +19,7 @@ fn with_custom(text: &mut TextSystem, workspace: &Workspace, custom: &[Swatch]) 
         selected: custom.last().copied(),
         custom,
         first: 0,
+        filled: false,
     };
     on_strip(text, workspace, EditKind::Color(view))
 }

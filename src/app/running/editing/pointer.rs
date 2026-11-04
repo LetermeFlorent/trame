@@ -26,7 +26,8 @@ impl Running {
             Some(Hit::FormField(field)) if pressed => self.focus_form(field),
             Some(Hit::FormButton(action)) if pressed => self.form_action(action),
             Some(Hit::List(control)) if pressed => self.list_control(control),
-            Some(Hit::EditClose) if pressed => self.cancel_edit(),
+            Some(Hit::EditClose) if pressed => self.step_back(),
+            Some(Hit::Setting(SettingControl::Fill)) if pressed => self.toggle_fill(),
             Some(Hit::Picker(part)) if pressed => self.press_picker(part),
             _ if swallowed(hit) => return true,
             _ if pressed => {

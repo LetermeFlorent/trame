@@ -54,6 +54,7 @@ pub struct SidebarRow {
     pub count: Option<Arc<TextLayout>>,
     pub active: bool,
     pub color: Option<Swatch>,
+    pub fill: bool,
     pub emblem: Option<Emblem>,
 }
 

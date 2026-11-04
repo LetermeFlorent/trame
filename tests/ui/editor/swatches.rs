@@ -1,6 +1,7 @@
 use trame::geometry::Point;
 use trame::theme::Swatch;
 use trame::ui::Hit;
+use trame::ui::frame::SettingControl;
 
 use super::{colors, on_strip};
 use crate::{text_system, workspace};
@@ -80,5 +81,36 @@ fn the_selected_swatch_is_remembered_by_the_frame() {
     assert_eq!(
         frame.editor.as_ref().map(|editor| editor.selected),
         Some(Some(Swatch::Blue))
+    );
+}
+
+#[test]
+fn the_coloured_background_switch_sits_between_the_swatches_and_my_colours() {
+    let mut text = text_system();
+    let workspace = workspace();
+    let frame = on_strip(&mut text, &workspace, colors(Some(Swatch::Blue)));
+    let editor = frame.editor.as_ref().expect("an editor");
+    let popup = editor.popup.as_ref().expect("a popup");
+    let fill = editor.fill.as_ref().expect("a switch");
+    assert!(fill.enabled && !fill.on);
+    assert!(fill.line.rect.y >= editor.strip.bottom());
+    assert!(editor.sections[0].rect.y >= fill.line.rect.bottom());
+    assert!(popup.rect.contains(fill.switch.center()));
+    let pressed = Some(Hit::Setting(SettingControl::Fill));
+    assert_eq!(frame.hit(fill.line.rect.center(), false), pressed);
+    assert_eq!(frame.hit(fill.switch.center(), false), pressed);
+}
+
+#[test]
+fn without_a_colour_the_switch_is_greyed_and_inert() {
+    let mut text = text_system();
+    let workspace = workspace();
+    let frame = on_strip(&mut text, &workspace, colors(None));
+    let editor = frame.editor.as_ref().expect("an editor");
+    let fill = editor.fill.as_ref().expect("a switch");
+    assert!(!fill.enabled);
+    assert_eq!(
+        frame.hit(fill.line.rect.center(), false),
+        Some(Hit::EditStrip)
     );
 }

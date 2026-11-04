@@ -1,4 +1,4 @@
-use crate::geometry::{Point, Rect};
+use crate::geometry::Rect;
 use crate::render::Scene;
 use crate::text::TextSystem;
 use crate::theme::{Emblem, Swatch};
@@ -10,10 +10,10 @@ use crate::ui::metrics::UiMetrics;
 use super::connect::draw_connect_dialog;
 use super::picker::draw_picker;
 use super::popup::draw_popup;
+use super::settings::draw_toggle_row;
 
 const RING_GAP: f32 = 2.0;
 const RING_RADIUS_EXTRA: f32 = 2.0;
-const SLASH_INSET: f32 = 3.0;
 
 pub fn draw_editor(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput) {
     let Some(editor) = &input.frame.editor else {
@@ -33,6 +33,9 @@ pub fn draw_editor(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput
     }
     if let Some(picker) = &editor.picker {
         draw_picker(&mut painter, picker);
+    }
+    if let Some(fill) = &editor.fill {
+        draw_toggle_row(&mut painter, fill);
     }
 }
 
@@ -86,15 +89,7 @@ fn draw_slot(painter: &mut Painter, slot: &SwatchSlot, selected: Option<Swatch>)
 }
 
 fn draw_empty(painter: &mut Painter, rect: Rect) {
-    let theme = painter.theme;
-    let line = painter.metrics.line();
-    painter
-        .scene
-        .border(rect, theme.text_faint, rect.width / 2.0, line);
-    let inset = painter.metrics.px(SLASH_INSET);
-    let from = Point::new(rect.x + inset, rect.bottom() - inset);
-    let to = Point::new(rect.right() - inset, rect.y + inset);
-    painter.scene.line(from, to, line, theme.text_faint);
+    painter.icon(Icon::Ban, rect, painter.theme.text_faint);
 }
 
 pub(super) fn draw_field(painter: &mut Painter, field: &FieldFrame, focused: bool) {

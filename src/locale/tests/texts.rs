@@ -113,8 +113,12 @@ fn each_language_has_its_own_folder_window_texts() {
 
 #[test]
 fn each_language_has_its_own_custom_color_texts() {
-    let picks: [fn(&Strings) -> &'static str; 3] =
-        [|s| s.my_colors, |s| s.new_color, |s| s.edit_color];
+    let picks: [fn(&Strings) -> &'static str; 4] = [
+        |s| s.my_colors,
+        |s| s.new_color,
+        |s| s.edit_color,
+        |s| s.colored_background,
+    ];
     picks.into_iter().for_each(differ);
 }
 

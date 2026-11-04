@@ -5,7 +5,7 @@ use trame::theme::{Appearance, Swatch, Theme};
 
 pub(crate) const MIN_CONTRAST: f32 = 3.0;
 pub(crate) const MIN_TEXT_CONTRAST: f32 = 4.5;
-const MIN_MUTED_CONTRAST: f32 = 4.0;
+pub(crate) const MIN_MUTED_CONTRAST: f32 = 4.0;
 
 fn linear(channel: f32) -> f32 {
     match channel <= 0.04045 {

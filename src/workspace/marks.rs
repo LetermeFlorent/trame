@@ -10,11 +10,12 @@ pub struct TabMark {
     pub name: Option<String>,
     pub color: Option<Swatch>,
     pub host: Option<SshHost>,
+    pub fill: bool,
 }
 
 impl TabMark {
     fn is_blank(&self) -> bool {
-        self.name.is_none() && self.color.is_none() && self.host.is_none()
+        self.name.is_none() && self.color.is_none() && self.host.is_none() && !self.fill
     }
 }
 
@@ -30,6 +31,26 @@ impl Workspace {
 
     pub fn tab_color(&self, tab: SessionId) -> Option<Swatch> {
         self.marks.get(&tab)?.color
+    }
+
+    pub fn tab_fill(&self, tab: SessionId) -> bool {
+        self.marks.get(&tab).is_some_and(|mark| mark.fill)
+    }
+
+    pub fn set_tab_fill(&mut self, tab: SessionId, fill: bool) {
+        self.edit_mark(tab, |mark| mark.fill = fill);
+    }
+
+    pub fn set_instance_fill(&mut self, id: InstanceId, fill: bool) {
+        self.edit_instance(id, |instance| instance.fill = fill);
+    }
+
+    pub fn tint_of(&self, tab: SessionId) -> Option<Swatch> {
+        let own = self.tab_color(tab).filter(|_| self.tab_fill(tab));
+        own.or_else(|| {
+            let instance = &self.instances[self.locate(tab)?.instance];
+            instance.color.filter(|_| instance.fill)
+        })
     }
 
     pub fn tab_host(&self, tab: SessionId) -> Option<&SshHost> {

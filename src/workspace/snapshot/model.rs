@@ -38,6 +38,8 @@ pub struct InstanceSnapshot {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<Swatch>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub fill: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub emblem: Option<Emblem>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -74,6 +76,8 @@ pub struct TabSnapshot {
     pub title: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<Swatch>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub fill: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub transcript: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

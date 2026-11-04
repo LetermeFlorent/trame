@@ -112,6 +112,7 @@ impl Running {
                 selected: self.color_of(editing.target),
                 custom: &self.preferences.custom_colors,
                 first: *first,
+                filled: self.fill_of(editing.target),
             }),
             EditMode::Picker(picker) => EditKind::Picker(picker.view()),
             EditMode::Emblem { letters } => EditKind::Emblem(EmblemView {

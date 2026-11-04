@@ -58,6 +58,7 @@ impl Restorer<'_> {
             id,
             name: clean_name(&item.name).unwrap_or_default(),
             color: item.color,
+            fill: item.fill,
             emblem,
             number,
             folder: item.folder.clone(),
@@ -117,6 +118,7 @@ impl Restorer<'_> {
                 name: tab.title.as_deref().and_then(clean_name),
                 color: tab.color,
                 host: tab.ssh.clone().filter(SshHost::is_valid),
+                fill: tab.fill,
             };
             self.workspace.restore_mark(id, mark);
             tabs.push(id);

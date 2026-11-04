@@ -71,7 +71,7 @@ pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSourc
 }
 
 fn draw_body(scene: &mut Scene, text: &mut TextSystem, pane: &PaneFrame, sources: &FrameSources) {
-    let theme = sources.theme;
+    let theme = &sources.theme.tinted(pane.tint);
     if pane.radius > 0.0 {
         let line = sources.frame.metrics.line();
         scene.border(pane.card, theme.border_strong, pane.radius, line);

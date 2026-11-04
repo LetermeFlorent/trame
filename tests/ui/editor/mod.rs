@@ -50,6 +50,7 @@ fn colors(selected: Option<Swatch>) -> EditKind<'static> {
         selected,
         custom: &[],
         first: 0,
+        filled: false,
     })
 }
 

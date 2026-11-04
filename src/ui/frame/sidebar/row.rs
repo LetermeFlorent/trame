@@ -78,6 +78,7 @@ pub(super) fn layout_row(
             .map(|count| text.layout(&count.to_string(), metrics.caption())),
         active: spec.active,
         color: None,
+        fill: false,
         emblem: None,
     }
 }

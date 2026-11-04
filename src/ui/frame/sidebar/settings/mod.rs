@@ -82,6 +82,7 @@ pub enum SettingControl {
     ProgramClipboard,
     Numbers(NumberChoice),
     Keys(KeyControl),
+    Fill,
 }
 
 #[derive(Clone, Debug)]

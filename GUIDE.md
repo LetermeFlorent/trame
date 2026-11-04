@@ -21,11 +21,13 @@ A tab can be dragged:
 
 A double click on a tab or an instance renames it. A right click opens a menu to rename it, change its colour, change its folder or, for an instance, its icon.
 
+The colour window shows the colours, a Coloured background switch and your own colours. With the switch on, a coloured tab is filled with its colour and an instance row in the side bar too, with the label in black or white, whichever reads better. The terminal of that tab, or of every tab of the instance that has no fill of its own, then takes a light shade of the colour. The switch is greyed out while there is no colour, and it is saved with the session. New colour, or the pencil of one of your colours, opens the picker, where Escape and the cross go back to the colour window and a click outside closes both.
+
 Change folder opens a small window with the current folder, which cannot be typed in. Change picks another one in the system window and Apply keeps it, while Escape, the cross or a click outside leaves everything as it was. Once applied, the shells already open in that tab or instance start again there, and new tabs of an instance open in its folder.
 
 ### SSH connections
 
-The same menu opens an SSH connection in a new tab. So does the `+` of a pane's tab bar, which opens a small menu with New tab and SSH connection; the new tab lands in that pane, and Escape or a click outside closes the menu. The new tab shortcut still opens a plain tab at once. A tab holding an SSH connection has a thin outline, dark in the light theme and light in the dark theme.
+The same menu opens an SSH connection in a new tab. So does the `+` of a pane's tab bar, which opens a small menu with New tab and SSH connection; the new tab lands in that pane, and Escape or a click outside closes the menu. The new tab shortcut still opens a plain tab at once. A tab holding an SSH connection has a thicker outline, dark in the light theme and light in the dark theme.
 
 The window lists the saved connections and the hosts of `~/.ssh/config`: a click on one connects, and its pencil fills the form below to change it.
 

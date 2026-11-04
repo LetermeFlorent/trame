@@ -4,7 +4,7 @@ mod form;
 mod menu;
 mod popups;
 
-use super::{FrameLayout, HostList, HostsView, PopupFrame, SettingLine};
+use super::{FrameLayout, HostList, HostsView, PopupFrame, SettingLine, ToggleRow};
 use crate::geometry::{Point, Rect};
 use crate::input::TextField;
 use crate::locale::Strings;
@@ -63,6 +63,7 @@ pub struct EditorFrame {
     pub sections: Vec<SettingLine>,
     pub list: Option<HostList>,
     pub form: Option<FormFrame>,
+    pub fill: Option<ToggleRow>,
 }
 
 impl EditorFrame {
@@ -82,6 +83,7 @@ impl EditorFrame {
             sections: Vec::new(),
             list: None,
             form: None,
+            fill: None,
         }
     }
 

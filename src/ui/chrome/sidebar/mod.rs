@@ -108,30 +108,46 @@ fn draw_row(painter: &mut Painter, row: &SidebarRow) {
         SidebarItem::Instance(_) => (Icon::Emblem(row.emblem.unwrap_or_default()), false),
         SidebarItem::Tab(_) => (Icon::Terminal, row.active),
     };
-    let tint = match row.item {
-        SidebarItem::Instance(_) => row.color.map(|swatch| theme.swatch_tint(swatch)),
-        SidebarItem::Tab(_) => None,
-    };
-    draw_backdrop(painter, row.rect, hit, selected, tint);
-    painter.icon(icon, row.icon, icon_color(theme, row.color, row.active));
-    let text_color = match row.active {
-        true => theme.text,
-        false => theme.muted_text(glow),
+    let solid = row
+        .color
+        .filter(|_| row.fill)
+        .map(|swatch| theme.swatch(swatch));
+    let ink = solid.map(Rgba::ink);
+    match solid {
+        Some(fill) => {
+            let radius = painter.metrics.px(UiMetrics::RADIUS);
+            painter.shaded_fill(row.rect, hit, fill, radius);
+        }
+        None => {
+            let tint = match row.item {
+                SidebarItem::Instance(_) => row.color.map(|swatch| theme.swatch_tint(swatch)),
+                SidebarItem::Tab(_) => None,
+            };
+            draw_backdrop(painter, row.rect, hit, selected, tint);
+        }
+    }
+    let icon_ink = ink.unwrap_or_else(|| icon_color(theme, row.color, row.active));
+    painter.icon(icon, row.icon, icon_ink);
+    let text_color = match (ink, row.active) {
+        (Some(ink), _) => ink,
+        (None, true) => theme.text,
+        (None, false) => theme.muted_text(glow),
     };
     if !painter.renaming(|editor| editor.renames_row(row.item)) {
         painter.label(&row.label, row.label_x, row.rect, text_color);
     }
-    draw_row_end(painter, row, glow);
+    draw_row_end(painter, row, glow, ink);
 }
 
-fn draw_row_end(painter: &mut Painter, row: &SidebarRow, glow: f32) {
+fn draw_row_end(painter: &mut Painter, row: &SidebarRow, glow: f32, ink: Option<Rgba>) {
     painter.scene.push_opacity(glow);
-    painter.small_button(row.close, Hit::RowClose(row.item), Icon::Close);
+    painter.small_inked(row.close, Hit::RowClose(row.item), Icon::Close, ink);
     painter.scene.pop_opacity();
     if let Some(count) = &row.count {
         let x = row.close.right() - count.width;
         painter.scene.push_opacity(1.0 - glow);
-        painter.label(count, x, row.rect, painter.theme.text_faint);
+        let faint = ink.unwrap_or(painter.theme.text_faint);
+        painter.label(count, x, row.rect, faint);
         painter.scene.pop_opacity();
     }
 }

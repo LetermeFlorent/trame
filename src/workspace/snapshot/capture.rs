@@ -35,6 +35,7 @@ fn capture_instance(
     InstanceSnapshot {
         name: instance.name.clone(),
         color: instance.color,
+        fill: instance.fill,
         emblem: Some(instance.emblem),
         number: Some(instance.number),
         folder: instance
@@ -97,6 +98,7 @@ fn capture_tab(workspace: &Workspace, id: SessionId, describe: DescribeTab) -> T
         cwd: described.cwd.filter(|path| path.to_str().is_some()),
         title: workspace.tab_name(id).map(str::to_owned),
         color: workspace.tab_color(id),
+        fill: workspace.tab_fill(id),
         transcript: described.transcript,
         ssh: workspace.tab_host(id).cloned(),
     }

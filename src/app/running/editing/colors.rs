@@ -99,6 +99,13 @@ impl Running {
         }
     }
 
+    pub(super) fn fill_of(&self, target: EditTarget) -> bool {
+        match target {
+            EditTarget::Tab(id) => self.workspace.tab_fill(id),
+            EditTarget::Instance(id) => self.workspace.instance(id).is_some_and(|item| item.fill),
+        }
+    }
+
     fn open_colors(&mut self, first: usize) {
         if let Some(editing) = self.editing.as_mut() {
             editing.mode = EditMode::Color { first };

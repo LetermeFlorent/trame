@@ -89,6 +89,7 @@ pub struct Strings {
     pub my_colors: &'static str,
     pub new_color: &'static str,
     pub edit_color: &'static str,
+    pub colored_background: &'static str,
     pub letters_or_image: &'static str,
     pub image: &'static str,
     pub pick_image: &'static str,

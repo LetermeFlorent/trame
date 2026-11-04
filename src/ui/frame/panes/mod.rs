@@ -10,6 +10,7 @@ pub use tabs::{TabFrame, TabStrip};
 use crate::geometry::Rect;
 use crate::session::SessionId;
 use crate::text::{CellMetrics, TextSystem};
+use crate::theme::Swatch;
 use crate::ui::metrics::UiMetrics;
 use crate::ui::motion::{Motion, MotionKey};
 use crate::workspace::{Divider, Instance, PaneId, PaneLayout};
@@ -34,6 +35,7 @@ pub struct PaneFrame {
     pub grid_area: Rect,
     pub tabs: Vec<SessionId>,
     pub active: Option<SessionId>,
+    pub tint: Option<Swatch>,
 }
 
 impl PaneFrame {
@@ -117,5 +119,6 @@ fn pane_frame(
         grid_area: target_body.inset_by(padding_x, padding_y),
         tabs: pane.tabs.clone(),
         active: pane.active_tab(),
+        tint: None,
     })
 }

@@ -100,6 +100,17 @@ impl Running {
         }
     }
 
+    pub(in crate::app::running) fn toggle_fill(&mut self) {
+        let Some(target) = self.editing.as_ref().map(|editing| editing.target) else {
+            return;
+        };
+        let on = !self.fill_of(target);
+        match target {
+            EditTarget::Tab(id) => self.workspace.set_tab_fill(id, on),
+            EditTarget::Instance(id) => self.workspace.set_instance_fill(id, on),
+        }
+    }
+
     pub(super) fn pick_emblem(&mut self, emblem: Emblem) {
         if let Some(editing) = self.editing.take() {
             self.set_emblem(editing.target, emblem);

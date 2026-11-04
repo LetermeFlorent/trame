@@ -11,7 +11,7 @@ const KNOB_INSET: f32 = 2.0;
 const DISABLED_OPACITY: f32 = 0.35;
 const VALUE_INSET_Y: f32 = 2.0;
 
-pub(super) fn draw_toggle_row(painter: &mut Painter, row: &ToggleRow) {
+pub(in crate::ui::chrome::overlay) fn draw_toggle_row(painter: &mut Painter, row: &ToggleRow) {
     let radius = painter.metrics.px(UiMetrics::RADIUS);
     let line = &row.line;
     faded(painter, row.enabled, |painter| {

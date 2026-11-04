@@ -51,6 +51,13 @@ fn hit_dialog(editor: &EditorFrame, close: Rect, point: Point) -> Hit {
     {
         return Hit::Picker(part);
     }
+    if let Some(fill) = editor
+        .fill
+        .as_ref()
+        .filter(|fill| fill.enabled && fill.line.rect.contains(point))
+    {
+        return Hit::Setting(fill.control);
+    }
     if let Some(slot) = editor.slot_at(point) {
         return Hit::EditSwatch(slot.color);
     }

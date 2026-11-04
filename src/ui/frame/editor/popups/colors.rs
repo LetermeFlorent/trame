@@ -7,7 +7,7 @@ use crate::text::TextSystem;
 use crate::theme::Swatch;
 use crate::ui::frame::editor::{FormAction, FormFrame, button_form};
 use crate::ui::frame::sidebar::{CAPTION_HEIGHT, Column, LINE_HEIGHT, ListSpec, SECTION_GAP};
-use crate::ui::frame::{FrameLayout, HostList, SettingLine};
+use crate::ui::frame::{FrameLayout, HostList, SettingControl, SettingLine};
 use crate::ui::metrics::UiMetrics;
 
 const DOT_GAP: f32 = 8.0;
@@ -18,6 +18,7 @@ pub struct ColorsView<'a> {
     pub selected: Option<Swatch>,
     pub custom: &'a [Swatch],
     pub first: usize,
+    pub filled: bool,
 }
 
 impl ColorsView<'_> {
@@ -37,10 +38,14 @@ impl FrameLayout {
         let metrics = self.metrics;
         let row = swatch_row(&metrics);
         let tail = custom_chrome(&metrics, view.adds());
-        let shown = self.listed_rows(view.custom.len(), row.height + tail);
-        let content = row.height + tail + shown as f32 * metrics.px(LINE_HEIGHT);
+        let line = metrics.px(LINE_HEIGHT);
+        let fixed = row.height + line + tail;
+        let shown = self.listed_rows(view.custom.len(), fixed);
+        let content = fixed + shown as f32 * line;
         let (popup, mut column) = self.open_popup(text, strings.change_color, content);
         let strip = row.take_strip(&mut column);
+        let state = [view.filled, view.selected.is_some()];
+        let fill = column.toggle_row(strings.colored_background, state, SettingControl::Fill);
         let custom = custom_section(&mut column, &view, shown, strings);
         EditorFrame {
             popup: Some(popup),
@@ -51,6 +56,7 @@ impl FrameLayout {
             list: custom.list,
             dots: custom.dots,
             form: custom.form,
+            fill: Some(fill),
             ..editor
         }
     }

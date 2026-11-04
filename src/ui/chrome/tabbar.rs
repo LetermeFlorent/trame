@@ -1,5 +1,6 @@
 use super::{Icon, Painter};
 use crate::geometry::Rect;
+use crate::theme::Rgba;
 use crate::ui::frame::{PaneFrame, TabFrame};
 use crate::ui::hit::Hit;
 
@@ -14,7 +15,8 @@ pub(super) fn draw(painter: &mut Painter, pane: &PaneFrame) {
     let strip = &pane.strip;
     if pane.radius > 0.0 {
         painter.rule(pane.rect, theme.chrome);
-        painter.scene.fill(pane.card, theme.terminal, pane.radius);
+        let terminal = theme.terminal_under(pane.tint);
+        painter.scene.fill(pane.card, terminal, pane.radius);
         painter
             .scene
             .fill_top(strip.rect, theme.tab_bar, pane.radius);
@@ -44,40 +46,51 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
     let theme = painter.theme;
     let rect = tab.rect;
     let glow = painter.glow(Hit::Tab(pane.id, tab.id));
+    let solid = tab
+        .color
+        .filter(|_| tab.fill)
+        .map(|swatch| theme.swatch(swatch));
+    let ink = solid.map(Rgba::ink);
     painter.scene.push_clip(rect);
-    draw_tab_fill(painter, pane, tab, glow);
+    draw_tab_fill(painter, pane, tab, glow, solid);
     if !tab.active && !before_active {
         draw_separator(painter, rect);
     }
-    let color = match tab.active {
-        true => theme.text,
-        false => theme.muted_text(glow),
+    let color = match (ink, tab.active) {
+        (Some(ink), _) => ink,
+        (None, true) => theme.text,
+        (None, false) => theme.muted_text(glow),
     };
     if !painter.renaming(|editor| editor.renames_tab(pane.id, tab.id)) {
         painter.label(&tab.label, tab.label_x, rect, color);
     }
     let close_opacity = if tab.active { 1.0 } else { glow };
     painter.scene.push_opacity(close_opacity);
-    painter.small_button(tab.close, Hit::TabClose(pane.id, tab.id), Icon::Close);
+    painter.small_inked(tab.close, Hit::TabClose(pane.id, tab.id), Icon::Close, ink);
     painter.scene.pop_opacity();
     painter.scene.pop_clip();
 }
 
-fn draw_tab_fill(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, glow: f32) {
+fn draw_tab_fill(
+    painter: &mut Painter,
+    pane: &PaneFrame,
+    tab: &TabFrame,
+    glow: f32,
+    solid: Option<Rgba>,
+) {
     let theme = painter.theme;
     let radius = painter.metrics.px(TAB_RADIUS).max(pane.radius);
     let rect = tab.rect;
-    if tab.active {
-        painter.scene.fill_top(rect, theme.terminal, radius);
-    } else {
-        let line = painter.metrics.line();
-        let hover = theme.hover.faded(glow);
-        let above_rule = Rect::new(rect.x, rect.y, rect.width, rect.height - line);
-        painter.scene.fill_top(above_rule, hover, radius);
-    }
+    let line = painter.metrics.line();
+    let above_rule = Rect::new(rect.x, rect.y, rect.width, rect.height - line);
+    let (shape, base) = match tab.active {
+        true => (rect, theme.terminal_under(pane.tint)),
+        false => (above_rule, theme.hover.faded(glow)),
+    };
+    painter.scene.fill_top(shape, solid.unwrap_or(base), radius);
     let current = tab.active && pane.focused;
     let accent = match tab.color {
-        Some(swatch) if current => {
+        Some(swatch) if current && solid.is_none() => {
             painter
                 .scene
                 .fill_top(rect, theme.swatch_tint(swatch), radius);

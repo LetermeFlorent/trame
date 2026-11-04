@@ -8,7 +8,8 @@ use crate::ui::chrome::{ChromeInput, Painter};
 use crate::ui::frame::{FormPage, InstancesPage, SettingControl, SettingsPage};
 use crate::ui::hit::Hit;
 use connections::draw_connections;
-use controls::{draw_chip, draw_row, draw_stepper, draw_toggle_row};
+pub(super) use controls::draw_toggle_row;
+use controls::{draw_chip, draw_row, draw_stepper};
 use shortcuts::draw_shortcuts;
 
 use super::popup::draw_popup;

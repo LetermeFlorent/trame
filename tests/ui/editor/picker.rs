@@ -113,3 +113,18 @@ fn the_hue_bar_sets_only_the_hue() {
     let field = picker.picked(PickerPart::Field, quarter, TEAL);
     assert_eq!(field, TEAL);
 }
+
+#[test]
+fn the_picker_cross_and_the_outside_stay_two_different_hits() {
+    let mut text = text_system();
+    let workspace = workspace();
+    let frame = picker(&mut text, &workspace, false);
+    let popup = frame
+        .editor
+        .as_ref()
+        .and_then(|editor| editor.popup.as_ref());
+    let popup = popup.expect("a popup");
+    assert_eq!(frame.hit(popup.close.center(), false), Some(Hit::EditClose));
+    let outside = Point::new(popup.rect.x - 10.0, popup.rect.center().y);
+    assert_eq!(frame.hit(outside, false), Some(Hit::Backdrop));
+}
