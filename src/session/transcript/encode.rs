@@ -17,19 +17,33 @@ pub(super) fn encode(rows: &[Row], cols: usize, budget: usize) -> Vec<u8> {
     keep_tail(out, &starts, budget)
 }
 
-fn encode_row(row: &Row, cols: usize, last: bool, out: &mut Vec<u8>) {
+pub(super) fn least_bytes(row: &Row, cols: usize, last: bool) -> usize {
     let joined = row.wrapped && !last;
+    let cells = row.cells();
+    let printed = drawn(row, joined).count();
+    match joined {
+        true => printed + cols.saturating_sub(cells.len()),
+        false => printed + LINE_END.len(),
+    }
+}
+
+fn drawn(row: &Row, joined: bool) -> impl Iterator<Item = (usize, &Cell)> {
     let cells = row.cells();
     let end = match joined {
         true => cells.len(),
         false => written_width(cells).max(row.marked_width()),
     };
-    let mut style = Style::PLAIN;
-    for (col, cell) in cells[..end]
+    cells[..end]
         .iter()
         .enumerate()
         .filter(|(_, cell)| !cell.flags.contains(Flags::WIDE_SPACER))
-    {
+}
+
+fn encode_row(row: &Row, cols: usize, last: bool, out: &mut Vec<u8>) {
+    let joined = row.wrapped && !last;
+    let cells = row.cells();
+    let mut style = Style::PLAIN;
+    for (col, cell) in drawn(row, joined) {
         let next = Style::of(cell);
         if next != style {
             next.write(out);
