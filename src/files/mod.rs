@@ -1,3 +1,4 @@
+mod capture;
 mod icons;
 mod log;
 mod modes;
@@ -13,6 +14,10 @@ use modes::keep_mode;
 
 pub(crate) use modes::{append_file, create_file, create_folder};
 
+pub use capture::{
+    CAPTURE_MAX_AGE, capture_name, captures_folder, encode_png, join_paths, quote_path,
+    remove_old_captures, save_capture,
+};
 pub use icons::{ICON_SIZE, IconStore, fit, import_icon, load_icon};
 pub use log::{LogFile, record_error, start_log};
 pub use modes::private_folder;

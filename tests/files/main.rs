@@ -1,5 +1,6 @@
 #[cfg(unix)]
 mod atomic;
+mod capture;
 mod icons;
 mod log;
 mod open;
