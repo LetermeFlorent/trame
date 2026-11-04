@@ -1,24 +1,38 @@
+mod role;
 mod saver;
+#[cfg(test)]
+mod tests;
 
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
 use trame::files::{home_dir, write_atomic};
-use trame::preferences::SshConfig;
+use trame::log_error;
+use trame::preferences::{HostEntry, SshConfig};
 use trame::workspace::Snapshot;
 
+pub use role::Role;
 pub use saver::Saver;
 
 const APP_DIR: &str = "trame";
 const FILE_NAME: &str = "session.json";
 const TRANSCRIPT_DIR: &str = "text";
 const ICON_DIR: &str = "icons";
+const LOG_NAME: &str = "trame.log";
 const SSH_DIR: &str = ".ssh";
 const SSH_CONFIG: &str = "config";
 
 pub fn ssh_config() -> Option<SshConfig> {
     home_dir().map(|home| SshConfig::at(home.join(SSH_DIR).join(SSH_CONFIG)))
+}
+
+pub fn ssh_entry(name: &str) -> Option<HostEntry> {
+    let config = ssh_config()?;
+    config.entry(name).unwrap_or_else(|error| {
+        log_error!("the SSH config could not be read: {error}");
+        None
+    })
 }
 
 #[cfg(windows)]
@@ -43,43 +57,49 @@ fn app_dir() -> Option<PathBuf> {
     state_dir().map(|dir| dir.join(APP_DIR))
 }
 
-pub fn session_path() -> Option<PathBuf> {
-    app_dir().map(|dir| dir.join(FILE_NAME))
+pub fn claim() -> Role {
+    Role::claim(app_dir())
 }
 
-pub fn transcript_dir() -> Option<PathBuf> {
-    app_dir().map(|dir| dir.join(TRANSCRIPT_DIR))
+fn session_path() -> Option<PathBuf> {
+    app_dir().map(|dir| dir.join(FILE_NAME))
 }
 
 pub fn icon_dir() -> Option<PathBuf> {
     app_dir().map(|dir| dir.join(ICON_DIR))
 }
 
-pub fn load() -> Option<Snapshot> {
-    let path = session_path()?;
-    let text = match fs::read_to_string(&path) {
-        Ok(text) => text,
-        Err(error) if error.kind() == io::ErrorKind::NotFound => return None,
-        Err(error) => {
-            eprintln!("trame: the session file could not be read: {error}");
-            return None;
-        }
-    };
-    match Snapshot::from_json(&text) {
-        Ok(snapshot) => Some(snapshot),
-        Err(error) => {
-            eprintln!("trame: {error}, starting a fresh session");
-            keep_aside(&path);
-            None
-        }
-    }
+pub fn log_path() -> Option<PathBuf> {
+    app_dir().map(|dir| dir.join(LOG_NAME))
 }
 
-fn keep_aside(path: &Path) {
-    let aside = path.with_extension("json.bad");
-    if let Err(error) = fs::rename(path, &aside) {
-        eprintln!("trame: the unreadable session file stays in place: {error}");
+pub fn load(role: &mut Role) -> Option<Snapshot> {
+    load_from(&session_path()?, role)
+}
+
+fn load_from(path: &Path, role: &mut Role) -> Option<Snapshot> {
+    let problem = match fs::read_to_string(path) {
+        Ok(text) => match Snapshot::from_json(&text) {
+            Ok(snapshot) => return Some(snapshot),
+            Err(error) => error.to_string(),
+        },
+        Err(error) if error.kind() == io::ErrorKind::NotFound => return None,
+        Err(error) => format!("the session file could not be read: {error}"),
+    };
+    log_error!("{problem}, starting a fresh session");
+    if role.owns() && !keep_aside(path) {
+        *role = Role::Guest;
     }
+    None
+}
+
+fn keep_aside(path: &Path) -> bool {
+    let aside = path.with_extension("json.bad");
+    let moved = fs::rename(path, &aside);
+    if let Err(error) = &moved {
+        log_error!("the unreadable session file stays as it is: {error}");
+    }
+    moved.is_ok()
 }
 
 pub fn write(path: &Path, snapshot: &Snapshot) -> io::Result<()> {

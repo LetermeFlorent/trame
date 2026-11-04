@@ -33,6 +33,11 @@ fn close_switch(layout: &FrameLayout) -> &ToggleRow {
     switch.expect("the close switch")
 }
 
+fn paste_switch(layout: &FrameLayout) -> &ToggleRow {
+    let switch = page(layout).toggle(SettingControl::ConfirmPaste);
+    switch.expect("the paste switch")
+}
+
 #[test]
 fn without_a_command_the_row_offers_to_add_one() {
     let mut text = text_system();
@@ -125,4 +130,16 @@ fn the_close_switch_sits_below_the_terminal_count_and_follows_its_preference() {
     assert_eq!(layout.hit(center, false), hit);
     let off = Preferences::default().toggle_confirm_close();
     assert!(!close_switch(&on_tab(&off, SettingsTab::Terminals)).on);
+}
+
+#[test]
+fn the_paste_switch_sits_below_the_close_switch_and_follows_its_preference() {
+    let layout = on_tab(&Preferences::default(), SettingsTab::Terminals);
+    let switch = paste_switch(&layout);
+    assert!(switch.on && switch.enabled);
+    assert!(close_switch(&layout).line.rect.bottom() <= switch.line.rect.y);
+    let hit = Some(Hit::Setting(SettingControl::ConfirmPaste));
+    assert_eq!(layout.hit(switch.line.rect.center(), false), hit);
+    let off = Preferences::default().with(|next| next.confirm_paste = false);
+    assert!(!paste_switch(&on_tab(&off, SettingsTab::Terminals)).on);
 }

@@ -21,13 +21,17 @@ pub(super) fn recall_toggles(
     })
 }
 
-pub(super) fn close_toggle(
+pub(super) fn question_toggles(
     column: &mut Column,
     strings: &Strings,
     preferences: &Preferences,
-) -> ToggleRow {
-    let state = [preferences.confirm_close, true];
-    column.toggle_row(strings.confirm_close, state, SettingControl::ConfirmClose)
+) -> [ToggleRow; 2] {
+    let close = [preferences.confirm_close, true];
+    let paste = [preferences.confirm_paste, true];
+    [
+        column.toggle_row(strings.confirm_close, close, SettingControl::ConfirmClose),
+        column.toggle_row(strings.confirm_paste, paste, SettingControl::ConfirmPaste),
+    ]
 }
 
 pub(super) fn command_row(

@@ -8,7 +8,7 @@ pub const FRENCH_KEYS: KeyStrings = KeyStrings {
     add_key: "Ajouter une touche",
     press_keys: "Appuyez sur les touches voulues",
     no_key: "Aucune touche",
-    taken_by: "Déjà utilisé par",
+    taken_by: "Déjà utilisé par {action}",
     typing: "Touche réservée à la saisie",
     unsupported: "Touche non prise en charge",
     shift: "Maj",

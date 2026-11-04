@@ -65,7 +65,7 @@ The Mac app has no Apple Developer ID, so macOS refuses its first launch: open i
 
 ## Build it yourself
 
-You need Rust 1.87 or newer.
+You need Rust 1.89 or newer.
 
 ```sh
 git clone https://github.com/LetermeFlorent/trame.git

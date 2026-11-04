@@ -26,7 +26,7 @@ impl Running {
                 }
             }
             Command::ToggleSidebar => self.workspace.sidebar_open = !self.workspace.sidebar_open,
-            Command::Copy => self.copy_selection(),
+            Command::Copy => self.copy_shortcut(),
             Command::Paste => self.paste(),
             Command::NextTab => self.cycle_tab(1),
             Command::PreviousTab => self.cycle_tab(-1),
@@ -95,24 +95,6 @@ impl Running {
         };
         if let Some(next) = layout.neighbor(instance.active_pane, edge) {
             instance.focus(next);
-        }
-    }
-
-    pub(in crate::app::running) fn paste(&mut self) {
-        let Some(text) = read_clipboard() else {
-            return;
-        };
-        self.write_to_active(|modes| trame::input::paste_bytes(&text, modes));
-    }
-}
-
-pub(in crate::app::running) fn read_clipboard() -> Option<String> {
-    match arboard::Clipboard::new().and_then(|mut clipboard| clipboard.get_text()) {
-        Ok(text) => Some(text),
-        Err(arboard::Error::ContentNotAvailable) => None,
-        Err(error) => {
-            eprintln!("trame: the clipboard could not be read: {error}");
-            None
         }
     }
 }

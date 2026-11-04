@@ -12,6 +12,8 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::thread;
 
+use trame::log_error;
+
 pub use launch::{Handoff, restart, start_again};
 use replace::{bundle, staged, swap};
 use route::Route;
@@ -28,6 +30,7 @@ pub enum UpdateStatus {
     Downloading { version: String, percent: u8 },
     Installing(String),
     Done,
+    Failed,
     Installed(Handoff),
     Available(String),
 }
@@ -48,7 +51,7 @@ pub fn start(notify: impl Fn(UpdateStatus) + Send + 'static) -> UpdateStatus {
         Ok(_) if installs => UpdateStatus::Checking,
         Ok(_) => UpdateStatus::Done,
         Err(error) => {
-            eprintln!("trame: the update check did not start: {error}");
+            log_error!("the update check did not start: {error}");
             UpdateStatus::Done
         }
     }
@@ -75,13 +78,14 @@ fn follow(route: Route, installs: bool, exe: PathBuf, notify: &dyn Fn(UpdateStat
 
 fn check(route: Route, exe: &Path, notify: &dyn Fn(UpdateStatus)) -> UpdateStatus {
     let Some(latest) = watch::newer_release() else {
-        return UpdateStatus::Done;
+        log_error!("no newer release could be found to install");
+        return UpdateStatus::Failed;
     };
     match install(route, latest, exe, notify) {
         Ok(()) => UpdateStatus::Installed(Handoff::after(route, exe, latest)),
         Err(error) => {
-            eprintln!("trame: the update to {latest} failed: {error}");
-            UpdateStatus::Done
+            log_error!("the update to {latest} failed: {error}");
+            UpdateStatus::Failed
         }
     }
 }

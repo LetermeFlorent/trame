@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use super::load_icon;
+use crate::log_error;
 
 #[derive(Debug, Default)]
 pub struct IconStore {
@@ -27,9 +28,7 @@ impl IconStore {
         }
         let pixels = self.dir.as_deref().and_then(|dir| {
             load_icon(dir, id)
-                .inspect_err(|error| {
-                    eprintln!("trame: the icon {id:016x} could not be read: {error}")
-                })
+                .inspect_err(|error| log_error!("the icon {id:016x} could not be read: {error}"))
                 .ok()
         });
         self.loaded.insert(id, pixels);

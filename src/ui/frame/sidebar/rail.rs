@@ -1,8 +1,9 @@
 use crate::geometry::{Point, Rect};
 use crate::theme::{Emblem, Swatch};
 use crate::ui::display::PanelSide;
+use crate::ui::frame::FrameInput;
 use crate::ui::metrics::UiMetrics;
-use crate::workspace::{InstanceId, Workspace};
+use crate::workspace::InstanceId;
 
 const SLOT_GAP: f32 = 4.0;
 const BESIDE_GAP: f32 = 4.0;
@@ -45,7 +46,8 @@ impl RailFrame {
     }
 }
 
-pub(crate) fn layout_rail(metrics: &UiMetrics, workspace: &Workspace, rect: Rect) -> RailFrame {
+pub(crate) fn layout_rail(input: &FrameInput, rect: Rect) -> RailFrame {
+    let (metrics, workspace) = (&input.metrics, input.workspace);
     let size = metrics.px(UiMetrics::BUTTON);
     let icon = metrics.px(UiMetrics::ICON);
     let rail = metrics.px(UiMetrics::RAIL_WIDTH);
@@ -61,7 +63,9 @@ pub(crate) fn layout_rail(metrics: &UiMetrics, workspace: &Workspace, rect: Rect
             let slot = Rect::new(x, top + index as f32 * step, size, size).snapped();
             RailSlot {
                 id: instance.id,
-                name: instance.name.clone(),
+                name: instance
+                    .shown_name(input.strings.instance_name)
+                    .into_owned(),
                 rect: slot,
                 icon: slot.inset_by((size - icon) / 2.0, (size - icon) / 2.0),
                 active: index == workspace.active,

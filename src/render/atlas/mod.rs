@@ -44,7 +44,9 @@ pub struct Atlas {
     mask: ShelfPacker,
     color: ShelfPacker,
     uploads: Vec<Upload>,
-    full: bool,
+    largest_side: u32,
+    overflowed: bool,
+    holds_older_frames: bool,
 }
 
 impl Default for Atlas {
@@ -55,20 +57,26 @@ impl Default for Atlas {
 
 impl Atlas {
     pub fn new() -> Self {
+        Self::within(u32::MAX)
+    }
+
+    pub fn limit_to(&mut self, largest_side: u32) {
+        *self = Self::within(largest_side);
+    }
+
+    fn within(largest_side: u32) -> Self {
         Self {
-            mask: ShelfPacker::new(INITIAL_ATLAS_SIZE, MAX_MASK_ATLAS_SIZE),
-            color: ShelfPacker::new(INITIAL_ATLAS_SIZE, MAX_COLOR_ATLAS_SIZE),
+            mask: packer(MAX_MASK_ATLAS_SIZE.min(largest_side)),
+            color: packer(MAX_COLOR_ATLAS_SIZE.min(largest_side)),
             uploads: Vec::new(),
-            full: false,
+            largest_side,
+            overflowed: false,
+            holds_older_frames: false,
         }
     }
 
     pub fn size(&self, kind: AtlasKind) -> u32 {
         self.packer(kind).size()
-    }
-
-    pub fn is_full(&self) -> bool {
-        self.full
     }
 
     pub fn insert(
@@ -83,7 +91,7 @@ impl Atlas {
             AtlasKind::Color => &mut self.color,
         };
         let Some((x, y)) = packer.allocate(width, height) else {
-            self.full = true;
+            self.overflowed = true;
             return None;
         };
         let region = AtlasRegion {
@@ -97,8 +105,15 @@ impl Atlas {
         Some(region)
     }
 
+    pub fn finish_frame(&mut self) -> bool {
+        let evict = self.overflowed && self.holds_older_frames;
+        self.overflowed = false;
+        self.holds_older_frames = true;
+        evict
+    }
+
     pub fn clear(&mut self) {
-        *self = Self::new();
+        *self = Self::within(self.largest_side);
     }
 
     pub fn take_uploads(&mut self) -> Vec<Upload> {
@@ -111,4 +126,8 @@ impl Atlas {
             AtlasKind::Color => &self.color,
         }
     }
+}
+
+fn packer(max_size: u32) -> ShelfPacker {
+    ShelfPacker::new(INITIAL_ATLAS_SIZE.min(max_size), max_size)
 }

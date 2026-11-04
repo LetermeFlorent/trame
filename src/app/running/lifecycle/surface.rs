@@ -6,6 +6,7 @@ use winit::window::Window;
 
 use trame::preferences::Preferences;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
+use trame::ui::UiMetrics;
 use trame::workspace::WindowSnapshot;
 
 use crate::app::graphics::Graphics;
@@ -30,6 +31,12 @@ impl Surface {
         let window_scale = window.scale_factor() as f32;
         let font = preferences.font_pixels(window_scale);
         let mut text = TextSystem::new(font, DEFAULT_LINE_HEIGHT)?;
+        let redraw = Arc::downgrade(&window);
+        text.set_font_waker(move || {
+            if let Some(window) = redraw.upgrade() {
+                window.request_redraw();
+            }
+        });
         let graphics = Graphics::new(event_loop, window.clone(), text.atlas_mut())?;
         Ok(Self {
             window,
@@ -38,5 +45,10 @@ impl Surface {
             window_scale,
             preferences,
         })
+    }
+
+    pub(super) fn metrics(&self) -> UiMetrics {
+        let border = window::frame_border(&self.window);
+        self.preferences.ui_metrics(self.window_scale, border)
     }
 }

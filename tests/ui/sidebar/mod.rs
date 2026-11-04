@@ -1,14 +1,21 @@
 mod footer;
+mod names;
+mod scroll;
 mod settings;
 mod side;
 mod update;
 
 use trame::geometry::Point;
+use trame::locale::Language;
+use trame::session::SessionId;
 use trame::theme::Swatch;
 use trame::ui::frame::{SidebarItem, dragged_width, shown_width};
 use trame::ui::{FrameLayout, Hit, UiMetrics};
+use trame::workspace::{Edge, MIN_PANE};
 
-use crate::{frame, text_system, workspace};
+use crate::{frame, input, text_system, workspace};
+
+const NARROW_WINDOW: f32 = 520.0;
 
 fn middle_of_edge(layout: &FrameLayout) -> Point {
     Point::new(
@@ -41,6 +48,25 @@ fn the_width_stays_between_its_bounds() {
     assert_eq!(shown_width(None), UiMetrics::SIDEBAR_WIDTH);
     assert_eq!(shown_width(Some(20.0)), UiMetrics::SIDEBAR_MIN_WIDTH);
     assert_eq!(shown_width(Some(5000.0)), UiMetrics::SIDEBAR_MAX_WIDTH);
+}
+
+#[test]
+fn panes_keep_a_minimum_width_in_a_narrow_window() {
+    let mut text = text_system();
+    let mut workspace = workspace();
+    workspace.sidebar_width = Some(UiMetrics::SIDEBAR_MAX_WIDTH);
+    workspace.split_active(SessionId(9), Edge::Right);
+    let mut input = input(&workspace, UiMetrics::new(1.0));
+    input.width = NARROW_WINDOW;
+    let layout = FrameLayout::compute(&mut text, &input);
+    assert_eq!(layout.panes.len(), 2);
+    for pane in &layout.panes {
+        assert!(
+            pane.rect.width >= MIN_PANE,
+            "a pane is {} wide",
+            pane.rect.width
+        );
+    }
 }
 
 #[test]
@@ -85,12 +111,13 @@ fn a_closed_sidebar_leaves_a_rail_with_one_button_per_instance() {
     assert_eq!(rail.rect.width, UiMetrics::RAIL_WIDTH);
     assert_eq!(layout.content.x, rail.rect.right());
     assert_eq!(rail.slots.len(), workspace.instances.len());
+    let english = Language::English.strings();
     for (slot, instance) in rail.slots.iter().zip(&workspace.instances) {
         let hit = layout.hit(slot.rect.center(), false);
         assert_eq!(hit, Some(Hit::RailInstance(instance.id)));
         assert_eq!(slot.color, instance.color);
         assert_eq!(slot.emblem, workspace.shown_emblem(instance));
-        assert_eq!(slot.name, instance.name);
+        assert_eq!(slot.name, instance.shown_name(english.instance_name));
         assert!(rail.rect.contains(slot.icon.center()));
     }
     assert!(rail.slots[workspace.active].active);

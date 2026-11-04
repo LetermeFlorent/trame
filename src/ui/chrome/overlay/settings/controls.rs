@@ -4,7 +4,6 @@ use crate::ui::frame::{Chip, ChoiceRow, FieldFrame, FormPage, Stepper, ToggleRow
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
-use super::super::ON_ACCENT;
 use super::super::editor::draw_field;
 use super::super::popup::{LabelButton, draw_label_button};
 
@@ -44,7 +43,7 @@ fn faded(painter: &mut Painter, enabled: bool, draw: impl FnOnce(&mut Painter)) 
 fn draw_toggle(painter: &mut Painter, rect: Rect, on: bool) {
     let theme = painter.theme;
     let (track, knob_color) = match on {
-        true => (theme.accent, ON_ACCENT),
+        true => (theme.accent, theme.accent.ink()),
         false => (theme.border_strong, theme.text_muted),
     };
     painter.scene.fill(rect, track, rect.height / 2.0);

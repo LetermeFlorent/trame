@@ -1,29 +1,39 @@
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
 use super::SessionId;
+use super::pty::DUMP_VARIABLE;
+use crate::files::{create_file, create_folder};
 
-const DIRECTORY_VARIABLE: &str = "TRAME_DUMP";
+const MAX_FILE_BYTES: usize = 64 * 1024 * 1024;
 
-pub struct Dump(Option<File>);
+pub struct Dump {
+    file: Option<File>,
+    room: usize,
+}
 
 impl Dump {
     pub fn open(id: SessionId) -> Self {
-        Self(Self::create(id))
+        Self {
+            file: Self::create(id),
+            room: MAX_FILE_BYTES,
+        }
     }
 
     pub fn record(&mut self, bytes: &[u8]) {
-        if let Some(file) = &mut self.0
-            && file.write_all(bytes).is_err()
+        let kept = &bytes[..bytes.len().min(self.room)];
+        self.room -= kept.len();
+        if let Some(file) = &mut self.file
+            && (file.write_all(kept).is_err() || self.room == 0)
         {
-            self.0 = None;
+            self.file = None;
         }
     }
 
     fn create(id: SessionId) -> Option<File> {
-        let directory = PathBuf::from(std::env::var_os(DIRECTORY_VARIABLE)?);
-        fs::create_dir_all(&directory).ok()?;
-        File::create(directory.join(format!("session-{}-output.bin", id.0))).ok()
+        let directory = PathBuf::from(std::env::var_os(DUMP_VARIABLE)?);
+        create_folder(&directory).ok()?;
+        create_file(&directory.join(format!("session-{}-output.bin", id.0))).ok()
     }
 }

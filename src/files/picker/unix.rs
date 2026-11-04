@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use super::{PickKind, PickRequest};
+use crate::log_error;
 
 #[cfg(target_os = "macos")]
 fn command(request: &PickRequest, kind: PickKind) -> Command {
@@ -33,7 +34,7 @@ fn command(request: &PickRequest, kind: PickKind) -> Command {
 pub(super) fn choose(request: &PickRequest, kind: PickKind) -> Option<PathBuf> {
     let output = command(request, kind)
         .output()
-        .inspect_err(|error| eprintln!("trame: the file window could not open: {error}"))
+        .inspect_err(|error| log_error!("the file window could not open: {error}"))
         .ok()?;
     if !output.status.success() {
         return None;

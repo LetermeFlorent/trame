@@ -3,9 +3,9 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use super::super::download::{self, Progress};
+use super::super::download::Progress;
 use super::super::version::Version;
-use super::swap;
+use super::{signed, swap};
 
 const EXTENSION: &str = "app";
 const CONTENTS: &str = "Contents";
@@ -26,7 +26,7 @@ pub fn root(exe: &Path) -> Option<PathBuf> {
 pub fn fetch(version: Version, asset: &str, part: &Path, shown: Progress) -> io::Result<()> {
     let archive = swap::sibling(part, ARCHIVE_SUFFIX);
     let fetched =
-        download::download(version, asset, &archive, shown).and_then(|()| unpack(&archive, part));
+        signed::fetch(version, asset, &archive, shown).and_then(|_| unpack(&archive, part));
     swap::discard_partial(&archive, "download");
     fetched
 }

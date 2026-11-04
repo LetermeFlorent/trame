@@ -19,10 +19,10 @@ use trame::theme::Theme;
 use trame::ui::FrameView;
 use trame::workspace::{Snapshot, Workspace};
 
-use super::tabs::Placement;
-use super::{Pointer, Running, Selecting};
+use super::tabs::{Placement, Restarts};
+use super::{Memo, Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
-use crate::app::persist::{self, Saver};
+use crate::app::persist::{self, Role, Saver};
 use crate::app::power::Power;
 use crate::app::sessions::Sessions;
 use crate::app::update::UpdateStatus;
@@ -32,6 +32,7 @@ use crate::app::{UserEvent, window};
 use first_frame::first_frame;
 use surface::Surface;
 pub use update::Offer;
+pub(super) use update::UpdateState;
 
 pub struct Opened {
     running: Running,
@@ -46,7 +47,8 @@ impl Opened {
             running.draw();
             running.window.set_visible(true);
         }
-        if !running.restore_session(saved.as_ref()) {
+        let restored = running.saver.owns() && running.restore_session(saved.as_ref());
+        if !restored {
             running.open(Placement::Instance)?;
         }
         if !running.preferences.recalls(Recall::Text) {
@@ -63,27 +65,30 @@ impl Running {
         event_loop: &ActiveEventLoop,
         proxy: EventLoopProxy<UserEvent>,
         saved: Option<Snapshot>,
+        role: Role,
     ) -> Result<Opened, Box<dyn Error>> {
-        let window = saved.as_ref().and_then(|snapshot| snapshot.window);
+        let window = saved
+            .as_ref()
+            .and_then(|snapshot| snapshot.window)
+            .filter(|_| role.owns());
         let preferences = saved
             .as_ref()
             .map_or_else(Preferences::default, |snapshot| {
                 snapshot.preferences.clone().sanitized()
             });
         let surface = Surface::open(event_loop, window, preferences)?;
-        let mut running = Self::with_surface(surface, proxy);
-        running
-            .sessions
-            .set_history(running.preferences.history_lines);
+        let mut running = Self::with_surface(surface, proxy, Saver::new(role));
+        running.sessions.follow_preferences(&running.preferences);
         running.saver.remember_window(window);
         Ok(Opened { running, saved })
     }
 
     pub fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         self.sync_graphics(event_loop);
+        let retry = self.visibility.retry(&self.window);
+        self.power.set_background(self.visibility.seen_hidden());
         let save = self.save_deadline();
         let text = self.transcript_deadline();
-        let retry = self.visibility.retry(&self.window);
         let loader = self.loader_wake(Instant::now());
         let secret = self.sessions.secret_deadline(Instant::now());
         let wake = save
@@ -97,11 +102,10 @@ impl Running {
         event_loop.set_control_flow(wake.map_or(ControlFlow::Wait, ControlFlow::WaitUntil));
     }
 
-    fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>) -> Self {
-        let border = window::frame_border(&surface.window);
-        let metrics = surface.preferences.ui_metrics(surface.window_scale, border);
+    fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>, saver: Saver) -> Self {
+        let metrics = surface.metrics();
         let workspace = Workspace::numbered(surface.preferences.numbering);
-        let (frame, motion, strings) = first_frame(&mut surface, &workspace, metrics);
+        let (frame, motion, strings) = first_frame(&mut surface, &workspace, metrics, &saver);
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
             power: Power::new(surface.preferences.power_switches()),
@@ -113,11 +117,12 @@ impl Running {
             metrics,
             window_scale: surface.window_scale,
             preferences: surface.preferences,
+            keymap: Memo::default(),
             workspace,
             sessions: Sessions::new(proxy.clone()),
             proxy,
-            saver: Saver::new(),
-            transcripts: Transcripts::new(persist::transcript_dir()),
+            transcripts: Transcripts::new(saver.transcript_dir()),
+            saver,
             icons: IconStore::new(persist::icon_dir()),
             labels: HashMap::new(),
             frame,
@@ -133,8 +138,8 @@ impl Running {
             modifiers: ModifiersState::empty(),
             visibility: Visibility::default(),
             loader: None,
-            update_offer: None,
-            restarting: false,
+            update: UpdateState::default(),
+            restarts: Restarts::default(),
             closing: None,
             strings,
         }

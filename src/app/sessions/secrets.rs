@@ -1,17 +1,17 @@
 use std::time::Instant;
 
-use trame::preferences::SecretAnswer;
+use trame::preferences::{SecretAnswer, SshLogin};
 use trame::session::SessionId;
 
 use super::Sessions;
 
 impl Sessions {
-    pub fn expect_secret(&mut self, id: SessionId, secret: String) {
-        self.answers
-            .insert(id, SecretAnswer::new(secret, Instant::now()));
+    pub fn expect_secret(&mut self, id: SessionId, secret: String, login: SshLogin) {
+        let answer = SecretAnswer::new(secret, login, Instant::now());
+        self.answers.insert(id, answer);
     }
 
-    pub fn answer_prompt(&mut self, id: SessionId) {
+    pub(super) fn answer_prompt(&mut self, id: SessionId) {
         let (Some(answer), Some(session)) = (self.answers.get_mut(&id), self.map.get(&id)) else {
             return;
         };

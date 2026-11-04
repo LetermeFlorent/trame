@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-use std::fmt;
 use std::sync::Arc;
 
 use swash::shape::ShapeContext;
 
 use super::cells::CellCache;
-use super::font::{self, Family, FontId, FontLibrary};
+use super::font::{self, Family, FontId, FontLibrary, MissingFont};
 use super::images::ImageKey;
 use super::layout::{FontRole, Shaping, TextLayout, TextStyle};
 use super::metrics::CellMetrics;
@@ -16,17 +15,6 @@ use crate::theme::Rgba;
 
 type LayoutCache = HashMap<String, Vec<Arc<TextLayout>>>;
 
-#[derive(Debug, Clone, Copy)]
-pub struct MissingFont;
-
-impl fmt::Display for MissingFont {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("no usable monospace font was found on this system")
-    }
-}
-
-impl std::error::Error for MissingFont {}
-
 pub struct TextSystem {
     pub(super) library: FontLibrary,
     pub(super) terminal: Family,
@@ -34,8 +22,8 @@ pub struct TextSystem {
     pub(super) atlas: Atlas,
     pub(super) glyphs: GlyphCache,
     pub(super) cells: CellCache,
-    pub(super) images: HashMap<ImageKey, AtlasRegion>,
-    shaper: ShapeContext,
+    pub(super) images: HashMap<ImageKey, Option<AtlasRegion>>,
+    pub(super) shaper: ShapeContext,
     layouts: LayoutCache,
     previous_layouts: LayoutCache,
 }
@@ -122,9 +110,21 @@ impl TextSystem {
         }
     }
 
+    pub fn set_font_waker(&mut self, wake: impl Fn() + Send + 'static) {
+        self.library.set_fallback_waker(Box::new(wake));
+    }
+
+    pub fn receive_fonts(&mut self) {
+        if self.library.receive_fallbacks() {
+            self.cells.clear();
+            self.layouts.clear();
+            self.previous_layouts.clear();
+        }
+    }
+
     pub fn end_frame(&mut self) -> bool {
         self.previous_layouts = std::mem::take(&mut self.layouts);
-        if !self.atlas.is_full() {
+        if !self.atlas.finish_frame() {
             return false;
         }
         self.forget_glyphs();

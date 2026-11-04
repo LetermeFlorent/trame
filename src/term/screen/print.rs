@@ -1,7 +1,7 @@
 use unicode_width::UnicodeWidthChar;
 
 use super::Screen;
-use crate::term::cell::{Cell, Flags};
+use crate::term::cell::{Cell, Flags, Marks};
 use crate::term::grid::Row;
 use crate::term::modes::Modes;
 
@@ -10,6 +10,7 @@ impl Screen {
         let c = self.charsets.map(c);
         let width = c.width().unwrap_or(0);
         if width == 0 {
+            self.attach_mark(c);
             return;
         }
         self.last_char = Some(c);
@@ -76,12 +77,28 @@ impl Screen {
             spacer.flags.insert(Flags::WIDE_SPACER);
         }
     }
+
+    fn attach_mark(&mut self, mark: char) {
+        let row = self.cursor.row;
+        let mut col = if self.cursor.pending_wrap {
+            self.cursor.col
+        } else {
+            self.cursor.col.saturating_sub(1)
+        };
+        let line = self.grid_mut().row_mut(row);
+        if col > 0 && line.cell(col).flags.contains(Flags::WIDE_SPACER) {
+            col -= 1;
+        }
+        let cell = line.cell_mut(col);
+        cell.marks = cell.marks.with(mark);
+    }
 }
 
 fn clear_wide_fragments(line: &mut Row, col: usize, width: usize) {
     if col > 0 && line.cell(col).flags.contains(Flags::WIDE_SPACER) {
         let leader = line.cell_mut(col - 1);
         leader.ch = ' ';
+        leader.marks = Marks::default();
         leader.flags.remove(Flags::WIDTH_MARKS);
     }
     let last = col + width - 1;

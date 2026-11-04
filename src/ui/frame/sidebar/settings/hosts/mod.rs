@@ -4,6 +4,7 @@ mod place;
 use crate::geometry::{Point, Rect};
 use crate::preferences::{ConnectForm, SshHost};
 use crate::ui::frame::FrameLayout;
+use crate::ui::frame::sidebar::scroll::{BarPart, ScrollBar};
 
 use super::SettingLine;
 pub use page::ConnectionsPage;
@@ -39,37 +40,6 @@ pub struct HostRow {
     pub forget: Option<Rect>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ScrollBar {
-    pub track: Rect,
-    pub thumb: Rect,
-    pub first: usize,
-    pub last_first: usize,
-    pub shown: usize,
-}
-
-impl ScrollBar {
-    pub fn scrolled(&self, rows: isize) -> usize {
-        self.first.saturating_add_signed(rows).min(self.last_first)
-    }
-
-    pub fn first_at(&self, thumb_top: f32) -> usize {
-        let travel = self.track.height - self.thumb.height;
-        if travel <= 0.0 {
-            return self.first;
-        }
-        let ratio = ((thumb_top - self.track.y) / travel).clamp(0.0, 1.0);
-        (ratio * self.last_first as f32).round() as usize
-    }
-
-    pub fn paged(&self, y: f32) -> usize {
-        match y < self.thumb.y {
-            true => self.first.saturating_sub(self.shown),
-            false => (self.first + self.shown).min(self.last_first),
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct HostList {
     pub rect: Rect,
@@ -80,10 +50,10 @@ pub struct HostList {
 
 impl HostList {
     pub fn control_at(&self, point: Point) -> Option<ListControl> {
-        if let Some(bar) = self.bar.filter(|bar| bar.track.contains(point)) {
-            return Some(match bar.thumb.contains(point) {
-                true => ListControl::Thumb,
-                false => ListControl::Track,
+        if let Some(part) = self.bar.and_then(|bar| bar.part_at(point)) {
+            return Some(match part {
+                BarPart::Thumb => ListControl::Thumb,
+                BarPart::Track => ListControl::Track,
             });
         }
         let row = self.rows.iter().find(|row| row.line.rect.contains(point))?;

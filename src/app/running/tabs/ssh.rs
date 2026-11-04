@@ -1,4 +1,5 @@
-use trame::preferences::{SshHost, menu_hosts, vault};
+use trame::log_error;
+use trame::preferences::{SshHost, SshLogin, menu_hosts, vault};
 use trame::session::SessionId;
 use trame::ui::frame::EditTarget;
 
@@ -10,7 +11,7 @@ impl Running {
     pub(in crate::app::running) fn known_hosts(&self) -> Vec<SshHost> {
         let aliases = persist::ssh_config().map_or(Ok(Vec::new()), |config| config.aliases());
         let aliases = aliases.unwrap_or_else(|error| {
-            eprintln!("trame: the SSH config could not be read: {error}");
+            log_error!("the SSH config could not be read: {error}");
             Vec::new()
         });
         menu_hosts(&self.preferences.ssh_hosts, &aliases)
@@ -23,7 +24,7 @@ impl Running {
         }
         let cwd = self.start_folder(Placement::Tab);
         if let Err(error) = self.open_in(Placement::Tab, cwd.as_deref(), Some(host.clone())) {
-            eprintln!("trame: the SSH tab could not start: {error}");
+            log_error!("the SSH tab could not start: {error}");
         }
         self.set_preferences(self.preferences.remember_host(host));
     }
@@ -37,8 +38,12 @@ impl Running {
         if let (Some(line), Some(session)) = (line, self.sessions.get(id)) {
             session.write(line);
         }
-        if let Some(secret) = host.as_ref().and_then(|host| vault::SSH.load(host)) {
-            self.sessions.expect_secret(id, secret);
+        if let Some(host) = &host
+            && let Some(secret) = vault::SSH.load(host)
+        {
+            let entry = persist::ssh_entry(host.split().1);
+            let login = SshLogin::of(host, entry.as_ref());
+            self.sessions.expect_secret(id, secret, login);
         }
     }
 }

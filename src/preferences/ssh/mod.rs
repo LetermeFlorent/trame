@@ -8,9 +8,10 @@ use serde::{Deserialize, Serialize};
 use super::Preferences;
 pub use config::{
     HostEntry, SshConfig, aliases_in, appended, entry_in, menu_hosts, with_host, without_host,
+    written_by_hand,
 };
 pub use form::{ConnectForm, FormField};
-pub use prompt::{ANSWER_WINDOW, Prompt, SecretAnswer, prompt_in};
+pub use prompt::{ANSWER_WINDOW, Prompt, SecretAnswer, SshLogin, prompt_in};
 
 const DEFAULT_PORT: u16 = 22;
 
@@ -57,7 +58,7 @@ impl SshHost {
         host.is_valid().then_some(host)
     }
 
-    fn split(&self) -> (Option<&str>, &str) {
+    pub fn split(&self) -> (Option<&str>, &str) {
         match self.target.split_once('@') {
             Some((user, name)) => (Some(user), name),
             None => (None, self.target.as_str()),

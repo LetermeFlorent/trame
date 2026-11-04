@@ -4,6 +4,8 @@ mod fallback;
 mod family;
 mod library;
 
+use std::fmt;
+
 pub use discovery::system_fonts;
 pub use face::{Face, WEIGHT_AXIS};
 pub use family::Family;
@@ -12,6 +14,17 @@ pub use library::FontLibrary;
 pub const REGULAR: u16 = 400;
 pub const SEMIBOLD: u16 = 600;
 pub const BOLD: u16 = 700;
+
+#[derive(Debug, Clone, Copy)]
+pub struct MissingFont;
+
+impl fmt::Display for MissingFont {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("no usable monospace font was found on this system")
+    }
+}
+
+impl std::error::Error for MissingFont {}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct FontId(u16);

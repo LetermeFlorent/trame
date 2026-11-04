@@ -1,3 +1,4 @@
+mod closing;
 mod colors;
 mod history;
 mod launch;
@@ -14,25 +15,21 @@ use crate::theme::Swatch;
 use crate::ui::display::{Density, PanelSide};
 use crate::ui::metrics::TERMINAL_FONT_SIZE;
 use crate::workspace::Numbering;
+pub use closing::CONFIRM_FROM_TABS;
 pub use colors::MAX_CUSTOM_COLORS;
 use colors::sanitized_colors;
 pub use history::{DEFAULT_HISTORY_LINES, MAX_HISTORY_LINES, MIN_HISTORY_LINES};
 use history::{history_lines, sanitized_history};
 pub use launch::{MAX_INSTANCE_TABS, MIN_INSTANCE_TABS, Recall};
 use launch::{clamp_instance_tabs, instance_tabs, sanitized_command};
+pub use sizes::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE};
 use sizes::{clamp_font_size, clamp_interface_size, interface_size};
 use ssh::sanitized_hosts;
 pub use ssh::{
     ANSWER_WINDOW, ConnectForm, FormField, HostEntry, Prompt, SecretAnswer, SshConfig, SshHost,
-    aliases_in, appended, entry_in, menu_hosts, prompt_in, vault, with_host, without_host,
+    SshLogin, aliases_in, appended, entry_in, menu_hosts, prompt_in, vault, with_host,
+    without_host, written_by_hand,
 };
-
-pub const FONT_SIZE_STEP: f32 = 1.0;
-pub const INTERFACE_SIZE: u16 = 100;
-pub const MIN_INTERFACE_SIZE: u16 = 80;
-pub const MAX_INTERFACE_SIZE: u16 = 150;
-pub const INTERFACE_SIZE_STEP: u16 = 10;
-pub const CONFIRM_FROM_TABS: usize = 2;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Preferences {
@@ -59,6 +56,8 @@ pub struct Preferences {
     pub ssh_hosts: Vec<SshHost>,
     #[serde(default = "enabled")]
     pub confirm_close: bool,
+    #[serde(default = "enabled")]
+    pub confirm_paste: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub custom_colors: Vec<Swatch>,
     #[serde(default)]
@@ -71,6 +70,8 @@ pub struct Preferences {
     pub rest_hidden_tabs: bool,
     #[serde(default = "enabled")]
     pub notify_waiting: bool,
+    #[serde(default = "enabled")]
+    pub program_clipboard: bool,
     #[serde(default, skip_serializing_if = "Overrides::is_empty")]
     pub shortcuts: Overrides,
     #[serde(flatten)]
@@ -87,17 +88,19 @@ impl Default for Preferences {
             instance_tabs: MIN_INSTANCE_TABS,
             history_lines: DEFAULT_HISTORY_LINES,
             startup_command: None,
-            interface_size: INTERFACE_SIZE,
+            interface_size: interface_size(),
             language: LanguageChoice::Auto,
             default_folder: None,
             ssh_hosts: Vec::new(),
             confirm_close: true,
+            confirm_paste: true,
             custom_colors: Vec::new(),
             panel_side: PanelSide::Left,
             density: Density::Compact,
             efficiency: true,
             rest_hidden_tabs: true,
             notify_waiting: true,
+            program_clipboard: true,
             shortcuts: Overrides::default(),
             numbering: Numbering::default(),
         }
@@ -122,14 +125,6 @@ impl Preferences {
         let mut next = self.clone();
         change(&mut next);
         next
-    }
-
-    pub fn toggle_confirm_close(&self) -> Self {
-        self.with(|next| next.confirm_close = !next.confirm_close)
-    }
-
-    pub fn confirms_closing(&self, tabs: usize) -> bool {
-        self.confirm_close && tabs >= CONFIRM_FROM_TABS
     }
 
     pub fn power_switches(&self) -> [bool; 2] {

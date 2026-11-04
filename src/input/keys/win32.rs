@@ -23,8 +23,9 @@ const fn record(virtual_key: u16, scan_code: u16, unicode: u16, enhanced: bool) 
 }
 
 pub(in crate::input) fn win32_key(named: NamedKey, modifiers: ModifiersState) -> Option<Vec<u8>> {
-    let key = key_record(named)?;
-    let state = control_state(modifiers) | if key.enhanced { ENHANCED_KEY } else { 0 };
+    let state = control_state(modifiers);
+    let key = key_record(named, state)?;
+    let state = state | if key.enhanced { ENHANCED_KEY } else { 0 };
     let event = |down: u8| {
         format!(
             "\x1b[{};{};{};{down};{state};1_",
@@ -45,8 +46,29 @@ fn control_state(modifiers: ModifiersState) -> u16 {
     .fold(0, |state, (_, flag)| state | flag)
 }
 
-fn key_record(named: NamedKey) -> Option<KeyRecord> {
-    navigation_record(named).or_else(|| function_record(named))
+fn key_record(named: NamedKey, state: u16) -> Option<KeyRecord> {
+    navigation_record(named)
+        .or_else(|| function_record(named))
+        .or_else(|| editing_record(named, state))
+}
+
+fn editing_record(named: NamedKey, state: u16) -> Option<KeyRecord> {
+    if state == 0 {
+        return None;
+    }
+    let (virtual_key, scan_code, plain, with_control) = match named {
+        NamedKey::Enter => (0x0d, 0x1c, 0x0d, 0x0a),
+        NamedKey::Tab => (0x09, 0x0f, 0x09, 0),
+        NamedKey::Backspace => (0x08, 0x0e, 0x08, 0x7f),
+        NamedKey::Space => (0x20, 0x39, 0x20, 0x20),
+        _ => return None,
+    };
+    let unicode = if state & LEFT_CTRL_PRESSED == 0 {
+        plain
+    } else {
+        with_control
+    };
+    Some(record(virtual_key, scan_code, unicode, false))
 }
 
 fn navigation_record(named: NamedKey) -> Option<KeyRecord> {

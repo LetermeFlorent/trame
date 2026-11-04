@@ -17,6 +17,7 @@ use winit::window::Window;
 
 use trame::files::IconStore;
 use trame::geometry::Point;
+use trame::input::{Keymap, Overrides};
 use trame::locale::Strings;
 use trame::preferences::Preferences;
 use trame::render::Scene;
@@ -35,11 +36,13 @@ use super::visibility::Visibility;
 use super::{UserEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
+use keys::Memo;
 pub use lifecycle::Offer;
+use lifecycle::UpdateState;
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
-use tabs::Closing;
 pub use tabs::FolderTarget;
+use tabs::{Closing, Restarts};
 
 pub struct Running {
     window: Arc<Window>,
@@ -50,6 +53,7 @@ pub struct Running {
     metrics: UiMetrics,
     window_scale: f32,
     preferences: Preferences,
+    keymap: Memo<Overrides, Keymap>,
     workspace: Workspace,
     sessions: Sessions,
     proxy: EventLoopProxy<UserEvent>,
@@ -70,8 +74,8 @@ pub struct Running {
     modifiers: ModifiersState,
     visibility: Visibility,
     loader: Option<Loader>,
-    update_offer: Option<Offer>,
-    restarting: bool,
+    update: UpdateState,
+    restarts: Restarts,
     power: Power,
     notifier: Notifier,
     closing: Option<Closing>,
@@ -85,7 +89,7 @@ impl Running {
                 self.power.output(id);
                 self.output(id);
             }
-            SessionEvent::Exited(id) => self.close_tab(event_loop, id),
+            SessionEvent::Exited(id) => self.shell_exited(event_loop, id),
         }
     }
 
@@ -105,7 +109,6 @@ impl Running {
             WindowEvent::Focused(focused) => {
                 self.visibility.forget();
                 self.focus_changed(focused);
-                self.sync_background();
             }
             WindowEvent::ModifiersChanged(modifiers) => self.modifiers = modifiers.state(),
             WindowEvent::KeyboardInput {
@@ -129,14 +132,7 @@ impl Running {
     fn resized(&mut self, size: PhysicalSize<u32>) {
         self.visibility.forget();
         self.graphics.resize(size.width, size.height);
-        self.sync_background();
         self.changed();
-    }
-
-    fn sync_background(&mut self) {
-        let minimized = self.window.is_minimized() == Some(true);
-        self.power
-            .set_background(minimized || !self.view.window_focused);
     }
 
     fn changed(&mut self) {

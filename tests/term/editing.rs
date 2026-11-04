@@ -1,4 +1,6 @@
-use super::{cursor, feed, lines};
+use std::time::{Duration, Instant};
+
+use super::{cursor, feed, lines, terminal};
 
 #[test]
 fn wraps_at_last_column_only_when_next_char_arrives() {
@@ -69,6 +71,18 @@ fn overwriting_half_of_wide_char_clears_the_other_half() {
 fn tab_moves_to_next_stop() {
     let term = feed(1, 20, "a\tb");
     assert_eq!(lines(&term)[0], "a       b");
+}
+
+#[test]
+fn cht_with_a_huge_count_stops_at_the_edge() {
+    let mut term = terminal(1, 80);
+    let started = Instant::now();
+    for _ in 0..5000 {
+        term.feed(b"\x1b[65535I\x1b[65535Z");
+    }
+    term.feed(b"\x1b[65535I");
+    assert!(started.elapsed() < Duration::from_secs(1));
+    assert_eq!(cursor(&term), (0, 79));
 }
 
 #[test]

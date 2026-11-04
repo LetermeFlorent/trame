@@ -37,6 +37,7 @@ fn the_system_page_has_no_update_switch() {
     if cfg!(windows) {
         expected.push(SettingControl::NotifyWaiting);
     }
+    expected.push(SettingControl::ProgramClipboard);
     assert_eq!(controls, expected);
     assert!(page(&layout).sections.is_empty());
 }

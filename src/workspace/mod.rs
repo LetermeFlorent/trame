@@ -37,6 +37,7 @@ pub struct Workspace {
     pub active: usize,
     pub sidebar_open: bool,
     pub sidebar_width: Option<f32>,
+    pub sidebar_first: usize,
     marks: HashMap<SessionId, TabMark>,
     next_pane: u32,
     next_instance: u32,
@@ -56,6 +57,7 @@ impl Workspace {
             active: 0,
             sidebar_open: true,
             sidebar_width: None,
+            sidebar_first: 0,
             marks: HashMap::new(),
             next_pane: 0,
             next_instance: 0,
@@ -90,9 +92,8 @@ impl Workspace {
     pub fn add_instance(&mut self, name: Option<String>, tab: SessionId) -> InstanceId {
         self.next_instance += 1;
         let id = InstanceId(self.next_instance);
-        let name = name.unwrap_or_else(|| Instance::automatic_name(id));
         let pane = self.new_pane_id();
-        let mut instance = Instance::new(id, name, pane, tab);
+        let mut instance = Instance::new(id, name.unwrap_or_default(), pane, tab);
         instance.emblem = Emblem::random(&self.emblems());
         instance.number = self.next_number();
         self.instances.push(instance);

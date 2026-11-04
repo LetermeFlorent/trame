@@ -1,10 +1,13 @@
 use std::borrow::Cow;
 
-use super::block::{HOST_NAME, HostEntry, PORT, USER, block_of, entry_in, is_setting, lines};
-use super::names::{BYTE_ORDER_MARK, aliases_in, host_names, is_filler, name_range, quoted_range};
+use super::block::{
+    HOST_NAME, HostEntry, PORT, USER, block_of, blocks_of, entry_in, is_setting, lines,
+};
+use super::names::{BYTE_ORDER_MARK, aliases_in, holds_only, is_filler, name_range, quoted_range};
 use crate::preferences::SshHost;
 
 const INDENT: &str = "    ";
+const OWN_SETTINGS: [&str; 3] = [HOST_NAME, USER, PORT];
 
 fn newline_of(text: &str) -> &'static str {
     match text.contains("\r\n") {
@@ -55,7 +58,7 @@ fn removed_once(text: &str, name: &str) -> Option<String> {
     let block = block_of(&lines, name)?;
     let head = lines[block.start];
     let mut kept: Vec<Cow<str>> = lines.iter().map(|line| Cow::Borrowed(*line)).collect();
-    if host_names(head).len() > 1 {
+    if !holds_only(head, name) {
         let range = quoted_range(head, name_range(head, name)?);
         let cut = head[..range.start].trim_end().len();
         kept[block.start] = Cow::Owned(format!("{}{}", &head[..cut], &head[range.end..]));
@@ -113,7 +116,7 @@ pub fn with_host(text: &str, name: &str, host: &SshHost) -> Option<(String, Stri
     let head = renamed_head(lines[block.start], name, alias, newline)?;
     let kept = body
         .iter()
-        .filter(|line| !is_setting(line, &[HOST_NAME, USER, PORT]))
+        .filter(|line| !is_setting(line, &OWN_SETTINGS))
         .map(|line| (*line).to_owned());
     let block_text: String = std::iter::once(head)
         .chain(settings_of(host, indent_of(body), newline))
@@ -126,4 +129,15 @@ pub fn with_host(text: &str, name: &str, host: &SshHost) -> Option<(String, Stri
     ]
     .concat();
     Some((next, alias.to_owned()))
+}
+
+pub fn written_by_hand(text: &str, name: &str) -> bool {
+    let lines = lines(text);
+    blocks_of(&lines, name).any(|block| {
+        let body = &lines[block.start + 1..block.end];
+        !holds_only(lines[block.start], name)
+            || body
+                .iter()
+                .any(|line| !is_blank(line) && !is_setting(line, &OWN_SETTINGS))
+    })
 }

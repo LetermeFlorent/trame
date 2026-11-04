@@ -1,3 +1,4 @@
+#[cfg(feature = "dump")]
 mod dump;
 pub mod pty;
 mod sync;
@@ -12,12 +13,11 @@ use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::thread;
 
+use crate::log_error;
 use crate::term::{DEFAULT_HISTORY, ReportedColors, Terminal};
 use pty::{Pty, PtyOptions, PtySize, ShellCommand};
 pub use title::starting_label;
-pub use transcript::{
-    MAX_TRANSCRIPT_BYTES, TRANSCRIPT_SAVE_INTERVAL, Transcripts, transcript_of, transcript_within,
-};
+pub use transcript::{MAX_TRANSCRIPT_BYTES, TRANSCRIPT_SAVE_INTERVAL, TranscriptCopy, Transcripts};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct SessionId(pub u64);
@@ -94,6 +94,10 @@ impl Session {
         lock(&self.terminal)
     }
 
+    pub fn shared_terminal(&self) -> Arc<Mutex<Terminal>> {
+        Arc::clone(&self.terminal)
+    }
+
     pub fn write(&self, bytes: impl Into<Vec<u8>>) {
         let bytes = bytes.into();
         if !bytes.is_empty() {
@@ -119,7 +123,7 @@ impl Session {
         if let Some(pty) = &self.pty
             && let Err(error) = pty.resize(PtySize::new(size.0, size.1))
         {
-            eprintln!("trame: resizing the terminal failed: {error}");
+            log_error!("resizing the terminal failed: {error}");
         }
     }
 

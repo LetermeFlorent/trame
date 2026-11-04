@@ -1,3 +1,4 @@
+use trame::log_error;
 use trame::preferences::{ConnectForm, HostEntry, SshHost, vault};
 
 use super::hosts::settings_panel;
@@ -18,7 +19,7 @@ impl HostForm {
     }
 
     fn changing(host: SshHost) -> Self {
-        let entry = host.alias().and_then(config_entry);
+        let entry = host.alias().and_then(persist::ssh_entry);
         let entry = entry.unwrap_or_else(|| HostEntry::of(&host));
         let secret = vault::SSH.load(&host);
         Self {
@@ -77,31 +78,6 @@ impl Running {
             panel.form = Some(HostForm::changing(host));
         }
     }
-
-    pub(super) fn forget_listed(&mut self, index: usize) {
-        let host = self
-            .panel_mut()
-            .and_then(|panel| panel.hosts.get(index).cloned());
-        let Some(host) = host else {
-            return;
-        };
-        if let (Some(alias), Some(config)) = (host.alias(), persist::ssh_config())
-            && let Err(error) = config.remove(alias)
-        {
-            eprintln!("trame: {alias} could not be removed from the SSH config: {error}");
-        }
-        vault::SSH.forget(&host);
-        self.set_preferences(self.preferences.forget_host(&host));
-        self.reload_hosts();
-    }
-}
-
-fn config_entry(alias: &str) -> Option<HostEntry> {
-    let config = persist::ssh_config()?;
-    config.entry(alias).unwrap_or_else(|error| {
-        eprintln!("trame: the SSH config could not be read: {error}");
-        None
-    })
 }
 
 fn save_secret(host: &SshHost, secret: Option<&str>) {
@@ -109,8 +85,8 @@ fn save_secret(host: &SshHost, secret: Option<&str>) {
         return;
     };
     if let Err(error) = vault::SSH.store(host, secret) {
-        eprintln!(
-            "trame: the password for {} could not be saved: {error}",
+        log_error!(
+            "the password for {} could not be saved: {error}",
             host.label()
         );
     }
@@ -121,8 +97,8 @@ fn kept_in_config(host: SshHost) -> SshHost {
         return host;
     };
     config.keep(&host).unwrap_or_else(|error| {
-        eprintln!(
-            "trame: {} could not be added to the SSH config: {error}",
+        log_error!(
+            "{} could not be added to the SSH config: {error}",
             host.label()
         );
         host
@@ -134,8 +110,8 @@ fn changed_in_config(original: &SshHost, host: SshHost) -> SshHost {
         return kept_in_config(host);
     };
     config.replace(alias, &host).unwrap_or_else(|error| {
-        eprintln!(
-            "trame: {} could not be changed in the SSH config: {error}",
+        log_error!(
+            "{} could not be changed in the SSH config: {error}",
             host.label()
         );
         host

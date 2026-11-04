@@ -1,5 +1,11 @@
 use super::KeyStrings;
 
+pub const VERSION_SLOT: &str = "{version}";
+pub const ALIAS_SLOT: &str = "{alias}";
+pub const NUMBER_SLOT: &str = "{number}";
+pub const COUNT_SLOT: &str = "{count}";
+pub const ACTION_SLOT: &str = "{action}";
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Strings {
     pub checking_updates: &'static str,
@@ -10,6 +16,7 @@ pub struct Strings {
     pub change_color: &'static str,
     pub change_icon: &'static str,
     pub instances: &'static str,
+    pub instance_name: &'static str,
     pub settings: &'static str,
     pub at_launch: &'static str,
     pub remember_instances: &'static str,
@@ -51,10 +58,12 @@ pub struct Strings {
     pub save: &'static str,
     pub cancel: &'static str,
     pub confirm_close: &'static str,
+    pub confirm_paste: &'static str,
     pub system_section: &'static str,
     pub efficiency_mode: &'static str,
     pub rest_hidden_tabs: &'static str,
     pub notify_waiting: &'static str,
+    pub program_clipboard: &'static str,
     pub instances_section: &'static str,
     pub numbered_instances: &'static str,
     pub renumber_on_close: &'static str,
@@ -67,6 +76,13 @@ pub struct Strings {
     pub update_question: &'static str,
     pub update_restarts: &'static str,
     pub restart: &'static str,
+    pub remove_question: &'static str,
+    pub hand_written: &'static str,
+    pub remove: &'static str,
+    pub paste_question: &'static str,
+    pub lines_in_all: &'static str,
+    pub hidden_removed: &'static str,
+    pub paste: &'static str,
     pub change: &'static str,
     pub apply: &'static str,
     pub my_colors: &'static str,
@@ -75,5 +91,8 @@ pub struct Strings {
     pub letters_or_image: &'static str,
     pub image: &'static str,
     pub pick_image: &'static str,
+    pub unsaved_session: &'static str,
+    pub update_failed: &'static str,
+    pub shell_exited_at_once: &'static str,
     pub keys: &'static KeyStrings,
 }

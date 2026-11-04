@@ -1,4 +1,4 @@
-use trame::session::{transcript_of, transcript_within};
+use trame::session::{MAX_TRANSCRIPT_BYTES, TranscriptCopy};
 use trame::term::{Cell, Color, Flags, Terminal};
 
 const ROWS: usize = 6;
@@ -9,6 +9,14 @@ fn terminal_with(bytes: &[u8]) -> Terminal {
     let mut terminal = Terminal::new(ROWS, COLS, HISTORY);
     terminal.feed(bytes);
     terminal
+}
+
+fn transcript_of(terminal: &Terminal) -> Vec<u8> {
+    transcript_within(terminal, MAX_TRANSCRIPT_BYTES)
+}
+
+fn transcript_within(terminal: &Terminal, budget: usize) -> Vec<u8> {
+    TranscriptCopy::of(terminal).encode(budget)
 }
 
 fn restored(terminal: &Terminal) -> Terminal {
@@ -114,6 +122,13 @@ fn a_row_larger_than_the_budget_gives_nothing() {
 fn an_empty_terminal_gives_no_text() {
     assert!(transcript_of(&Terminal::new(ROWS, COLS, HISTORY)).is_empty());
     assert!(transcript_of(&terminal_with(b"\r\n\r\n   ")).is_empty());
+}
+
+#[test]
+fn combining_marks_survive_a_restore() {
+    let lines = ["e\u{301}x", "\u{1F468}\u{200D}\u{1F469}", " \u{301}"];
+    let terminal = terminal_with(lines.join("\r\n").as_bytes());
+    assert_eq!(written_lines(&restored(&terminal)), lines);
 }
 
 #[test]

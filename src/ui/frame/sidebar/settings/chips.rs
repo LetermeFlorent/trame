@@ -14,9 +14,18 @@ impl Column<'_> {
         self.inner.width / 2.0 - 2.0 * self.metrics.px(CHOICE_PAD)
     }
 
-    fn chip_on(&mut self, line: &SettingLine, (text, control, selected): Choice) -> Chip {
-        let height = self.metrics.px(UiMetrics::BUTTON);
+    fn chip_on(&mut self, line: &SettingLine, choice: Choice) -> Chip {
         let pad = self.metrics.px(CHOICE_PAD);
+        self.padded_chip(line, choice, pad)
+    }
+
+    fn padded_chip(
+        &mut self,
+        line: &SettingLine,
+        (text, control, selected): Choice,
+        pad: f32,
+    ) -> Chip {
+        let height = self.metrics.px(UiMetrics::BUTTON);
         let label = fit_label(self.text, text, self.metrics.label(), self.chip_room());
         let width = (label.width + 2.0 * pad).ceil();
         Chip {
@@ -63,10 +72,28 @@ impl Column<'_> {
 
     pub(super) fn tab_row<const N: usize>(&mut self, choices: [Choice; N]) -> [Chip; N] {
         let line = self.line("", LINE_HEIGHT, self.metrics.label());
+        let pad = self.metrics.px(CHOICE_PAD);
+        let tabs = self.tabs_on(&line, choices, pad);
+        let over = tabs
+            .last()
+            .map_or(0.0, |tab| tab.rect.right() - line.rect.right());
+        if over <= 0.0 {
+            return tabs;
+        }
+        let squeeze = (over / (2 * N) as f32).ceil();
+        self.tabs_on(&line, choices, (pad - squeeze).max(0.0))
+    }
+
+    fn tabs_on<const N: usize>(
+        &mut self,
+        line: &SettingLine,
+        choices: [Choice; N],
+        pad: f32,
+    ) -> [Chip; N] {
         let gap = self.metrics.px(BUTTON_GAP);
         let mut left = line.rect.x;
         choices.map(|choice| {
-            let mut chip = self.chip_on(&line, choice);
+            let mut chip = self.padded_chip(line, choice, pad);
             chip.rect.x = left;
             left = chip.rect.right() + gap;
             chip

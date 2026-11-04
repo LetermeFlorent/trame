@@ -5,7 +5,7 @@ use trame::theme::Rgba;
 const SIDE: f32 = 8.0;
 
 fn red_square(gpu: &Gpu, format: wgpu::TextureFormat) -> Vec<u8> {
-    let mut renderer = Renderer::new(gpu, format, &Atlas::new());
+    let mut renderer = Renderer::new(gpu, format, &mut Atlas::new());
     let mut scene = Scene::new(SIDE, SIDE);
     scene.fill(
         Rect::new(0.0, 0.0, SIDE / 2.0, SIDE),

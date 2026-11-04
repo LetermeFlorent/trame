@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use super::FrameInput;
@@ -46,7 +47,7 @@ pub fn layout_title_bar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -
         .then(|| window_controls(metrics, rect));
     let start = toggle.right() + metrics.px(TITLE_GAP);
     let end = controls.map_or(rect.right(), |controls| controls.minimize.x) - metrics.px(TITLE_GAP);
-    let brand = layout_brand(text, metrics, rect, start, end);
+    let brand = layout_brand(text, input, rect, start, end);
     let limit = brand
         .as_ref()
         .map_or(end, |(_, x)| x - metrics.px(BRAND_GAP));
@@ -64,16 +65,31 @@ pub fn layout_title_bar(text: &mut TextSystem, input: &FrameInput, rect: Rect) -
 
 fn layout_brand(
     text: &mut TextSystem,
-    metrics: &UiMetrics,
+    input: &FrameInput,
     rect: Rect,
     start: f32,
     end: f32,
 ) -> Placed {
-    let layout = text.layout(APP_NAME, metrics.label());
+    let metrics = &input.metrics;
+    let layout = text.layout(&brand_name(input), metrics.label());
     let x = rect.centered_x(layout.width).round();
     let room = x - metrics.px(BRAND_GAP) - start;
     let fits = room >= metrics.px(HEADING_MIN) && x + layout.width <= end;
     fits.then_some((layout, x))
+}
+
+fn brand_name(input: &FrameInput) -> Cow<'static, str> {
+    let notes: Vec<&str> = [
+        (input.unsaved, input.strings.unsaved_session),
+        (input.update_failed, input.strings.update_failed),
+    ]
+    .into_iter()
+    .filter_map(|(shown, note)| shown.then_some(note))
+    .collect();
+    match notes.is_empty() {
+        true => APP_NAME.into(),
+        false => format!("{APP_NAME} ({})", notes.join(", ")).into(),
+    }
 }
 
 fn layout_heading(
@@ -83,10 +99,11 @@ fn layout_heading(
     limit: f32,
 ) -> (Placed, Placed) {
     let metrics = &input.metrics;
-    let name = input
-        .workspace
-        .active_instance()
-        .map(|instance| fit_label(text, &instance.name, metrics.strong(), limit - start));
+    let phrase = input.strings.instance_name;
+    let name = input.workspace.active_instance().map(|instance| {
+        let shown = instance.shown_name(phrase);
+        fit_label(text, &shown, metrics.strong(), limit - start)
+    });
     let folder_x = name
         .as_ref()
         .map_or(start, |name| start + name.width + metrics.px(SUBTITLE_GAP));

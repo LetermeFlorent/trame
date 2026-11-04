@@ -13,7 +13,7 @@ use std::ptr::null_mut;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use super::{PtyOptions, PtySize, Spawned, terminal_env};
+use super::{DUMP_VARIABLE, PtyOptions, PtySize, Spawned, terminal_env};
 
 const TERM: &str = "xterm-256color";
 
@@ -72,7 +72,8 @@ pub(super) fn spawn(options: &PtyOptions) -> io::Result<Spawned> {
         .stderr(Stdio::from(slave))
         .env("TERM", TERM)
         .envs(terminal_env())
-        .envs(options.shell.env.iter().cloned());
+        .envs(options.shell.env.iter().cloned())
+        .env_remove(DUMP_VARIABLE);
     if let Some(cwd) = options.cwd {
         command.current_dir(cwd);
     }

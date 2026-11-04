@@ -1,12 +1,16 @@
+mod login;
+
 use std::hint::black_box;
 use std::time::{Duration, Instant};
+
+pub use login::SshLogin;
 
 pub const ANSWER_WINDOW: Duration = Duration::from_secs(60);
 
 const PASSPHRASE_PROMPT: &str = "enter passphrase for key";
 const PASSWORD_PROMPT: &str = "'s password:";
 const INTERACTIVE_PROMPT: &str = ") password:";
-const PROMPT_KINDS: usize = 2;
+const HOST_KEY_QUESTION: &str = "(yes/no";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Prompt {
@@ -25,16 +29,20 @@ pub fn prompt_in(line: &str) -> Option<Prompt> {
 
 pub struct SecretAnswer {
     secret: String,
+    login: SshLogin,
     deadline: Instant,
-    answered: Vec<Prompt>,
+    started: bool,
+    done: bool,
 }
 
 impl SecretAnswer {
-    pub fn new(secret: String, now: Instant) -> Self {
+    pub fn new(secret: String, login: SshLogin, now: Instant) -> Self {
         Self {
             secret,
+            login,
             deadline: now + ANSWER_WINDOW,
-            answered: Vec::new(),
+            started: false,
+            done: false,
         }
     }
 
@@ -42,18 +50,30 @@ impl SecretAnswer {
         if self.is_over(now) {
             return None;
         }
-        let prompt = prompt_in(line).filter(|prompt| !self.answered.contains(prompt))?;
-        self.answered.push(prompt);
-        Some(format!("{}\r", self.secret))
+        let line = line.trim().to_lowercase();
+        if self.login.is_asked_by(&line) {
+            self.done = true;
+            return Some(format!("{}\r", self.secret));
+        }
+        if self.login.is_typed_in(&line) {
+            self.started = true;
+        } else if self.started && !is_part_of_connecting(&line) {
+            self.done = true;
+        }
+        None
     }
 
     pub fn is_over(&self, now: Instant) -> bool {
-        now >= self.deadline || self.answered.len() == PROMPT_KINDS
+        now >= self.deadline || self.done
     }
 
     pub fn deadline(&self) -> Instant {
         self.deadline
     }
+}
+
+fn is_part_of_connecting(line: &str) -> bool {
+    line.is_empty() || line.contains(HOST_KEY_QUESTION) || prompt_in(line).is_some()
 }
 
 impl Drop for SecretAnswer {

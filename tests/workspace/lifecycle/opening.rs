@@ -29,7 +29,8 @@ fn add_instance_keeps_a_given_name_and_numbers_the_others() {
     workspace.add_instance(Some("build".to_string()), tab(1));
     workspace.add_instance(None, tab(2));
     assert_eq!(workspace.instances[0].name, "build");
-    assert_eq!(workspace.instances[1].name, "Instance 2");
+    assert_eq!(workspace.instances[1].name, "");
+    assert_eq!(workspace.instances[1].shown_name("#{number}"), "#2");
 }
 
 #[test]

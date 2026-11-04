@@ -53,3 +53,35 @@ fn typed_text_and_enter_stay_plain() {
     assert_eq!(console(NamedKey::Enter, NONE), bytes("\r"));
     assert_eq!(console(NamedKey::Backspace, NONE), bytes("\x7f"));
 }
+
+#[test]
+fn shift_enter_is_a_win32_record() {
+    assert_eq!(
+        console(NamedKey::Enter, SHIFT),
+        bytes("\x1b[13;28;13;1;16;1_\x1b[13;28;13;0;16;1_")
+    );
+    assert_eq!(
+        console(NamedKey::Enter, CONTROL),
+        bytes("\x1b[13;28;10;1;8;1_\x1b[13;28;10;0;8;1_")
+    );
+}
+
+#[test]
+fn modified_tab_backspace_and_space_are_records() {
+    assert_eq!(
+        console(NamedKey::Tab, SHIFT),
+        bytes("\x1b[9;15;9;1;16;1_\x1b[9;15;9;0;16;1_")
+    );
+    assert_eq!(
+        console(NamedKey::Tab, CONTROL),
+        bytes("\x1b[9;15;0;1;8;1_\x1b[9;15;0;0;8;1_")
+    );
+    assert_eq!(
+        console(NamedKey::Backspace, CONTROL),
+        bytes("\x1b[8;14;127;1;8;1_\x1b[8;14;127;0;8;1_")
+    );
+    assert_eq!(
+        console(NamedKey::Space, CONTROL),
+        bytes("\x1b[32;57;32;1;8;1_\x1b[32;57;32;0;8;1_")
+    );
+}

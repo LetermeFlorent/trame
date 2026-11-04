@@ -68,7 +68,8 @@ pub(super) fn draw_glyphs(
         if cell.flags.intersects(Flags::ANY_UNDERLINE) || cell.flags.contains(Flags::STRIKE) {
             style::draw_decorations(scene, cell.flags, &grid.metrics, ink);
         }
-        if cell.ch == ' ' || cell.ch == '\0' || cell.flags.contains(Flags::HIDDEN) {
+        let blank = matches!(cell.ch, ' ' | '\0') && cell.marks.is_empty();
+        if blank || cell.flags.contains(Flags::HIDDEN) {
             continue;
         }
         if boxes::is_drawn(cell.ch) && boxes::draw(scene, cell.ch, ink) {
@@ -76,6 +77,7 @@ pub(super) fn draw_glyphs(
         }
         let glyph = CellText {
             ch: cell.ch,
+            marks: cell.marks,
             bold: cell.flags.contains(Flags::BOLD),
             italic: cell.flags.contains(Flags::ITALIC),
             columns,

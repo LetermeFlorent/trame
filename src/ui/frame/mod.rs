@@ -14,11 +14,12 @@ pub use editor::{
 pub use label::{fit_label, fit_label_start, fit_text_start};
 pub use panes::{PaneFrame, TabFrame};
 pub use sidebar::{
-    Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, FormPage, HostList, HostRow,
-    HostsView, InstancesPage, KeyControl, KeyNotice, ListControl, MessageFrame, MessageRequest,
-    PopupFrame, RailFrame, RailSlot, ScrollBar, SettingControl, SettingLine, SettingsFrame,
-    SettingsPage, SettingsRequest, SettingsTab, ShortcutsPage, ShortcutsView, SidebarFrame,
-    SidebarItem, SidebarRow, Stepper, ToggleRow, dragged_width, key_label, shown_width,
+    BarPart, Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, FormPage, HostList,
+    HostRow, HostsView, InstancesPage, KeyControl, KeyNotice, ListControl, MessageFrame,
+    MessageRequest, PopupFrame, RailFrame, RailSlot, ScrollBar, SettingControl, SettingLine,
+    SettingsFrame, SettingsPage, SettingsRequest, SettingsTab, ShortcutsPage, ShortcutsView,
+    SidebarFrame, SidebarItem, SidebarRow, Stepper, ToggleRow, dragged_width, key_label,
+    shown_width,
 };
 pub use titlebar::{TitleBarFrame, WindowControls};
 
@@ -43,6 +44,8 @@ pub struct FrameInput<'a> {
     pub title: &'a dyn Fn(SessionId) -> String,
     pub folder: Option<&'a Path>,
     pub update: Option<&'a str>,
+    pub unsaved: bool,
+    pub update_failed: bool,
     pub strings: &'static Strings,
 }
 
@@ -82,8 +85,7 @@ impl FrameLayout {
         let footer = sidebar::layout_footer(text, input, side);
         let mut sidebar = (reveal > 0.0)
             .then(|| sidebar::layout_sidebar(text, input, footer.above(columns.sidebar)));
-        let rail = (reveal < 1.0)
-            .then(|| sidebar::layout_rail(&metrics, input.workspace, footer.above(side)));
+        let rail = (reveal < 1.0).then(|| sidebar::layout_rail(input, footer.above(side)));
         let mut context = panes::PaneContext {
             text,
             metrics,

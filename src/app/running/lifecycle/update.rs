@@ -2,12 +2,11 @@ use std::io;
 
 use winit::event_loop::ActiveEventLoop;
 
-use trame::locale::Strings;
+use trame::locale::{Strings, VERSION_SLOT};
+use trame::log_error;
 
 use crate::app::running::Running;
 use crate::app::update;
-
-const VERSION_SLOT: &str = "{version}";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Offer {
@@ -16,7 +15,7 @@ pub struct Offer {
 
 impl Offer {
     pub fn label(&self, strings: &Strings) -> String {
-        format!("{} {}", strings.update_to, self.version)
+        strings.update_to.replace(VERSION_SLOT, &self.version)
     }
 
     pub fn question(&self, strings: &Strings) -> String {
@@ -24,48 +23,49 @@ impl Offer {
     }
 }
 
+#[derive(Default)]
+pub(in crate::app::running) struct UpdateState {
+    pub(in crate::app::running) offer: Option<Offer>,
+    pub(in crate::app::running) failed: bool,
+    pub(in crate::app::running) restarting: bool,
+}
+
 impl Running {
     pub fn offer_update(&mut self, offer: Offer) {
-        self.update_offer = Some(offer);
+        self.update.offer = Some(offer);
         self.changed();
     }
 
     pub(in crate::app::running) fn restart_for_update(&mut self, event_loop: &ActiveEventLoop) {
-        if self.update_offer.is_none() {
+        if self.update.offer.is_none() {
             return;
         }
-        self.restart_with(
-            event_loop,
-            update::restart,
-            "the update restart did not start",
-        );
+        if let Err(error) = self.restart_with(event_loop, update::restart) {
+            log_error!("the update restart did not start: {error}");
+            self.update.failed = true;
+            self.changed();
+        }
     }
 
     pub(in crate::app::running) fn restart_if_card_lost(&mut self, event_loop: &ActiveEventLoop) {
-        if self.restarting || !self.graphics.is_lost() {
+        if self.update.restarting || !self.graphics.is_lost() {
             return;
         }
-        self.restart_with(
-            event_loop,
-            update::start_again,
-            "trame could not start again",
-        );
+        if let Err(error) = self.restart_with(event_loop, update::start_again) {
+            log_error!("trame could not start again: {error}");
+        }
     }
 
-    fn restart_with(
+    pub fn restart_with(
         &mut self,
         event_loop: &ActiveEventLoop,
         start: impl FnOnce() -> io::Result<()>,
-        failure: &str,
-    ) {
+    ) -> io::Result<()> {
         self.save_for_restart();
-        match start() {
-            Ok(()) => {
-                self.restarting = true;
-                event_loop.exit();
-            }
-            Err(error) => eprintln!("trame: {failure}: {error}"),
-        }
+        self.saver.hand_over(start)?;
+        self.update.restarting = true;
+        event_loop.exit();
+        Ok(())
     }
 }
 
@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn the_french_question_names_the_version() {
         let strings = Language::French.strings();
-        assert_eq!(offer().label(strings), "Mettre à jour en 9.8.7");
+        assert_eq!(offer().label(strings), "Installer la 9.8.7");
         assert_eq!(offer().question(strings), "Mettre à jour en 9.8.7 ?");
     }
 }

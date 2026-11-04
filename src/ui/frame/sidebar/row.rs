@@ -1,8 +1,7 @@
 use super::{SidebarItem, SidebarRow};
 use crate::geometry::Rect;
-use crate::session::SessionId;
 use crate::text::TextSystem;
-use crate::ui::frame::fit_label;
+use crate::ui::frame::{FrameInput, fit_label};
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::Instance;
 
@@ -19,14 +18,12 @@ pub(super) struct RowSpec {
     active: bool,
 }
 
-pub(super) fn row_specs(
-    instance: &Instance,
-    active: bool,
-    title: &dyn Fn(SessionId) -> String,
-) -> Vec<RowSpec> {
+pub(super) fn row_specs(instance: &Instance, active: bool, input: &FrameInput) -> Vec<RowSpec> {
     let mut specs = vec![RowSpec {
         item: SidebarItem::Instance(instance.id),
-        label: instance.name.clone(),
+        label: instance
+            .shown_name(input.strings.instance_name)
+            .into_owned(),
         count: Some(instance.tab_count()),
         indent: 0.0,
         active,
@@ -35,7 +32,7 @@ pub(super) fn row_specs(
         let current = instance.active_tab();
         specs.extend(instance.tabs().into_iter().map(|tab| RowSpec {
             item: SidebarItem::Tab(tab),
-            label: title(tab),
+            label: (input.title)(tab),
             count: None,
             indent: TAB_INDENT,
             active: Some(tab) == current,

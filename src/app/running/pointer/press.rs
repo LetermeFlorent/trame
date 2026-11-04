@@ -3,9 +3,11 @@ use std::time::{Duration, Instant};
 use winit::event_loop::ActiveEventLoop;
 
 use trame::input::Command;
+use trame::log_error;
 use trame::ui::Hit;
-use trame::ui::frame::SidebarItem;
+use trame::ui::frame::{BarPart, SidebarItem};
 
+use crate::app::running::settings::ListKind;
 use crate::app::running::{Closing, Running};
 use crate::app::window;
 
@@ -78,6 +80,7 @@ impl Running {
             Hit::Update => self.ask_close(event_loop, Closing::Update),
             Hit::Setting(control) => self.apply_setting(control),
             Hit::List(control) => self.list_control(control),
+            Hit::SidebarBar(BarPart::Track) => self.page_list(ListKind::Sidebar),
             Hit::FormField(field) => self.focus_form(field),
             Hit::FormButton(action) => self.form_action(action),
             Hit::RowClose(SidebarItem::Instance(id)) => {
@@ -115,6 +118,6 @@ impl Running {
 
 fn report(result: Result<(), winit::error::ExternalError>, action: &str) {
     if let Err(error) = result {
-        eprintln!("trame: the window could not {action}: {error}");
+        log_error!("the window could not {action}: {error}");
     }
 }

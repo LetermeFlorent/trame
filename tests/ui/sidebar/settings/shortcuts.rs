@@ -1,5 +1,5 @@
 use trame::input::{ACTIONS, Combo, Command, Keymap, Overrides};
-use trame::locale::Language;
+use trame::locale::{ACTION_SLOT, Language};
 use trame::preferences::Preferences;
 use trame::text::TextSystem;
 use trame::ui::frame::{
@@ -139,7 +139,7 @@ fn while_waiting_for_keys_it_asks_for_them_and_says_why_one_is_refused() {
         text.layout(strings.press_keys, style).width
     );
     let notice = page.notice.as_ref().expect("the notice");
-    let taken = format!("{} {}", strings.taken_by, strings.actions[0]);
+    let taken = strings.taken_by.replace(ACTION_SLOT, strings.actions[0]);
     assert_eq!(notice.label.width, text.layout(&taken, style).width);
     assert!(panel(&layout).popup.rect.contains(notice.rect.center()));
 }

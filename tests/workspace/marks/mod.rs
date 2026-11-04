@@ -1,9 +1,10 @@
 mod emblems;
 mod folders;
 mod hosts;
+mod names;
 
 use trame::theme::Swatch;
-use trame::workspace::{Edge, Instance, Workspace};
+use trame::workspace::{Edge, Workspace};
 
 use crate::{tab, workspace_with};
 
@@ -102,13 +103,13 @@ fn renaming_an_instance_changes_its_name() {
 }
 
 #[test]
-fn an_empty_instance_name_restores_the_automatic_one() {
+fn an_empty_instance_name_brings_back_the_numbered_one() {
     let mut workspace = workspace_with(&[1]);
     let id = workspace.instances[0].id;
     workspace.rename_instance(id, "site");
     workspace.rename_instance(id, "");
-    assert_eq!(workspace.instances[0].name, Instance::automatic_name(id));
-    assert_eq!(workspace.instances[0].name, "Instance 1");
+    assert_eq!(workspace.instances[0].name, "");
+    assert_eq!(workspace.instances[0].shown_name("#{number}"), "#1");
 }
 
 #[test]
@@ -130,5 +131,5 @@ fn only_the_named_instance_changes() {
     workspace.set_instance_color(first, Some(Swatch::Blue));
     workspace.rename_instance(first, "one");
     assert_eq!(workspace.instances[1].color, None);
-    assert_eq!(workspace.instances[1].name, "Instance 2");
+    assert_eq!(workspace.instances[1].name, "");
 }

@@ -1,5 +1,6 @@
 pub mod bundle;
 pub mod check;
+pub mod signed;
 pub mod staged;
 pub mod swap;
 

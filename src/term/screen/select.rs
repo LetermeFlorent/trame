@@ -10,6 +10,10 @@ impl Screen {
         self.grid().selected_text()
     }
 
+    pub fn has_selected_text(&self) -> bool {
+        self.grid().has_selected_text()
+    }
+
     pub fn clear_selection(&mut self) {
         self.grid_mut().clear_selection();
     }

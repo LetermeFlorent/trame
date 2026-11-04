@@ -32,6 +32,7 @@ pub struct Screen {
     pub(crate) responses: Vec<u8>,
     pub(crate) last_char: Option<char>,
     pub(crate) clipboard: Option<String>,
+    pub(crate) clipboard_writes: bool,
     pub(crate) attention: Option<String>,
     pub(crate) colors: ReportedColors,
 }
@@ -56,6 +57,7 @@ impl Screen {
             responses: Vec::new(),
             last_char: None,
             clipboard: None,
+            clipboard_writes: true,
             attention: None,
             colors: ReportedColors::default(),
         }
@@ -86,6 +88,7 @@ impl Screen {
         fresh.title = self.title.take();
         fresh.cwd = self.cwd.take();
         fresh.colors = self.colors;
+        fresh.clipboard_writes = self.clipboard_writes;
         fresh.responses = std::mem::take(&mut self.responses);
         *self = fresh;
     }

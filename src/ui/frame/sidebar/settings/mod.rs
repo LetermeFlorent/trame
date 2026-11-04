@@ -20,7 +20,7 @@ pub(in crate::ui::frame) use column::{
     CAPTION_HEIGHT, Column, LINE_HEIGHT, LINE_INSET, SECTION_GAP,
 };
 pub use form::{FormPage, Stepper, ToggleRow};
-pub use hosts::{ConnectionsPage, HostList, HostRow, HostsView, ListControl, ScrollBar};
+pub use hosts::{ConnectionsPage, HostList, HostRow, HostsView, ListControl};
 pub(in crate::ui::frame) use hosts::{ListSpec, host_labels};
 pub use instances::{InstancesPage, NumberChoice};
 pub use message::{MessageFrame, MessageRequest};
@@ -75,9 +75,11 @@ pub enum SettingControl {
     ClearFolder,
     AddHost,
     ConfirmClose,
+    ConfirmPaste,
     Efficiency,
     RestHiddenTabs,
     NotifyWaiting,
+    ProgramClipboard,
     Numbers(NumberChoice),
     Keys(KeyControl),
 }

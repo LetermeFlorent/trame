@@ -6,6 +6,7 @@ use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 use trame::input::{Command, KeyInput, Keymap, ShortcutInput, encode};
 use trame::term::Modes;
 
+use super::copy::{after_copy, takes_key};
 use crate::app::running::Running;
 use crate::app::window;
 
@@ -41,26 +42,30 @@ impl Running {
         self.write_to_active(|modes| encode(key_input, modes).unwrap_or_default());
     }
 
-    pub(in crate::app::running) fn shortcut_for(&self, event: &KeyEvent) -> Option<Command> {
+    pub(in crate::app::running) fn shortcut_for(&mut self, event: &KeyEvent) -> Option<Command> {
         let base = event.key_without_modifiers();
         let input = shortcut_input(event, &base, self.modifiers);
         self.keymap().command_for(input)
     }
 
-    pub(in crate::app::running) fn keymap(&self) -> Keymap {
-        Keymap::new(self.metrics.platform, &self.preferences.shortcuts)
+    pub(in crate::app::running) fn keymap(&mut self) -> &Keymap {
+        let platform = self.metrics.platform;
+        self.keymap.get(&self.preferences.shortcuts, |overrides| {
+            Keymap::new(platform, overrides)
+        })
     }
 
     fn claims(&self, command: Command) -> bool {
-        let interrupt = self.modifiers == ModifiersState::CONTROL;
-        command != Command::Copy || !interrupt || self.has_selection()
-    }
-
-    fn has_selection(&self) -> bool {
         self.sessions
             .active(&self.workspace)
-            .and_then(|session| session.terminal().screen().selected_text())
-            .is_some()
+            .is_none_or(|session| takes_key(command, self.modifiers, &session.terminal()))
+    }
+
+    pub(in crate::app::running) fn copy_shortcut(&mut self) {
+        self.copy_selection();
+        if let Some(session) = self.sessions.active(&self.workspace) {
+            after_copy(&mut session.terminal(), self.modifiers);
+        }
     }
 
     pub(in crate::app::running) fn write_to_active(

@@ -10,7 +10,7 @@ pub use command::Command;
 pub use field::{MAX_CHARS, TextField};
 pub use keys::{KeyInput, encode};
 pub use mouse::{MouseAction, MouseButton, MouseEvent, MouseModifiers, encode_mouse};
-pub use paste::paste_bytes;
+pub use paste::{PREVIEW_CHARS, PastePreview, asks_before_pasting, paste_bytes, paste_preview};
 pub use shortcuts::{
     ACTIONS, Combo, Keymap, MAX_KEYS, Overrides, Pressed, ShortcutInput, Trigger, action_of,
     default_keys, pressed, shortcut,

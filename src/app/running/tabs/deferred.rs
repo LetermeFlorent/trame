@@ -1,3 +1,4 @@
+use trame::log_error;
 use trame::session::SessionId;
 
 use crate::app::running::Running;
@@ -26,7 +27,7 @@ impl Running {
             .transcript
             .map(|key| self.transcripts.read(&key).unwrap_or_default());
         if let Err(error) = self.start_shell(id, cwd.as_deref(), text.as_deref()) {
-            eprintln!("trame: a saved shell could not start: {error}");
+            log_error!("a saved shell could not start: {error}");
         }
     }
 }

@@ -82,6 +82,23 @@ fn growing_rows_adds_blank_lines() {
 }
 
 #[test]
+fn narrowing_then_widening_keeps_the_text() {
+    let mut term = feed(3, 10, "abcdefghij\r\nshort\r\n");
+    term.screen_mut().resize(3, 4);
+    term.screen_mut().resize(3, 10);
+    assert_eq!(lines(&term), vec!["abcdefghij", "short", ""]);
+}
+
+#[test]
+fn writing_on_a_narrowed_row_drops_its_hidden_text() {
+    let mut term = feed(2, 10, "abcdefghij");
+    term.screen_mut().resize(2, 4);
+    term.feed(b"\x1b[Hxy");
+    term.screen_mut().resize(2, 10);
+    assert_eq!(lines(&term), vec!["xycd", ""]);
+}
+
+#[test]
 fn erase_scrollback_clears_history() {
     let term = feed(2, 5, "1\r\n2\r\n3\x1b[3J");
     assert_eq!(term.screen().grid().history_len(), 0);

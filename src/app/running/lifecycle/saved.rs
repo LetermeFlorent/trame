@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 use trame::files::home_dir;
+use trame::log_error;
 use trame::preferences::Recall;
 use trame::session::SessionId;
 use trame::workspace::{Snapshot, TabSnapshot, Workspace};
@@ -40,7 +41,11 @@ impl Running {
         let mut snapshot = self.workspace.snapshot(self.preferences.clone(), &describe);
         snapshot.resume = resume;
         snapshot.window = self.saver.remember_window(window::snapshot(&self.window));
+        let kept = self.saver.keeps_session();
         self.saver.save(&snapshot);
+        if self.saver.keeps_session() != kept {
+            self.changed();
+        }
     }
 
     pub(super) fn restore_session(&mut self, saved: Option<&Snapshot>) -> bool {
@@ -60,7 +65,7 @@ impl Running {
                 self.workspace.set_numbering(self.preferences.numbering);
             }
             Err(error) => {
-                eprintln!("trame: {error}, starting a fresh session");
+                log_error!("{error}, starting a fresh session");
                 return false;
             }
         }

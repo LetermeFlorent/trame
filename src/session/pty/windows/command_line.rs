@@ -2,6 +2,8 @@ use std::ffi::{OsStr, OsString};
 use std::iter::repeat_n;
 use std::os::windows::ffi::OsStrExt;
 
+use crate::session::pty::DUMP_VARIABLE;
+
 const QUOTE: u16 = b'"' as u16;
 const BACKSLASH: u16 = b'\\' as u16;
 const SPACE: u16 = b' ' as u16;
@@ -54,6 +56,7 @@ pub(super) fn environment_block(extra: &[(OsString, OsString)]) -> Vec<u16> {
         .filter(|(key, _)| !extra.iter().any(|(name, _)| name.eq_ignore_ascii_case(key)))
         .collect();
     vars.extend(extra.iter().cloned());
+    vars.retain(|(key, _)| !key.eq_ignore_ascii_case(DUMP_VARIABLE));
     vars.sort_by_cached_key(|(key, _)| key.to_ascii_uppercase());
     let mut block = Vec::new();
     for (key, value) in vars {

@@ -14,12 +14,12 @@ impl TextSystem {
         pixels: impl FnOnce() -> Vec<u8>,
     ) -> Option<AtlasRegion> {
         if let Some(found) = self.images.get(&key) {
-            return Some(*found);
+            return *found;
         }
         let region = self
             .atlas
-            .insert(AtlasKind::Color, key.size, key.size, pixels())?;
+            .insert(AtlasKind::Color, key.size, key.size, pixels());
         self.images.insert(key, region);
-        Some(region)
+        region
     }
 }

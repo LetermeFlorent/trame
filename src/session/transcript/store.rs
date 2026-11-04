@@ -1,17 +1,17 @@
 use std::collections::{HashMap, HashSet};
 use std::fs::{self, File};
-use std::io::{self, ErrorKind, Read};
+use std::io::Read;
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use super::MAX_TRANSCRIPT_BYTES;
-use crate::files::write_atomic;
+use super::folder::{file_name, is_valid_key, report_unless_missing};
+use super::round::{Job, Round};
 use crate::session::SessionId;
+use crate::term::Terminal;
 
 pub const TRANSCRIPT_SAVE_INTERVAL: Duration = Duration::from_secs(60);
-
-const EXTENSION: &str = "vt";
-const MAX_KEY_LENGTH: usize = 40;
 
 pub struct Transcripts {
     folder: Option<PathBuf>,
@@ -19,6 +19,7 @@ pub struct Transcripts {
     keys: HashMap<SessionId, String>,
     written: HashMap<SessionId, u64>,
     next_save: Instant,
+    round: Option<Round>,
 }
 
 impl Transcripts {
@@ -29,6 +30,7 @@ impl Transcripts {
             keys: HashMap::new(),
             written: HashMap::new(),
             next_save: Instant::now() + TRANSCRIPT_SAVE_INTERVAL,
+            round: None,
         }
     }
 
@@ -71,40 +73,53 @@ impl Transcripts {
         self.next_save = Instant::now() + TRANSCRIPT_SAVE_INTERVAL;
     }
 
-    pub fn is_current(&self, id: SessionId, generation: u64) -> bool {
-        self.written.get(&id) == Some(&generation)
-    }
-
-    pub fn write(&mut self, id: SessionId, generation: u64, bytes: &[u8]) -> io::Result<()> {
-        let Some(path) = self.key(id).and_then(|key| self.path_of(key)) else {
-            return Ok(());
-        };
-        write_atomic(&path, bytes)?;
-        self.written.insert(id, generation);
-        Ok(())
-    }
-
-    pub fn prune(&mut self, live: &[SessionId]) {
-        let live: HashSet<SessionId> = live.iter().copied().collect();
-        self.keys.retain(|id, _| live.contains(id));
-        self.written.retain(|id, _| live.contains(id));
-        let Some(entries) = self.folder.as_ref().and_then(|dir| fs::read_dir(dir).ok()) else {
+    pub fn save(
+        &mut self,
+        tabs: &[SessionId],
+        terminal_of: impl Fn(SessionId) -> Option<Arc<Mutex<Terminal>>>,
+    ) {
+        if self
+            .round
+            .as_ref()
+            .is_some_and(|round| !round.is_finished())
+        {
+            return;
+        }
+        self.flush();
+        self.keep_only(tabs);
+        let Some(folder) = self.folder.clone() else {
             return;
         };
-        let kept: HashSet<String> = self.keys.values().map(|key| file_name(key)).collect();
-        for entry in entries.flatten() {
-            let stale = entry.file_type().is_ok_and(|kind| kind.is_file())
-                && entry
-                    .file_name()
-                    .to_str()
-                    .is_some_and(|name| !kept.contains(name));
-            if stale && let Err(error) = fs::remove_file(entry.path()) {
-                report_unless_missing("deleted", &error);
+        let jobs = tabs
+            .iter()
+            .filter_map(|id| {
+                Some(Job {
+                    id: *id,
+                    path: self.path_of(self.key(*id)?)?,
+                    terminal: terminal_of(*id)?,
+                    written: self.written.get(id).copied(),
+                })
+            })
+            .collect();
+        let kept = self.keys.values().map(|key| file_name(key)).collect();
+        self.round = Round::start(jobs, folder, kept);
+    }
+
+    pub fn flush(&mut self) {
+        let Some(round) = self.round.take() else {
+            return;
+        };
+        for (id, generation) in round.finish() {
+            if self.keys.contains_key(&id) {
+                self.written.insert(id, generation);
             }
         }
     }
 
     pub fn clear(&mut self) {
+        if let Some(round) = self.round.take() {
+            round.cancel();
+        }
         self.written.clear();
         let Some(folder) = &self.folder else {
             return;
@@ -114,32 +129,21 @@ impl Transcripts {
         }
     }
 
+    fn keep_only(&mut self, tabs: &[SessionId]) {
+        self.assign(tabs);
+        let live: HashSet<SessionId> = tabs.iter().copied().collect();
+        self.keys.retain(|id, _| live.contains(id));
+        self.written.retain(|id, _| live.contains(id));
+    }
+
     fn path_of(&self, key: &str) -> Option<PathBuf> {
         let folder = self.folder.as_ref().filter(|_| is_valid_key(key))?;
         Some(folder.join(file_name(key)))
     }
 }
 
-fn file_name(key: &str) -> String {
-    format!("{key}.{EXTENSION}")
-}
-
-fn is_valid_key(key: &str) -> bool {
-    !key.is_empty()
-        && key.len() <= MAX_KEY_LENGTH
-        && key
-            .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
-}
-
 fn launch_stamp() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |elapsed| elapsed.as_millis() as u64)
-}
-
-fn report_unless_missing(action: &str, error: &io::Error) {
-    if error.kind() != ErrorKind::NotFound {
-        eprintln!("trame: a saved tab text could not be {action}: {error}");
-    }
 }

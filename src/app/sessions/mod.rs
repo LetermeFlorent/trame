@@ -1,5 +1,8 @@
 mod deferred;
+mod screens;
 mod secrets;
+#[cfg(test)]
+mod tests;
 
 use std::collections::HashMap;
 use std::io;
@@ -33,15 +36,19 @@ pub struct Sessions {
     shell: ShellCommand,
     notify: Notifier,
     history: usize,
+    program_clipboard: bool,
 }
 
 impl Sessions {
     pub fn new(proxy: EventLoopProxy<UserEvent>) -> Self {
         let proxy = Mutex::new(proxy);
-        let notify: Notifier = Arc::new(move |event| {
+        Self::with_notifier(Arc::new(move |event| {
             let proxy = proxy.lock().unwrap_or_else(PoisonError::into_inner);
             let _ = proxy.send_event(UserEvent::Session(event));
-        });
+        }))
+    }
+
+    fn with_notifier(notify: Notifier) -> Self {
         Self {
             map: HashMap::new(),
             origins: HashMap::new(),
@@ -51,6 +58,7 @@ impl Sessions {
             shell: default_shell(),
             notify,
             history: DEFAULT_HISTORY_LINES,
+            program_clipboard: true,
         }
     }
 
@@ -70,7 +78,7 @@ impl Sessions {
             transcript: start.transcript,
         };
         let session = Session::spawn(id, &options, self.notify.clone())?;
-        session.terminal().screen_mut().set_history(self.history);
+        self.prepare(&session);
         self.map.insert(id, session);
         if let Some(path) = cwd {
             self.origins.insert(id, path.to_path_buf());
@@ -119,22 +127,10 @@ impl Sessions {
         starting_label(cwd, &self.shell.program)
     }
 
-    pub fn set_colors(&self, colors: ReportedColors) {
-        for session in self.map.values() {
-            session.terminal().screen_mut().set_reported_colors(colors);
-        }
-    }
-
-    pub fn set_history(&mut self, lines: usize) {
-        self.history = lines;
-        for session in self.map.values() {
-            session.terminal().screen_mut().set_history(lines);
-        }
-    }
-
-    pub fn clear_output(&self) {
-        for session in self.map.values() {
+    pub fn output(&mut self, id: SessionId) {
+        if let Some(session) = self.map.get(&id) {
             session.take_output();
         }
+        self.answer_prompt(id);
     }
 }

@@ -1,4 +1,5 @@
 mod lifetime;
+mod words;
 
 use trame::term::{SelectionKind, Terminal};
 
@@ -11,7 +12,9 @@ fn select(term: &mut Terminal, kind: SelectionKind, from: (usize, usize), to: (u
 }
 
 fn text(term: &Terminal) -> Option<String> {
-    term.screen().selected_text()
+    let text = term.screen().selected_text();
+    assert_eq!(term.screen().has_selected_text(), text.is_some());
+    text
 }
 
 #[test]
@@ -62,37 +65,6 @@ fn a_wrap_keeps_the_spaces_at_the_break() {
 }
 
 #[test]
-fn double_click_selects_a_word() {
-    let mut term = feed(2, 20, "say hello_world now");
-    term.screen_mut().start_selection(SelectionKind::Word, 0, 6);
-    assert_eq!(text(&term).as_deref(), Some("hello_world"));
-}
-
-#[test]
-fn word_stops_at_separators() {
-    let mut term = feed(2, 30, "run (some-path/file.rs) now");
-    term.screen_mut().start_selection(SelectionKind::Word, 0, 8);
-    assert_eq!(text(&term).as_deref(), Some("some-path/file.rs"));
-}
-
-#[test]
-fn double_click_on_blanks_selects_the_blank_run() {
-    let mut term = feed(1, 12, "ab    cd");
-    term.screen_mut().start_selection(SelectionKind::Word, 0, 3);
-    assert!(term.screen().grid().is_selected_in_view(0, 2));
-    assert!(term.screen().grid().is_selected_in_view(0, 5));
-    assert!(!term.screen().grid().is_selected_in_view(0, 1));
-}
-
-#[test]
-fn dragging_after_a_double_click_extends_by_words() {
-    let mut term = feed(1, 30, "alpha beta gamma delta");
-    term.screen_mut().start_selection(SelectionKind::Word, 0, 7);
-    term.screen_mut().extend_selection(0, 13);
-    assert_eq!(text(&term).as_deref(), Some("beta gamma"));
-}
-
-#[test]
 fn triple_click_selects_the_whole_line() {
     let mut term = feed(3, 12, "first line\r\nsecond");
     term.screen_mut().start_selection(SelectionKind::Line, 0, 4);
@@ -137,4 +109,11 @@ fn blank_rows_copy_as_empty_lines() {
     let mut term = terminal(2, 4);
     select(&mut term, SelectionKind::Line, (0, 0), (1, 3));
     assert_eq!(text(&term).as_deref(), Some("\n"));
+}
+
+#[test]
+fn a_blank_selection_has_no_text() {
+    let mut term = feed(2, 10, "ab");
+    select(&mut term, SelectionKind::Simple, (0, 4), (0, 8));
+    assert_eq!(text(&term), None);
 }

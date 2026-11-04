@@ -13,6 +13,8 @@ use unix::choose;
 #[cfg(windows)]
 use windows::choose;
 
+use crate::log_error;
+
 pub struct PickRequest {
     pub owner: Option<isize>,
     pub title: String,
@@ -42,6 +44,6 @@ fn spawn(request: PickRequest, kind: PickKind, reply: impl FnOnce(PathBuf) + Sen
             }
         });
     if let Err(error) = spawned {
-        eprintln!("trame: the file window could not open: {error}");
+        log_error!("the file window could not open: {error}");
     }
 }

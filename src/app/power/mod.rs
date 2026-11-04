@@ -56,8 +56,10 @@ impl Power {
     }
 
     pub fn set_background(&mut self, background: bool) {
-        self.background = background;
-        self.touch();
+        if self.background != background {
+            self.background = background;
+            self.apply(Instant::now());
+        }
     }
 
     pub fn set_tabs(&mut self, tabs: impl IntoIterator<Item = Shown>) {

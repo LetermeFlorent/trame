@@ -18,8 +18,9 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new(gpu: &Gpu, format: wgpu::TextureFormat, atlas: &Atlas) -> Self {
+    pub fn new(gpu: &Gpu, format: wgpu::TextureFormat, atlas: &mut Atlas) -> Self {
         let device = &gpu.device;
+        atlas.limit_to(device.limits().max_texture_dimension_2d);
         let bindings = Bindings::new(device, atlas);
         Self {
             pipeline: pipeline::render_pipeline(device, bindings.layout(), format),

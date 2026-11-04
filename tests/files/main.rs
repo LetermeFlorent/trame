@@ -1,4 +1,7 @@
+#[cfg(unix)]
+mod atomic;
 mod icons;
+mod log;
 mod resample;
 
 use std::env;

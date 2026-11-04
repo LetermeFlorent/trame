@@ -31,9 +31,16 @@ pub(super) fn lines(text: &str) -> Vec<&str> {
 }
 
 pub(super) fn block_of(lines: &[&str], name: &str) -> Option<Range<usize>> {
-    let start = lines
-        .iter()
-        .position(|line| host_names(line).contains(&name))?;
+    blocks_of(lines, name).next()
+}
+
+pub(super) fn blocks_of(lines: &[&str], name: &str) -> impl Iterator<Item = Range<usize>> {
+    (0..lines.len())
+        .filter(move |&start| host_names(lines[start]).contains(&name))
+        .map(move |start| block_at(lines, start))
+}
+
+fn block_at(lines: &[&str], start: usize) -> Range<usize> {
     let body = start + 1;
     let next = lines[body..]
         .iter()
@@ -43,7 +50,7 @@ pub(super) fn block_of(lines: &[&str], name: &str) -> Option<Range<usize>> {
     while end > body && is_filler(lines[end - 1]) {
         end -= 1;
     }
-    Some(start..end)
+    start..end
 }
 
 pub(super) fn is_setting(line: &str, keys: &[&str]) -> bool {

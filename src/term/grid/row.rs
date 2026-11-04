@@ -119,6 +119,9 @@ impl Row {
 pub(super) fn printable(cells: impl Iterator<Item = Cell>) -> String {
     cells
         .filter(|cell| !cell.flags.contains(Flags::WIDE_SPACER))
-        .map(|cell| if cell.ch == '\0' { ' ' } else { cell.ch })
+        .flat_map(|cell| {
+            let ch = if cell.ch == '\0' { ' ' } else { cell.ch };
+            std::iter::once(ch).chain(cell.marks.chars())
+        })
         .collect()
 }

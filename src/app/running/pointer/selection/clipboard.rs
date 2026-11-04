@@ -1,3 +1,4 @@
+use trame::log_error;
 use trame::session::SessionId;
 
 use super::Running;
@@ -14,7 +15,8 @@ impl Running {
     pub(in crate::app::running) fn forward_clipboard(&self, id: SessionId) {
         let session = self.sessions.get(id);
         let text = session.and_then(|session| session.terminal().screen_mut().take_clipboard());
-        if let Some(text) = text {
+        let focused = self.view.window_focused && self.workspace.active_tab() == Some(id);
+        if let Some(text) = text.filter(|_| focused) {
             write_clipboard(&text);
         }
     }
@@ -42,6 +44,6 @@ impl Running {
 fn write_clipboard(text: &str) {
     let written = arboard::Clipboard::new().and_then(|mut clipboard| clipboard.set_text(text));
     if let Err(error) = written {
-        eprintln!("trame: the clipboard could not be written: {error}");
+        log_error!("the clipboard could not be written: {error}");
     }
 }

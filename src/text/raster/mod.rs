@@ -7,6 +7,7 @@ use swash::scale::{Render, ScaleContext, Source, StrikeWith};
 use swash::zeno::{Angle, Format, Transform, Vector};
 
 use super::font::{FontKey, FontLibrary, WEIGHT_AXIS};
+use super::insert_bounded;
 use crate::render::{Atlas, AtlasKind, AtlasRegion};
 pub use key::GlyphKey;
 
@@ -44,11 +45,11 @@ impl GlyphCache {
         }
         let raster = match self.rasterize(library, key) {
             Some(image) if image.placement.width > 0 && image.placement.height > 0 => {
-                Some(upload(atlas, image)?)
+                upload(atlas, image)
             }
             _ => None,
         };
-        self.glyphs.insert(key, raster);
+        insert_bounded(&mut self.glyphs, key, raster);
         raster
     }
 

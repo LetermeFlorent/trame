@@ -16,12 +16,13 @@ use crate::ui::metrics::UiMetrics;
 
 use super::column::Column;
 use super::{ChoiceRow, SettingControl, SettingLine, SettingsTab};
-use launch::{close_toggle, command_row, history_stepper, instance_tabs_stepper, recall_toggles};
+use launch::{
+    command_row, history_stepper, instance_tabs_stepper, question_toggles, recall_toggles,
+};
 use rows::{display_rows, folder_row, language_row, size_steppers};
 use system::system_page;
 
 const PAGE_HEIGHT: f32 = 640.0;
-const LEAST_PAGE_HEIGHT: f32 = 220.0;
 
 #[derive(Clone, Debug)]
 pub struct ToggleRow {
@@ -55,8 +56,7 @@ pub struct FormPage {
 }
 
 pub(super) fn page_height(metrics: &UiMetrics, room: f32) -> f32 {
-    let least = metrics.px(LEAST_PAGE_HEIGHT);
-    metrics.px(PAGE_HEIGHT).min(room).max(least)
+    metrics.px(PAGE_HEIGHT).min(room).max(0.0)
 }
 
 pub(super) fn form_page(
@@ -74,8 +74,7 @@ pub(super) fn form_page(
                 instance_tabs_stepper(column, strings, preferences),
                 history_stepper(column, strings, preferences),
             ];
-            page.toggles
-                .push(close_toggle(column, strings, preferences));
+            page.toggles = question_toggles(column, strings, preferences).into();
         }
         SettingsTab::Display => {
             page.steppers = size_steppers(column, strings, preferences).into();

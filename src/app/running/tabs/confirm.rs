@@ -2,6 +2,7 @@ use winit::event::{ElementState, KeyEvent};
 use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, NamedKey};
 
+use trame::locale::{ALIAS_SLOT, COUNT_SLOT};
 use trame::ui::Hit;
 use trame::ui::frame::{FormAction, MessageRequest};
 
@@ -11,6 +12,8 @@ use crate::app::running::keys::is_escape;
 
 const CLOSE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Close];
 const UPDATE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Restart];
+const REMOVE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Remove];
+const PASTE_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Paste];
 
 struct Question {
     title: String,
@@ -20,7 +23,7 @@ struct Question {
 
 impl Running {
     pub(in crate::app::running) fn place_message(&mut self) {
-        let Some(closing) = self.closing else {
+        let Some(closing) = self.closing.clone() else {
             return;
         };
         let Some(question) = self.question(closing) else {
@@ -37,24 +40,41 @@ impl Running {
         self.frame.place_message(&mut self.text, &request);
     }
 
-    fn question(&self, closing: Closing) -> Option<Question> {
+    fn question(&mut self, closing: Closing) -> Option<Question> {
         let strings = self.strings;
+        if let Closing::Forget(index) = closing {
+            let host = self.listed_host(index)?;
+            return Some(Question {
+                title: strings.remove_question.replace(ALIAS_SLOT, host.alias()?),
+                body: strings.hand_written.to_owned(),
+                actions: &REMOVE_ACTIONS,
+            });
+        }
+        if let Closing::Paste(pending) = &closing {
+            return Some(Question {
+                title: strings.paste_question.to_owned(),
+                body: pending.body.clone(),
+                actions: &PASTE_ACTIONS,
+            });
+        }
         if let Closing::Update = closing {
-            let offer = self.update_offer.as_ref()?;
+            let offer = self.update.offer.as_ref()?;
             return Some(Question {
                 title: offer.question(strings),
                 body: strings.update_restarts.to_owned(),
                 actions: &UPDATE_ACTIONS,
             });
         }
-        let count = self.tabs_closing(closing);
+        let count = self.tabs_closing(&closing);
         let title = match closing {
             Closing::Instance(_) => strings.close_instance,
             _ => strings.close_window,
         };
         (count > 0).then(|| Question {
             title: title.to_owned(),
-            body: format!("{count} {}", strings.tabs_will_close),
+            body: strings
+                .tabs_will_close
+                .replace(COUNT_SLOT, &count.to_string()),
             actions: &CLOSE_ACTIONS,
         })
     }
@@ -77,7 +97,12 @@ impl Running {
         if state == ElementState::Pressed && hit != Some(Hit::Dialog) {
             let confirmed = matches!(
                 hit,
-                Some(Hit::FormButton(FormAction::Close | FormAction::Restart))
+                Some(Hit::FormButton(
+                    FormAction::Close
+                        | FormAction::Restart
+                        | FormAction::Remove
+                        | FormAction::Paste
+                ))
             );
             self.settle_closing(event_loop, confirmed);
         }

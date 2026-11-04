@@ -27,7 +27,7 @@ Change folder opens a small window with the current folder, which cannot be type
 
 The same menu opens an SSH connection in a new tab. The window lists the saved connections and the hosts of `~/.ssh/config`: a click on one connects, and its pencil fills the form below to change it.
 
-The form takes an address, a user, a port and a password, all optional but the address. Connect writes the host to `~/.ssh/config` (or changes its block there), keeps the password in the Windows Credential Manager on Windows, and opens the tab. trame types the system `ssh` command (OpenSSH, part of Windows 10 and 11) and answers the password prompt with the saved password. Each connection used goes first in the list, and a long list scrolls with the wheel or its bar.
+The form takes an address, a user, a port and a password, all optional but the address. Connect writes the host to `~/.ssh/config` (or changes its block there), keeps the password in the Windows Credential Manager on Windows, and opens the tab. trame types the system `ssh` command (OpenSSH, part of Windows 10 and 11) and types the saved password once, into the password prompt of that user and host only (the address and user set in `~/.ssh/config` count). A key passphrase or the password of a jump host is left to you, and trame stops waiting for the prompt after a minute or at the first line that is not part of connecting. Each connection used goes first in the list, and a long list scrolls with the wheel or its bar.
 
 ### Shells and themes
 
@@ -43,9 +43,15 @@ Files dropped on a pane from the Explorer or another app are typed at its prompt
 
 At launch, trame reopens the last layout with each shell in the folder it was in, and each tab shows again the text it held when trame closed. Only the text comes back. A program that was running in the tab is not started again, except an SSH connection, which asks for its password again.
 
+The folder is the last one the shell reported on this computer. trame ignores a network path such as `\\server\share`, or a folder reported by another machine, for example over SSH, and keeps the last local one.
+
 Three switches in the settings change that, all on by default. "Remember instances" off starts a single new instance. "Remember terminals" off brings the instances back with their name, colour, icon and folder but with fresh terminals, as many as a new instance gets. "Restore tab text" off brings the tabs back empty.
 
+Only one trame at a time keeps the layout. A second one, opened while the first still runs, starts with a single new instance and saves nothing, not even its settings: its title bar says "unsaved session" after the name.
+
 Closing the window, or an instance from its cross in the side bar, while it holds two tabs or more first asks to confirm, with the number of tabs that will close. Enter or Close confirms; Escape, Cancel, the cross or a click outside keeps everything open. The switch "Ask before closing several tabs", on by default, turns the question off.
+
+Pasting text that holds a line break asks first, because a shell runs each line as soon as it arrives. The question shows the first three lines and how many there are in all. It does not come up when the program in the tab has turned on bracketed paste, which marks the pasted text so the program does not run it on its own. trame removes control characters from every paste, keeping tabs and line breaks, and asks as well when the clipboard held some. Enter or Paste sends the text; Escape, Cancel, the cross or a click outside drops it. The switch "Ask before pasting several lines", on by default, turns the question off.
 
 ## Settings
 
@@ -57,11 +63,11 @@ Terminals sets the startup command and how many terminals a new instance opens w
 
 Display changes the size of the terminal text and of the interface (80% to 150%), the language (Auto follows the system, or force French or English), the side of the panel and the spacing.
 
-System holds efficiency mode, on by default. trame slows down after 30 seconds without activity, and as soon as its window is minimized or behind another one it also lowers the priority of the programs running in its tabs, until the window comes back to the front. The switch under it, "Hidden tabs with no activity", also on by default, does the same for a tab you cannot see once it has printed nothing for 30 seconds, even while the window is in front, and gives back the memory that tab holds. On Windows, System can also show a notification when a tab waits for an answer.
+System holds efficiency mode, on by default. trame slows down after 30 seconds without activity, and as soon as its window is minimized or behind another one it also lowers the priority of the programs running in its tabs, until the window comes back to the front. The switch under it, "Hidden tabs with no activity", also on by default, does the same for a tab you cannot see once it has printed nothing for 30 seconds, even while the window is in front, and gives back the memory that tab holds. On Windows, System can also show a notification when a tab waits for an answer. The switch "Let programs copy to the clipboard", on by default, lets the program in the tab you are working in replace the clipboard, which is how vim or tmux copy over SSH. trame ignores the request when it comes from another tab, while its window is not in front, or with more than 256 KB of text.
 
 Instances shows numbers instead of icons and chooses whether they follow when an instance closes or moves.
 
-Connections lists the saved SSH connections with a pencil to change one and a cross to forget it, which also removes its block from `~/.ssh/config`. Add opens an empty form with Save and Cancel.
+Connections lists the saved SSH connections with a pencil to change one and a cross to forget it, which also removes its block from `~/.ssh/config`. When that block holds more than trame writes there (another name, a pattern, a comment or another setting), trame asks first, and a block shared with other names or patterns only loses this one. Add opens an empty form with Save and Cancel.
 
 Shortcuts changes the keys of every action, see [Keyboard shortcuts](#keyboard-shortcuts).
 
@@ -107,7 +113,9 @@ The macOS build is tested and opened on every release, like the Linux one, and h
 
 trame looks for a newer release on GitHub when it starts, then once an hour. When it finds one, an Update to button shows at the bottom of the side bar with the new version number. That is all it does on its own: nothing is downloaded or installed until you click it.
 
-Clicking the button asks "Update to 0.4.0?" and warns that tabs and their text come back but commands that were running stop. Cancel leaves everything as it was. Restart saves every instance and tab, then opens trame again on an update screen. It checks the release, fills a bar with the download percentage, installs, and reopens every instance and tab with its text, exactly as you left them, even when the launch settings say to forget them. Until the screen fades out, only the window itself can be moved, resized or closed. If the download fails, the screen fades out and you are back on the version you had, tabs included.
+Clicking the button asks "Update to 0.4.0?" and warns that tabs and their text come back but commands that were running stop. Cancel leaves everything as it was. Restart saves every instance and tab, then opens trame again on an update screen. It checks the release, fills a bar with the download percentage, installs, and reopens every instance and tab with its text, exactly as you left them, even when the launch settings say to forget them. Until the screen fades out, only the window itself can be moved, resized or closed. If the download fails, the screen fades out, the title bar says "update failed" and you are back on the version you had, tabs included.
+
+Nothing is installed before it is checked. Each release carries `SHA512SUMS`, the checksums of its files, and `SHA512SUMS.sig`, a signature made with the project's release key. trame holds the public half of that key, the one in `packaging/release-key.der`, and throws away a download whose checksum is missing from the signed list or differs from it. To check a file you downloaded yourself, put it next to those two and run `openssl pkeyutl -verify -rawin -pubin -keyform DER -inkey release-key.der -in SHA512SUMS -sigfile SHA512SUMS.sig`, then `sha512sum -c --ignore-missing SHA512SUMS`.
 
 ### Windows and macOS
 
@@ -119,7 +127,7 @@ A Windows copy installed for all users cannot rewrite its own folder, so the upd
 
 ### Linux
 
-The `.deb` and the `.rpm` belong to the system's package manager, so installing a new one takes your password. The update screen downloads the matching package into `~/.cache/trame/update`, then trame closes. The system's password window opens (through `pkexec`), the package manager installs the new version (`apt-get` on Debian and Ubuntu, `dnf`, `zypper` or `rpm` elsewhere), and trame opens again with your tabs. If you cancel the password window, trame opens again on the version you had.
+The `.deb` and the `.rpm` belong to the system's package manager, so installing a new one takes your password. The update screen downloads the matching package into `~/.cache/trame/update`, then trame closes. The system's password window opens (through `pkexec`), the package is copied into a folder only the administrator can write to and checked once more, the package manager installs that copy (`apt-get` on Debian and Ubuntu, `dnf`, `zypper` or `rpm` elsewhere), and trame opens again with your tabs. If you cancel the password window, trame opens again on the version you had.
 
 A copy that is not the packaged `/usr/bin/trame`, such as one built from source, leaves updates to you.
 
@@ -162,9 +170,11 @@ The layout of instances, tabs and splits, along with the window size, is saved o
 - Linux: `$XDG_STATE_HOME/trame/session.json`, which is `~/.local/state/trame/session.json` by default
 - macOS: `~/Library/Application Support/trame/session.json`
 
-The settings live in the same file. Deleting it makes trame start over with a single instance.
+The settings live in the same file. Deleting it makes trame start over with a single instance. A file trame cannot read is renamed `session.json.bad` and trame starts over. If even the rename fails, trame leaves the file as it is and saves nothing until the next launch, and its title bar says "unsaved session".
 
 The text of each tab goes into the `text` folder next to it, once a minute when something changed and once more when trame closes. Each tab keeps its last 4 MB. Turning off "Restore tab text", or one of the two switches above it, deletes that folder.
+
+On Linux and macOS, trame keeps its folder closed to the other accounts of the machine, and a `~/.ssh` folder or config file it has to create is readable by you only.
 
 ## How it is made
 
@@ -174,7 +184,7 @@ On Windows, `trame.exe` weighs under 7 MB. With a couple of tabs open it holds a
 
 ## Build from source
 
-trame needs Rust 1.87 or newer.
+trame needs Rust 1.89 or newer.
 
 ```sh
 git clone https://github.com/LetermeFlorent/trame.git
@@ -184,7 +194,7 @@ cargo build --release
 
 The program lands in `target/release/trame` (`trame.exe` on Windows). `cargo test` runs the test suite, and `scripts/install-hooks` sets up the pre-commit hook that runs `cargo fmt` and `cargo clippy`.
 
-To debug what a program sends to the terminal, set the environment variable `TRAME_DUMP` to a folder. Every session then writes the raw bytes it receives from its shell to `session-<number>-output.bin` in that folder, which is created if it is missing.
+To debug what a program sends to the terminal, build trame with `cargo build --features dump` and set the environment variable `TRAME_DUMP` to a folder. Every session then writes the raw bytes it receives from its shell to `session-<number>-output.bin` in that folder, which is created if it is missing, and each file stops at 64 MB. These files hold everything the shell printed, so delete them once read. Release builds leave the recorder out, and the shells trame starts never see the variable.
 
 The packages are made with the same tools the release workflow uses:
 
@@ -199,4 +209,4 @@ The first two need [cargo-deb](https://github.com/kornelski/cargo-deb) and [carg
 
 ### Releasing
 
-Raise `version` in `Cargo.toml`, commit, and push a tag with the same number, such as `v0.4.0`. The release workflow then tests and builds trame on Windows, Ubuntu and macOS. It installs the `.deb` and opens trame, installs the `.rpm` on Fedora, wraps the macOS build into `trame.app` and opens it. On Ubuntu and macOS it also builds a copy numbered 0.0.1 and checks that it fetches the latest release on its own: the package lands in the update folder and installs, and the Mac copy replaces its `trame.app`. Then it publishes everything as a GitHub release, and installed copies pick it up within the hour or at their next launch.
+Raise `version` in `Cargo.toml`, commit, and push a tag with the same number, such as `v0.4.0`. The release workflow then tests and builds trame on Windows, Ubuntu and macOS. It installs the `.deb` and opens trame, installs the `.rpm` on Fedora, wraps the macOS build into `trame.app` and opens it. Then it writes `SHA512SUMS`, signs it with the repository secret `TRAME_SIGNING_KEY`, checks the signature against `packaging/release-key.der` and publishes everything as a GitHub release. Without the secret, or with a key that does not match, nothing is published. Last, on Ubuntu and macOS, a copy numbered 0.0.1 is started as if its update button had been clicked and checks that it moves to this release: the package installs through the password prompt, and the Mac copy replaces its `trame.app`. Installed copies offer the release within the hour or at their next launch.

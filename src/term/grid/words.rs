@@ -13,30 +13,49 @@ enum Class {
 
 impl Grid {
     pub(super) fn word_span(&self, at: GridPoint) -> Span {
-        let Some(row) = self.line(at.line) else {
+        let Some(wanted) = self.class_at(at) else {
             return Span::single(at);
         };
-        let class = |col: usize| {
-            let cell = row.cell(col);
-            match cell.ch {
-                ' ' | '\0' if !cell.flags.contains(Flags::WIDE_SPACER) => Class::Blank,
-                ch if SEPARATORS.contains(ch) => Class::Separator,
-                _ => Class::Word,
-            }
-        };
-        let wanted = class(at.col);
-        let mut start = at.col;
-        while start > 0 && class(start - 1) == wanted {
-            start -= 1;
+        let same = |point: &GridPoint| self.class_at(*point) == Some(wanted);
+        let mut start = at;
+        while let Some(before) = self.before(start).filter(same) {
+            start = before;
         }
-        let mut end = at.col;
-        while end + 1 < self.cols && class(end + 1) == wanted {
-            end += 1;
+        let mut end = at;
+        while let Some(after) = self.after(end).filter(same) {
+            end = after;
         }
-        Span {
-            start: GridPoint::new(at.line, start),
-            end: GridPoint::new(at.line, end),
+        Span { start, end }
+    }
+
+    fn class_at(&self, at: GridPoint) -> Option<Class> {
+        let cell = self.line(at.line)?.cell(at.col);
+        Some(match cell.ch {
+            ' ' | '\0' if !cell.flags.contains(Flags::WIDE_SPACER) => Class::Blank,
+            ch if SEPARATORS.contains(ch) => Class::Separator,
+            _ => Class::Word,
+        })
+    }
+
+    fn before(&self, at: GridPoint) -> Option<GridPoint> {
+        if at.col > 0 {
+            return Some(GridPoint::new(at.line, at.col - 1));
         }
+        let line = at.line.checked_sub(1)?;
+        self.wraps(line)
+            .then(|| GridPoint::new(line, self.cols - 1))
+    }
+
+    fn after(&self, at: GridPoint) -> Option<GridPoint> {
+        if at.col + 1 < self.cols {
+            return Some(GridPoint::new(at.line, at.col + 1));
+        }
+        let wraps = self.wraps(at.line) && at.line + 1 < self.end_line();
+        wraps.then(|| GridPoint::new(at.line + 1, 0))
+    }
+
+    fn wraps(&self, line: u64) -> bool {
+        line >= self.first_line() && self.line(line).is_some_and(|row| row.wrapped)
     }
 
     pub(super) fn line_span(&self, at: GridPoint) -> Span {
