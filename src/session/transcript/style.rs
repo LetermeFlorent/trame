@@ -2,6 +2,9 @@ use std::io::Write;
 
 use crate::term::{Cell, Color, Flags};
 
+const SET_FOREGROUND: u8 = 38;
+const SET_BACKGROUND: u8 = 48;
+
 const STYLE_FLAGS: [(Flags, &str); 9] = [
     (Flags::BOLD, ";1"),
     (Flags::DIM, ";2"),
@@ -45,8 +48,8 @@ impl Style {
                 out.extend_from_slice(code.as_bytes());
             }
         }
-        write_color(out, self.fg, 38);
-        write_color(out, self.bg, 48);
+        write_color(out, self.fg, SET_FOREGROUND);
+        write_color(out, self.bg, SET_BACKGROUND);
         out.push(b'm');
     }
 }
