@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::hsv::{RGB_MASK, hex_code, parse_hex};
-use super::{Appearance, Theme};
+use super::{Appearance, Theme, preset_named};
 use crate::theme::Rgba;
 
 const TINT_DARK: f32 = 0.16;
@@ -62,10 +62,7 @@ impl Swatch {
     }
 
     pub fn parse(text: &str) -> Option<Swatch> {
-        match Self::NAMES.iter().position(|name| *name == text) {
-            Some(index) => Some(Self::ALL[index]),
-            None => parse_hex(text).map(Swatch::custom),
-        }
+        preset_named(&Self::NAMES, &Self::ALL, text).or_else(|| parse_hex(text).map(Swatch::custom))
     }
 }
 

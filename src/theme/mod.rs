@@ -80,3 +80,8 @@ impl Theme {
         }
     }
 }
+
+fn preset_named<T: Copy>(names: &[&str], presets: &[T], text: &str) -> Option<T> {
+    let index = names.iter().position(|name| *name == text)?;
+    presets.get(index).copied()
+}

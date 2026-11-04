@@ -3,6 +3,7 @@ use std::hash::{BuildHasher, RandomState};
 use serde::{Deserialize, Serialize};
 
 use super::letters::Letters;
+use super::preset_named;
 
 const LETTERS_PREFIX: &str = "letters:";
 const IMAGE_PREFIX: &str = "image:";
@@ -40,8 +41,8 @@ impl Emblem {
     ];
 
     pub fn parse(text: &str) -> Option<Emblem> {
-        if let Some(index) = Self::NAMES.iter().position(|name| *name == text) {
-            return Some(Self::ALL[index]);
+        if let Some(preset) = preset_named(&Self::NAMES, &Self::ALL, text) {
+            return Some(preset);
         }
         if let Some(letters) = text.strip_prefix(LETTERS_PREFIX) {
             return Letters::parse(letters).map(Emblem::Letters);
