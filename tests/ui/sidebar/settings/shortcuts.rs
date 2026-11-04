@@ -8,14 +8,17 @@ use trame::ui::frame::{
 };
 use trame::ui::{FrameLayout, Hit, Platform};
 
-use super::{english, general_request, panel, placed};
+use super::{english, panel, placed, request_on};
 use crate::text_system;
 
 fn opened(text: &mut TextSystem, preferences: &Preferences, view: ShortcutsView) -> FrameLayout {
     let request = SettingsRequest {
-        tab: SettingsTab::Shortcuts,
         shortcuts: Some(view),
-        ..general_request(preferences, Language::English.strings())
+        ..request_on(
+            preferences,
+            Language::English.strings(),
+            SettingsTab::Shortcuts,
+        )
     };
     placed(text, &request)
 }

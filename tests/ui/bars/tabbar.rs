@@ -7,6 +7,7 @@ use trame::ui::chrome::draw_chrome;
 use trame::ui::{Density, FrameLayout, PanelSide, UiMetrics};
 use trame::workspace::Workspace;
 
+use super::painted_at;
 use crate::paint::paint_with;
 use crate::{frame, frame_with_metrics, text_system, workspace};
 
@@ -21,13 +22,6 @@ fn coloured(first: Option<Swatch>, second: Option<Swatch>) -> Workspace {
 
 fn paint(text: &mut TextSystem, frame: &FrameLayout, theme: &Theme) -> Scene {
     paint_with(text, frame, theme, None, draw_chrome)
-}
-
-fn painted_at(scene: &Scene, rect: Rect, color: Rgba) -> bool {
-    scene
-        .quads()
-        .iter()
-        .any(|quad| quad.rect[..2] == [rect.x, rect.y] && quad.color == color.to_array())
 }
 
 fn line_over(scene: &Scene, tab: Rect, color: Rgba) -> Option<Rect> {

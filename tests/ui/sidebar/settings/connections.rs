@@ -7,7 +7,7 @@ use trame::ui::frame::{
 };
 use trame::ui::{FrameLayout, Hit};
 
-use super::{general_request, panel, placed};
+use super::{panel, placed, request_on};
 use crate::text_system;
 
 pub fn hosts(count: usize) -> Vec<SshHost> {
@@ -25,9 +25,12 @@ pub fn opened(hosts: &[SshHost], first: usize, form: Option<&ConnectForm>) -> Fr
         changing: false,
     };
     let request = SettingsRequest {
-        tab: SettingsTab::Connections,
         hosts: Some(view),
-        ..general_request(&preferences, Language::English.strings())
+        ..request_on(
+            &preferences,
+            Language::English.strings(),
+            SettingsTab::Connections,
+        )
     };
     placed(&mut text_system(), &request)
 }

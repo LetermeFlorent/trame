@@ -14,7 +14,7 @@ use trame::locale::Language;
 use trame::session::SessionId;
 use trame::text::TextSystem;
 use trame::theme::Swatch;
-use trame::ui::frame::{ColorsView, EditAnchor, EditKind, EditTarget, EditorRequest};
+use trame::ui::frame::{ColorsView, EditAnchor, EditKind, EditTarget, EditorRequest, PopupFrame};
 use trame::ui::{FrameLayout, Hit};
 use trame::workspace::Workspace;
 
@@ -110,4 +110,17 @@ fn the_caret_follows_the_text_and_stays_inside_the_field() {
     let long = caret_of(&TextField::new(&"w".repeat(100)));
     assert!(long.caret.right() <= long.text_area.right() + 1.0);
     assert!(long.text_x < long.text_area.x);
+}
+
+#[track_caller]
+fn closing_popup(frame: &FrameLayout) -> &PopupFrame {
+    let popup = frame
+        .editor
+        .as_ref()
+        .and_then(|editor| editor.popup.as_ref());
+    let popup = popup.expect("a popup");
+    assert_eq!(frame.hit(popup.close.center(), false), Some(Hit::EditClose));
+    let outside = Point::new(popup.rect.x - 10.0, popup.rect.center().y);
+    assert_eq!(frame.hit(outside, false), Some(Hit::Backdrop));
+    popup
 }

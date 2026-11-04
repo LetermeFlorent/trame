@@ -3,7 +3,7 @@ use trame::theme::Swatch;
 use trame::ui::Hit;
 use trame::ui::frame::SettingControl;
 
-use super::{colors, on_strip};
+use super::{closing_popup, colors, on_strip};
 use crate::{text_system, workspace};
 
 #[test]
@@ -32,14 +32,7 @@ fn the_colour_window_closes_from_its_cross_or_from_outside() {
     let mut text = text_system();
     let workspace = workspace();
     let frame = on_strip(&mut text, &workspace, colors(None));
-    let popup = frame
-        .editor
-        .as_ref()
-        .and_then(|editor| editor.popup.as_ref());
-    let popup = popup.expect("a popup");
-    assert_eq!(frame.hit(popup.close.center(), false), Some(Hit::EditClose));
-    let outside = Point::new(popup.rect.x - 10.0, popup.rect.center().y);
-    assert_eq!(frame.hit(outside, false), Some(Hit::Backdrop));
+    let popup = closing_popup(&frame);
     let title = Point::new(popup.title.label_x + 1.0, popup.title.rect.center().y);
     assert_eq!(frame.hit(title, false), Some(Hit::EditStrip));
 }

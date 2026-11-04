@@ -11,12 +11,18 @@ mod terminal;
 use trame::locale::Language;
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
+use trame::theme::Hsv;
 use trame::ui::{FrameInput, FrameLayout, Motion, UiMetrics};
 use trame::workspace::Workspace;
 
 pub const WIDTH: f32 = 1200.0;
 pub const HEIGHT: f32 = 700.0;
 const FONT_SIZE: f32 = 14.0;
+pub const TEAL: Hsv = Hsv {
+    hue: 0.5,
+    saturation: 0.5,
+    value: 0.5,
+};
 
 pub fn workspace() -> Workspace {
     let mut workspace = Workspace::new();

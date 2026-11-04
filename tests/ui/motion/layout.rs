@@ -1,12 +1,23 @@
 use trame::session::SessionId;
+use trame::text::TextSystem;
 use trame::ui::motion::DURATION;
 use trame::ui::{FrameLayout, Motion, UiMetrics};
-use trame::workspace::Edge;
+use trame::workspace::{Edge, Workspace};
 
 use super::{layout_at, settle};
 use crate::{frame, text_system, workspace};
 
 const NEW_TAB: SessionId = SessionId(9);
+
+fn split_halfway(text: &mut TextSystem) -> (Workspace, FrameLayout) {
+    let mut workspace = workspace();
+    let (mut motion, start) = settle(text, &workspace);
+    workspace.split_active(NEW_TAB, Edge::Right);
+    motion.animate_next();
+    layout_at(text, &workspace, &mut motion, start);
+    let middle = layout_at(text, &workspace, &mut motion, start + DURATION / 2);
+    (workspace, middle)
+}
 
 #[test]
 fn the_sidebar_slides_and_the_panes_follow() {
@@ -59,12 +70,7 @@ fn a_new_split_grows_from_the_edge() {
 #[test]
 fn the_terminal_size_follows_the_target_not_the_animation() {
     let mut text = text_system();
-    let mut workspace = workspace();
-    let (mut motion, start) = settle(&mut text, &workspace);
-    workspace.split_active(NEW_TAB, Edge::Right);
-    motion.animate_next();
-    layout_at(&mut text, &workspace, &mut motion, start);
-    let middle = layout_at(&mut text, &workspace, &mut motion, start + DURATION / 2);
+    let (workspace, middle) = split_halfway(&mut text);
     let target = frame(&mut text, &workspace);
     for (shown, settled) in middle.panes.iter().zip(&target.panes) {
         assert_eq!(shown.grid_area, settled.grid_area);
@@ -94,13 +100,7 @@ fn a_new_tab_grows_from_nothing() {
 
 #[test]
 fn dividers_stay_on_the_shown_panes() {
-    let mut text = text_system();
-    let mut workspace = workspace();
-    let (mut motion, start) = settle(&mut text, &workspace);
-    workspace.split_active(NEW_TAB, Edge::Right);
-    motion.animate_next();
-    layout_at(&mut text, &workspace, &mut motion, start);
-    let middle = layout_at(&mut text, &workspace, &mut motion, start + DURATION / 2);
+    let (_, middle) = split_halfway(&mut text_system());
     let divider = middle.dividers[0].rect;
     let left = middle.panes[0].rect;
     assert!(divider.x >= left.right() - divider.width && divider.x <= left.right());

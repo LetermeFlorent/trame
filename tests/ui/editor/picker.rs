@@ -1,19 +1,12 @@
 use trame::geometry::Point;
 use trame::input::TextField;
 use trame::text::TextSystem;
-use trame::theme::Hsv;
 use trame::ui::frame::{EditKind, FormAction, PickerFrame, PickerPart, PickerView};
 use trame::ui::{FrameLayout, Hit};
 use trame::workspace::Workspace;
 
-use super::on_strip;
-use crate::{text_system, workspace};
-
-const TEAL: Hsv = Hsv {
-    hue: 0.5,
-    saturation: 0.5,
-    value: 0.5,
-};
+use super::{closing_popup, on_strip};
+use crate::{TEAL, text_system, workspace};
 
 fn picker(text: &mut TextSystem, workspace: &Workspace, editing: bool) -> FrameLayout {
     let field = TextField::new("#408080");
@@ -115,12 +108,5 @@ fn the_picker_cross_and_the_outside_stay_two_different_hits() {
     let mut text = text_system();
     let workspace = workspace();
     let frame = picker(&mut text, &workspace, false);
-    let popup = frame
-        .editor
-        .as_ref()
-        .and_then(|editor| editor.popup.as_ref());
-    let popup = popup.expect("a popup");
-    assert_eq!(frame.hit(popup.close.center(), false), Some(Hit::EditClose));
-    let outside = Point::new(popup.rect.x - 10.0, popup.rect.center().y);
-    assert_eq!(frame.hit(outside, false), Some(Hit::Backdrop));
+    closing_popup(&frame);
 }

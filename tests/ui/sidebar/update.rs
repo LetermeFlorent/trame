@@ -7,7 +7,7 @@ use trame::ui::chrome::{draw_chrome, draw_tooltip};
 use trame::ui::{FrameLayout, Hit, UiMetrics};
 use trame::workspace::Workspace;
 
-use crate::paint::paint_with;
+use crate::paint::{bubble_beside, paint_with};
 use crate::{closed_sidebar, input, text_system, workspace};
 
 const LABEL: &str = "Update to 9.8.7";
@@ -107,15 +107,7 @@ fn hovering_the_rail_icon_names_the_version_beside_it() {
     let update = layout.footer.update.as_ref().expect("the update button");
     let rail = layout.rail.as_ref().expect("the rail");
     let scene = paint_with(&mut text, &layout, &theme, Some(Hit::Update), draw_tooltip);
-    let bubble = scene
-        .quads()
-        .iter()
-        .find(|quad| quad.color == theme.chrome.to_array())
-        .expect("a bubble is drawn");
-    let [x, y, width, height] = bubble.rect;
-    let middle = update.rect.center().y;
-    assert!(x >= rail.rect.right());
-    assert!(y <= middle && y + height >= middle);
+    let width = bubble_beside(&scene, &theme, rail.rect, update.rect.center().y);
     assert!(width >= update.label.width);
 }
 

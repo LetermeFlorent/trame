@@ -8,7 +8,7 @@ use trame::ui::frame::{EditAnchor, EditKind, EditTarget, EditorRequest};
 use trame::ui::{FrameLayout, Hit};
 use trame::workspace::Workspace;
 
-use crate::paint::paint_with;
+use crate::paint::{bubble_beside, paint_with};
 use crate::{closed_sidebar, frame, text_system, workspace};
 
 fn renamed_rail() -> Workspace {
@@ -30,14 +30,7 @@ fn hovering_a_rail_icon_shows_the_instance_name_beside_the_rail() {
     let rail = layout.rail.as_ref().expect("the rail");
     let slot = &rail.slots[1];
     let scene = paint(&mut text, &layout, &theme, Some(Hit::RailInstance(slot.id)));
-    let bubble = scene
-        .quads()
-        .iter()
-        .find(|quad| quad.color == theme.chrome.to_array())
-        .expect("a bubble is drawn");
-    let [x, y, width, height] = bubble.rect;
-    assert!(x >= rail.rect.right());
-    assert!(y <= slot.rect.center().y && y + height >= slot.rect.center().y);
+    let width = bubble_beside(&scene, &theme, rail.rect, slot.rect.center().y);
     let name = text.layout("backend", layout.metrics.label());
     assert!(width >= name.width);
     assert!(scene.quads().len() > 3);
@@ -89,14 +82,7 @@ fn the_rail_gear_names_the_settings_beside_it() {
     let rail = layout.rail.as_ref().expect("the rail");
     let gear = layout.footer.settings.rect;
     let scene = paint(&mut text, &layout, &theme, Some(Hit::Settings));
-    let bubble = scene
-        .quads()
-        .iter()
-        .find(|quad| quad.color == theme.chrome.to_array())
-        .expect("a bubble is drawn");
-    let [x, y, width, height] = bubble.rect;
-    assert!(x >= rail.rect.right());
-    assert!(y <= gear.center().y && y + height >= gear.center().y);
+    let width = bubble_beside(&scene, &theme, rail.rect, gear.center().y);
     assert!(width >= layout.footer.settings.label.width);
     let open = frame(&mut text, &workspace());
     assert!(

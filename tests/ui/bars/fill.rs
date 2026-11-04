@@ -6,18 +6,12 @@ use trame::ui::chrome::draw_chrome;
 use trame::ui::frame::SidebarItem;
 use trame::workspace::Workspace;
 
+use super::painted_at;
 use crate::paint::paint_with;
 use crate::{frame, text_system, workspace};
 
 const SWATCH: Swatch = Swatch::Teal;
 const THEMES: [Appearance; 2] = [Appearance::Dark, Appearance::Light];
-
-fn painted_from(scene: &Scene, rect: Rect, color: Rgba) -> bool {
-    scene
-        .quads()
-        .iter()
-        .any(|quad| quad.rect[..2] == [rect.x, rect.y] && quad.color == color.to_array())
-}
 
 fn inked_inside(scene: &Scene, rect: Rect, color: Rgba) -> usize {
     let center = |rect: [f32; 4]| Point::new(rect[0] + rect[2] / 2.0, rect[1] + rect[3] / 2.0);
@@ -54,7 +48,7 @@ fn a_filled_tab_paints_its_solid_colour_and_a_readable_label() {
             let scene = paint_with(&mut text, &frame, &theme, None, draw_chrome);
             let tab = &frame.panes[0].strip.tabs[0];
             assert_eq!(tab.id, SessionId(1));
-            let filled = painted_from(&scene, tab.rect, solid);
+            let filled = painted_at(&scene, tab.rect, solid);
             (filled, inked_inside(&scene, tab.rect, solid.ink()))
         });
         assert!(on.0 && !off.0, "{appearance:?}");
@@ -84,7 +78,7 @@ fn a_filled_instance_row_paints_its_solid_colour_and_a_readable_label() {
             let sidebar = frame.sidebar.as_ref().expect("a sidebar");
             let row = sidebar.rows.iter().find(|row| row.item == item);
             let row = row.expect("the instance row");
-            let filled = painted_from(&scene, row.rect, solid);
+            let filled = painted_at(&scene, row.rect, solid);
             (filled, inked_inside(&scene, row.rect, solid.ink()))
         });
         assert!(on.0 && !off.0, "{appearance:?}");
@@ -105,8 +99,8 @@ fn the_terminal_is_tinted_only_when_the_switch_is_on() {
             let open = pane.strip.tabs.iter().find(|tab| tab.active);
             let open = open.expect("an open tab");
             let tinted = theme.terminal_under(Some(SWATCH));
-            assert_eq!(painted_from(&scene, open.rect, tinted), fill);
-            assert_eq!(painted_from(&scene, open.rect, theme.terminal), !fill);
+            assert_eq!(painted_at(&scene, open.rect, tinted), fill);
+            assert_eq!(painted_at(&scene, open.rect, theme.terminal), !fill);
         }
     }
 }

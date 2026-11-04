@@ -1,14 +1,14 @@
 mod bar;
 mod motion;
 
-use trame::files::IconStore;
 use trame::geometry::Point;
 use trame::render::Scene;
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Theme};
-use trame::ui::chrome::{ChromeInput, LoaderView, draw_loader};
-use trame::ui::{FrameLayout, FrameView, Hit, Motion, ResizeEdge};
+use trame::ui::chrome::{LoaderView, draw_loader};
+use trame::ui::{FrameLayout, Hit, ResizeEdge};
 
+use crate::paint::paint_with;
 use crate::{HEIGHT, WIDTH, frame, text_system, workspace};
 
 const DOTS: usize = 10;
@@ -28,18 +28,9 @@ fn waiting(opacity: f32) -> LoaderView<'static> {
 }
 
 fn paint(text: &mut TextSystem, layout: &FrameLayout, theme: &Theme, loader: &LoaderView) -> Scene {
-    let view = FrameView::default();
-    let motion = Motion::default();
-    let input = ChromeInput {
-        theme,
-        frame: layout,
-        view: &view,
-        motion: &motion,
-        icons: &IconStore::default(),
-    };
-    let mut scene = Scene::new(layout.bounds.width, layout.bounds.height);
-    draw_loader(&mut scene, text, &input, loader);
-    scene
+    paint_with(text, layout, theme, None, |scene, text, input| {
+        draw_loader(scene, text, input, loader)
+    })
 }
 
 #[test]

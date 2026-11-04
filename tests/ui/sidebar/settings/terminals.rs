@@ -1,3 +1,4 @@
+use trame::geometry::Rect;
 use trame::input::TextField;
 use trame::locale::{Language, Strings};
 use trame::preferences::{MAX_INSTANCE_TABS, Preferences};
@@ -28,14 +29,21 @@ fn stepper(layout: &FrameLayout, control: SettingControl) -> &Stepper {
     page(layout).stepper(control).expect("the stepper")
 }
 
-fn close_switch(layout: &FrameLayout) -> &ToggleRow {
-    let switch = page(layout).toggle(SettingControl::ConfirmClose);
-    switch.expect("the close switch")
+fn switch(layout: &FrameLayout, control: SettingControl) -> &ToggleRow {
+    page(layout).toggle(control).expect("the switch")
 }
 
-fn paste_switch(layout: &FrameLayout) -> &ToggleRow {
-    let switch = page(layout).toggle(SettingControl::ConfirmPaste);
-    switch.expect("the paste switch")
+#[track_caller]
+fn assert_switch(control: SettingControl, above: impl Fn(&FrameLayout) -> Rect, off: Preferences) {
+    let layout = on_tab(&Preferences::default(), SettingsTab::Terminals);
+    let row = switch(&layout, control);
+    assert!(row.on && row.enabled);
+    assert!(above(&layout).bottom() <= row.line.rect.y);
+    assert_eq!(
+        layout.hit(row.line.rect.center(), false),
+        Some(Hit::Setting(control))
+    );
+    assert!(!switch(&on_tab(&off, SettingsTab::Terminals), control).on);
 }
 
 #[test]
@@ -120,40 +128,27 @@ fn the_terminal_count_stepper_stops_at_its_limits() {
 
 #[test]
 fn the_close_switch_sits_below_the_terminal_count_and_follows_its_preference() {
-    let layout = on_tab(&Preferences::default(), SettingsTab::Terminals);
-    let switch = close_switch(&layout);
-    assert!(switch.on && switch.enabled);
-    let count = stepper(&layout, SettingControl::InstanceTabsFewer);
-    assert!(count.line.rect.bottom() <= switch.line.rect.y);
-    let center = switch.line.rect.center();
-    let hit = Some(Hit::Setting(SettingControl::ConfirmClose));
-    assert_eq!(layout.hit(center, false), hit);
-    let off = Preferences::default().toggle_confirm_close();
-    assert!(!close_switch(&on_tab(&off, SettingsTab::Terminals)).on);
+    assert_switch(
+        SettingControl::ConfirmClose,
+        |layout| stepper(layout, SettingControl::InstanceTabsFewer).line.rect,
+        Preferences::default().toggle_confirm_close(),
+    );
 }
 
 #[test]
 fn the_paste_switch_sits_below_the_close_switch_and_follows_its_preference() {
-    let layout = on_tab(&Preferences::default(), SettingsTab::Terminals);
-    let switch = paste_switch(&layout);
-    assert!(switch.on && switch.enabled);
-    assert!(close_switch(&layout).line.rect.bottom() <= switch.line.rect.y);
-    let hit = Some(Hit::Setting(SettingControl::ConfirmPaste));
-    assert_eq!(layout.hit(switch.line.rect.center(), false), hit);
-    let off = Preferences::default().with(|next| next.confirm_paste = false);
-    assert!(!paste_switch(&on_tab(&off, SettingsTab::Terminals)).on);
+    assert_switch(
+        SettingControl::ConfirmPaste,
+        |layout| switch(layout, SettingControl::ConfirmClose).line.rect,
+        Preferences::default().with(|next| next.confirm_paste = false),
+    );
 }
 
 #[test]
 fn the_link_switch_sits_below_the_paste_switch_and_follows_its_preference() {
-    let control = SettingControl::DetectLinks;
-    let layout = on_tab(&Preferences::default(), SettingsTab::Terminals);
-    let switch = page(&layout).toggle(control).expect("the link switch");
-    assert!(switch.on && switch.enabled);
-    assert!(paste_switch(&layout).line.rect.bottom() <= switch.line.rect.y);
-    let center = switch.line.rect.center();
-    assert_eq!(layout.hit(center, false), Some(Hit::Setting(control)));
-    let off = Preferences::default().with(|next| next.detect_links = false);
-    let layout = on_tab(&off, SettingsTab::Terminals);
-    assert!(!page(&layout).toggle(control).expect("the link switch").on);
+    assert_switch(
+        SettingControl::DetectLinks,
+        |layout| switch(layout, SettingControl::ConfirmPaste).line.rect,
+        Preferences::default().with(|next| next.detect_links = false),
+    );
 }

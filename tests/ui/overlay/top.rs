@@ -1,64 +1,11 @@
 use trame::geometry::Rect;
 use trame::input::TextField;
-use trame::locale::Language;
-use trame::preferences::{ConnectForm, Preferences};
+use trame::preferences::ConnectForm;
 use trame::text::TextSystem;
-use trame::theme::Hsv;
-use trame::ui::frame::{
-    ColorsView, EditAnchor, EditKind, EditTarget, EditorRequest, FormAction, HostsView,
-    MessageRequest, PickerView, SettingsRequest, SettingsTab,
-};
-use trame::ui::{FrameLayout, UiMetrics};
+use trame::ui::frame::{ColorsView, EditKind, HostsView, PickerView, SettingsTab};
 
-use crate::{input, text_system, workspace};
-
-fn layout(text: &mut TextSystem, height: f32) -> FrameLayout {
-    let workspace = workspace();
-    let mut input = input(&workspace, UiMetrics::new(1.0));
-    input.width = 1200.0;
-    input.height = height;
-    FrameLayout::compute(text, &input)
-}
-
-fn edited(text: &mut TextSystem, height: f32, kind: EditKind) -> Rect {
-    let workspace = workspace();
-    let mut frame = layout(text, height);
-    let request = EditorRequest {
-        target: EditTarget::Instance(workspace.instances[0].id),
-        anchor: EditAnchor::Sidebar,
-        kind,
-        strings: Language::English.strings(),
-    };
-    frame.place_editor(text, &request);
-    frame.editor.and_then(|e| e.popup).expect("a popup").rect
-}
-
-fn message(text: &mut TextSystem, height: f32) -> Rect {
-    let strings = Language::English.strings();
-    let mut frame = layout(text, height);
-    let request = MessageRequest {
-        title: strings.close_window,
-        lines: &["one", "two", "three"],
-        actions: &[FormAction::Cancel, FormAction::Restart],
-        strings,
-    };
-    frame.place_message(text, &request);
-    frame.message.expect("a message").popup.rect
-}
-
-fn settings(text: &mut TextSystem, height: f32) -> Rect {
-    let mut frame = layout(text, height);
-    let request = SettingsRequest {
-        preferences: &Preferences::default(),
-        strings: Language::English.strings(),
-        folder: None,
-        tab: SettingsTab::General,
-        hosts: None,
-        shortcuts: None,
-    };
-    frame.place_settings(text, &request);
-    frame.settings.expect("the settings").popup.rect
-}
+use super::{editor_popup, message_popup, settings_popup, sized};
+use crate::{TEAL, WIDTH, text_system};
 
 fn all_but_settings(text: &mut TextSystem, height: f32) -> Vec<Rect> {
     let field = TextField::new("#408080");
@@ -69,13 +16,8 @@ fn all_but_settings(text: &mut TextSystem, height: f32) -> Vec<Rect> {
         first: 0,
         filled: false,
     };
-    let hsv = Hsv {
-        hue: 0.5,
-        saturation: 0.5,
-        value: 0.5,
-    };
     let picker = PickerView {
-        hsv,
+        hsv: TEAL,
         field: &field,
         editing: false,
     };
@@ -86,10 +28,10 @@ fn all_but_settings(text: &mut TextSystem, height: f32) -> Vec<Rect> {
         changing: false,
     };
     vec![
-        edited(text, height, EditKind::Color(colors)),
-        edited(text, height, EditKind::Picker(picker)),
-        edited(text, height, EditKind::Connect(hosts)),
-        message(text, height),
+        editor_popup(text, (WIDTH, height), EditKind::Color(colors)),
+        editor_popup(text, (WIDTH, height), EditKind::Picker(picker)),
+        editor_popup(text, (WIDTH, height), EditKind::Connect(hosts)),
+        message_popup(text, (WIDTH, height)),
     ]
 }
 
@@ -97,7 +39,7 @@ fn all_but_settings(text: &mut TextSystem, height: f32) -> Vec<Rect> {
 fn every_popup_starts_at_the_settings_top() {
     let mut text = text_system();
     for height in [900.0, 700.0] {
-        let top = settings(&mut text, height).y;
+        let top = settings_popup(&mut text, (WIDTH, height), SettingsTab::General).y;
         for popup in all_but_settings(&mut text, height) {
             assert_eq!(popup.y, top, "window height {height}");
         }
@@ -118,9 +60,13 @@ fn a_tall_popup_is_pushed_up_to_fit() {
 fn a_small_window_keeps_a_gap_around_every_popup() {
     let mut text = text_system();
     for height in [360.0, 260.0] {
-        let below_title = layout(&mut text, height).title_bar.rect.bottom();
+        let below_title = sized(&mut text, (WIDTH, height)).title_bar.rect.bottom();
         let mut popups = all_but_settings(&mut text, height);
-        popups.push(settings(&mut text, height));
+        popups.push(settings_popup(
+            &mut text,
+            (WIDTH, height),
+            SettingsTab::General,
+        ));
         for popup in popups {
             assert!(popup.y >= below_title + 16.0, "top {popup:?}");
             let fits = height > 300.0;
