@@ -61,7 +61,13 @@ fn resolve(text: &str, cwd: Option<&Path>, home: Option<&Path>) -> Option<PathBu
 }
 
 fn local(path: &Path) -> Option<Opening> {
+    if is_share(path) {
+        return None;
+    }
     let path = plain(fs::canonicalize(path).ok()?);
+    if is_share(&path) {
+        return None;
+    }
     let metadata = fs::metadata(&path).ok()?;
     if is_runnable(&path, &metadata) {
         return path
@@ -82,4 +88,30 @@ fn plain(path: PathBuf) -> PathBuf {
             None => text.strip_prefix(r"\\?\").map(str::to_owned),
         });
     stripped.map_or(path, PathBuf::from)
+}
+
+fn is_share(path: &Path) -> bool {
+    let text = path.to_string_lossy();
+    let local = text.starts_with(r"\\?\") && !text.starts_with(r"\\?\UNC\");
+    !local && (text.starts_with(r"\\") || text.starts_with("//"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn shares_are_told_apart_from_local_paths() {
+        for share in [r"\\server\share", "//server/share", r"\\?\UNC\server\share"] {
+            assert!(is_share(Path::new(share)), "{share}");
+        }
+        for local in [
+            r"C:\dir\file.txt",
+            r"\\?\C:\dir",
+            "/usr/bin/env",
+            "src/main.rs",
+        ] {
+            assert!(!is_share(Path::new(local)), "{local}");
+        }
+    }
 }

@@ -86,6 +86,15 @@ fn a_file_opens_only_when_it_exists() {
 }
 
 #[test]
+fn a_network_share_is_never_opened() {
+    for share in [r"\\server\share\notes.txt", "//server/share/notes.txt"] {
+        assert_eq!(opened(&LinkTarget::Path(share.to_owned()), None), None);
+    }
+    let address = LinkTarget::Uri("file:////server/share/notes.txt".to_owned());
+    assert_eq!(opened(&address, None), None);
+}
+
+#[test]
 fn relative_paths_start_from_the_folder_of_the_tab() {
     let sandbox = sandbox("relative");
     let root = sandbox.root.as_path();
