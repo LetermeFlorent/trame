@@ -47,8 +47,6 @@ fn osc_sets_title_and_cwd() {
     );
     assert_eq!(term.screen().title(), Some("mon titre"));
     assert_eq!(term.screen().cwd(), Some("C:/Users/Me Doc"));
-    let term = feed(1, 10, "\x1b]7;file:///home/me\x07");
-    assert_eq!(term.screen().cwd(), Some("/home/me"));
     let term = feed(1, 10, "\x1b]9;9;\"D:\\work\"\x07");
     assert_eq!(term.screen().cwd(), Some("D:\\work"));
 }

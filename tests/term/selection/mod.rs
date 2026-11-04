@@ -89,18 +89,14 @@ fn extending_keeps_the_anchor() {
 #[test]
 fn wide_characters_select_as_one_cell() {
     let mut term = feed(1, 10, "a\u{4e16}\u{754c}b");
-    term.screen_mut()
-        .start_selection(SelectionKind::Simple, 0, 2);
-    term.screen_mut().extend_selection(0, 3);
+    select(&mut term, SelectionKind::Simple, (0, 2), (0, 3));
     assert_eq!(text(&term).as_deref(), Some("\u{4e16}\u{754c}"));
 }
 
 #[test]
 fn points_outside_the_grid_are_clamped() {
     let mut term = feed(2, 5, "abcde\r\nfghij");
-    term.screen_mut()
-        .start_selection(SelectionKind::Simple, 9, 99);
-    term.screen_mut().extend_selection(0, 0);
+    select(&mut term, SelectionKind::Simple, (9, 99), (0, 0));
     assert_eq!(text(&term).as_deref(), Some("abcde\nfghij"));
 }
 
