@@ -1,5 +1,6 @@
 mod sequences;
 mod win32;
+mod win32_codes;
 
 use winit::keyboard::{Key, ModifiersState, NamedKey};
 

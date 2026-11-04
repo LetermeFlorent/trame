@@ -1,5 +1,7 @@
 use winit::keyboard::{ModifiersState, NamedKey};
 
+use super::win32_codes::{scan_code as scan, unicode, virtual_key as vk};
+
 const LEFT_ALT_PRESSED: u16 = 0x02;
 const LEFT_CTRL_PRESSED: u16 = 0x08;
 const SHIFT_PRESSED: u16 = 0x10;
@@ -57,35 +59,48 @@ fn editing_record(named: NamedKey, state: u16) -> Option<KeyRecord> {
         return None;
     }
     let (virtual_key, scan_code, plain, with_control) = match named {
-        NamedKey::Enter => (0x0d, 0x1c, 0x0d, 0x0a),
-        NamedKey::Tab => (0x09, 0x0f, 0x09, 0),
-        NamedKey::Backspace => (0x08, 0x0e, 0x08, 0x7f),
-        NamedKey::Space => (0x20, 0x39, 0x20, 0x20),
+        NamedKey::Enter => (
+            vk::RETURN,
+            scan::ENTER,
+            unicode::CARRIAGE_RETURN,
+            unicode::LINE_FEED,
+        ),
+        NamedKey::Tab => (vk::TAB, scan::TAB, unicode::TAB, unicode::NONE),
+        NamedKey::Backspace => (
+            vk::BACK,
+            scan::BACKSPACE,
+            unicode::BACKSPACE,
+            unicode::DELETE,
+        ),
+        NamedKey::Space => (vk::SPACE, scan::SPACE, unicode::SPACE, unicode::SPACE),
         _ => return None,
     };
-    let unicode = if state & LEFT_CTRL_PRESSED == 0 {
+    let character = if state & LEFT_CTRL_PRESSED == 0 {
         plain
     } else {
         with_control
     };
-    Some(record(virtual_key, scan_code, unicode, false))
+    Some(record(virtual_key, scan_code, character, false))
 }
 
 fn navigation_record(named: NamedKey) -> Option<KeyRecord> {
-    Some(match named {
-        NamedKey::ArrowUp => record(0x26, 0x48, 0, true),
-        NamedKey::ArrowDown => record(0x28, 0x50, 0, true),
-        NamedKey::ArrowLeft => record(0x25, 0x4b, 0, true),
-        NamedKey::ArrowRight => record(0x27, 0x4d, 0, true),
-        NamedKey::Home => record(0x24, 0x47, 0, true),
-        NamedKey::End => record(0x23, 0x4f, 0, true),
-        NamedKey::PageUp => record(0x21, 0x49, 0, true),
-        NamedKey::PageDown => record(0x22, 0x51, 0, true),
-        NamedKey::Insert => record(0x2d, 0x52, 0, true),
-        NamedKey::Delete => record(0x2e, 0x53, 0, true),
-        NamedKey::Escape => record(0x1b, 0x01, 0x1b, false),
+    let (virtual_key, scan_code) = match named {
+        NamedKey::ArrowUp => (vk::UP, scan::UP),
+        NamedKey::ArrowDown => (vk::DOWN, scan::DOWN),
+        NamedKey::ArrowLeft => (vk::LEFT, scan::LEFT),
+        NamedKey::ArrowRight => (vk::RIGHT, scan::RIGHT),
+        NamedKey::Home => (vk::HOME, scan::HOME),
+        NamedKey::End => (vk::END, scan::END),
+        NamedKey::PageUp => (vk::PRIOR, scan::PAGE_UP),
+        NamedKey::PageDown => (vk::NEXT, scan::PAGE_DOWN),
+        NamedKey::Insert => (vk::INSERT, scan::INSERT),
+        NamedKey::Delete => (vk::DELETE, scan::DELETE),
+        NamedKey::Escape => {
+            return Some(record(vk::ESCAPE, scan::ESCAPE, unicode::ESCAPE, false));
+        }
         _ => return None,
-    })
+    };
+    Some(record(virtual_key, scan_code, unicode::NONE, true))
 }
 
 fn function_record(named: NamedKey) -> Option<KeyRecord> {
@@ -100,9 +115,14 @@ fn function_record(named: NamedKey) -> Option<KeyRecord> {
         NamedKey::F8 => 7,
         NamedKey::F9 => 8,
         NamedKey::F10 => 9,
-        NamedKey::F11 => return Some(record(0x7a, 0x57, 0, false)),
-        NamedKey::F12 => return Some(record(0x7b, 0x58, 0, false)),
+        NamedKey::F11 => return Some(record(vk::F11, scan::F11, unicode::NONE, false)),
+        NamedKey::F12 => return Some(record(vk::F12, scan::F12, unicode::NONE, false)),
         _ => return None,
     };
-    Some(record(0x70 + index, 0x3b + index, 0, false))
+    Some(record(
+        vk::F1 + index,
+        scan::F1 + index,
+        unicode::NONE,
+        false,
+    ))
 }

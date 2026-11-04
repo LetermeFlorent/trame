@@ -2,6 +2,10 @@ use winit::keyboard::{ModifiersState, NamedKey};
 
 use crate::term::Modes;
 
+const NO_MODIFIER: u8 = 1;
+const ALT_WEIGHT: u8 = 2;
+const CONTROL_WEIGHT: u8 = 4;
+
 pub(super) fn cursor_or_function(
     named: NamedKey,
     modifiers: ModifiersState,
@@ -10,15 +14,15 @@ pub(super) fn cursor_or_function(
     let parameter = modifier_parameter(modifiers);
     if let Some(letter) = cursor_letter(named) {
         return Some(match parameter {
-            Some(value) => format!("\x1b[1;{value}{letter}").into_bytes(),
-            None if modes.contains(Modes::APP_CURSOR) => format!("\x1bO{letter}").into_bytes(),
+            Some(value) => modified_letter(letter, value),
+            None if modes.contains(Modes::APP_CURSOR) => ss3_letter(letter),
             None => format!("\x1b[{letter}").into_bytes(),
         });
     }
     if let Some(letter) = function_letter(named) {
         return Some(match parameter {
-            Some(value) => format!("\x1b[1;{value}{letter}").into_bytes(),
-            None => format!("\x1bO{letter}").into_bytes(),
+            Some(value) => modified_letter(letter, value),
+            None => ss3_letter(letter),
         });
     }
     let number = tilde_number(named)?;
@@ -26,6 +30,14 @@ pub(super) fn cursor_or_function(
         Some(value) => format!("\x1b[{number};{value}~").into_bytes(),
         None => format!("\x1b[{number}~").into_bytes(),
     })
+}
+
+fn modified_letter(letter: char, value: u8) -> Vec<u8> {
+    format!("\x1b[1;{value}{letter}").into_bytes()
+}
+
+fn ss3_letter(letter: char) -> Vec<u8> {
+    format!("\x1bO{letter}").into_bytes()
 }
 
 fn cursor_letter(named: NamedKey) -> Option<char> {
@@ -69,9 +81,9 @@ fn tilde_number(named: NamedKey) -> Option<u8> {
 }
 
 fn modifier_parameter(modifiers: ModifiersState) -> Option<u8> {
-    let value = 1
+    let value = NO_MODIFIER
         + u8::from(modifiers.shift_key())
-        + 2 * u8::from(modifiers.alt_key())
-        + 4 * u8::from(modifiers.control_key());
-    (value > 1).then_some(value)
+        + ALT_WEIGHT * u8::from(modifiers.alt_key())
+        + CONTROL_WEIGHT * u8::from(modifiers.control_key());
+    (value > NO_MODIFIER).then_some(value)
 }
