@@ -114,11 +114,15 @@ fn install(
 mod tests {
     use super::*;
 
-    fn arguments(list: &[&str]) -> impl Iterator<Item = OsString> {
+    pub(super) fn arguments(list: &[&str]) -> impl Iterator<Item = OsString> {
         list.iter()
             .map(OsString::from)
             .collect::<Vec<_>>()
             .into_iter()
+    }
+
+    pub(super) fn version(text: &str) -> Version {
+        Version::parse(text).expect(text)
     }
 
     #[test]

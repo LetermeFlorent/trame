@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use winit::event_loop::ActiveEventLoop;
 
@@ -11,15 +11,14 @@ use crate::app::running::settings::ListKind;
 use crate::app::running::{Closing, Running};
 use crate::app::window;
 
-const DOUBLE_CLICK: Duration = Duration::from_millis(500);
-
 impl Running {
     pub(super) fn press(&mut self, event_loop: &ActiveEventLoop, hit: Option<Hit>) {
         let Some(hit) = hit else {
             return;
         };
         let previous = self.pointer.last_click.replace((Instant::now(), hit));
-        let double = previous.is_some_and(|(at, last)| last == hit && at.elapsed() < DOUBLE_CLICK);
+        let double =
+            previous.is_some_and(|(at, last)| last == hit && at.elapsed() < super::MULTI_CLICK);
         if double && self.double_press(event_loop, hit) {
             self.pointer.last_click = None;
             return;

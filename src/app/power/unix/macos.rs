@@ -1,5 +1,4 @@
 const MAX_CHILDREN: usize = 256;
-const FIRST_USER_PID: libc::pid_t = 2;
 
 pub fn slow(shell: u32, on: bool) -> bool {
     let Ok(shell) = libc::pid_t::try_from(shell) else {
@@ -30,6 +29,6 @@ fn children(pid: libc::pid_t) -> Vec<libc::pid_t> {
     let size = size_of_val(found.as_slice()) as libc::c_int;
     let count = unsafe { libc::proc_listchildpids(pid, found.as_mut_ptr().cast(), size) };
     found.truncate(usize::try_from(count).unwrap_or(0).min(MAX_CHILDREN));
-    found.retain(|&child| child >= FIRST_USER_PID);
+    found.retain(|&child| u32::try_from(child).is_ok_and(|child| child >= super::FIRST_USER_PID));
     found
 }

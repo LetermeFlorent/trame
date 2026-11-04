@@ -1,10 +1,10 @@
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use trame::term::SelectionKind;
 
 use super::{Cell, Selecting};
+use crate::app::running::pointer::MULTI_CLICK;
 
-const MULTI_CLICK: Duration = Duration::from_millis(500);
 pub(super) const CLICK_KINDS: [SelectionKind; 3] = [
     SelectionKind::Simple,
     SelectionKind::Word,

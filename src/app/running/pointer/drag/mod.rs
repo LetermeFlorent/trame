@@ -10,7 +10,7 @@ use trame::geometry::Point;
 use trame::session::SessionId;
 use trame::ui::Hit;
 use trame::ui::frame::{BarPart, ListControl, PickerPart, SidebarItem};
-use trame::workspace::{Axis, Divider, InstanceId, Node, resized};
+use trame::workspace::{Divider, InstanceId, Node, resized};
 
 use crate::app::running::Running;
 use crate::app::running::settings::ListKind;
@@ -116,10 +116,9 @@ impl Running {
 
     pub(in crate::app::running) fn drag_cursor(&self) -> Option<Cursor> {
         match &self.drag {
-            Some(Drag::Divider(drag)) => Some(Cursor::Icon(match drag.divider.axis {
-                Axis::Row => CursorIcon::ColResize,
-                Axis::Column => CursorIcon::RowResize,
-            })),
+            Some(Drag::Divider(drag)) => {
+                Some(Cursor::Icon(super::divider_cursor(drag.divider.axis)))
+            }
             Some(Drag::Sidebar(_)) => Some(Cursor::Icon(CursorIcon::ColResize)),
             Some(Drag::Tab(..)) => Some(self.pointer.ghost.cursor()),
             Some(Drag::Instance(..)) => Some(Cursor::Icon(CursorIcon::Grabbing)),

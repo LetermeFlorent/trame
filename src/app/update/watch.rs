@@ -49,10 +49,7 @@ mod tests {
     use std::cell::RefCell;
 
     use super::*;
-
-    fn version(text: &str) -> Version {
-        Version::parse(text).expect(text)
-    }
+    use crate::app::update::tests::version;
 
     fn watched(checks: &[Option<&str>]) -> Vec<UpdateStatus> {
         let mut answers = checks.iter().map(|check| check.map(version));

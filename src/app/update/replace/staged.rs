@@ -83,6 +83,7 @@ fn packages(target: &Path) -> Vec<(Option<Version>, PathBuf)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::app::update::tests::version;
 
     struct Scratch(PathBuf);
 
@@ -104,10 +105,6 @@ mod tests {
         let mut bytes = b"MZ".to_vec();
         bytes.resize(1024 * 1024, 0);
         bytes
-    }
-
-    fn version(text: &str) -> Version {
-        Version::parse(text).expect(text)
     }
 
     #[test]

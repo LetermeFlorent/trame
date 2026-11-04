@@ -52,10 +52,7 @@ fn number(part: &str) -> Option<u64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn version(text: &str) -> Version {
-        Version::parse(text).expect(text)
-    }
+    use crate::app::update::tests::version;
 
     #[test]
     fn a_tag_reads_with_or_without_its_v() {

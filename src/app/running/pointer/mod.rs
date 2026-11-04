@@ -4,7 +4,7 @@ mod press;
 mod scroll;
 mod selection;
 
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use winit::event::{ElementState, MouseButton};
 use winit::event_loop::ActiveEventLoop;
@@ -20,6 +20,7 @@ use crate::app::window;
 pub(super) use drag::{Drag, Ghost};
 pub(super) use scroll::Scroll;
 pub(super) use selection::Selecting;
+const MULTI_CLICK: Duration = Duration::from_millis(500);
 
 #[derive(Default)]
 pub(super) struct Pointer {
@@ -117,11 +118,10 @@ impl Running {
 fn cursor_for(hit: Option<Hit>, frame: &FrameLayout) -> CursorIcon {
     match hit {
         Some(Hit::Resize(edge)) => window::resize_cursor(edge),
-        Some(Hit::Divider(index)) => match frame.dividers.get(index).map(|divider| divider.axis) {
-            Some(Axis::Row) => CursorIcon::ColResize,
-            Some(Axis::Column) => CursorIcon::RowResize,
-            None => CursorIcon::Default,
-        },
+        Some(Hit::Divider(index)) => frame
+            .dividers
+            .get(index)
+            .map_or(CursorIcon::Default, |divider| divider_cursor(divider.axis)),
         Some(Hit::SidebarEdge) => CursorIcon::ColResize,
         Some(
             Hit::Terminal(_) | Hit::EditField | Hit::FormField(_) | Hit::Picker(PickerPart::Field),
@@ -138,5 +138,12 @@ fn cursor_for(hit: Option<Hit>, frame: &FrameLayout) -> CursorIcon {
             | Hit::Backdrop,
         ) => CursorIcon::Default,
         Some(_) => CursorIcon::Pointer,
+    }
+}
+
+fn divider_cursor(axis: Axis) -> CursorIcon {
+    match axis {
+        Axis::Row => CursorIcon::ColResize,
+        Axis::Column => CursorIcon::RowResize,
     }
 }

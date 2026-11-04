@@ -60,14 +60,8 @@ fn next_arguments(current: impl Iterator<Item = OsString>, flag: Option<&str>) -
 #[cfg(test)]
 mod tests {
     use super::super::installer::Package;
+    use super::super::tests::arguments;
     use super::*;
-
-    fn arguments(list: &[&str]) -> impl Iterator<Item = OsString> {
-        list.iter()
-            .map(OsString::from)
-            .collect::<Vec<_>>()
-            .into_iter()
-    }
 
     fn handoff(route: Route) -> Next {
         let version = Version::parse("9.8.7").expect("a version");

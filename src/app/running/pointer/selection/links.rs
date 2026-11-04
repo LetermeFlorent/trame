@@ -23,7 +23,7 @@ impl Running {
         let Some(id) = pane.active else {
             return false;
         };
-        let reports = self.reports_mouse(id) && !self.modifiers.shift_key();
+        let reports = self.reports_mouse(id);
         !reports
             && self
                 .link_target(id, self.cell_in_pane(pane, point))
