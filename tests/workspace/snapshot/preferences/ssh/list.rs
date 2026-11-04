@@ -20,21 +20,18 @@ fn a_used_connection_moves_first_without_duplicates_and_nothing_is_dropped() {
 
 #[test]
 fn a_changed_connection_keeps_its_place_and_merges_a_duplicate() {
+    let known = hosts(4);
     let base = Preferences {
-        ssh_hosts: hosts(4),
+        ssh_hosts: known.clone(),
         ..Preferences::default()
     };
-    let renamed = base.replace_host(&hosts(4)[2], host("me@other", Some(2200)));
+    let renamed = base.replace_host(&known[2], host("me@other", Some(2200)));
     assert_eq!(renamed.ssh_hosts.len(), 4);
     assert_eq!(renamed.ssh_hosts[2], host("me@other", Some(2200)));
-    let merged = base.replace_host(&hosts(4)[2], hosts(4)[0].clone());
+    let merged = base.replace_host(&known[2], known[0].clone());
     assert_eq!(
         merged.ssh_hosts,
-        [
-            hosts(4)[1].clone(),
-            hosts(4)[0].clone(),
-            hosts(4)[3].clone()
-        ]
+        [known[1].clone(), known[0].clone(), known[3].clone()]
     );
     let unknown = base.replace_host(&host("gone", None), host("fresh", None));
     assert_eq!(unknown.ssh_hosts[0], host("fresh", None));
@@ -43,14 +40,12 @@ fn a_changed_connection_keeps_its_place_and_merges_a_duplicate() {
 
 #[test]
 fn forgetting_a_connection_removes_only_that_one() {
+    let known = hosts(3);
     let base = Preferences {
-        ssh_hosts: hosts(3),
+        ssh_hosts: known.clone(),
         ..Preferences::default()
     };
-    let forgotten = base.forget_host(&hosts(3)[1]);
-    assert_eq!(
-        forgotten.ssh_hosts,
-        [hosts(3)[0].clone(), hosts(3)[2].clone()]
-    );
+    let forgotten = base.forget_host(&known[1]);
+    assert_eq!(forgotten.ssh_hosts, [known[0].clone(), known[2].clone()]);
     assert_eq!(base.forget_host(&host("gone", None)), base);
 }

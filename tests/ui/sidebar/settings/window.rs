@@ -57,7 +57,7 @@ fn a_collapsed_sidebar_changes_nothing_to_the_window() {
     let preferences = Preferences::default();
     let request = general_request(&preferences, Language::English.strings());
     layout.place_settings(&mut text, &request);
-    let open = english(&Preferences::default());
+    let open = english(&preferences);
     assert_eq!(panel(&layout).popup.rect, panel(&open).popup.rect);
 }
 

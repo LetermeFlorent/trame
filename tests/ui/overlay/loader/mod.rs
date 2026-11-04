@@ -127,8 +127,7 @@ fn a_blocked_frame_only_lets_the_window_through() {
             Some(Hit::Minimize)
         );
     }
-    let bar = layout.title_bar.rect;
-    let empty = Point::new(bar.center().x, bar.center().y);
+    let empty = layout.title_bar.rect.center();
     assert_eq!(layout.hit(empty, false), Some(Hit::TitleBar));
 }
 

@@ -66,15 +66,11 @@ fn every_part_of_the_picker_is_a_hit() {
     let form = frame
         .editor
         .as_ref()
-        .and_then(|editor| editor.form.as_ref());
-    let actions: Vec<FormAction> = form
-        .expect("a form")
-        .buttons
-        .iter()
-        .map(|button| button.action)
-        .collect();
+        .and_then(|editor| editor.form.as_ref())
+        .expect("a form");
+    let actions: Vec<FormAction> = form.buttons.iter().map(|button| button.action).collect();
     assert_eq!(actions, [FormAction::Cancel, FormAction::Apply]);
-    for button in &form.expect("a form").buttons {
+    for button in &form.buttons {
         let pressed = Some(Hit::FormButton(button.action));
         assert_eq!(hit(button.rect.center()), pressed);
         assert!(button.rect.x > picker.field.rect.right());

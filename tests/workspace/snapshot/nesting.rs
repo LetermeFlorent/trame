@@ -45,8 +45,7 @@ fn nested_splits_survive_json() {
 
 #[test]
 fn the_focused_pane_is_the_last_one_created() {
-    let original = nested();
-    let (restored, _) = restore(&snapshot_of(&original, &[]));
+    let (restored, _) = restore(&snapshot_of(&nested(), &[]));
     let instance = &restored.instances[0];
     let order = instance.root.panes();
     assert_eq!(instance.active_pane, order[order.len() - 1]);
