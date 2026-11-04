@@ -1,4 +1,5 @@
 mod footer;
+mod row_end;
 mod scroll;
 
 use super::{Icon, Painter, Press};
@@ -10,6 +11,7 @@ use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
 
 pub(super) use footer::draw_footer;
+use row_end::draw_row_end;
 pub(super) use scroll::draw_bar;
 
 const HOVER_OVER_TINT: f32 = 0.7;
@@ -137,17 +139,4 @@ fn draw_row(painter: &mut Painter, row: &SidebarRow) {
         painter.label(&row.label, row.label_x, row.rect, text_color);
     }
     draw_row_end(painter, row, glow, ink);
-}
-
-fn draw_row_end(painter: &mut Painter, row: &SidebarRow, glow: f32, ink: Option<Rgba>) {
-    painter.scene.push_opacity(glow);
-    painter.small_inked(row.close, Hit::RowClose(row.item), Icon::Close, ink);
-    painter.scene.pop_opacity();
-    if let Some(count) = &row.count {
-        let x = row.close.right() - count.width;
-        painter.scene.push_opacity(1.0 - glow);
-        let faint = ink.unwrap_or(painter.theme.text_faint);
-        painter.label(count, x, row.rect, faint);
-        painter.scene.pop_opacity();
-    }
 }

@@ -105,6 +105,8 @@ fn every_icon_and_emblem_has_lucide_data() {
         Icon::Update,
         Icon::Pencil,
         Icon::Ban,
+        Icon::Fold { folded: true },
+        Icon::Fold { folded: false },
         Icon::Emblem(Emblem::Letters(letters)),
         Icon::Emblem(Emblem::Image(1)),
     ];

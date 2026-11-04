@@ -1,3 +1,4 @@
+mod fold;
 mod footer;
 mod names;
 mod scroll;

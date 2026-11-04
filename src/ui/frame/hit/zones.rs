@@ -1,7 +1,9 @@
 use super::editor::host_hit;
 use super::{Hit, ResizeEdge};
 use crate::geometry::{Point, Rect};
-use crate::ui::frame::{MenuFrame, PaneFrame, SettingsFrame, SidebarFrame, TitleBarFrame};
+use crate::ui::frame::{
+    MenuFrame, PaneFrame, SettingsFrame, SidebarFrame, SidebarItem, TitleBarFrame,
+};
 
 const CORNER_FACTOR: f32 = 2.0;
 
@@ -30,9 +32,10 @@ pub(super) fn hit_sidebar(sidebar: &SidebarFrame, point: Point) -> Hit {
     let Some(row) = sidebar.row_at(point).map(|index| &sidebar.rows[index]) else {
         return Hit::Sidebar;
     };
-    match row.close.contains(point) {
-        true => Hit::RowClose(row.item),
-        false => Hit::Row(row.item),
+    match (row.item, row.fold) {
+        _ if row.close.contains(point) => Hit::RowClose(row.item),
+        (SidebarItem::Instance(id), Some(fold)) if fold.contains(point) => Hit::RowFold(id),
+        _ => Hit::Row(row.item),
     }
 }
 

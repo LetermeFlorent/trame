@@ -33,10 +33,12 @@ pub(super) enum Glyph {
     Globe,
     Database,
     Cog,
+    ChevronDown,
+    ChevronRight,
 }
 
 impl Glyph {
-    pub(super) const ALL: [Glyph; 21] = [
+    pub(super) const ALL: [Glyph; 23] = [
         Glyph::PanelLeftClose,
         Glyph::PanelLeftOpen,
         Glyph::Plus,
@@ -58,6 +60,8 @@ impl Glyph {
         Glyph::Globe,
         Glyph::Database,
         Glyph::Cog,
+        Glyph::ChevronDown,
+        Glyph::ChevronRight,
     ];
 
     pub(super) fn source(self) -> &'static [Element] {

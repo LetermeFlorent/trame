@@ -125,3 +125,20 @@ fn the_coloured_background_switch_survives_a_json_round_trip() {
     assert!(restored.tab_fill(restored_id(2)));
     assert!(!restored.tab_fill(restored_id(1)) && !restored.tab_fill(restored_id(3)));
 }
+
+#[test]
+fn a_folded_instance_stays_folded_after_a_restart() {
+    let mut workspace = marked();
+    let first = workspace.instances[0].id;
+    workspace.toggle_folded(first);
+    let snapshot = snapshot_of(&workspace, &[]);
+    let text = snapshot.to_json().expect("serializes");
+    assert!(text.contains("\"folded\": true"));
+    let parsed = Snapshot::from_json(&text).expect("parses");
+    assert_eq!(parsed, snapshot);
+    let (restored, _) = restore(&parsed);
+    assert!(restored.instances[0].folded);
+    assert!(!restored.instances[1].folded);
+    let (old, _) = restore(&Snapshot::from_json(OLD_FILE).expect("old files load"));
+    assert!(!old.instances[0].folded);
+}

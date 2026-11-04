@@ -49,6 +49,8 @@ pub struct SidebarRow {
     pub rect: Rect,
     pub icon: Rect,
     pub close: Rect,
+    pub fold: Option<Rect>,
+    pub folded: bool,
     pub label: Arc<TextLayout>,
     pub label_x: f32,
     pub count: Option<Arc<TextLayout>>,

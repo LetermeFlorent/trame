@@ -25,6 +25,7 @@ pub enum Icon {
     Update,
     Pencil,
     Ban,
+    Fold { folded: bool },
     Emblem(Emblem),
 }
 
@@ -49,6 +50,8 @@ fn glyph(icon: Icon) -> Glyph {
         Icon::Update => Glyph::ArrowDown,
         Icon::Pencil => Glyph::Pencil,
         Icon::Ban => Glyph::Ban,
+        Icon::Fold { folded: true } => Glyph::ChevronRight,
+        Icon::Fold { folded: false } => Glyph::ChevronDown,
         Icon::Emblem(emblem) => match emblem {
             Emblem::Grid | Emblem::Letters(_) | Emblem::Image(_) => Glyph::LayoutGrid,
             Emblem::Terminal => Glyph::Terminal,

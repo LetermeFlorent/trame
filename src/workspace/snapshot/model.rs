@@ -40,6 +40,8 @@ pub struct InstanceSnapshot {
     pub color: Option<Swatch>,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub fill: bool,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub folded: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub emblem: Option<Emblem>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

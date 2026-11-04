@@ -59,6 +59,7 @@ impl Restorer<'_> {
             name: clean_name(&item.name).unwrap_or_default(),
             color: item.color,
             fill: item.fill,
+            folded: item.folded,
             emblem,
             number,
             folder: item.folder.clone(),

@@ -16,6 +16,7 @@ pub(super) struct RowSpec {
     count: Option<usize>,
     indent: f32,
     active: bool,
+    folded: Option<bool>,
 }
 
 pub(super) fn row_specs(instance: &Instance, active: bool, input: &FrameInput) -> Vec<RowSpec> {
@@ -27,8 +28,9 @@ pub(super) fn row_specs(instance: &Instance, active: bool, input: &FrameInput) -
         count: Some(instance.tab_count()),
         indent: 0.0,
         active,
+        folded: Some(instance.folded),
     }];
-    if active {
+    if active && !instance.folded {
         let current = instance.active_tab();
         specs.extend(instance.tabs().into_iter().map(|tab| RowSpec {
             item: SidebarItem::Tab(tab),
@@ -36,6 +38,7 @@ pub(super) fn row_specs(instance: &Instance, active: bool, input: &FrameInput) -
             count: None,
             indent: TAB_INDENT,
             active: Some(tab) == current,
+            folded: None,
         }));
     }
     specs
@@ -59,8 +62,12 @@ pub(super) fn layout_row(
     let close_size = metrics.px(UiMetrics::TAB_CLOSE);
     let close_x = rect.right() - metrics.px(UiMetrics::TAB_CLOSE_MARGIN) - close_size;
     let close = rect.square_at(close_x, close_size);
-    let label_x = icon.right() + metrics.px(LABEL_GAP);
-    let label_width = close.x - metrics.px(LABEL_GAP) - label_x;
+    let gap = metrics.px(LABEL_GAP);
+    let fold = spec
+        .folded
+        .map(|_| rect.square_at(close.x - gap - close_size, close_size));
+    let label_x = icon.right() + gap;
+    let label_width = fold.unwrap_or(close).x - gap - label_x;
     let style = if spec.indent > 0.0 {
         metrics.label()
     } else {
@@ -71,6 +78,8 @@ pub(super) fn layout_row(
         rect,
         icon,
         close,
+        fold,
+        folded: spec.folded.unwrap_or(false),
         label: fit_label(text, &spec.label, style, label_width),
         label_x,
         count: spec

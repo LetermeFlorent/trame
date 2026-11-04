@@ -45,6 +45,10 @@ impl Workspace {
         self.edit_instance(id, |instance| instance.fill = fill);
     }
 
+    pub fn toggle_folded(&mut self, id: InstanceId) {
+        self.edit_instance(id, |instance| instance.folded = !instance.folded);
+    }
+
     pub fn tint_of(&self, tab: SessionId) -> Option<Swatch> {
         let own = self.tab_color(tab).filter(|_| self.tab_fill(tab));
         own.or_else(|| {

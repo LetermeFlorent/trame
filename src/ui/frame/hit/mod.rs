@@ -43,6 +43,7 @@ pub enum Hit {
     NewInstance,
     Row(SidebarItem),
     RowClose(SidebarItem),
+    RowFold(InstanceId),
     TabBar(PaneId),
     Tab(PaneId, SessionId),
     TabClose(PaneId, SessionId),

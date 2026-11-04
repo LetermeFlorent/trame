@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use super::tween::Tween;
+use crate::ui::frame::SidebarItem;
 use crate::ui::hit::Hit;
 
 #[derive(Debug, Default)]
@@ -44,6 +45,7 @@ impl Fades {
 pub fn surfaces(hit: Hit) -> Vec<Hit> {
     match hit {
         Hit::RowClose(item) => vec![hit, Hit::Row(item)],
+        Hit::RowFold(id) => vec![hit, Hit::Row(SidebarItem::Instance(id))],
         Hit::TabClose(pane, tab) => vec![hit, Hit::Tab(pane, tab)],
         _ => vec![hit],
     }

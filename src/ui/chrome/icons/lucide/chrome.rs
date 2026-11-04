@@ -28,6 +28,8 @@ const PENCIL: &[Element] = &[
     ),
     Path("m15 5 4 4"),
 ];
+const CHEVRON_DOWN: &[Element] = &[Path("m6 9 6 6 6-6")];
+const CHEVRON_RIGHT: &[Element] = &[Path("m9 18 6-6-6-6")];
 const BAN: &[Element] = &[Circle(12.0, 12.0, 10.0), Path("m4.9 4.9 14.2 14.2")];
 
 pub(super) fn source(glyph: Glyph) -> Option<&'static [Element]> {
@@ -45,6 +47,8 @@ pub(super) fn source(glyph: Glyph) -> Option<&'static [Element]> {
         Glyph::ArrowDown => ARROW_DOWN,
         Glyph::Pencil => PENCIL,
         Glyph::Ban => BAN,
+        Glyph::ChevronDown => CHEVRON_DOWN,
+        Glyph::ChevronRight => CHEVRON_RIGHT,
         _ => return None,
     })
 }
