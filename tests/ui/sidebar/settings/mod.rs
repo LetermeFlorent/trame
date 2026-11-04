@@ -4,6 +4,7 @@ mod folders;
 mod launch;
 mod message;
 mod shortcuts;
+mod switches;
 mod system;
 mod tabs;
 mod terminals;
