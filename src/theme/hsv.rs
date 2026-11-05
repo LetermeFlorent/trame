@@ -1,12 +1,11 @@
+use super::color::{BYTE_MASK, GREEN_SHIFT, RED_SHIFT};
+
 pub const RGB_MASK: u32 = 0x00ff_ffff;
 
 const HEX_DIGITS: usize = 6;
 const SHORT_DIGITS: usize = 3;
 const SECTORS: f32 = 6.0;
 const CHANNEL: f32 = u8::MAX as f32;
-const BYTE_MASK: u32 = 0xFF;
-const RED_SHIFT: u32 = 16;
-const GREEN_SHIFT: u32 = 8;
 const HEX_RADIX: u32 = 16;
 const GREEN_SECTOR_OFFSET: f32 = 2.0;
 const BLUE_SECTOR_OFFSET: f32 = 4.0;

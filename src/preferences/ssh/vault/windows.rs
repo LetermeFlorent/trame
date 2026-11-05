@@ -1,4 +1,3 @@
-use std::hint::black_box;
 use std::io;
 use std::{ptr, slice};
 
@@ -8,6 +7,7 @@ use windows_sys::Win32::Security::Credentials::{
     CredWriteW,
 };
 
+use crate::secret::wipe;
 use crate::utf16::wide;
 
 pub(super) fn store(key: &str, user: &str, secret: &str) -> io::Result<()> {
@@ -29,8 +29,7 @@ pub(super) fn store(key: &str, user: &str, secret: &str) -> io::Result<()> {
         0 => Err(io::Error::last_os_error()),
         _ => Ok(()),
     };
-    blob.fill(0);
-    black_box(&blob);
+    wipe(&mut blob);
     result
 }
 

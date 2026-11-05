@@ -3,14 +3,14 @@ use trame::ui::Hit;
 use trame::ui::frame::SidebarItem;
 use trame::workspace::InstanceId;
 
-use super::{Drag, distance};
+use super::Drag;
 use crate::app::running::Running;
 
 impl Running {
     pub(super) fn instance_drag_moved(&mut self, point: Point, threshold: f32) -> Option<bool> {
         let (id, start) = match self.drag {
             Some(Drag::PendingInstance(id, origin)) => {
-                if distance(origin, point) < threshold {
+                if origin.distance_to(point) < threshold {
                     return Some(false);
                 }
                 self.drop_press();

@@ -1,9 +1,9 @@
 const DARK_INK: Rgba = Rgba::hex(0x1b1b1b);
 const LIGHT_INK: Rgba = Rgba::WHITE;
 
-const BYTE_MASK: u32 = 0xFF;
-const RED_SHIFT: u32 = 16;
-const GREEN_SHIFT: u32 = 8;
+pub(super) const BYTE_MASK: u32 = 0xFF;
+pub(super) const RED_SHIFT: u32 = 16;
+pub(super) const GREEN_SHIFT: u32 = 8;
 const MAX_CHANNEL: f32 = u8::MAX as f32;
 const SRGB_LINEAR_LIMIT: f32 = 0.04045;
 const SRGB_LINEAR_SLOPE: f32 = 12.92;

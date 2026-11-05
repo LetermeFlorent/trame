@@ -72,7 +72,7 @@ impl Running {
         }
         let next = match self.drag.take() {
             None => return false,
-            Some(Drag::Pending(tab, origin)) if distance(origin, point) < threshold => {
+            Some(Drag::Pending(tab, origin)) if origin.distance_to(point) < threshold => {
                 self.drag = Some(Drag::Pending(tab, origin));
                 return false;
             }
@@ -125,8 +125,4 @@ impl Running {
             _ => None,
         }
     }
-}
-
-fn distance(from: Point, to: Point) -> f32 {
-    (to.x - from.x).hypot(to.y - from.y)
 }

@@ -9,16 +9,12 @@ fn segments(length: f32) -> usize {
     ((length / STEP).ceil() as usize).clamp(1, MAX_SEGMENTS)
 }
 
-fn distance(a: Point, b: Point) -> f32 {
-    (b.x - a.x).hypot(b.y - a.y)
-}
-
 fn lerp(a: Point, b: Point, t: f32) -> Point {
     Point::new(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)
 }
 
 pub(super) fn cubic(from: Point, first: Point, second: Point, to: Point) -> Vec<Point> {
-    let length = distance(from, first) + distance(first, second) + distance(second, to);
+    let length = from.distance_to(first) + first.distance_to(second) + second.distance_to(to);
     let count = segments(length);
     (1..=count)
         .map(|step| {
@@ -31,7 +27,7 @@ pub(super) fn cubic(from: Point, first: Point, second: Point, to: Point) -> Vec<
 }
 
 pub(super) fn quadratic(from: Point, control: Point, to: Point) -> Vec<Point> {
-    let count = segments(distance(from, control) + distance(control, to));
+    let count = segments(from.distance_to(control) + control.distance_to(to));
     (1..=count)
         .map(|step| {
             let t = step as f32 / count as f32;

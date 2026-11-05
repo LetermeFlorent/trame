@@ -8,6 +8,10 @@ impl Point {
     pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
+
+    pub fn distance_to(self, other: Point) -> f32 {
+        (other.x - self.x).hypot(other.y - self.y)
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
