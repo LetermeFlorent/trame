@@ -12,7 +12,7 @@ pub use editor::{
     MenuRequest, PickerFrame, PickerPart, PickerView, SECRET_MASK, SwatchSlot,
 };
 pub use label::{fit_label, fit_label_start, fit_text_start};
-pub use panes::{PaneFrame, TabFrame};
+pub use panes::{HostBadge, PaneFrame, TabFrame};
 pub use sidebar::{
     BarPart, Chip, ChoiceRow, ConnectionsPage, FooterButton, FooterFrame, FormPage, HostList,
     HostRow, HostsView, InstancesPage, KeyControl, KeyNotice, ListControl, MessageFrame,
@@ -90,6 +90,7 @@ impl FrameLayout {
             text,
             metrics,
             title: input.title,
+            workspace: input.workspace,
             motion,
         };
         let active = input.workspace.active_instance();

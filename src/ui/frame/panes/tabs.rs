@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use super::PaneContext;
+use super::badge::{self, HostBadge, HostText};
 use super::widths::{TabSizing, fit_widths, scroll_offset};
 use crate::geometry::Rect;
 use crate::session::SessionId;
@@ -26,7 +27,6 @@ pub struct TabFrame {
     pub active: bool,
     pub color: Option<Swatch>,
     pub fill: bool,
-    pub ssh: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -34,6 +34,7 @@ pub struct TabStrip {
     pub rect: Rect,
     pub tabs_area: Rect,
     pub tabs: Vec<TabFrame>,
+    pub host: Option<HostBadge>,
     pub new_tab: Rect,
     pub split: Rect,
 }
@@ -57,31 +58,46 @@ pub(super) struct StripPlacement<'a> {
 
 struct Controls {
     tabs_area: Rect,
+    badge: Option<Rect>,
     new_tab: Rect,
     split: Rect,
 }
 
 pub(super) fn layout_strip(cx: &mut PaneContext, placement: StripPlacement) -> TabStrip {
-    let controls = controls(&cx.metrics, placement.bar);
-    let target_area = self::controls(&cx.metrics, placement.target).tabs_area;
+    let active = placement.pane.active_tab();
+    let host = active
+        .and_then(|tab| cx.workspace.tab_host(tab))
+        .map(|host| HostText::measure(cx.text, &cx.metrics, host.label()));
+    let controls = controls(&cx.metrics, placement.bar, host.as_ref());
+    let target_area = self::controls(&cx.metrics, placement.target, host.as_ref()).tabs_area;
     let tabs = layout_tabs(cx, &placement, controls.tabs_area, target_area.width);
+    let host = host
+        .zip(controls.badge)
+        .map(|(host, rect)| badge::place(cx.text, &cx.metrics, &host, rect));
     TabStrip {
         rect: placement.bar,
         tabs_area: controls.tabs_area,
         tabs,
+        host,
         new_tab: controls.new_tab,
         split: controls.split,
     }
 }
 
-fn controls(metrics: &UiMetrics, rect: Rect) -> Controls {
+fn controls(metrics: &UiMetrics, rect: Rect, host: Option<&HostText>) -> Controls {
     let button = metrics.px(STRIP_BUTTON);
     let margin = metrics.px(BUTTON_MARGIN);
     let split = rect.square_at(rect.right() - margin - button, button);
     let new_tab = rect.square_at(split.x - metrics.px(BUTTON_GAP) - button, button);
-    let tabs_area = Rect::from_edges(rect.x, rect.y, new_tab.x - margin, rect.bottom());
+    let end = new_tab.x - margin;
+    let badge = host.map(|host| {
+        let width = badge::width(metrics, host, end - rect.x);
+        Rect::from_edges(end - width, rect.y, end, rect.bottom())
+    });
+    let tabs_end = badge.map_or(end, |badge| badge.x - margin);
     Controls {
-        tabs_area,
+        tabs_area: Rect::from_edges(rect.x, rect.y, tabs_end, rect.bottom()),
+        badge,
         new_tab,
         split,
     }
@@ -121,7 +137,6 @@ fn layout_tabs(
             active: index == pane.active,
             color: None,
             fill: false,
-            ssh: false,
         });
         x += width;
     }

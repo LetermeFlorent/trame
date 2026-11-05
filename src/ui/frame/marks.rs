@@ -9,7 +9,6 @@ pub fn apply(workspace: &Workspace, sidebar: Option<&mut SidebarFrame>, panes: &
     for tab in panes.iter_mut().flat_map(|pane| pane.strip.tabs.iter_mut()) {
         tab.color = workspace.tab_color(tab.id);
         tab.fill = workspace.tab_fill(tab.id);
-        tab.ssh = workspace.tab_host(tab.id).is_some();
     }
     let Some(sidebar) = sidebar else {
         return;

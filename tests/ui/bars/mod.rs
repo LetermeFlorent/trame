@@ -1,6 +1,6 @@
 mod brand;
 mod fill;
-mod outline;
+mod host;
 mod tabbar;
 mod titlebar;
 

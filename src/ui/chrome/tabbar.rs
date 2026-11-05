@@ -1,11 +1,10 @@
 use super::{Icon, Painter};
 use crate::geometry::Rect;
-use crate::theme::Rgba;
-use crate::ui::frame::{PaneFrame, TabFrame};
+use crate::theme::{Emblem, Rgba};
+use crate::ui::frame::{HostBadge, PaneFrame, TabFrame};
 use crate::ui::hit::Hit;
 
 const ACCENT_HEIGHT: f32 = 2.0;
-const OUTLINE_WIDTH: f32 = 2.0;
 const TAB_RADIUS: f32 = 6.0;
 const SEPARATOR_INSET: f32 = 7.0;
 
@@ -38,6 +37,9 @@ pub(super) fn draw(painter: &mut Painter, pane: &PaneFrame) {
         draw_tab(painter, pane, tab, before_active);
     }
     painter.scene.pop_clip();
+    if let Some(host) = &strip.host {
+        draw_host(painter, host);
+    }
     painter.button(strip.new_tab, Hit::NewTab(pane.id), Icon::Plus);
     painter.button(strip.split, Hit::Split(pane.id), Icon::SplitRight);
 }
@@ -95,9 +97,6 @@ fn draw_tab_fill(
         Some(swatch) => Some(theme.swatch(swatch)),
         None => current.then_some(theme.accent),
     };
-    if tab.ssh {
-        draw_outline(painter, rect, radius);
-    }
     if let Some(color) = accent {
         let height = painter.metrics.px(ACCENT_HEIGHT);
         let width = (rect.width - radius * 2.0).max(0.0);
@@ -105,14 +104,12 @@ fn draw_tab_fill(
     }
 }
 
-fn draw_outline(painter: &mut Painter, rect: Rect, radius: f32) {
-    let width = painter.metrics.px(OUTLINE_WIDTH);
-    let open = Rect::new(rect.x, rect.y, rect.width, rect.height + radius);
-    painter.scene.push_clip(rect);
-    painter
-        .scene
-        .border(open, painter.theme.tab_outline, radius, width);
-    painter.scene.pop_clip();
+fn draw_host(painter: &mut Painter, host: &HostBadge) {
+    let color = painter.theme.text_muted;
+    painter.icon(Icon::Emblem(Emblem::Globe), host.icon, color);
+    if let Some(label) = &host.label {
+        painter.label(label, host.label_x, host.rect, color);
+    }
 }
 
 fn draw_separator(painter: &mut Painter, rect: Rect) {

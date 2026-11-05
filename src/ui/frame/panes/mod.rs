@@ -1,3 +1,4 @@
+mod badge;
 mod dividers;
 mod entry;
 mod tabs;
@@ -5,6 +6,7 @@ mod widths;
 
 use std::collections::HashMap;
 
+pub use badge::HostBadge;
 pub use tabs::{TabFrame, TabStrip};
 
 use crate::geometry::Rect;
@@ -13,12 +15,13 @@ use crate::text::{CellMetrics, TextSystem};
 use crate::theme::Swatch;
 use crate::ui::metrics::UiMetrics;
 use crate::ui::motion::{Motion, MotionKey};
-use crate::workspace::{Divider, Instance, PaneId, PaneLayout};
+use crate::workspace::{Divider, Instance, PaneId, PaneLayout, Workspace};
 
 pub(super) struct PaneContext<'a> {
     pub(super) text: &'a mut TextSystem,
     pub(super) metrics: UiMetrics,
     pub(super) title: &'a dyn Fn(SessionId) -> String,
+    pub(super) workspace: &'a Workspace,
     pub(super) motion: &'a mut Motion,
 }
 
