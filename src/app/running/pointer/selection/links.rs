@@ -39,7 +39,7 @@ impl Running {
         link_at(session.terminal().screen(), row, cell.1)
     }
 
-    fn primary_held(&self) -> bool {
+    pub(crate) fn primary_held(&self) -> bool {
         match self.metrics.platform {
             Platform::Mac => self.modifiers.super_key(),
             _ => self.modifiers.control_key(),

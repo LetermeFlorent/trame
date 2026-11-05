@@ -51,6 +51,7 @@ fn out_of_range_active_tab_is_clamped() {
     let root = NodeSnapshot::Pane(PaneSnapshot {
         tabs: vec![TabSnapshot::default(); 2],
         active: 9,
+        even: false,
     });
     let (restored, _) = restore(&single(root));
     let instance = &restored.instances[0];

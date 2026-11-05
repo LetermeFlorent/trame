@@ -74,6 +74,7 @@ pub fn pane(tabs: usize) -> NodeSnapshot {
     NodeSnapshot::Pane(PaneSnapshot {
         tabs: vec![TabSnapshot::default(); tabs],
         active: 0,
+        even: false,
     })
 }
 

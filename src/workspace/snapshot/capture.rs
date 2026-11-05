@@ -90,6 +90,7 @@ fn capture_pane(workspace: &Workspace, pane: &Pane, describe: DescribeTab) -> Pa
             .map(|tab| capture_tab(workspace, *tab, describe))
             .collect(),
         active: pane.active,
+        even: pane.even,
     }
 }
 

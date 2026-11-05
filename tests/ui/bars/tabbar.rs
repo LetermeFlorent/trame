@@ -5,12 +5,12 @@ use trame::text::TextSystem;
 use trame::theme::{Appearance, Rgba, Swatch, Theme};
 use trame::ui::chrome::draw_chrome;
 use trame::ui::frame::SidebarItem;
-use trame::ui::{Density, FrameLayout, PanelSide, UiMetrics};
+use trame::ui::{Density, FrameInput, FrameLayout, Motion, PanelSide, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::painted_at;
 use crate::paint::paint_with;
-use crate::{frame, frame_with_metrics, text_system, workspace};
+use crate::{frame, frame_with_metrics, input, text_system, workspace};
 
 const EPSILON: f32 = 0.01;
 
@@ -149,4 +149,29 @@ fn a_working_tab_weaves_the_logo_in_place_of_its_close_button() {
     assert!(!woven(&paint(&mut text, &frame, &theme)));
     frame.mark_working(&workspace, |id| id == SessionId(1));
     assert!(woven(&paint(&mut text, &frame, &theme)));
+}
+
+#[test]
+fn even_tabs_take_the_width_of_the_longest_name_until_toggled_back() {
+    let mut text = text_system();
+    let mut workspace = workspace();
+    let title = |id: SessionId| match id.0 {
+        2 => "a much longer tab name".to_owned(),
+        _ => "pwsh".to_owned(),
+    };
+    let widths = |workspace: &Workspace, text: &mut TextSystem| {
+        let input = FrameInput {
+            title: &title,
+            ..input(workspace, UiMetrics::new(1.0))
+        };
+        let frame = FrameLayout::compute_with(text, &input, &mut Motion::default());
+        let tabs = &frame.panes[0].strip.tabs;
+        (tabs[0].rect.width, tabs[1].rect.width)
+    };
+    let (short, long) = widths(&workspace, &mut text);
+    assert!(short < long);
+    workspace.toggle_even_tabs(SessionId(1));
+    assert_eq!(widths(&workspace, &mut text), (long, long));
+    workspace.toggle_even_tabs(SessionId(2));
+    assert_eq!(widths(&workspace, &mut text), (short, long));
 }

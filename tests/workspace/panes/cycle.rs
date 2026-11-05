@@ -6,6 +6,7 @@ fn empty_pane() -> Pane {
     Pane {
         tabs: Vec::new(),
         active: 0,
+        even: false,
     }
 }
 

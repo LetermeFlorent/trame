@@ -45,6 +45,18 @@ impl Workspace {
         self.edit_instance(id, |instance| instance.fill = fill);
     }
 
+    pub fn toggle_even_tabs(&mut self, tab: SessionId) {
+        let Some(location) = self.locate(tab) else {
+            return;
+        };
+        if let Some(pane) = self.instances[location.instance]
+            .panes
+            .get_mut(&location.pane)
+        {
+            pane.even = !pane.even;
+        }
+    }
+
     pub fn toggle_folded(&mut self, id: InstanceId) {
         self.edit_instance(id, |instance| instance.folded = !instance.folded);
     }

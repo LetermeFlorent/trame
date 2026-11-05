@@ -30,6 +30,7 @@ impl Snapshot {
                     root: NodeSnapshot::Pane(PaneSnapshot {
                         tabs: vec![tab; count],
                         active: 0,
+                        even: false,
                     }),
                     ..instance.clone()
                 }

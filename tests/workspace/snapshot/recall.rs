@@ -20,6 +20,7 @@ fn saved(preferences: Preferences) -> Snapshot {
                     TabSnapshot::default(),
                 ],
                 active: 2,
+                even: false,
             }),
         ],
     );

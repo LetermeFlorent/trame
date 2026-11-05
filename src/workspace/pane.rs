@@ -4,6 +4,7 @@ use crate::session::SessionId;
 pub struct Pane {
     pub tabs: Vec<SessionId>,
     pub active: usize,
+    pub even: bool,
 }
 
 impl Pane {
@@ -11,6 +12,7 @@ impl Pane {
         Self {
             tabs: vec![tab],
             active: 0,
+            even: false,
         }
     }
 

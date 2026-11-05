@@ -52,6 +52,7 @@ fn preferences_and_text_keys_survive_json() {
     let mut snapshot = single(NodeSnapshot::Pane(PaneSnapshot {
         tabs: vec![tab],
         active: 0,
+        even: true,
     }));
     snapshot.preferences = every_preference_changed();
     let parsed = through_json(&snapshot);

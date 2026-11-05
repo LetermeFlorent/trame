@@ -113,10 +113,14 @@ fn layout_tabs(
     let sizing = TabSizing::new(&cx.metrics);
     let pane = placement.pane;
     let titles: Vec<String> = pane.tabs.iter().map(|tab| (cx.title)(*tab)).collect();
-    let natural: Vec<f32> = titles
+    let mut natural: Vec<f32> = titles
         .iter()
         .map(|title| sizing.natural(cx.text, title))
         .collect();
+    if pane.even {
+        let widest = natural.iter().copied().fold(0.0, f32::max);
+        natural.fill(widest);
+    }
     let widths = fit_widths(&natural, available, sizing.minimum);
     let mut x = -scroll_offset(&widths, pane.active, available);
     let mut frames = Vec::with_capacity(widths.len());

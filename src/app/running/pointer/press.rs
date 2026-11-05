@@ -46,6 +46,7 @@ impl Running {
     fn double_press(&mut self, event_loop: &ActiveEventLoop, hit: Hit) -> bool {
         match hit {
             Hit::TitleBar => self.toggle_maximized(),
+            Hit::Tab(_, tab) if self.primary_held() => self.workspace.toggle_even_tabs(tab),
             Hit::TabBar(pane) => {
                 self.focus_pane(pane);
                 self.command(event_loop, Command::NewTab);

@@ -125,7 +125,11 @@ impl Restorer<'_> {
             tabs.push(id);
         }
         let active = item.active.min(tabs.len() - 1);
-        Some(Pane { tabs, active })
+        Some(Pane {
+            tabs,
+            active,
+            even: item.even,
+        })
     }
 }
 

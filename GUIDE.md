@@ -19,7 +19,7 @@ A tab can be dragged:
 
 ### Names, colours, folders
 
-A double click on a tab or an instance renames it. A right click opens a menu to rename it, change its colour, change its folder or, for an instance, its icon.
+A double click on a tab or an instance renames it. Ctrl and a double click on a tab (Cmd on macOS) gives every tab of that bar the width of its longest name, and doing it again gives each tab back the width of its own name; trame keeps that choice for each bar. A right click opens a menu to rename it, change its colour, change its folder or, for an instance, its icon.
 
 The colour window shows the colours, a Coloured background switch and your own colours. With the switch on, a coloured tab is filled with its colour and an instance row in the side bar too, with the label in black or white, whichever reads better. The terminal of that tab, or of every tab of the instance that has no fill of its own, then takes a light shade of the colour. The switch is greyed out while there is no colour, and it is saved with the session. New colour, or the pencil of one of your colours, opens the picker, where Escape and the cross go back to the colour window and a click outside closes both.
 

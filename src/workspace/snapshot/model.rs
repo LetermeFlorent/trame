@@ -70,6 +70,8 @@ pub enum NodeSnapshot {
 pub struct PaneSnapshot {
     pub tabs: Vec<TabSnapshot>,
     pub active: usize,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub even: bool,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
