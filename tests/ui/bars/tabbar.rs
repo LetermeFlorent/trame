@@ -66,14 +66,17 @@ fn the_open_coloured_tab_is_filled_with_its_tint() {
 }
 
 #[test]
-fn a_plain_tab_shows_no_line_until_it_is_open() {
+fn a_plain_tab_is_outlined_only_once_it_is_open() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
     let frame = frame(&mut text, &coloured(None, None));
     let scene = paint(&mut text, &frame, &theme);
     let tabs = &frame.panes[0].strip.tabs;
     assert!(line_over(&scene, tabs[0].rect, theme.accent).is_none());
-    assert!(line_over(&scene, tabs[1].rect, theme.accent).is_some());
+    let outline = line_over(&scene, tabs[1].rect, theme.accent).expect("an outline");
+    assert_eq!(outline.x, tabs[1].rect.x);
+    assert!((outline.right() - tabs[1].rect.right()).abs() < EPSILON);
+    assert!(outline.bottom() >= tabs[1].rect.bottom());
 }
 
 #[test]
