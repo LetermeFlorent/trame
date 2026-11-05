@@ -9,6 +9,7 @@ mod view;
 use super::cell::Links;
 use super::cursor::charset::CharsetState;
 use super::cursor::{Cursor, CursorShape, SavedCursor};
+use super::dispatch::status::ProgramStatus;
 use super::grid::Grid;
 use super::modes::Modes;
 
@@ -35,6 +36,7 @@ pub struct Screen {
     pub(crate) clipboard: Option<String>,
     pub(crate) clipboard_writes: bool,
     pub(crate) attention: Option<String>,
+    pub(crate) status: ProgramStatus,
     pub(crate) colors: ReportedColors,
     pub(crate) link: u16,
     pub(crate) links: Links,
@@ -62,6 +64,7 @@ impl Screen {
             clipboard: None,
             clipboard_writes: true,
             attention: None,
+            status: ProgramStatus::default(),
             colors: ReportedColors::default(),
             link: 0,
             links: Links::default(),

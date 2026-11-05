@@ -2,6 +2,7 @@ mod loader;
 mod paint;
 mod style;
 mod system;
+mod work;
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -103,6 +104,9 @@ impl Running {
         };
         self.motion.tick(Instant::now());
         self.frame = compute(&mut self.text, &layout, &mut self.motion, &title);
+        let sessions = &self.sessions;
+        self.frame
+            .mark_working(&self.workspace, |id| sessions.working(id));
         self.frame.blocked = self.loader.is_some();
         self.place_editor();
         self.place_menu();

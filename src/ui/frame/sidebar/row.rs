@@ -51,12 +51,7 @@ pub(super) fn layout_row(
     spec: RowSpec,
 ) -> SidebarRow {
     let margin = metrics.px(ROW_MARGIN);
-    let rect = Rect::new(
-        slot.x + margin,
-        slot.y,
-        slot.width - 2.0 * margin,
-        slot.height,
-    );
+    let rect = slot.inset_by(margin, 0.0);
     let icon_size = metrics.px(UiMetrics::ICON);
     let icon = rect.square_at(rect.x + metrics.px(ICON_MARGIN + spec.indent), icon_size);
     let close_size = metrics.px(UiMetrics::TAB_CLOSE);
@@ -89,5 +84,6 @@ pub(super) fn layout_row(
         color: None,
         fill: false,
         emblem: None,
+        working: false,
     }
 }

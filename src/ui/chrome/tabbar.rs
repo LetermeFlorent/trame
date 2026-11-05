@@ -55,6 +55,14 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
     let ink = solid.map(Rgba::ink);
     painter.scene.push_clip(rect);
     draw_tab_fill(painter, pane, tab, glow, solid);
+    if tab.working {
+        let lined = tab.color.is_some() || (tab.active && pane.focused);
+        let color = ink.unwrap_or(if lined { theme.text } else { theme.accent });
+        let radius = painter.metrics.px(TAB_RADIUS).max(pane.radius);
+        let height = painter.metrics.px(ACCENT_HEIGHT);
+        let band = Rect::new(rect.x + radius, rect.y, rect.width - radius * 2.0, height);
+        painter.work_bar(band, color);
+    }
     if !tab.active && !before_active {
         draw_separator(painter, rect);
     }

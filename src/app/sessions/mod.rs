@@ -92,6 +92,11 @@ impl Sessions {
         Ok(())
     }
 
+    pub fn working(&self, id: SessionId) -> bool {
+        self.get(id)
+            .is_some_and(|session| session.terminal().screen().program_working())
+    }
+
     pub fn get(&self, id: SessionId) -> Option<&Session> {
         self.map.get(&id)
     }

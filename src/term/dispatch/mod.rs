@@ -6,6 +6,7 @@ mod osc;
 mod reports;
 mod set_mode;
 mod sgr;
+pub(crate) mod status;
 
 use crate::term::cursor::CursorShape;
 use crate::term::screen::Screen;

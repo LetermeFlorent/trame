@@ -21,6 +21,7 @@ pub enum MotionKey {
 
 #[derive(Debug)]
 pub struct Motion {
+    born: Instant,
     now: Instant,
     animate: bool,
     sidebar: Option<Tween<f32>>,
@@ -40,6 +41,7 @@ impl Default for Motion {
 impl Motion {
     pub fn new(now: Instant) -> Self {
         Self {
+            born: now,
             now,
             animate: false,
             sidebar: None,
@@ -53,6 +55,10 @@ impl Motion {
 
     pub fn now(&self) -> Instant {
         self.now
+    }
+
+    pub fn phase(&self, period: f32) -> f32 {
+        self.now.duration_since(self.born).as_secs_f32() % period / period
     }
 
     pub fn tick(&mut self, now: Instant) {

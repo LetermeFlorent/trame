@@ -27,6 +27,7 @@ pub struct TabFrame {
     pub active: bool,
     pub color: Option<Swatch>,
     pub fill: bool,
+    pub working: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -137,6 +138,7 @@ fn layout_tabs(
             active: index == pane.active,
             color: None,
             fill: false,
+            working: false,
         });
         x += width;
     }

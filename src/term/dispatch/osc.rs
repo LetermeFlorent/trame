@@ -1,4 +1,5 @@
 use super::decode::{decode_base64, file_url_path, is_invisible_format, local_folder};
+use super::status::PROBE_REPLY;
 use crate::term::MAX_CLIPBOARD_BYTES;
 use crate::term::cell::MAX_LINK_LEN;
 use crate::term::screen::Screen;
@@ -33,6 +34,10 @@ impl Screen {
                 self.notice(params.get(3..).unwrap_or_default());
             }
             b"99" => self.notice(params.get(2..).unwrap_or_default()),
+            b"7501" => {
+                self.program_status(params.get(1).copied().unwrap_or_default(), bell_terminated)
+            }
+            b"133" if params.get(1) == Some(&&b"A"[..]) => self.status.drop_running(),
             b"10" | b"11" | b"12" if params.get(1) == Some(&&b"?"[..]) => {
                 self.report_color(kind, bell_terminated);
             }
@@ -80,6 +85,15 @@ impl Screen {
 
     fn notice(&mut self, parts: &[&[u8]]) {
         self.attention = Some(printable_text(parts));
+    }
+
+    fn program_status(&mut self, payload: &[u8], bell_terminated: bool) {
+        if payload == b"?" {
+            let terminator = if bell_terminated { "\x07" } else { "\x1b\\" };
+            self.respond(format!("{PROBE_REPLY}{terminator}").as_bytes());
+        } else if let Some(message) = self.status.apply(payload) {
+            self.attention = Some(message);
+        }
     }
 
     fn report_color(&mut self, kind: &[u8], bell_terminated: bool) {

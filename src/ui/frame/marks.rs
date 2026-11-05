@@ -1,4 +1,5 @@
-use super::{PaneFrame, SidebarFrame, SidebarItem};
+use super::{FrameLayout, PaneFrame, SidebarFrame, SidebarItem};
+use crate::session::SessionId;
 use crate::theme::{Emblem, Swatch};
 use crate::workspace::{InstanceId, Workspace};
 
@@ -29,4 +30,33 @@ fn instance_marks(workspace: &Workspace, id: InstanceId) -> (Option<Swatch>, Opt
     workspace.instance(id).map_or((None, None), |instance| {
         (instance.color, Some(workspace.shown_emblem(instance)))
     })
+}
+
+impl FrameLayout {
+    pub fn mark_working(&mut self, workspace: &Workspace, working: impl Fn(SessionId) -> bool) {
+        for tab in self
+            .panes
+            .iter_mut()
+            .flat_map(|pane| pane.strip.tabs.iter_mut())
+        {
+            tab.working = working(tab.id);
+        }
+        let Some(sidebar) = self.sidebar.as_mut() else {
+            return;
+        };
+        for row in &mut sidebar.rows {
+            row.working = match row.item {
+                SidebarItem::Tab(id) => working(id),
+                SidebarItem::Instance(id) => workspace
+                    .instance(id)
+                    .is_some_and(|instance| instance.tabs().into_iter().any(&working)),
+            };
+        }
+    }
+
+    pub fn shows_work(&self) -> bool {
+        let tabs = self.panes.iter().flat_map(|pane| &pane.strip.tabs);
+        let rows = self.sidebar.iter().flat_map(|sidebar| &sidebar.rows);
+        tabs.into_iter().any(|tab| tab.working) || rows.into_iter().any(|row| row.working)
+    }
 }

@@ -97,6 +97,10 @@ impl Screen {
         self.attention.take()
     }
 
+    pub fn program_working(&self) -> bool {
+        self.status.working()
+    }
+
     pub fn scroll_display(&mut self, delta: isize) {
         self.grid_mut().scroll_display(delta);
     }

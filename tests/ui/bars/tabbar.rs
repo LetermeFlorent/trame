@@ -4,6 +4,7 @@ use trame::session::SessionId;
 use trame::text::TextSystem;
 use trame::theme::{Appearance, Rgba, Swatch, Theme};
 use trame::ui::chrome::draw_chrome;
+use trame::ui::frame::SidebarItem;
 use trame::ui::{Density, FrameLayout, PanelSide, UiMetrics};
 use trame::workspace::Workspace;
 
@@ -110,4 +111,20 @@ fn the_bar_buttons_keep_room_above_and_below() {
             assert!((above - below).abs() <= 1.0, "{scale}: {above} {below}");
         }
     }
+}
+
+#[test]
+fn a_working_tab_marks_its_own_tab_and_its_instance() {
+    let mut text = text_system();
+    let workspace = workspace();
+    let mut frame = frame(&mut text, &workspace);
+    assert!(!frame.shows_work());
+    frame.mark_working(&workspace, |id| id == SessionId(1));
+    let tabs = &frame.panes[0].strip.tabs;
+    assert!(tabs[0].working && !tabs[1].working);
+    let sidebar = frame.sidebar.as_ref().expect("a sidebar");
+    let instance = SidebarItem::Instance(workspace.instances[0].id);
+    let row = sidebar.rows.iter().find(|row| row.item == instance);
+    assert!(row.expect("the instance row").working);
+    assert!(frame.shows_work());
 }

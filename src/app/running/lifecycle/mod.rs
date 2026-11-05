@@ -93,11 +93,13 @@ impl Running {
         let save = self.save_deadline();
         let text = self.transcript_deadline();
         let loader = self.loader_wake(Instant::now());
+        let work = self.work_wake(Instant::now());
         let secret = self.sessions.secret_deadline(Instant::now());
         save.into_iter()
             .chain(text)
             .chain(retry)
             .chain(loader)
+            .chain(work)
             .chain(secret)
             .chain(self.power.deadline())
             .min()

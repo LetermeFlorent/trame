@@ -12,6 +12,8 @@ use crate::ui::motion::Motion;
 use crate::ui::paint::FrameView;
 
 const SMALL_RADIUS: f32 = 3.0;
+const WORK_PERIOD: f32 = 1.4;
+const WORK_SHARE: f32 = 0.35;
 const HOVER_SHADE: f32 = 0.12;
 const PRESSED_SHADE: f32 = 0.22;
 
@@ -39,6 +41,18 @@ pub(super) struct Painter<'a> {
 }
 
 impl<'a> Painter<'a> {
+    pub(super) fn work_bar(&mut self, band: Rect, color: Rgba) {
+        let width = band.width * WORK_SHARE;
+        let x = band.x - width + (band.width + width) * self.motion.phase(WORK_PERIOD);
+        self.scene.push_clip(band);
+        self.scene.fill(
+            Rect::new(x, band.y, width, band.height),
+            color,
+            band.height / 2.0,
+        );
+        self.scene.pop_clip();
+    }
+
     pub(super) fn new(
         scene: &'a mut Scene,
         text: &'a mut TextSystem,

@@ -58,6 +58,7 @@ pub struct SidebarRow {
     pub color: Option<Swatch>,
     pub fill: bool,
     pub emblem: Option<Emblem>,
+    pub working: bool,
 }
 
 #[derive(Clone, Debug)]
