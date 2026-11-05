@@ -112,40 +112,7 @@ impl Grid {
         self.dropped + (self.screen_start() + row) as u64
     }
 
-    pub fn clear_history(&mut self) {
-        self.selection = None;
-        let history = self.history_len();
-        self.lines.drain(..history);
-        self.lines.shrink_to_fit();
-        self.dropped += history as u64;
-        self.display_offset = 0;
-    }
-
-    pub fn reset(&mut self) {
-        self.clear_history();
-        for row in self.lines.iter_mut() {
-            *row = Row::default();
-        }
-    }
-
     fn screen_start(&self) -> usize {
         self.lines.len() - self.rows
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::Grid;
-    use crate::term::Cell;
-
-    #[test]
-    fn clearing_the_history_gives_its_room_back() {
-        let mut grid = Grid::new(4, 10, 1000);
-        for _ in 0..500 {
-            grid.scroll_up(0, 3, 1, &Cell::default());
-        }
-        assert_eq!(grid.history_len(), 500);
-        grid.clear_history();
-        assert!(grid.lines.capacity() < 64);
     }
 }
