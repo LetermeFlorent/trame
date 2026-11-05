@@ -83,7 +83,8 @@ impl Screen {
 
     fn set_title(&mut self, parts: &[&[u8]]) {
         let title = printable_text(parts);
-        self.title = if title.is_empty() { None } else { Some(title) };
+        let name = title.trim_start_matches(is_status_mark);
+        self.title = (!name.is_empty()).then(|| name.to_string());
     }
 
     fn notice(&mut self, parts: &[&[u8]]) {
@@ -113,6 +114,10 @@ impl Screen {
         );
         self.respond(reply.as_bytes());
     }
+}
+
+fn is_status_mark(c: char) -> bool {
+    c.is_whitespace() || (!c.is_ascii() && !c.is_alphanumeric())
 }
 
 fn printable_text(parts: &[&[u8]]) -> String {
