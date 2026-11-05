@@ -52,7 +52,8 @@ fn the_sidebar_editor_can_target_a_tab_row() {
 #[test]
 fn an_editor_for_a_missing_target_is_dropped() {
     let mut text = text_system();
-    let workspace = workspace();
+    let mut workspace = workspace();
+    workspace.toggle_folded(workspace.instances[1].id);
     let hidden = rename(&mut text, &workspace, EditTarget::Tab(SessionId(3)));
     assert!(hidden.editor.is_none());
     let strip = EditAnchor::Strip(workspace.instances[0].active_pane);

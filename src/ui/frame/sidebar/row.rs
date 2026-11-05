@@ -30,7 +30,7 @@ pub(super) fn row_specs(instance: &Instance, active: bool, input: &FrameInput) -
         active,
         folded: Some(instance.folded),
     }];
-    if active && !instance.folded {
+    if !instance.folded {
         let current = instance.active_tab();
         specs.extend(instance.tabs().into_iter().map(|tab| RowSpec {
             item: SidebarItem::Tab(tab),

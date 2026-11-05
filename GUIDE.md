@@ -4,7 +4,7 @@ Everything trame does, how to install it on each system, and how to build it. Th
 
 ## Instances, tabs and splits
 
-An instance is a named group of shells, usually one per project. Instances sit in a side bar on the left, and each one has its own tabs and its own splits. Switching from "trame" to "dev server" brings back that instance's tabs exactly as you left them. Hovering an instance row shows an arrow that folds its list of tabs away, leaving only their number next to the name; the arrow unfolds it again, the tabs stay reachable from the keyboard and the tab bar, and the fold is saved with the session.
+An instance is a named group of shells, usually one per project. Instances sit in a side bar on the left, and each one has its own tabs and its own splits. Switching from "trame" to "dev server" brings back that instance's tabs exactly as you left them. Every instance lists its tabs under its name, and the side bar scrolls when they do not all fit. Hovering an instance row shows an arrow that folds its list of tabs away, leaving only their number next to the name; the arrow unfolds it again, the tabs stay reachable from the keyboard and the tab bar, and the fold is saved with the session.
 
 The side bar can be resized with the mouse or folded into a thin rail of icons. A double click on the empty part of a tab bar opens a new tab in that pane.
 
