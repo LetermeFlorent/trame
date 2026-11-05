@@ -28,7 +28,7 @@ use trame::workspace::InstanceId;
 use pending::PendingOffer;
 use persist::{Role, Saved};
 use power::Process;
-use running::{FolderTarget, Offer, Running};
+use running::{FolderTarget, Offer, Restart, Running};
 use update::UpdateStatus;
 
 #[derive(Clone, Debug)]
@@ -98,7 +98,11 @@ impl App {
                     }
                 }
             }
-            UpdateStatus::Available(version) => {
+            UpdateStatus::AvailableAtStart(version) if self.updates_on_start() => {
+                self.offer.send(Offer { version }, &mut self.windows);
+                return self.restart_for(event_loop, Restart::Update);
+            }
+            UpdateStatus::Available(version) | UpdateStatus::AvailableAtStart(version) => {
                 return self.offer.send(Offer { version }, &mut self.windows);
             }
             status => status,
@@ -107,5 +111,11 @@ impl App {
             running.set_update(&status);
         }
         self.update = status;
+    }
+
+    fn updates_on_start(&self) -> bool {
+        self.windows
+            .first()
+            .is_some_and(|running| running.preferences().update_on_start)
     }
 }

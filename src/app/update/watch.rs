@@ -12,25 +12,31 @@ pub fn newer_release() -> Option<Version> {
     newer.then_some(latest)
 }
 
-pub fn watch(notify: &dyn Fn(UpdateStatus)) {
+pub fn watch(plain: bool, notify: &dyn Fn(UpdateStatus)) {
     let wait = || {
         thread::sleep(CHECK_EVERY);
         true
     };
-    poll_releases(newer_release, wait, notify);
+    poll_releases(newer_release, wait, plain, notify);
 }
 
 fn poll_releases(
     mut check: impl FnMut() -> Option<Version>,
     mut wait: impl FnMut() -> bool,
+    mut at_start: bool,
     notify: &dyn Fn(UpdateStatus),
 ) {
     let mut offered = None;
     loop {
         let latest = check();
-        if let Some(status) = offer(latest, offered) {
-            notify(status);
+        match offer(latest, offered) {
+            Some(UpdateStatus::Available(number)) if at_start => {
+                notify(UpdateStatus::AvailableAtStart(number));
+            }
+            Some(status) => notify(status),
+            None => {}
         }
+        at_start = false;
         offered = latest.or(offered);
         if !wait() {
             return;
@@ -52,6 +58,10 @@ mod tests {
     use crate::app::update::tests::version;
 
     fn watched(checks: &[Option<&str>]) -> Vec<UpdateStatus> {
+        watched_from(false, checks)
+    }
+
+    fn watched_from(at_start: bool, checks: &[Option<&str>]) -> Vec<UpdateStatus> {
         let mut answers = checks.iter().map(|check| check.map(version));
         let mut rounds = checks.len();
         let sent = RefCell::new(Vec::new());
@@ -59,7 +69,7 @@ mod tests {
             rounds -= 1;
             rounds > 0
         };
-        poll_releases(|| answers.next().flatten(), wait, &|status| {
+        poll_releases(|| answers.next().flatten(), wait, at_start, &|status| {
             sent.borrow_mut().push(status)
         });
         sent.into_inner()
@@ -82,5 +92,17 @@ mod tests {
     fn the_first_answer_comes_without_waiting() {
         let sent = watched(&[Some("9.0.0")]);
         assert_eq!(sent, [UpdateStatus::Available("9.0.0".into())]);
+    }
+
+    #[test]
+    fn only_the_first_answer_of_a_plain_start_installs_at_once() {
+        let sent = watched_from(true, &[Some("9.0.0"), Some("9.1.0")]);
+        let expected = [
+            UpdateStatus::AvailableAtStart("9.0.0".into()),
+            UpdateStatus::Available("9.1.0".into()),
+        ];
+        assert_eq!(sent, expected);
+        let late = watched_from(true, &[None, Some("9.0.0")]);
+        assert_eq!(late, [UpdateStatus::Available("9.0.0".into())]);
     }
 }

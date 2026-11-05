@@ -81,6 +81,7 @@ pub enum SettingControl {
     RestHiddenTabs,
     NotifyWaiting,
     ProgramClipboard,
+    UpdateOnStart,
     Numbers(NumberChoice),
     Keys(KeyControl),
     Fill,

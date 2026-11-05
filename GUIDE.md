@@ -117,7 +117,7 @@ The macOS build is tested and opened on every release, like the Linux one, and h
 
 ## Updates
 
-trame looks for a newer release on GitHub when it starts, then once an hour. When it finds one, an Update to button shows at the bottom of the side bar with the new version number. That is all it does on its own: nothing is downloaded or installed until you click it.
+trame looks for a newer release on GitHub when it starts, then once an hour. When it finds one, an Update to button shows at the bottom of the side bar with the new version number. That is all it does on its own: nothing is downloaded or installed until you click it. The switch "Install updates when trame starts" in System, off by default, skips the button for the check made at launch: when trame opens while no other trame runs and a newer release is out, it restarts at once on the update screen described below. A release found later, while you work, still waits for the button.
 
 Clicking the button asks "Update to 0.4.0?" and warns that tabs and their text come back but commands that were running stop. Cancel leaves everything as it was. Restart saves every instance and tab, then opens trame again on an update screen. It checks the release, fills a bar with the download percentage, installs, and reopens every instance and tab with its text, exactly as you left them, even when the launch settings say to forget them. Until the screen fades out, only the window itself can be moved, resized or closed. If the download fails, the screen fades out, the title bar says "update failed" and you are back on the version you had, tabs included.
 

@@ -33,6 +33,9 @@ pub(super) fn system_page(
     let clipboard = [preferences.program_clipboard, true];
     let control = SettingControl::ProgramClipboard;
     toggles.push(column.toggle_row(strings.program_clipboard, clipboard, control));
+    let update = [preferences.update_on_start, true];
+    let control = SettingControl::UpdateOnStart;
+    toggles.push(column.toggle_row(strings.update_on_start, update, control));
     FormPage {
         toggles,
         ..FormPage::default()

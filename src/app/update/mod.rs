@@ -33,6 +33,7 @@ pub enum UpdateStatus {
     Failed,
     Installed(Handoff),
     Available(String),
+    AvailableAtStart(String),
 }
 
 pub fn start(notify: impl Fn(UpdateStatus) + Send + 'static) -> UpdateStatus {
@@ -44,9 +45,10 @@ pub fn start(notify: impl Fn(UpdateStatus) + Send + 'static) -> UpdateStatus {
         return UpdateStatus::Done;
     };
     let installs = installs(env::args_os());
+    let plain = plain(env::args_os());
     let spawned = thread::Builder::new()
         .name("trame-update".into())
-        .spawn(move || follow(route, installs, exe, &notify));
+        .spawn(move || follow(route, installs, plain, exe, &notify));
     match spawned {
         Ok(_) if installs => UpdateStatus::Checking,
         Ok(_) => UpdateStatus::Done,
@@ -67,13 +69,17 @@ fn installs(arguments: impl Iterator<Item = OsString>) -> bool {
     flagged(INSTALL_FLAG) && !flagged(UPDATED_FLAG)
 }
 
-fn follow(route: Route, installs: bool, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) {
+fn plain(mut arguments: impl Iterator<Item = OsString>) -> bool {
+    !arguments.any(|arg| arg == INSTALL_FLAG || arg == UPDATED_FLAG)
+}
+
+fn follow(route: Route, installs: bool, plain: bool, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) {
     staged::tidy(&route.target(&exe));
     installer::clear(route);
     if installs {
         notify(check(route, &exe, notify));
     }
-    watch::watch(notify);
+    watch::watch(plain, notify);
 }
 
 fn check(route: Route, exe: &Path, notify: &dyn Fn(UpdateStatus)) -> UpdateStatus {
@@ -139,5 +145,12 @@ mod tests {
     #[test]
     fn a_plain_start_installs_nothing() {
         assert!(!installs(arguments(&["C:/work"])));
+    }
+
+    #[test]
+    fn only_a_start_without_an_update_flag_is_plain() {
+        assert!(plain(arguments(&["C:/work"])));
+        assert!(!plain(arguments(&[INSTALL_FLAG])));
+        assert!(!plain(arguments(&[UPDATED_FLAG])));
     }
 }

@@ -60,6 +60,7 @@ pub const FRENCH: Strings = Strings {
     rest_hidden_tabs: "Onglets cachés sans activité",
     notify_waiting: "Notifier quand un onglet attend une réponse",
     program_clipboard: "Laisser les programmes copier dans le presse-papiers",
+    update_on_start: "Installer les mises à jour au démarrage",
     instances_section: "Instances",
     numbered_instances: "Numéros au lieu des icônes",
     renumber_on_close: "Renuméroter après une fermeture",

@@ -30,7 +30,7 @@ fn the_hidden_tabs_switch_sits_indented_under_efficiency_and_follows_it() {
 }
 
 #[test]
-fn the_system_page_has_no_update_switch() {
+fn the_system_page_lists_its_switches_in_order() {
     let layout = on_tab(&Preferences::default(), SettingsTab::System);
     let controls: Vec<_> = page(&layout).toggles.iter().map(|t| t.control).collect();
     let mut expected = vec![SettingControl::Efficiency, SettingControl::RestHiddenTabs];
@@ -38,6 +38,7 @@ fn the_system_page_has_no_update_switch() {
         expected.push(SettingControl::NotifyWaiting);
     }
     expected.push(SettingControl::ProgramClipboard);
+    expected.push(SettingControl::UpdateOnStart);
     assert_eq!(controls, expected);
     assert!(page(&layout).sections.is_empty());
 }

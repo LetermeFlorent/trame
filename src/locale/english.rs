@@ -60,6 +60,7 @@ pub const ENGLISH: Strings = Strings {
     rest_hidden_tabs: "Hidden tabs with no activity",
     notify_waiting: "Notify when a tab is waiting for you",
     program_clipboard: "Let programs copy to the clipboard",
+    update_on_start: "Install updates when trame starts",
     instances_section: "Instances",
     numbered_instances: "Numbers instead of icons",
     renumber_on_close: "Renumber after closing one",

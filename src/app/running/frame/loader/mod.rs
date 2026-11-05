@@ -55,7 +55,10 @@ impl Running {
                 self.changed();
                 return self.close_loader();
             }
-            UpdateStatus::Done | UpdateStatus::Installed(_) | UpdateStatus::Available(_) => {
+            UpdateStatus::Done
+            | UpdateStatus::Installed(_)
+            | UpdateStatus::Available(_)
+            | UpdateStatus::AvailableAtStart(_) => {
                 return self.close_loader();
             }
         };
