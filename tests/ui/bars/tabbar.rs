@@ -132,3 +132,21 @@ fn a_working_tab_marks_its_own_tab_and_its_instance() {
     assert!(row.expect("the instance row").working);
     assert!(frame.shows_work());
 }
+
+#[test]
+fn a_working_tab_weaves_the_logo_in_place_of_its_close_button() {
+    let mut text = text_system();
+    let theme = Theme::new(Appearance::Dark);
+    let workspace = workspace();
+    let mut frame = frame(&mut text, &workspace);
+    let close = frame.panes[0].strip.tabs[0].close;
+    let woven = |scene: &Scene| {
+        scene.quads().iter().any(|quad| {
+            let rect = Rect::new(quad.rect[0], quad.rect[1], quad.rect[2], quad.rect[3]);
+            quad.color[..3] == Rgba::WHITE.to_array()[..3] && !rect.intersect(close).is_empty()
+        })
+    };
+    assert!(!woven(&paint(&mut text, &frame, &theme)));
+    frame.mark_working(&workspace, |id| id == SessionId(1));
+    assert!(woven(&paint(&mut text, &frame, &theme)));
+}

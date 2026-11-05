@@ -55,14 +55,6 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
     let ink = solid.map(Rgba::ink);
     painter.scene.push_clip(rect);
     draw_tab_fill(painter, pane, tab, glow, solid);
-    if tab.working {
-        let lined = tab.color.is_some() || (tab.active && pane.focused);
-        let color = ink.unwrap_or(if lined { theme.text } else { theme.accent });
-        let radius = painter.metrics.px(TAB_RADIUS).max(pane.radius);
-        let height = painter.metrics.px(ACCENT_HEIGHT);
-        let band = Rect::new(rect.x + radius, rect.y, rect.width - radius * 2.0, height);
-        painter.work_bar(band, color);
-    }
     if !tab.active && !before_active {
         draw_separator(painter, rect);
     }
@@ -70,7 +62,16 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
     if !painter.renaming(|editor| editor.renames_tab(pane.id, tab.id)) {
         painter.label(&tab.label, tab.label_x, rect, color);
     }
-    let close_opacity = if tab.active { 1.0 } else { glow };
+    if tab.working {
+        painter.scene.push_opacity(1.0 - glow);
+        painter.weaving(tab.close, ink);
+        painter.scene.pop_opacity();
+    }
+    let close_opacity = if tab.active && !tab.working {
+        1.0
+    } else {
+        glow
+    };
     painter.scene.push_opacity(close_opacity);
     painter.small_inked(tab.close, Hit::TabClose(pane.id, tab.id), Icon::Close, ink);
     painter.scene.pop_opacity();

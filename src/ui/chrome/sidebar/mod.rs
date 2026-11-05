@@ -15,7 +15,6 @@ use row_end::draw_row_end;
 pub(super) use scroll::draw_bar;
 
 const HOVER_OVER_TINT: f32 = 0.7;
-const WORK_HEIGHT: f32 = 2.0;
 
 pub(super) fn draw_panel(painter: &mut Painter, rect: Rect) {
     let theme = painter.theme;
@@ -129,18 +128,15 @@ fn draw_row(painter: &mut Painter, row: &SidebarRow) {
             draw_backdrop(painter, row.rect, hit, selected, tint);
         }
     }
-    let icon_ink = ink.unwrap_or_else(|| icon_color(theme, row.color, row.active));
-    painter.icon(icon, row.icon, icon_ink);
+    if row.working {
+        painter.weaving(row.icon, ink);
+    } else {
+        let icon_ink = ink.unwrap_or_else(|| icon_color(theme, row.color, row.active));
+        painter.icon(icon, row.icon, icon_ink);
+    }
     let text_color = ink.unwrap_or_else(|| theme.label_text(row.active, glow));
     if !painter.renaming(|editor| editor.renames_row(row.item)) {
         painter.label(&row.label, row.label_x, row.rect, text_color);
     }
     draw_row_end(painter, row, glow, ink);
-    if row.working {
-        let radius = painter.metrics.px(UiMetrics::RADIUS);
-        let height = painter.metrics.px(WORK_HEIGHT);
-        let rect = row.rect;
-        let band = Rect::new(rect.x + radius, rect.y, rect.width - radius * 2.0, height);
-        painter.work_bar(band, ink.unwrap_or(theme.accent));
-    }
 }

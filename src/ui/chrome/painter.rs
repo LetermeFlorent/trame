@@ -1,10 +1,11 @@
 use super::ChromeInput;
 use super::icons::Icon;
+use super::logo::draw_weaving;
 use crate::files::IconStore;
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::text::{TextLayout, TextSystem};
-use crate::theme::{Rgba, Theme};
+use crate::theme::{Appearance, Rgba, Theme};
 use crate::ui::frame::{EditorFrame, SettingLine};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
@@ -12,8 +13,7 @@ use crate::ui::motion::Motion;
 use crate::ui::paint::FrameView;
 
 const SMALL_RADIUS: f32 = 3.0;
-const WORK_PERIOD: f32 = 1.4;
-const WORK_SHARE: f32 = 0.35;
+const WEAVE_PERIOD: f32 = 2.4;
 const HOVER_SHADE: f32 = 0.12;
 const PRESSED_SHADE: f32 = 0.22;
 
@@ -41,16 +41,13 @@ pub(super) struct Painter<'a> {
 }
 
 impl<'a> Painter<'a> {
-    pub(super) fn work_bar(&mut self, band: Rect, color: Rgba) {
-        let width = band.width * WORK_SHARE;
-        let x = band.x - width + (band.width + width) * self.motion.phase(WORK_PERIOD);
-        self.scene.push_clip(band);
-        self.scene.fill(
-            Rect::new(x, band.y, width, band.height),
-            color,
-            band.height / 2.0,
-        );
-        self.scene.pop_clip();
+    pub(super) fn weaving(&mut self, rect: Rect, ink: Option<Rgba>) {
+        let color = ink.unwrap_or(match self.theme.appearance {
+            Appearance::Dark => Rgba::WHITE,
+            Appearance::Light => self.theme.text,
+        });
+        let phase = self.motion.phase(WEAVE_PERIOD);
+        draw_weaving(self.scene, rect, color, phase);
     }
 
     pub(super) fn new(

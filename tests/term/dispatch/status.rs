@@ -25,6 +25,20 @@ fn a_working_program_stays_busy_until_it_reports_another_state() {
 }
 
 #[test]
+fn a_running_command_is_busy_until_its_prompt_unless_its_program_reports() {
+    let start = "\x1b]133;C\x07";
+    assert!(feed(1, 10, start).screen().program_working());
+    let ended = format!("{start}\x1b]133;D;0\x07");
+    assert!(!feed(1, 10, &ended).screen().program_working());
+    let prompt = format!("{start}\x1b]133;A\x07");
+    assert!(!feed(1, 10, &prompt).screen().program_working());
+    let reported = format!("{start}\x1b]7501;state=idle\x07");
+    assert!(!feed(1, 10, &reported).screen().program_working());
+    let stale = format!("\x1b]7501;state=done\x07{start}");
+    assert!(feed(1, 10, &stale).screen().program_working());
+}
+
+#[test]
 fn a_child_record_keeps_the_program_busy_until_its_parent_is_cleared() {
     let child = "\x1b]7501;state=working:id=build/test\x07";
     assert!(feed(1, 10, child).screen().program_working());

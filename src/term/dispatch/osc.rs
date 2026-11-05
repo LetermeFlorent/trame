@@ -37,7 +37,10 @@ impl Screen {
             b"7501" => {
                 self.program_status(params.get(1).copied().unwrap_or_default(), bell_terminated)
             }
-            b"133" if params.get(1) == Some(&&b"A"[..]) => self.status.drop_running(),
+            b"133" if params.get(1) == Some(&&b"C"[..]) => self.status.start_command(),
+            b"133" if matches!(params.get(1), Some(&&[b'A' | b'D'])) => {
+                self.status.drop_running();
+            }
             b"10" | b"11" | b"12" if params.get(1) == Some(&&b"?"[..]) => {
                 self.report_color(kind, bell_terminated);
             }

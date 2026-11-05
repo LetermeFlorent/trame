@@ -28,13 +28,21 @@ enum Report {
 pub(crate) struct ProgramStatus {
     records: HashMap<String, (State, u64)>,
     clock: u64,
+    command: bool,
 }
 
 impl ProgramStatus {
     pub(crate) fn working(&self) -> bool {
-        self.records
+        let reported = self
+            .records
             .values()
-            .any(|(state, _)| *state == State::Working)
+            .any(|(state, _)| *state == State::Working);
+        reported || (self.command && self.records.is_empty())
+    }
+
+    pub(crate) fn start_command(&mut self) {
+        self.command = true;
+        self.records.clear();
     }
 
     pub(crate) fn apply(&mut self, payload: &[u8]) -> Option<String> {
@@ -59,6 +67,7 @@ impl ProgramStatus {
     }
 
     pub(crate) fn drop_running(&mut self) {
+        self.command = false;
         self.records
             .retain(|_, (state, _)| !matches!(state, State::Working | State::Blocked));
     }

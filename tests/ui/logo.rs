@@ -1,6 +1,7 @@
 use trame::geometry::Rect;
 use trame::render::Scene;
-use trame::ui::chrome::logo::{SIZE, draw_logo, pixels, window_icon};
+use trame::theme::Rgba;
+use trame::ui::chrome::logo::{SIZE, draw_logo, draw_weaving, pixels, window_icon};
 
 const BYTES_PER_PIXEL: usize = 4;
 const CENTER: u32 = SIZE / 2;
@@ -39,10 +40,25 @@ fn the_drawn_logo_stays_inside_its_square() {
     let square = Rect::new(20.0, 30.0, 120.0, 120.0);
     let mut scene = Scene::new(200.0, 200.0);
     draw_logo(&mut scene, square);
-    assert_eq!(scene.quads().len(), 16);
+    assert_eq!(scene.quads().len(), 8);
     for quad in scene.quads() {
         let [x, y, width, height] = quad.rect;
         assert!(x >= square.x && y >= square.y, "{:?}", quad.rect);
         assert!(x + width <= square.right() && y + height <= square.bottom());
     }
+}
+
+#[test]
+fn the_weaving_logo_threads_in_and_out_over_a_faint_copy() {
+    let square = Rect::new(0.0, 0.0, 24.0, 24.0);
+    let threads = |phase: f32| {
+        let mut scene = Scene::new(40.0, 40.0);
+        draw_weaving(&mut scene, square, Rgba::WHITE, phase);
+        let quads = scene.quads();
+        let bright = quads.iter().filter(|quad| quad.color[3] >= 1.0).count();
+        (quads.len() - bright, bright)
+    };
+    assert_eq!(threads(0.0), (8, 0));
+    assert_eq!(threads(0.48), (8, 8));
+    assert_eq!(threads(0.97), (8, 0));
 }
