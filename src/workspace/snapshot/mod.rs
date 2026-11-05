@@ -3,6 +3,7 @@ mod error;
 mod model;
 mod recall;
 mod restore;
+mod sidebar;
 
 pub use error::SnapshotError;
 pub use model::{
