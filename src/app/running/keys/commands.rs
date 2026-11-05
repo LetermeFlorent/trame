@@ -30,8 +30,6 @@ impl Running {
             Command::Paste => self.paste(),
             Command::NextTab => self.cycle_tab(1),
             Command::PreviousTab => self.cycle_tab(-1),
-            Command::SelectTab(index) => self.select_tab(Some(index)),
-            Command::LastTab => self.select_tab(None),
             Command::NextInstance => self.cycle_instance(1),
             Command::PreviousInstance => self.cycle_instance(-1),
             Command::FocusPane(edge) => self.focus_neighbor(edge),
@@ -55,20 +53,6 @@ impl Running {
             .and_then(Instance::active_mut)
         {
             pane.cycle(step);
-        }
-    }
-
-    fn select_tab(&mut self, index: Option<usize>) {
-        let Some(pane) = self
-            .workspace
-            .active_instance_mut()
-            .and_then(Instance::active_mut)
-        else {
-            return;
-        };
-        let index = index.unwrap_or(pane.tabs.len().saturating_sub(1));
-        if index < pane.tabs.len() {
-            pane.active = index;
         }
     }
 

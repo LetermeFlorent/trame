@@ -17,6 +17,6 @@ pub struct KeyStrings {
     pub typing: &'static str,
     pub unsupported: &'static str,
     pub shift: &'static str,
-    pub actions: [&'static str; 32],
+    pub actions: [&'static str; 23],
     pub named: [&'static str; 15],
 }

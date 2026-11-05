@@ -157,8 +157,6 @@ These are the Windows and Linux bindings, as they come out of the box.
 | Paste | `Ctrl+Shift+V` or `Shift+Insert`, and `Ctrl+V` on Windows |
 | Next and previous tab | `Ctrl+Tab` and `Ctrl+Shift+Tab`, or `Ctrl+PageDown` and `Ctrl+PageUp` |
 | Next and previous instance | `Ctrl+Shift+PageDown` and `Ctrl+Shift+PageUp` |
-| Go to tab 1 to 8 | `Alt+1` to `Alt+8` |
-| Go to the last tab | `Alt+9` |
 | Move to the pane on that side | `Ctrl+Alt+Arrow` |
 | Bigger, smaller, reset text | `Ctrl+=`, `Ctrl+-`, `Ctrl+0` |
 | Scroll one page | `Shift+PageUp` and `Shift+PageDown` |

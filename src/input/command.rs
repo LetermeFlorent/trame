@@ -12,8 +12,6 @@ pub enum Command {
     Paste,
     NextTab,
     PreviousTab,
-    SelectTab(usize),
-    LastTab,
     NextInstance,
     PreviousInstance,
     FocusPane(Edge),

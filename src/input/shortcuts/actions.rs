@@ -1,22 +1,13 @@
 use crate::input::Command;
 use crate::workspace::Edge;
 
-const ACTION_COUNT: usize = 32;
+const ACTION_COUNT: usize = 23;
 
 const TABLE: [(Command, &str); ACTION_COUNT] = [
     (Command::NewTab, "new_tab"),
     (Command::CloseTab, "close_tab"),
     (Command::NextTab, "next_tab"),
     (Command::PreviousTab, "previous_tab"),
-    (Command::SelectTab(0), "tab_1"),
-    (Command::SelectTab(1), "tab_2"),
-    (Command::SelectTab(2), "tab_3"),
-    (Command::SelectTab(3), "tab_4"),
-    (Command::SelectTab(4), "tab_5"),
-    (Command::SelectTab(5), "tab_6"),
-    (Command::SelectTab(6), "tab_7"),
-    (Command::SelectTab(7), "tab_8"),
-    (Command::LastTab, "last_tab"),
     (Command::NewInstance, "new_instance"),
     (Command::NextInstance, "next_instance"),
     (Command::PreviousInstance, "previous_instance"),

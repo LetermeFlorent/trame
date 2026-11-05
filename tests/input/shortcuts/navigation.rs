@@ -27,13 +27,17 @@ fn splits_right_and_down() {
 }
 
 #[test]
-fn selects_tabs_by_physical_digit_whatever_the_layout_prints() {
-    let first = press(Platform::Windows, ALT, character("&"), KeyCode::Digit1);
-    assert_eq!(first, Some(Command::SelectTab(0)));
-    let third = press(Platform::Mac, LOGO, character("3"), KeyCode::Digit3);
-    assert_eq!(third, Some(Command::SelectTab(2)));
-    let last = press(Platform::Linux, ALT, character("9"), KeyCode::Digit9);
-    assert_eq!(last, Some(Command::LastTab));
+fn reads_a_digit_by_its_physical_key_whatever_the_layout_prints() {
+    let azerty = press(Platform::Windows, CONTROL, character("à"), KeyCode::Digit0);
+    assert_eq!(azerty, Some(Command::FontReset));
+    let mac = press(Platform::Mac, LOGO, character("0"), KeyCode::Digit0);
+    assert_eq!(mac, Some(Command::FontReset));
+}
+
+#[test]
+fn alt_and_a_digit_reach_the_shell() {
+    let alt_one = press(Platform::Windows, ALT, character("&"), KeyCode::Digit1);
+    assert_eq!(alt_one, None);
 }
 
 #[test]

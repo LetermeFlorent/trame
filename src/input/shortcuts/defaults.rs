@@ -8,7 +8,6 @@ const CONTROL_SHIFT: Chord = Chord::new(true, true, false, false);
 const CONTROL_SHIFT_ALT: Chord = Chord::new(true, true, true, false);
 const CONTROL_ALT: Chord = Chord::new(true, false, true, false);
 const SHIFT: Chord = Chord::new(false, true, false, false);
-const ALT: Chord = Chord::new(false, false, true, false);
 const LOGO: Chord = Chord::new(false, false, false, true);
 const LOGO_SHIFT: Chord = Chord::new(false, true, false, true);
 const LOGO_ALT: Chord = Chord::new(false, false, true, true);
@@ -16,7 +15,6 @@ const LOGO_ALT: Chord = Chord::new(false, false, true, true);
 struct Layout {
     primary: Chord,
     split_down: Chord,
-    select_tab: Chord,
     focus_pane: Chord,
     font: Chord,
     clipboard: bool,
@@ -29,7 +27,6 @@ impl Layout {
         Self {
             primary: pick(LOGO, CONTROL_SHIFT),
             split_down: pick(LOGO_SHIFT, CONTROL_SHIFT_ALT),
-            select_tab: pick(LOGO, ALT),
             focus_pane: pick(LOGO_ALT, CONTROL_ALT),
             font: pick(LOGO, CONTROL),
             clipboard: platform == Platform::Windows,
@@ -53,7 +50,6 @@ pub fn default_keys(platform: Platform) -> Vec<Vec<Combo>> {
             named(CONTROL, NamedKey::PageUp),
         ],
     ];
-    keys.extend((1..=9).map(|digit| vec![digit_key(layout.select_tab, digit)]));
     keys.extend([
         primary('n'),
         vec![named(CONTROL_SHIFT, NamedKey::PageDown)],
