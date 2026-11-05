@@ -79,7 +79,7 @@ impl Running {
         state: ElementState,
         button: MouseButton,
     ) {
-        if self.closing_button(event_loop, state)
+        if self.closing_button(state)
             || self.menu_button(event_loop, state, button)
             || self.editing_button(state)
             || self.terminal_button(state, button)

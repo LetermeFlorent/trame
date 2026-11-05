@@ -1,4 +1,6 @@
 mod first_frame;
+mod peers;
+mod quit;
 mod saved;
 mod surface;
 mod text;
@@ -8,7 +10,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::time::Instant;
 
-use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoopProxy};
+use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 
 use trame::files::IconStore;
@@ -22,7 +24,7 @@ use trame::workspace::Snapshot;
 use super::tabs::{Placement, Restarts};
 use super::{Memo, Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
-use crate::app::persist::{self, Role, Saver};
+use crate::app::persist::{self, Saver, Slot};
 use crate::app::power::Power;
 use crate::app::sessions::Sessions;
 use crate::app::update::UpdateStatus;
@@ -30,6 +32,7 @@ use crate::app::visibility::Visibility;
 use crate::app::{UserEvent, window};
 
 use first_frame::first_frame;
+pub use quit::{Quit, Restart};
 use surface::Surface;
 pub use update::Offer;
 pub(super) use update::UpdateState;
@@ -65,45 +68,44 @@ impl Running {
         event_loop: &ActiveEventLoop,
         proxy: EventLoopProxy<UserEvent>,
         saved: Option<Snapshot>,
-        role: Role,
+        slot: Slot,
+        shared: Option<Preferences>,
     ) -> Result<Opened, Box<dyn Error>> {
         let window = saved
             .as_ref()
             .and_then(|snapshot| snapshot.window)
-            .filter(|_| role.owns());
-        let preferences = saved
-            .as_ref()
-            .map_or_else(Preferences::default, |snapshot| {
-                snapshot.preferences.clone().sanitized()
-            });
+            .filter(|_| slot.owns());
+        let preferences = shared
+            .or_else(|| saved.as_ref().map(|snapshot| snapshot.preferences.clone()))
+            .unwrap_or_default()
+            .sanitized();
         let surface = Surface::open(event_loop, window, preferences)?;
-        let mut running = Self::with_surface(surface, proxy, Saver::new(role));
+        let mut running = Self::with_surface(surface, proxy, Saver::new(slot));
         running.sessions.follow_preferences(&running.preferences);
         running.saver.remember_window(window);
         Ok(Opened { running, saved })
     }
 
-    pub fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        self.sync_graphics(event_loop);
+    pub fn about_to_wait(&mut self) -> Option<Instant> {
+        self.sync_graphics();
         let retry = self.visibility.retry(&self.window);
         self.power.set_background(self.visibility.seen_hidden());
         let save = self.save_deadline();
         let text = self.transcript_deadline();
         let loader = self.loader_wake(Instant::now());
         let secret = self.sessions.secret_deadline(Instant::now());
-        let wake = save
-            .into_iter()
+        save.into_iter()
             .chain(text)
             .chain(retry)
             .chain(loader)
             .chain(secret)
             .chain(self.power.deadline())
-            .min();
-        event_loop.set_control_flow(wake.map_or(ControlFlow::Wait, ControlFlow::WaitUntil));
+            .min()
     }
 
     fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>, saver: Saver) -> Self {
         let first = first_frame(&mut surface, &saver);
+        let id = surface.window.id();
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
             power: Power::new(surface.preferences.power_switches()),
@@ -117,7 +119,7 @@ impl Running {
             preferences: surface.preferences,
             keymap: Memo::default(),
             workspace: first.workspace,
-            sessions: Sessions::new(proxy.clone()),
+            sessions: Sessions::new(proxy.clone(), id),
             proxy,
             transcripts: Transcripts::new(saver.transcript_dir()),
             saver,
@@ -139,6 +141,7 @@ impl Running {
             update: UpdateState::default(),
             restarts: Restarts::default(),
             closing: None,
+            quit: None,
             strings: first.strings,
         }
     }

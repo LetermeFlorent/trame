@@ -14,16 +14,16 @@ impl ShowsOffer for Running {
 pub struct PendingOffer(Option<Offer>);
 
 impl PendingOffer {
-    pub fn send(&mut self, offer: Offer, window: Option<&mut impl ShowsOffer>) {
-        match window {
-            Some(window) => window.show_offer(offer),
-            None => self.0 = Some(offer),
+    pub fn send(&mut self, offer: Offer, windows: &mut [impl ShowsOffer]) {
+        for window in windows.iter_mut() {
+            window.show_offer(offer.clone());
         }
+        self.0 = Some(offer);
     }
 
-    pub fn opened(&mut self, window: &mut impl ShowsOffer) {
-        if let Some(offer) = self.0.take() {
-            window.show_offer(offer);
+    pub fn opened(&self, window: &mut impl ShowsOffer) {
+        if let Some(offer) = &self.0 {
+            window.show_offer(offer.clone());
         }
     }
 }
@@ -45,32 +45,31 @@ mod tests {
     }
 
     #[test]
-    fn an_offer_sent_before_the_window_shows_once_it_opens() {
+    fn an_offer_sent_before_any_window_shows_in_each_window_that_opens() {
         let mut pending = PendingOffer::default();
-        pending.send(offer("9.0.0"), None::<&mut Vec<Offer>>);
-        let mut window = Vec::new();
-        pending.opened(&mut window);
-        pending.opened(&mut window);
-        assert_eq!(window, [offer("9.0.0")]);
+        pending.send(offer("9.0.0"), &mut [] as &mut [Vec<Offer>]);
+        let (mut first, mut second) = (Vec::new(), Vec::new());
+        pending.opened(&mut first);
+        pending.opened(&mut second);
+        assert_eq!(first, [offer("9.0.0")]);
+        assert_eq!(second, [offer("9.0.0")]);
     }
 
     #[test]
-    fn the_latest_early_offer_is_the_one_kept() {
+    fn the_latest_offer_is_the_one_kept() {
         let mut pending = PendingOffer::default();
-        pending.send(offer("9.0.0"), None::<&mut Vec<Offer>>);
-        pending.send(offer("9.1.0"), None::<&mut Vec<Offer>>);
+        pending.send(offer("9.0.0"), &mut [] as &mut [Vec<Offer>]);
+        pending.send(offer("9.1.0"), &mut [] as &mut [Vec<Offer>]);
         let mut window = Vec::new();
         pending.opened(&mut window);
         assert_eq!(window, [offer("9.1.0")]);
     }
 
     #[test]
-    fn an_offer_sent_to_an_open_window_shows_at_once() {
+    fn an_offer_shows_at_once_in_every_open_window() {
         let mut pending = PendingOffer::default();
-        let mut window = Vec::new();
-        pending.send(offer("9.0.0"), Some(&mut window));
-        assert_eq!(window, [offer("9.0.0")]);
-        pending.opened(&mut window);
-        assert_eq!(window.len(), 1);
+        let mut windows = [Vec::new(), Vec::new()];
+        pending.send(offer("9.0.0"), &mut windows);
+        assert_eq!(windows, [[offer("9.0.0")], [offer("9.0.0")]]);
     }
 }

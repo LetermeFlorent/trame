@@ -1,16 +1,15 @@
-use std::io;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use trame::log_error;
 use trame::workspace::{Snapshot, WindowSnapshot, Workspace};
 
-use super::{Role, write};
+use super::{Slot, write};
 
 const SAVE_INTERVAL: Duration = Duration::from_secs(1);
 
 pub struct Saver {
-    role: Role,
+    slot: Slot,
     last_layout: Option<Workspace>,
     last_write: Option<Instant>,
     last_window: Option<WindowSnapshot>,
@@ -19,9 +18,9 @@ pub struct Saver {
 }
 
 impl Saver {
-    pub fn new(role: Role) -> Self {
+    pub fn new(slot: Slot) -> Self {
         Self {
-            role,
+            slot,
             last_layout: None,
             last_write: None,
             last_window: None,
@@ -31,19 +30,23 @@ impl Saver {
     }
 
     pub fn owns(&self) -> bool {
-        self.role.owns()
+        self.slot.owns()
     }
 
     pub fn keeps_session(&self) -> bool {
-        self.role.owns() && !self.failing
+        self.slot.owns() && !self.failing
     }
 
     pub fn transcript_dir(&self) -> Option<PathBuf> {
-        self.role.transcript_dir()
+        self.slot.transcript_dir()
     }
 
-    pub fn hand_over(&mut self, start: impl FnOnce() -> io::Result<()>) -> io::Result<()> {
-        self.role.hand_over(start)
+    pub fn slot(&self) -> &Slot {
+        &self.slot
+    }
+
+    pub fn stop(&mut self) {
+        self.slot = Slot::new(None, self.slot.index());
     }
 
     pub fn baseline(&mut self, workspace: &Workspace) {
@@ -69,7 +72,7 @@ impl Saver {
     }
 
     pub fn due(&self) -> Option<Instant> {
-        if !self.dirty || !self.role.owns() {
+        if !self.dirty || !self.slot.owns() {
             return None;
         }
         Some(
@@ -80,7 +83,7 @@ impl Saver {
 
     pub fn save(&mut self, snapshot: &Snapshot) {
         self.last_write = Some(Instant::now());
-        let Some(path) = self.role.session_path() else {
+        let Some(path) = self.slot.session_path() else {
             return;
         };
         match write(&path, snapshot) {

@@ -34,8 +34,9 @@ impl Running {
             start,
         };
         let proxy = self.proxy.clone();
+        let origin = self.window.id();
         pick_folder(request, move |folder| {
-            let _ = proxy.send_event(UserEvent::Folder(target, folder));
+            let _ = proxy.send_event(UserEvent::Folder(origin, target, folder));
         });
     }
 

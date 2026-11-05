@@ -35,7 +35,7 @@ pub fn load_icon(dir: &Path, id: u64) -> io::Result<Vec<u8>> {
     Ok(fit(&image.pixels, image.width, image.height, ICON_SIZE))
 }
 
-fn fingerprint(pixels: &[u8]) -> u64 {
+pub fn fingerprint(pixels: &[u8]) -> u64 {
     pixels.iter().fold(FNV_OFFSET, |hash, byte| {
         (hash ^ u64::from(*byte)).wrapping_mul(FNV_PRIME)
     })

@@ -51,7 +51,7 @@ The folder is the last one the shell reported on this computer. trame ignores a 
 
 Three switches in the settings change that, all on by default. "Remember instances" off starts a single new instance. "Remember terminals" off brings the instances back with their name, colour, icon and folder but with fresh terminals, as many as a new instance gets. "Restore tab text" off brings the tabs back empty.
 
-Only one trame at a time keeps the layout. A second one, opened while the first still runs, starts with a single new instance and saves nothing, not even its settings: its title bar says "unsaved session" after the name.
+Opening trame while it already runs adds a window to the running trame instead of starting a second one. The new window starts with a single new instance. Every window keeps and saves its own instances and tabs, while the settings are shared: a change made in one window shows in all of them. Closing a window forgets its layout, and closing the last one quits trame and keeps that window for the next launch. After an update, or when trame stops without its windows being closed, every window comes back. A trame older than 0.3.26 cannot take the request, so a newer one opened next to it runs on its own, saves nothing, not even its settings, and its title bar says "unsaved session" after the name.
 
 Closing the window, or an instance from its cross in the side bar, while it holds two tabs or more first asks to confirm, with the number of tabs that will close. Enter or Close confirms; Escape, Cancel, the cross or a click outside keeps everything open. The switch "Ask before closing several tabs", on by default, turns the question off.
 
@@ -174,7 +174,7 @@ The layout of instances, tabs and splits, along with the window size, is saved o
 - Linux: `$XDG_STATE_HOME/trame/session.json`, which is `~/.local/state/trame/session.json` by default
 - macOS: `~/Library/Application Support/trame/session.json`
 
-The settings live in the same file. Deleting it makes trame start over with a single instance. A file trame cannot read is renamed `session.json.bad` and trame starts over. If even the rename fails, trame leaves the file as it is and saves nothing until the next launch, and its title bar says "unsaved session".
+Every window after the first gets its own file in a `windows` folder next to it, such as `windows/1/session.json`. The settings are read from the first one. Deleting these files makes trame start over with a single instance. A file trame cannot read is renamed `session.json.bad` and trame starts over. If even the rename fails, trame leaves the file as it is and saves nothing until the next launch, and its title bar says "unsaved session".
 
 The text of each tab goes into the `text` folder next to it, once a minute when something changed and once more when trame closes. Each tab keeps its last 4 MB. Turning off "Restore tab text", or one of the two switches above it, deletes that folder.
 

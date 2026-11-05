@@ -23,7 +23,7 @@ fn the_first_process_owns_the_session_files() {
     let second = claim(&scratch);
     assert!(first.owns());
     assert!(!second.owns());
-    assert_eq!(second.session_path(), None);
+    assert_eq!(second.slot(0).session_path(), None);
 }
 
 #[test]
@@ -35,7 +35,7 @@ fn a_guest_process_never_prunes() {
     fs::create_dir_all(&folder).expect("text folder");
     let kept = folder.join("owner.vt");
     fs::write(&kept, b"owner text").expect("owner text");
-    let mut transcripts = Transcripts::new(guest.transcript_dir());
+    let mut transcripts = Transcripts::new(guest.slot(0).transcript_dir());
     transcripts.save(&[], |_| None);
     transcripts.flush();
     assert!(kept.exists());
@@ -104,7 +104,7 @@ fn a_session_that_cannot_be_set_aside_is_never_replaced() {
 #[test]
 fn a_failed_save_stays_dirty() {
     let scratch = Scratch::new("persist-save");
-    let mut saver = Saver::new(claim(&scratch));
+    let mut saver = Saver::new(claim(&scratch).slot(0));
     let blocker = scratch.path().join("session.json");
     fs::create_dir(&blocker).expect("a folder in the way");
     saver.touch();
@@ -118,7 +118,7 @@ fn a_failed_save_stays_dirty() {
 #[test]
 fn a_failed_save_leaves_the_session_unsaved_until_a_save_works() {
     let scratch = Scratch::new("persist-unsaved");
-    let mut saver = Saver::new(claim(&scratch));
+    let mut saver = Saver::new(claim(&scratch).slot(0));
     let blocker = scratch.path().join("session.json");
     fs::create_dir(&blocker).expect("a folder in the way");
     saver.touch();

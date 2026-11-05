@@ -17,7 +17,7 @@ use trame::preferences::SshHost;
 use trame::session::SessionId;
 use trame::workspace::{Edge, InstanceId, PaneId};
 
-use super::Running;
+use super::{Quit, Running};
 use crate::app::sessions::ShellStart;
 pub(super) use closing::Closing;
 pub use folder::FolderTarget;
@@ -92,22 +92,22 @@ impl Running {
         spawned
     }
 
-    pub(super) fn open_or_report(&mut self, event_loop: &ActiveEventLoop, placement: Placement) {
+    pub(super) fn open_or_report(&mut self, placement: Placement) {
         if let Err(error) = self.open(placement) {
             log_error!("the shell could not start: {error}");
             if self.workspace.is_empty() {
-                event_loop.exit();
+                self.quit_with(Quit::Close);
             }
         }
     }
 
     pub(super) fn close_tab(&mut self, event_loop: &ActiveEventLoop, id: SessionId) {
-        if self.workspace.is_only_tab(id) && !event_loop.exiting() {
+        if self.workspace.is_only_tab(id) && !event_loop.exiting() && !self.quitting() {
             self.replace_last_tab();
         }
         if self.workspace.close_tab(id) {
             self.sessions.remove(id);
-            self.after_close(event_loop);
+            self.after_close();
         }
     }
 
@@ -123,9 +123,9 @@ impl Running {
         }
     }
 
-    fn after_close(&mut self, event_loop: &ActiveEventLoop) {
+    fn after_close(&mut self) {
         if self.workspace.is_empty() {
-            event_loop.exit();
+            self.quit_with(Quit::Close);
             return;
         }
         self.motion.animate_next();

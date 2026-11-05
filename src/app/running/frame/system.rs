@@ -1,8 +1,6 @@
 use std::collections::HashSet;
 use std::time::Instant;
 
-use winit::event_loop::ActiveEventLoop;
-
 use trame::preferences::Preferences;
 use trame::session::SessionId;
 use trame::theme::Rgba;
@@ -11,13 +9,13 @@ use crate::app::power::Shown;
 use crate::app::running::Running;
 
 impl Running {
-    pub(in crate::app::running) fn sync_graphics(&mut self, event_loop: &ActiveEventLoop) {
+    pub(in crate::app::running) fn sync_graphics(&mut self) {
         if self.graphics.take_fresh() {
             self.changed();
         }
         self.power.tick(Instant::now());
         self.compact_rested();
-        self.restart_if_card_lost(event_loop);
+        self.restart_if_card_lost();
     }
 
     pub(in crate::app::running) fn sync_rest(&mut self) {

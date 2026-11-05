@@ -1,5 +1,4 @@
 use winit::event::{ElementState, KeyEvent};
-use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, NamedKey};
 
 use trame::locale::{ALIAS_SLOT, COUNT_SLOT};
@@ -79,11 +78,7 @@ impl Running {
         })
     }
 
-    pub(in crate::app::running) fn closing_button(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        state: ElementState,
-    ) -> bool {
+    pub(in crate::app::running) fn closing_button(&mut self, state: ElementState) -> bool {
         if self.closing.is_none() {
             return false;
         }
@@ -104,22 +99,18 @@ impl Running {
                         | FormAction::Paste
                 ))
             );
-            self.settle_closing(event_loop, confirmed);
+            self.settle_closing(confirmed);
         }
         true
     }
 
-    pub(in crate::app::running) fn closing_key(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        event: &KeyEvent,
-    ) -> bool {
+    pub(in crate::app::running) fn closing_key(&mut self, event: &KeyEvent) -> bool {
         if self.closing.is_none() {
             return false;
         }
         let confirmed = event.logical_key == Key::Named(NamedKey::Enter);
         if confirmed || is_escape(event) {
-            self.settle_closing(event_loop, confirmed);
+            self.settle_closing(confirmed);
         }
         true
     }

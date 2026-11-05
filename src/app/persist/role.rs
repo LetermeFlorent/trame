@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use trame::files::private_folder;
 use trame::log_error;
 
-use super::{FILE_NAME, TRANSCRIPT_DIR};
+use super::slot::Slot;
 
 const LOCK_NAME: &str = "trame.lock";
 
@@ -43,12 +43,15 @@ impl Role {
         matches!(self, Self::Owner { .. })
     }
 
-    pub fn session_path(&self) -> Option<PathBuf> {
-        self.inside(FILE_NAME)
+    pub fn folder(&self) -> Option<&Path> {
+        match self {
+            Self::Owner { folder, .. } => Some(folder),
+            Self::Guest => None,
+        }
     }
 
-    pub fn transcript_dir(&self) -> Option<PathBuf> {
-        self.inside(TRANSCRIPT_DIR)
+    pub fn slot(&self, index: usize) -> Slot {
+        Slot::new(self.folder(), index)
     }
 
     pub fn hand_over(&mut self, start: impl FnOnce() -> io::Result<()>) -> io::Result<()> {
@@ -61,13 +64,6 @@ impl Role {
             *self = Self::claim(folder);
         }
         started
-    }
-
-    fn inside(&self, name: &str) -> Option<PathBuf> {
-        match self {
-            Self::Owner { folder, .. } => Some(folder.join(name)),
-            Self::Guest => None,
-        }
     }
 }
 

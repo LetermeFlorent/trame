@@ -37,8 +37,8 @@ use super::{UserEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
 use keys::Memo;
-pub use lifecycle::Offer;
 use lifecycle::UpdateState;
+pub use lifecycle::{Offer, Quit, Restart};
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
 pub use tabs::FolderTarget;
@@ -79,6 +79,7 @@ pub struct Running {
     power: Power,
     notifier: Notifier,
     closing: Option<Closing>,
+    quit: Option<Quit>,
     strings: &'static Strings,
 }
 
@@ -98,7 +99,7 @@ impl Running {
             self.power.touch();
         }
         match event {
-            WindowEvent::CloseRequested => self.ask_close(event_loop, Closing::Window),
+            WindowEvent::CloseRequested => self.ask_close(Closing::Window),
             WindowEvent::RedrawRequested => self.redraw(),
             WindowEvent::Resized(size) => self.resized(size),
             WindowEvent::Occluded(occluded) => self.visibility.set_occluded(occluded),

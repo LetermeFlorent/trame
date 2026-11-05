@@ -11,6 +11,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 
 use winit::event_loop::EventLoopProxy;
+use winit::window::WindowId;
 
 use trame::preferences::{DEFAULT_HISTORY_LINES, SecretAnswer};
 use trame::session::pty::{ShellCommand, default_shell};
@@ -43,11 +44,11 @@ pub struct Sessions {
 }
 
 impl Sessions {
-    pub fn new(proxy: EventLoopProxy<UserEvent>) -> Self {
+    pub fn new(proxy: EventLoopProxy<UserEvent>, window: WindowId) -> Self {
         let proxy = Mutex::new(proxy);
         Self::with_notifier(Arc::new(move |event| {
             let proxy = proxy.lock().unwrap_or_else(PoisonError::into_inner);
-            let _ = proxy.send_event(UserEvent::Session(event));
+            let _ = proxy.send_event(UserEvent::Session(window, event));
         }))
     }
 

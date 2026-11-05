@@ -108,10 +108,25 @@ impl Power {
             self.family.apply(everyone, &self.rest.shells());
             self.walked = now;
         }
-        if (next == Mode::Normal) != (self.mode == Mode::Normal) {
-            set_own(next != Mode::Normal);
-        }
         self.mode = next;
+    }
+
+    pub fn rests(&self) -> bool {
+        self.mode != Mode::Normal
+    }
+}
+
+#[derive(Default)]
+pub struct Process {
+    resting: bool,
+}
+
+impl Process {
+    pub fn follow(&mut self, resting: bool) {
+        if self.resting != resting {
+            self.resting = resting;
+            set_own(resting);
+        }
     }
 }
 

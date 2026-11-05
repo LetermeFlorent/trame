@@ -18,7 +18,7 @@ pub(crate) use modes::{append_file, create_file, create_folder};
 pub use capture::{
     CAPTURE_MAX_AGE, capture_name, captures_folder, encode_png, remove_old_captures, save_capture,
 };
-pub use icons::{ICON_SIZE, IconStore, fit, import_icon, load_icon};
+pub use icons::{ICON_SIZE, IconStore, fingerprint, fit, import_icon, load_icon};
 pub use log::{LogFile, record_error, start_log};
 pub use modes::private_folder;
 pub use open::{is_web, open_link};

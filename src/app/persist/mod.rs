@@ -1,5 +1,6 @@
 mod role;
 mod saver;
+mod slot;
 #[cfg(test)]
 mod tests;
 
@@ -14,6 +15,9 @@ use trame::workspace::Snapshot;
 
 pub use role::Role;
 pub use saver::Saver;
+pub use slot::{Slot, free_slot};
+
+use slot::saved_slots;
 
 const APP_DIR: &str = "trame";
 const FILE_NAME: &str = "session.json";
@@ -53,16 +57,12 @@ fn state_dir() -> Option<PathBuf> {
         .or_else(|| home_dir().map(|home| home.join(".local").join("state")))
 }
 
-fn app_dir() -> Option<PathBuf> {
+pub fn app_dir() -> Option<PathBuf> {
     state_dir().map(|dir| dir.join(APP_DIR))
 }
 
 pub fn claim() -> Role {
     Role::claim(app_dir())
-}
-
-fn session_path() -> Option<PathBuf> {
-    app_dir().map(|dir| dir.join(FILE_NAME))
 }
 
 pub fn icon_dir() -> Option<PathBuf> {
@@ -73,8 +73,32 @@ pub fn log_path() -> Option<PathBuf> {
     app_dir().map(|dir| dir.join(LOG_NAME))
 }
 
-pub fn load(role: &mut Role) -> Option<Snapshot> {
-    load_from(&session_path()?, role)
+pub struct Saved {
+    pub slot: usize,
+    pub snapshot: Option<Snapshot>,
+}
+
+pub fn load(role: &mut Role) -> Vec<Saved> {
+    let root = app_dir();
+    let slots = match (role.owns(), &root) {
+        (true, Some(root)) => saved_slots(root),
+        _ => Vec::new(),
+    };
+    let mut found: Vec<Saved> = slots
+        .into_iter()
+        .map(|slot| Saved {
+            slot,
+            snapshot: Slot::new(root.as_deref(), slot)
+                .session_path()
+                .and_then(|path| load_from(&path, role)),
+        })
+        .collect();
+    if found.is_empty() {
+        let first = Slot::new(root.as_deref(), 0).session_path();
+        let snapshot = first.and_then(|path| load_from(&path, role));
+        found.push(Saved { slot: 0, snapshot });
+    }
+    found
 }
 
 fn load_from(path: &Path, role: &mut Role) -> Option<Snapshot> {

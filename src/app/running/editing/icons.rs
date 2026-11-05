@@ -64,9 +64,10 @@ impl Running {
             start: None,
         };
         let proxy = self.proxy.clone();
+        let origin = self.window.id();
         pick_image(request, move |path| match import_icon(&path, &dir) {
             Ok(image) => {
-                let _ = proxy.send_event(UserEvent::Icon(id, image));
+                let _ = proxy.send_event(UserEvent::Icon(origin, id, image));
             }
             Err(error) => log_error!("the image could not become an icon: {error}"),
         });

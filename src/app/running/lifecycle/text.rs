@@ -22,7 +22,7 @@ impl Running {
         }
     }
 
-    pub(super) fn save_for_restart(&mut self) {
+    pub fn save_for_restart(&mut self) {
         self.save_everything(true);
     }
 

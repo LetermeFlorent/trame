@@ -1,12 +1,7 @@
-use std::io;
-
-use winit::event_loop::ActiveEventLoop;
-
 use trame::locale::{Strings, VERSION_SLOT};
-use trame::log_error;
 
+use super::quit::{Quit, Restart};
 use crate::app::running::Running;
-use crate::app::update;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Offer {
@@ -36,36 +31,26 @@ impl Running {
         self.changed();
     }
 
-    pub(in crate::app::running) fn restart_for_update(&mut self, event_loop: &ActiveEventLoop) {
-        if self.update.offer.is_none() {
-            return;
-        }
-        if let Err(error) = self.restart_with(event_loop, update::restart) {
-            log_error!("the update restart did not start: {error}");
-            self.update.failed = true;
-            self.changed();
+    pub(in crate::app::running) fn restart_for_update(&mut self) {
+        if self.update.offer.is_some() {
+            self.quit_with(Quit::Restart(Restart::Update));
         }
     }
 
-    pub(in crate::app::running) fn restart_if_card_lost(&mut self, event_loop: &ActiveEventLoop) {
-        if self.update.restarting || !self.graphics.is_lost() {
-            return;
-        }
-        if let Err(error) = self.restart_with(event_loop, update::start_again) {
-            log_error!("trame could not start again: {error}");
+    pub(in crate::app::running) fn restart_if_card_lost(&mut self) {
+        if !self.update.restarting && self.graphics.is_lost() {
+            self.quit_with(Quit::Restart(Restart::Again));
         }
     }
 
-    pub fn restart_with(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        start: impl FnOnce() -> io::Result<()>,
-    ) -> io::Result<()> {
-        self.save_for_restart();
-        self.saver.hand_over(start)?;
+    pub fn update_failed(&mut self) {
+        self.update.failed = true;
+        self.changed();
+    }
+
+    pub fn mark_restarting(&mut self) {
         self.update.restarting = true;
-        event_loop.exit();
-        Ok(())
+        self.saver.stop();
     }
 }
 

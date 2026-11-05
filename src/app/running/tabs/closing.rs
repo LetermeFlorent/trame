@@ -1,11 +1,9 @@
 use std::rc::Rc;
 
-use winit::event_loop::ActiveEventLoop;
-
 use trame::workspace::{Instance, InstanceId};
 
-use crate::app::running::Running;
 use crate::app::running::keys::PendingPaste;
+use crate::app::running::{Quit, Running};
 
 #[derive(Clone)]
 pub(in crate::app::running) enum Closing {
@@ -17,11 +15,7 @@ pub(in crate::app::running) enum Closing {
 }
 
 impl Running {
-    pub(in crate::app::running) fn ask_close(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        closing: Closing,
-    ) {
+    pub(in crate::app::running) fn ask_close(&mut self, closing: Closing) {
         let asks = match closing {
             Closing::Update => true,
             _ => self
@@ -32,27 +26,27 @@ impl Running {
             self.closing = Some(closing);
             return self.changed();
         }
-        self.close(event_loop, closing);
+        self.close(closing);
     }
 
-    fn close(&mut self, event_loop: &ActiveEventLoop, closing: Closing) {
+    fn close(&mut self, closing: Closing) {
         match closing {
-            Closing::Window => event_loop.exit(),
-            Closing::Instance(id) => self.close_instance(event_loop, id),
-            Closing::Update => self.restart_for_update(event_loop),
+            Closing::Window => self.quit_with(Quit::Close),
+            Closing::Instance(id) => self.close_instance(id),
+            Closing::Update => self.restart_for_update(),
             Closing::Forget(index) => self.forget_at(index),
             Closing::Paste(pending) => self.send_paste(&pending),
         }
     }
 
-    fn close_instance(&mut self, event_loop: &ActiveEventLoop, instance: InstanceId) {
+    fn close_instance(&mut self, instance: InstanceId) {
         let Some(index) = self.workspace.instance_index(instance) else {
             return;
         };
         for id in self.workspace.remove_instance(index) {
             self.sessions.remove(id);
         }
-        self.after_close(event_loop);
+        self.after_close();
     }
 
     pub(super) fn tabs_closing(&self, closing: &Closing) -> usize {
@@ -67,10 +61,10 @@ impl Running {
         }
     }
 
-    pub(super) fn settle_closing(&mut self, event_loop: &ActiveEventLoop, confirmed: bool) {
+    pub(super) fn settle_closing(&mut self, confirmed: bool) {
         let closing = self.closing.take();
         if let Some(closing) = closing.filter(|_| confirmed) {
-            self.close(event_loop, closing);
+            self.close(closing);
         }
         self.changed();
     }

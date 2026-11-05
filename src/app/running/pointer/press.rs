@@ -73,18 +73,16 @@ impl Running {
             Hit::SidebarToggle => self.command(event_loop, Command::ToggleSidebar),
             Hit::Minimize => self.window.set_minimized(true),
             Hit::Maximize => self.toggle_maximized(),
-            Hit::Close => self.ask_close(event_loop, Closing::Window),
+            Hit::Close => self.ask_close(Closing::Window),
             Hit::NewInstance => self.command(event_loop, Command::NewInstance),
             Hit::Settings => self.toggle_settings(),
-            Hit::Update => self.ask_close(event_loop, Closing::Update),
+            Hit::Update => self.ask_close(Closing::Update),
             Hit::Setting(control) => self.apply_setting(control),
             Hit::List(control) => self.list_control(control),
             Hit::SidebarBar(BarPart::Track) => self.page_list(ListKind::Sidebar),
             Hit::FormField(field) => self.focus_form(field),
             Hit::FormButton(action) => self.form_action(action),
-            Hit::RowClose(SidebarItem::Instance(id)) => {
-                self.ask_close(event_loop, Closing::Instance(id))
-            }
+            Hit::RowClose(SidebarItem::Instance(id)) => self.ask_close(Closing::Instance(id)),
             Hit::RowClose(SidebarItem::Tab(id)) | Hit::TabClose(_, id) => {
                 self.close_tab(event_loop, id)
             }

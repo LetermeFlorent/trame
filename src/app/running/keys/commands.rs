@@ -16,10 +16,10 @@ impl Running {
     ) {
         self.motion.animate_next();
         match command {
-            Command::NewTab => self.open_or_report(event_loop, Placement::Tab),
-            Command::NewInstance => self.open_or_report(event_loop, Placement::Instance),
-            Command::SplitRight => self.open_or_report(event_loop, Placement::Split(Edge::Right)),
-            Command::SplitDown => self.open_or_report(event_loop, Placement::Split(Edge::Bottom)),
+            Command::NewTab => self.open_or_report(Placement::Tab),
+            Command::NewInstance => self.open_or_report(Placement::Instance),
+            Command::SplitRight => self.open_or_report(Placement::Split(Edge::Right)),
+            Command::SplitDown => self.open_or_report(Placement::Split(Edge::Bottom)),
             Command::CloseTab => {
                 if let Some(id) = self.workspace.active_tab() {
                     self.close_tab(event_loop, id);
