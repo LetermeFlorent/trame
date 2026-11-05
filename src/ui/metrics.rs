@@ -48,6 +48,7 @@ impl UiMetrics {
     pub const SIDEBAR_HEADER: f32 = 30.0;
     pub const SIDEBAR_ROW: f32 = 26.0;
     pub const TAB_BAR: f32 = 22.0;
+    pub const COMPACT_TAB_BAR: f32 = 24.0;
     pub const TAB_PADDING: f32 = 7.0;
     pub const TAB_CLOSE: f32 = 16.0;
     pub const TAB_CLOSE_MARGIN: f32 = 5.0;
@@ -94,6 +95,13 @@ impl UiMetrics {
 
     pub fn spaced(&self, logical: f32) -> f32 {
         self.px(logical * SPACING)
+    }
+
+    pub fn tab_bar(&self) -> f32 {
+        match self.density {
+            Density::Compact => self.px(Self::COMPACT_TAB_BAR),
+            Density::Spacious => self.spaced(Self::TAB_BAR),
+        }
     }
 
     pub fn card_margin(&self) -> f32 {

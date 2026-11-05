@@ -77,7 +77,7 @@ fn spacious_sets_the_terminal_in_a_rounded_card() {
 }
 
 #[test]
-fn compact_keeps_the_roomy_sizes() {
+fn compact_keeps_roomy_rows_under_a_lower_tab_bar() {
     let mut text = text_system();
     let frame = frame_with_metrics(
         &mut text,
@@ -85,8 +85,5 @@ fn compact_keeps_the_roomy_sizes() {
         on(PanelSide::Left, Density::Compact),
     );
     assert_eq!(row_height(&frame), (UiMetrics::SIDEBAR_ROW * 1.25).round());
-    assert_eq!(
-        frame.panes[0].strip.rect.height,
-        (UiMetrics::TAB_BAR * 1.25).round()
-    );
+    assert_eq!(frame.panes[0].strip.rect.height, UiMetrics::COMPACT_TAB_BAR);
 }

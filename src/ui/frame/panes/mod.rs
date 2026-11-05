@@ -96,7 +96,7 @@ fn pane_frame(
     placement: Placement,
 ) -> Option<PaneFrame> {
     let pane = instance.panes.get(&placement.id)?;
-    let bar_height = cx.metrics.spaced(UiMetrics::TAB_BAR);
+    let bar_height = cx.metrics.tab_bar();
     let padding_x = cx.metrics.spaced(UiMetrics::TERMINAL_PAD_X);
     let padding_y = cx.metrics.spaced(UiMetrics::TERMINAL_PAD_Y);
     let margin = cx.metrics.card_margin();
