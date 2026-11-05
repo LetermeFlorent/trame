@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/trame-dark.png" alt="trame in dark mode: two instances in the side bar, two tabs and a split showing git output">
+  <img src="assets/screenshots/trame-dark-960x540.webp" srcset="assets/screenshots/trame-dark-960x540.webp 1x, assets/screenshots/trame-dark-1920x1080.webp 2x" width="960" height="540" alt="trame in dark mode: two instances in the side bar, two tabs and a split showing git output">
 </p>
 
 ## One window per project, without the windows
@@ -39,7 +39,7 @@ The everyday things are a drag or a double click away:
 - leave it open all day: hidden tabs slow down and give memory back, and a minimized window draws nothing at all.
 
 <p align="center">
-  <img src="assets/screenshots/trame-light.png" alt="The same trame window in light mode">
+  <img src="assets/screenshots/trame-light-960x540.webp" srcset="assets/screenshots/trame-light-960x540.webp 1x, assets/screenshots/trame-light-1920x1080.webp 2x" width="960" height="540" alt="The same trame window in light mode">
 </p>
 
 The theme follows your system and switches the moment it does. Above is the same window in light mode.
