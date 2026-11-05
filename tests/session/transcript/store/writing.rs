@@ -94,6 +94,7 @@ fn first_save_waits_a_full_interval() {
 fn a_transcript_is_private() {
     use std::os::unix::fs::PermissionsExt;
     let sandbox = Sandbox::new("private");
+    fs::remove_dir(&sandbox.root).expect("the store creates its own folder");
     let mut transcripts = sandbox.transcripts();
     save_now(&mut transcripts, &[(FIRST, &tab_with(b"secret"))]);
     let key = key_of(&transcripts, FIRST);
