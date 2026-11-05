@@ -13,8 +13,8 @@ use trame::ui::frame::{BarPart, ListControl, PickerPart, SidebarItem};
 use trame::ui::{Hit, SidebarMode};
 use trame::workspace::{Divider, InstanceId, Node, resized};
 
-use crate::app::running::Running;
 use crate::app::running::settings::ListKind;
+use crate::app::running::{Lifted, Running};
 pub(in crate::app::running) use ghost::Ghost;
 use sidebar::SidebarDrag;
 
@@ -29,13 +29,13 @@ pub(in crate::app::running) struct DividerDrag {
 pub(in crate::app::running) enum Drag {
     Pending(SessionId, Point),
     Tab(SessionId, Point),
-    Out(SessionId, PhysicalPosition<i32>),
+    Out(Lifted, PhysicalPosition<i32>),
     Divider(DividerDrag),
     Sidebar(SidebarDrag),
     List(ListKind, f32),
     Picker(PickerPart),
     PendingInstance(InstanceId, Point),
-    Instance(InstanceId, usize),
+    Instance(InstanceId, usize, Point),
 }
 
 impl Running {
@@ -44,7 +44,7 @@ impl Running {
             return;
         };
         self.drag = match hit {
-            Hit::Tab(_, tab) => Some(Drag::Pending(tab, origin)),
+            Hit::Tab(_, tab) | Hit::Row(SidebarItem::Tab(tab)) => Some(Drag::Pending(tab, origin)),
             Hit::Divider(index) => self.divider_drag(index, origin).map(Drag::Divider),
             Hit::SidebarEdge if self.workspace.sidebar != SidebarMode::Hidden => {
                 Some(Drag::Sidebar(self.sidebar_drag()))

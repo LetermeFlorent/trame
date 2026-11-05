@@ -6,6 +6,7 @@ mod pane;
 mod snapshot;
 mod swap;
 mod tabs;
+mod transfer;
 mod tree;
 
 pub use instance::{Instance, InstanceId};
@@ -17,6 +18,7 @@ pub use snapshot::{
     InstanceSnapshot, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot, SnapshotError,
     TabSnapshot, WindowSnapshot,
 };
+pub use transfer::MovingInstance;
 pub use tree::{Axis, Divider, Edge, MIN_PANE, Node, PaneId, PaneLayout, resize_split, resized};
 
 use std::collections::HashMap;

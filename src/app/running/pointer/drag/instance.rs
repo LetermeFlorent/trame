@@ -16,10 +16,10 @@ impl Running {
                 self.drop_press();
                 (id, self.workspace.instance_index(id)?)
             }
-            Some(Drag::Instance(id, start)) => (id, start),
+            Some(Drag::Instance(id, start, _)) => (id, start),
             _ => return None,
         };
-        self.drag = Some(Drag::Instance(id, start));
+        self.drag = Some(Drag::Instance(id, start, point));
         self.move_instance_to(id, self.instance_target(point));
         self.window.request_redraw();
         Some(true)
@@ -36,7 +36,7 @@ impl Running {
         }
     }
 
-    fn instance_target(&self, point: Point) -> Option<usize> {
+    pub(in crate::app::running) fn instance_target(&self, point: Point) -> Option<usize> {
         match self.frame.hit(point, false)? {
             Hit::Row(SidebarItem::Instance(id)) | Hit::RailInstance(id) => {
                 self.workspace.instance_index(id)

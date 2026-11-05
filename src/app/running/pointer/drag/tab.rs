@@ -5,23 +5,26 @@ use trame::session::SessionId;
 use trame::ui::drop::{DragView, DropSpot};
 
 use super::{Drag, Ghost};
-use crate::app::running::Running;
+use crate::app::running::{Lifted, Running};
 
 impl Running {
     pub(in crate::app::running) fn drag_released(&mut self) -> bool {
         self.pointer.ghost = Ghost::Idle;
         match self.drag.take() {
             Some(Drag::Tab(tab, pointer)) => {
-                if let Some(at) = self.torn_at(tab, pointer) {
-                    self.drag = Some(Drag::Out(tab, at));
+                if let Some(at) = self.outside_at(pointer) {
+                    self.drag = Some(Drag::Out(Lifted::Tab(tab), at));
                 } else if let Some(spot) = self.drop_spot(tab, pointer) {
                     self.workspace.move_tab(tab, spot.target);
                     self.motion.animate_next();
                 }
                 true
             }
-            Some(Drag::Instance(..)) => {
+            Some(Drag::Instance(id, _, pointer)) => {
                 self.workspace.renumber_after_move();
+                if let Some(at) = self.outside_at(pointer) {
+                    self.drag = Some(Drag::Out(Lifted::Instance(id), at));
+                }
                 true
             }
             Some(Drag::Divider(_) | Drag::Sidebar(_) | Drag::List(..) | Drag::Picker(_)) => true,
@@ -41,24 +44,21 @@ impl Running {
         })
     }
 
-    pub fn take_torn(&mut self) -> Option<(SessionId, PhysicalPosition<i32>)> {
-        let Some(Drag::Out(tab, at)) = self.drag else {
+    pub fn take_out(&mut self) -> Option<(Lifted, PhysicalPosition<i32>)> {
+        let Some(Drag::Out(lifted, at)) = self.drag else {
             return None;
         };
         self.drag = None;
-        Some((tab, at))
+        Some((lifted, at))
     }
 
-    fn torn_at(&self, tab: SessionId, pointer: Point) -> Option<PhysicalPosition<i32>> {
+    fn outside_at(&self, pointer: Point) -> Option<PhysicalPosition<i32>> {
         let size = self.window.inner_size();
         let window = Rect::new(0.0, 0.0, size.width as f32, size.height as f32);
-        if window.contains(pointer) || !self.can_tear(tab) {
+        if window.contains(pointer) {
             return None;
         }
-        let origin = self.window.inner_position().ok()?;
-        let x = origin.x + pointer.x.round() as i32;
-        let y = origin.y + pointer.y.round() as i32;
-        Some(PhysicalPosition::new(x, y))
+        self.screen_point(pointer)
     }
 
     fn drop_spot(&self, tab: SessionId, pointer: Point) -> Option<DropSpot> {

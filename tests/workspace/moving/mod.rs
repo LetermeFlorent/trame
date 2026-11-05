@@ -1,6 +1,7 @@
 mod moves;
 mod splits;
 mod swaps;
+mod windows;
 
 use trame::workspace::{Edge, Workspace};
 

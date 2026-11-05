@@ -60,6 +60,17 @@ pub(super) fn sync_pins(pinned: &mut Vec<bool>, len: usize) {
 }
 
 impl Node {
+    pub fn rename_panes(&mut self, rename: &impl Fn(PaneId) -> PaneId) {
+        match self {
+            Node::Pane(pane) => *pane = rename(*pane),
+            Node::Split { children, .. } => {
+                children
+                    .iter_mut()
+                    .for_each(|child| child.rename_panes(rename));
+            }
+        }
+    }
+
     pub fn panes(&self) -> Vec<PaneId> {
         let mut panes = Vec::new();
         self.collect(&mut panes);

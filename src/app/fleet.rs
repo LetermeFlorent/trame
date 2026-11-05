@@ -12,7 +12,7 @@ use trame::workspace::Snapshot;
 
 use super::App;
 use super::persist::free_slot;
-use super::running::{Quit, Running};
+use super::running::{Lifted, Quit, Running};
 
 impl App {
     pub(super) fn open_saved(&mut self, event_loop: &ActiveEventLoop) {
@@ -59,6 +59,13 @@ impl App {
     }
 
     pub(super) fn settle(&mut self, event_loop: &ActiveEventLoop) {
+        let out = self.windows.iter_mut().find_map(|running| {
+            let id = running.id();
+            running.take_out().map(|(lifted, at)| (id, lifted, at))
+        });
+        if let Some((id, lifted, at)) = out {
+            self.drop_out(event_loop, id, lifted, at);
+        }
         let quits: Vec<(WindowId, Quit)> = self
             .windows
             .iter_mut()
@@ -69,13 +76,6 @@ impl App {
                 Quit::Close => self.close_window(event_loop, id),
                 Quit::Restart(restart) => self.restart_for(event_loop, restart),
             }
-        }
-        let torn = self.windows.iter_mut().find_map(|running| {
-            let id = running.id();
-            running.take_torn().map(|(tab, at)| (id, tab, at))
-        });
-        if let Some((id, tab, at)) = torn {
-            self.tear_off(event_loop, id, tab, at);
         }
         self.process.follow(
             self.windows.iter().all(Running::rests),
@@ -100,6 +100,36 @@ impl App {
         self.offer.opened(&mut running);
         self.windows.push(running);
         Ok(())
+    }
+
+    fn drop_out(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        id: WindowId,
+        lifted: Lifted,
+        at: PhysicalPosition<i32>,
+    ) {
+        let Some(source) = self.windows.iter().position(|running| running.id() == id) else {
+            return;
+        };
+        let target = self
+            .windows
+            .iter()
+            .position(|running| running.id() != id && running.holds(at));
+        match (lifted, target) {
+            (Lifted::Tab(tab), None) => self.tear_off(event_loop, id, tab, at),
+            (Lifted::Tab(tab), Some(target)) => {
+                if let Some(torn) = self.windows[source].tear_tab(tab) {
+                    self.windows[target].take_dropped_tab(torn, at);
+                }
+            }
+            (Lifted::Instance(instance), Some(target)) => {
+                if let Some(moved) = self.windows[source].give_instance(instance) {
+                    self.windows[target].take_moved_instance(moved, at);
+                }
+            }
+            (Lifted::Instance(_), None) => {}
+        }
     }
 
     fn tear_off(

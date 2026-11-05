@@ -21,7 +21,7 @@ impl Running {
                 }
             }
             Drag::Sidebar(drag) => self.restore_sidebar(drag),
-            Drag::Instance(id, start) => self.move_instance_to(id, Some(start)),
+            Drag::Instance(id, start, _) => self.move_instance_to(id, Some(start)),
             _ => {}
         }
         self.drop_press();

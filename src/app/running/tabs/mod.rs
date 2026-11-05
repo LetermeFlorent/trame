@@ -23,7 +23,7 @@ use crate::app::sessions::ShellStart;
 pub(super) use closing::Closing;
 pub use folder::FolderTarget;
 pub(super) use restarts::Restarts;
-pub use tear::TornTab;
+pub use tear::{Lifted, TornTab};
 
 pub(super) const FALLBACK_GRID: (usize, usize) = (24, 80);
 

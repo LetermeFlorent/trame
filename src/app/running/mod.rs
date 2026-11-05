@@ -41,8 +41,8 @@ use lifecycle::UpdateState;
 pub use lifecycle::{Offer, Quit, Restart};
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
-pub use tabs::FolderTarget;
 use tabs::{Closing, Restarts};
+pub use tabs::{FolderTarget, Lifted};
 
 pub struct Running {
     window: Arc<Window>,
