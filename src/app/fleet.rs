@@ -66,7 +66,10 @@ impl App {
                 Quit::Restart(restart) => self.restart_for(event_loop, restart),
             }
         }
-        self.process.follow(self.windows.iter().all(Running::rests));
+        self.process.follow(
+            self.windows.iter().all(Running::rests),
+            self.windows.iter().all(Running::hidden),
+        );
     }
 
     fn launch(

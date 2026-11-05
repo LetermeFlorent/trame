@@ -27,6 +27,10 @@ impl Running {
         self.power.rests()
     }
 
+    pub fn hidden(&self) -> bool {
+        self.power.hidden()
+    }
+
     pub fn bring_forward(&self) {
         self.window.focus_window();
     }

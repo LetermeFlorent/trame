@@ -19,6 +19,7 @@ fn the_background_slows_the_whole_family_even_while_output_arrives() {
     power.set_background(true);
     power.touch();
     assert_eq!(power.mode, Mode::Family);
+    assert!(power.hidden());
     assert_eq!(power.deadline(), Some(power.walked + FAMILY_RECHECK));
 }
 
@@ -36,6 +37,7 @@ fn a_quiet_window_in_front_only_slows_trame() {
     let mut power = Power::new([true, true]);
     power.tick(power.last + IDLE_AFTER);
     assert_eq!(power.mode, Mode::Own);
+    assert!(!power.hidden());
     assert_eq!(power.deadline(), None);
     power.touch();
     assert_eq!(power.mode, Mode::Normal);

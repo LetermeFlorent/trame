@@ -20,7 +20,9 @@ mod os {
     pub fn set_own(_on: bool) {}
 }
 
-pub use os::set_own;
+pub fn set_own(on: bool, _hidden: bool) {
+    os::set_own(on);
+}
 
 const RETRY_AFTER: Duration = Duration::from_millis(150);
 const FIRST_USER_PID: u32 = 2;
