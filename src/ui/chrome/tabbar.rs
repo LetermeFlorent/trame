@@ -96,8 +96,13 @@ fn draw_tab_fill(
     painter.scene.fill_top(shape, solid.unwrap_or(base), radius);
     let current = tab.active && pane.focused;
     let height = painter.metrics.px(ACCENT_HEIGHT);
+    let top = if pane.radius > 0.0 {
+        rect.y + line
+    } else {
+        rect.y
+    };
     if current && tab.color.is_none() {
-        let reach = Rect::new(rect.x, rect.y, rect.width, rect.height + radius + height);
+        let reach = Rect::new(rect.x, top, rect.width, rect.height + radius + height);
         painter.scene.push_clip(rect);
         painter.scene.border(reach, theme.accent, radius, height);
         painter.scene.pop_clip();
@@ -115,7 +120,7 @@ fn draw_tab_fill(
     };
     if let Some(color) = accent {
         let width = (rect.width - radius * 2.0).max(0.0);
-        painter.rule(Rect::new(rect.x + radius, rect.y, width, height), color);
+        painter.rule(Rect::new(rect.x + radius, top, width, height), color);
     }
 }
 

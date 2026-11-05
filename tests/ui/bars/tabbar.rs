@@ -31,7 +31,11 @@ fn line_over(scene: &Scene, tab: Rect, color: Rgba) -> Option<Rect> {
         .iter()
         .filter(|quad| quad.color == color.to_array())
         .map(|quad| Rect::new(quad.rect[0], quad.rect[1], quad.rect[2], quad.rect[3]))
-        .find(|line| line.y == tab.y && line.x >= tab.x && line.right() <= tab.right() + EPSILON)
+        .find(|line| {
+            (tab.y..=tab.y + 1.0 + EPSILON).contains(&line.y)
+                && line.x >= tab.x
+                && line.right() <= tab.right() + EPSILON
+        })
 }
 
 #[test]
