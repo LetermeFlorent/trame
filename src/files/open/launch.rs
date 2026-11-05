@@ -1,9 +1,14 @@
+use std::fmt::Display;
 use std::thread;
 
 use super::is_web;
 use crate::log_error;
 
 const OPEN_FAILED: &str = "the link could not be opened";
+
+fn log_open_failure(detail: impl Display) {
+    log_error!("{OPEN_FAILED}: {detail}");
+}
 
 pub fn open_link(url: String) {
     let spawned = thread::Builder::new()
@@ -14,7 +19,7 @@ pub fn open_link(url: String) {
             }
         });
     if let Err(error) = spawned {
-        log_error!("{OPEN_FAILED}: {error}");
+        log_open_failure(error);
     }
 }
 
@@ -43,7 +48,7 @@ fn launch(url: &str) {
     };
     drop(apartment);
     if (result as isize) < LOWEST_SUCCESS {
-        log_error!("{OPEN_FAILED}: code {}", result as isize);
+        log_open_failure(format_args!("code {}", result as isize));
     }
 }
 
@@ -67,6 +72,6 @@ fn launch(url: &str) {
         Ok(mut child) => {
             let _ = child.wait();
         }
-        Err(error) => log_error!("{OPEN_FAILED}: {error}"),
+        Err(error) => log_open_failure(error),
     }
 }
