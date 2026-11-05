@@ -61,6 +61,8 @@ pub const ENGLISH: Strings = Strings {
     notify_waiting: "Notify when a tab is waiting for you",
     program_clipboard: "Let programs copy to the clipboard",
     update_on_start: "Install updates when trame starts",
+    explorer_menu: "Open in trame in the right-click menu of folders",
+    open_in_trame: "Open in trame",
     instances_section: "Instances",
     numbered_instances: "Numbers instead of icons",
     renumber_on_close: "Renumber after closing one",

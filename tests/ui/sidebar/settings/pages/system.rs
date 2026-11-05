@@ -39,6 +39,9 @@ fn the_system_page_lists_its_switches_in_order() {
     }
     expected.push(SettingControl::ProgramClipboard);
     expected.push(SettingControl::UpdateOnStart);
+    if cfg!(windows) {
+        expected.push(SettingControl::ExplorerMenu);
+    }
     assert_eq!(controls, expected);
     assert!(page(&layout).sections.is_empty());
 }

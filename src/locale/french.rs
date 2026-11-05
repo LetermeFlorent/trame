@@ -61,6 +61,8 @@ pub const FRENCH: Strings = Strings {
     notify_waiting: "Notifier quand un onglet attend une réponse",
     program_clipboard: "Laisser les programmes copier dans le presse-papiers",
     update_on_start: "Installer les mises à jour au démarrage",
+    explorer_menu: "Ouvrir dans trame dans le menu clic droit des dossiers",
+    open_in_trame: "Ouvrir dans trame",
     instances_section: "Instances",
     numbered_instances: "Numéros au lieu des icônes",
     renumber_on_close: "Renuméroter après une fermeture",

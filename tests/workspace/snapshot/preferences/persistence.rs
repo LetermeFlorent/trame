@@ -32,6 +32,7 @@ fn every_preference_changed() -> Preferences {
         notify_waiting: false,
         program_clipboard: false,
         update_on_start: true,
+        explorer_menu: false,
         numbering: Numbering {
             shown: false,
             on_close: false,

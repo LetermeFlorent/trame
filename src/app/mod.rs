@@ -1,4 +1,5 @@
 mod door;
+mod explorer;
 mod fleet;
 mod graphics;
 mod handler;
@@ -15,7 +16,9 @@ mod update;
 mod visibility;
 mod window;
 
+use std::env;
 use std::error::Error;
+use std::ffi::OsString;
 use std::path::PathBuf;
 
 use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
@@ -37,7 +40,7 @@ pub enum UserEvent {
     Update(UpdateStatus),
     Folder(WindowId, FolderTarget, PathBuf),
     Icon(WindowId, InstanceId, u64),
-    Open,
+    Open(Option<PathBuf>),
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
@@ -45,7 +48,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         trame::files::start_log(path);
     }
     let mut role = persist::claim();
-    if !role.owns() && persist::app_dir().is_some_and(|folder| door::knock(&folder)) {
+    let opened = launch_folder(env::args_os());
+    let knocked = |folder: PathBuf| door::knock(&folder, opened.as_deref());
+    if !role.owns() && persist::app_dir().is_some_and(knocked) {
         return Ok(());
     }
     let saved = persist::load(&mut role);
@@ -53,8 +58,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let proxy = event_loop.create_proxy();
     if let Some(folder) = role.folder() {
         let visitor = proxy.clone();
-        door::listen(folder, move || {
-            let _ = visitor.send_event(UserEvent::Open);
+        door::listen(folder, move |opened| {
+            let _ = visitor.send_event(UserEvent::Open(opened));
         });
     }
     let notifier = proxy.clone();
@@ -67,6 +72,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         offer: PendingOffer::default(),
         role,
         saved,
+        opened,
         windows: Vec::new(),
         process: Process::default(),
         failure: None,
@@ -81,9 +87,19 @@ struct App {
     offer: PendingOffer,
     role: Role,
     saved: Vec<Saved>,
+    opened: Option<PathBuf>,
     windows: Vec<Running>,
     process: Process,
     failure: Option<Box<dyn Error>>,
+}
+
+fn launch_folder(arguments: impl Iterator<Item = OsString>) -> Option<PathBuf> {
+    let arguments: Vec<PathBuf> = arguments.skip(1).map(PathBuf::from).collect();
+    let flagged = arguments
+        .iter()
+        .any(|argument| argument.to_string_lossy().starts_with("--"));
+    let folder = arguments.into_iter().find(|argument| argument.is_dir());
+    folder.filter(|_| !flagged)
 }
 
 impl App {
@@ -117,5 +133,27 @@ impl App {
         self.windows
             .first()
             .is_some_and(|running| running.preferences().update_on_start)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::env;
+    use std::ffi::OsString;
+
+    use super::launch_folder;
+
+    fn launched(arguments: &[OsString]) -> Option<std::path::PathBuf> {
+        let program = OsString::from("trame");
+        launch_folder(std::iter::once(program).chain(arguments.iter().cloned()))
+    }
+
+    #[test]
+    fn a_folder_given_at_launch_opens_unless_an_update_restarts() {
+        let folder = env::temp_dir();
+        let given = OsString::from(&folder);
+        assert_eq!(launched(std::slice::from_ref(&given)), Some(folder));
+        assert_eq!(launched(&[given, OsString::from("--updated")]), None);
+        assert_eq!(launched(&[OsString::from("no-such-folder-here")]), None);
     }
 }

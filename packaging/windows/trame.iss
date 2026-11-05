@@ -36,6 +36,7 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "contextmenu"; Description: "{cm:ContextMenu}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
 Source: "target\release\trame.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -49,6 +50,22 @@ Type: files; Name: "{app}\trame.exe.new"
 [UninstallDelete]
 Type: files; Name: "{app}\trame.exe.old"
 Type: files; Name: "{app}\trame.exe.new"
+
+[Registry]
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\trame"; Flags: uninsdeletekey dontcreatekey
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\trame"; Flags: uninsdeletekey dontcreatekey
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\trame"; ValueType: string; ValueData: "{cm:OpenInTrame}"; Tasks: contextmenu; Check: not Relaunching
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\trame"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\trame.exe"",0"; Tasks: contextmenu; Check: not Relaunching
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\trame\command"; ValueType: string; ValueData: """{app}\trame.exe"" ""%V"""; Tasks: contextmenu; Check: not Relaunching
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\trame"; ValueType: string; ValueData: "{cm:OpenInTrame}"; Tasks: contextmenu; Check: not Relaunching
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\trame"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\trame.exe"",0"; Tasks: contextmenu; Check: not Relaunching
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\trame\command"; ValueType: string; ValueData: """{app}\trame.exe"" ""%V"""; Tasks: contextmenu; Check: not Relaunching
+
+[CustomMessages]
+english.ContextMenu=Add "Open in trame" to the right-click menu of folders
+french.ContextMenu=Ajouter "Ouvrir dans trame" au menu clic droit des dossiers
+english.OpenInTrame=Open in trame
+french.OpenInTrame=Ouvrir dans trame
 
 [Icons]
 Name: "{autoprograms}\trame"; Filename: "{app}\trame.exe"

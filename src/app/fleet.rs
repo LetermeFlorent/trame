@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::mem;
+use std::path::PathBuf;
 
 use winit::dpi::PhysicalPosition;
 use winit::event_loop::ActiveEventLoop;
@@ -17,7 +18,8 @@ impl App {
     pub(super) fn open_saved(&mut self, event_loop: &ActiveEventLoop) {
         let mut failure = None;
         for saved in mem::take(&mut self.saved) {
-            if let Err(error) = self.launch(event_loop, saved.slot, saved.snapshot) {
+            let folder = self.opened.take();
+            if let Err(error) = self.launch(event_loop, saved.slot, saved.snapshot, folder) {
                 log_error!("a saved window could not open: {error}");
                 failure = Some(error);
             }
@@ -28,12 +30,12 @@ impl App {
         }
     }
 
-    pub(super) fn open_another(&mut self, event_loop: &ActiveEventLoop) {
+    pub(super) fn open_another(&mut self, event_loop: &ActiveEventLoop, folder: Option<PathBuf>) {
         if self.windows.is_empty() {
             return;
         }
         let slot = free_slot(self.windows.iter().map(Running::slot));
-        match self.launch(event_loop, slot, None) {
+        match self.launch(event_loop, slot, None, folder) {
             Ok(()) => self
                 .windows
                 .iter()
@@ -86,6 +88,7 @@ impl App {
         event_loop: &ActiveEventLoop,
         slot: usize,
         saved: Option<Snapshot>,
+        folder: Option<PathBuf>,
     ) -> Result<(), Box<dyn Error>> {
         let shared = self
             .windows
@@ -93,7 +96,7 @@ impl App {
             .map(|running| running.preferences().clone());
         let slot = self.role.slot(slot);
         let opened = Running::open_window(event_loop, self.proxy.clone(), saved, slot, shared)?;
-        let mut running = opened.show(&self.update)?;
+        let mut running = opened.show(&self.update, folder)?;
         self.offer.opened(&mut running);
         self.windows.push(running);
         Ok(())

@@ -8,6 +8,7 @@ mod update;
 
 use std::collections::HashMap;
 use std::error::Error;
+use std::path::PathBuf;
 use std::time::Instant;
 
 use winit::dpi::PhysicalPosition;
@@ -30,7 +31,7 @@ use crate::app::power::Power;
 use crate::app::sessions::Sessions;
 use crate::app::update::UpdateStatus;
 use crate::app::visibility::Visibility;
-use crate::app::{UserEvent, window};
+use crate::app::{UserEvent, explorer, window};
 
 const TORN_OFFSET: f32 = 48.0;
 
@@ -46,7 +47,11 @@ pub struct Opened {
 }
 
 impl Opened {
-    pub fn show(self, update: &UpdateStatus) -> Result<Running, Box<dyn Error>> {
+    pub fn show(
+        self,
+        update: &UpdateStatus,
+        folder: Option<PathBuf>,
+    ) -> Result<Running, Box<dyn Error>> {
         let Opened { mut running, saved } = self;
         running.set_update(update);
         if running.loader.is_some() {
@@ -54,8 +59,8 @@ impl Opened {
             running.window.set_visible(true);
         }
         let restored = running.saver.owns() && running.restore_session(saved.as_ref());
-        if !restored {
-            running.open(Placement::Instance)?;
+        if !restored || folder.is_some() {
+            running.open_at(Placement::Instance, folder)?;
         }
         if !running.preferences.recalls(Recall::Text) {
             running.transcripts.clear();
@@ -92,10 +97,11 @@ impl Running {
             .as_ref()
             .and_then(|snapshot| snapshot.window)
             .filter(|_| slot.owns());
-        let preferences = shared
+        let mut preferences = shared
             .or_else(|| saved.as_ref().map(|snapshot| snapshot.preferences.clone()))
             .unwrap_or_default()
             .sanitized();
+        preferences.explorer_menu = explorer::menu_installed();
         let surface = Surface::open(event_loop, window, preferences)?;
         let mut running = Self::with_surface(surface, proxy, Saver::new(slot));
         running.sessions.follow_preferences(&running.preferences);

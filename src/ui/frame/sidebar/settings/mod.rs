@@ -82,6 +82,7 @@ pub enum SettingControl {
     NotifyWaiting,
     ProgramClipboard,
     UpdateOnStart,
+    ExplorerMenu,
     Numbers(NumberChoice),
     Keys(KeyControl),
     Fill,

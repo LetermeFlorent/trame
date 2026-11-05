@@ -36,6 +36,11 @@ pub(super) fn system_page(
     let update = [preferences.update_on_start, true];
     let control = SettingControl::UpdateOnStart;
     toggles.push(column.toggle_row(strings.update_on_start, update, control));
+    if cfg!(windows) {
+        let menu = [preferences.explorer_menu, true];
+        let control = SettingControl::ExplorerMenu;
+        toggles.push(column.toggle_row(strings.explorer_menu, menu, control));
+    }
     FormPage {
         toggles,
         ..FormPage::default()

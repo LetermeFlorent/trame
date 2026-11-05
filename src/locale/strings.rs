@@ -67,6 +67,8 @@ pub struct Strings {
     pub notify_waiting: &'static str,
     pub program_clipboard: &'static str,
     pub update_on_start: &'static str,
+    pub explorer_menu: &'static str,
+    pub open_in_trame: &'static str,
     pub instances_section: &'static str,
     pub numbered_instances: &'static str,
     pub renumber_on_close: &'static str,

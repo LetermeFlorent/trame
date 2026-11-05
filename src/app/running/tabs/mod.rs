@@ -9,7 +9,7 @@ mod tear;
 mod tests;
 
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use winit::event_loop::ActiveEventLoop;
 
@@ -36,9 +36,21 @@ pub(super) enum Placement {
 
 impl Running {
     pub(super) fn open(&mut self, placement: Placement) -> io::Result<()> {
-        let cwd = self.start_folder(placement);
+        self.open_at(placement, None)
+    }
+
+    pub(super) fn open_at(
+        &mut self,
+        placement: Placement,
+        folder: Option<PathBuf>,
+    ) -> io::Result<()> {
+        let cwd = folder.clone().or_else(|| self.start_folder(placement));
         let first = self.open_in(placement, cwd.as_deref(), None)?;
         if placement == Placement::Instance {
+            let instance = self.workspace.active_instance().map(|instance| instance.id);
+            if let (Some(id), Some(folder)) = (instance, folder) {
+                self.workspace.set_instance_folder(id, Some(folder));
+            }
             for _ in 1..self.preferences.instance_tabs {
                 self.open_in(Placement::Tab, cwd.as_deref(), None)?;
             }

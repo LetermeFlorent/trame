@@ -16,7 +16,7 @@ impl ApplicationHandler<UserEvent> for App {
     fn user_event(&mut self, event_loop: &ActiveEventLoop, event: UserEvent) {
         match event {
             UserEvent::Update(status) => self.updated(event_loop, status),
-            UserEvent::Open => self.open_another(event_loop),
+            UserEvent::Open(folder) => self.open_another(event_loop, folder),
             UserEvent::Session(id, event) => {
                 self.on(event_loop, id, |running| {
                     running.session_event(event_loop, event)

@@ -76,6 +76,8 @@ pub struct Preferences {
     pub program_clipboard: bool,
     #[serde(default)]
     pub update_on_start: bool,
+    #[serde(skip)]
+    pub explorer_menu: bool,
     #[serde(default, skip_serializing_if = "Overrides::is_empty")]
     pub shortcuts: Overrides,
     #[serde(flatten)]
@@ -107,6 +109,7 @@ impl Default for Preferences {
             notify_waiting: true,
             program_clipboard: true,
             update_on_start: false,
+            explorer_menu: false,
             shortcuts: Overrides::default(),
             numbering: Numbering::default(),
         }

@@ -1,7 +1,9 @@
 use trame::input::TextField;
+use trame::log_error;
 use trame::preferences::Preferences;
 use trame::ui::frame::SettingControl;
 
+use crate::app::explorer;
 use crate::app::running::{FolderTarget, Running};
 
 impl Running {
@@ -38,8 +40,18 @@ impl Running {
                 return self.ask_folder(FolderTarget::Default, start);
             }
             SettingControl::ClearFolder => current.with(|next| next.default_folder = None),
+            SettingControl::ExplorerMenu => return self.toggle_explorer_menu(),
             _ => current.with(|next| flip(next, control)),
         };
+        self.set_preferences(next);
+    }
+
+    fn toggle_explorer_menu(&mut self) {
+        let on = !self.preferences.explorer_menu;
+        if let Err(error) = explorer::set_menu(on, self.strings.open_in_trame) {
+            return log_error!("the right-click menu could not change: {error}");
+        }
+        let next = self.preferences.with(|next| next.explorer_menu = on);
         self.set_preferences(next);
     }
 
