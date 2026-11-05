@@ -4,6 +4,7 @@ mod instance;
 mod sidebar;
 mod tab;
 
+use winit::dpi::PhysicalPosition;
 use winit::window::{Cursor, CursorIcon};
 
 use trame::geometry::Point;
@@ -28,6 +29,7 @@ pub(in crate::app::running) struct DividerDrag {
 pub(in crate::app::running) enum Drag {
     Pending(SessionId, Point),
     Tab(SessionId, Point),
+    Out(SessionId, PhysicalPosition<i32>),
     Divider(DividerDrag),
     Sidebar(SidebarDrag),
     List(ListKind, f32),
@@ -98,7 +100,7 @@ impl Running {
                 self.drag_picker(part);
                 Drag::Picker(part)
             }
-            Some(drag @ (Drag::PendingInstance(..) | Drag::Instance(..))) => drag,
+            Some(drag @ (Drag::PendingInstance(..) | Drag::Instance(..) | Drag::Out(..))) => drag,
         };
         self.drag = Some(next);
         self.window.request_redraw();

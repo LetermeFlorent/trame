@@ -30,6 +30,25 @@ pub enum SessionEvent {
 
 pub type Notifier = Arc<dyn Fn(SessionEvent) + Send + Sync>;
 
+type Route = Arc<Mutex<(Notifier, SessionId)>>;
+
+impl SessionEvent {
+    fn for_session(self, id: SessionId) -> Self {
+        match self {
+            Self::Output(_) => Self::Output(id),
+            Self::Exited(_) => Self::Exited(id),
+        }
+    }
+}
+
+fn routed(route: &Route) -> Notifier {
+    let route = Arc::clone(route);
+    Arc::new(move |event| {
+        let (notify, id) = lock(&route).clone();
+        notify(event.for_session(id));
+    })
+}
+
 pub struct SessionOptions<'a> {
     pub shell: &'a ShellCommand,
     pub cwd: Option<&'a Path>,
@@ -45,6 +64,7 @@ pub struct Session {
     terminal: Arc<Mutex<Terminal>>,
     input: Sender<Vec<u8>>,
     pending: Arc<AtomicBool>,
+    route: Route,
     pty: Option<Pty>,
     size: (usize, usize),
     shell: String,
@@ -65,6 +85,8 @@ impl Session {
         let terminal = Arc::new(Mutex::new(terminal));
         let (input, queue) = mpsc::channel();
         let pending = Arc::new(AtomicBool::new(false));
+        let route: Route = Arc::new(Mutex::new((notify, id)));
+        let notify = routed(&route);
         threads::spawn_writer(spawned.writer, queue)?;
         threads::spawn_reader(threads::Reader {
             id,
@@ -81,6 +103,7 @@ impl Session {
             terminal,
             input,
             pending,
+            route,
             pty: Some(spawned.pty),
             size: (rows, cols),
             shell: title::shell_name(&options.shell.program),
@@ -89,6 +112,12 @@ impl Session {
 
     pub fn id(&self) -> SessionId {
         self.id
+    }
+
+    pub fn hand_over(&mut self, id: SessionId, notify: Notifier) {
+        self.id = id;
+        *lock(&self.route) = (notify, id);
+        self.pending.store(false, Ordering::Release);
     }
 
     pub fn terminal(&self) -> MutexGuard<'_, Terminal> {

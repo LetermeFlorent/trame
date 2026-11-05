@@ -1,10 +1,12 @@
 use std::error::Error;
 use std::mem;
 
+use winit::dpi::PhysicalPosition;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::WindowId;
 
 use trame::log_error;
+use trame::session::SessionId;
 use trame::workspace::Snapshot;
 
 use super::App;
@@ -66,6 +68,13 @@ impl App {
                 Quit::Restart(restart) => self.restart_for(event_loop, restart),
             }
         }
+        let torn = self.windows.iter_mut().find_map(|running| {
+            let id = running.id();
+            running.take_torn().map(|(tab, at)| (id, tab, at))
+        });
+        if let Some((id, tab, at)) = torn {
+            self.tear_off(event_loop, id, tab, at);
+        }
         self.process.follow(
             self.windows.iter().all(Running::rests),
             self.windows.iter().all(Running::hidden),
@@ -88,6 +97,36 @@ impl App {
         self.offer.opened(&mut running);
         self.windows.push(running);
         Ok(())
+    }
+
+    fn tear_off(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        id: WindowId,
+        tab: SessionId,
+        at: PhysicalPosition<i32>,
+    ) {
+        let Some(source) = self.windows.iter().position(|running| running.id() == id) else {
+            return;
+        };
+        if !self.windows[source].can_tear(tab) {
+            return;
+        }
+        let shared = Some(self.windows[source].preferences().clone());
+        let slot = free_slot(self.windows.iter().map(Running::slot));
+        let slot = self.role.slot(slot);
+        let opened = match Running::open_window(event_loop, self.proxy.clone(), None, slot, shared)
+        {
+            Ok(opened) => opened,
+            Err(error) => return log_error!("a torn tab could not open its window: {error}"),
+        };
+        let Some(torn) = self.windows[source].tear_tab(tab) else {
+            return;
+        };
+        let mut running = opened.adopt(&self.update, torn, at);
+        self.offer.opened(&mut running);
+        running.bring_forward();
+        self.windows.push(running);
     }
 
     fn close_window(&mut self, event_loop: &ActiveEventLoop, id: WindowId) {

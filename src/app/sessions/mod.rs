@@ -23,6 +23,12 @@ use trame::workspace::Workspace;
 use super::UserEvent;
 pub use deferred::Waiting;
 
+pub struct Leaving {
+    session: Option<Session>,
+    origin: Option<PathBuf>,
+    waiting: Option<Waiting>,
+}
+
 pub struct ShellStart<'a> {
     pub cwd: Option<&'a Path>,
     pub size: (usize, usize),
@@ -116,6 +122,31 @@ impl Sessions {
         self.waiting.remove(&id);
         self.answers.remove(&id);
         self.map.remove(&id);
+    }
+
+    pub fn hand_off(&mut self, id: SessionId) -> Leaving {
+        self.answers.remove(&id);
+        Leaving {
+            session: self.map.remove(&id),
+            origin: self.origins.remove(&id),
+            waiting: self.waiting.remove(&id),
+        }
+    }
+
+    pub fn take_in(&mut self, leaving: Leaving) -> SessionId {
+        let id = self.reserve();
+        if let Some(mut session) = leaving.session {
+            session.hand_over(id, self.notify.clone());
+            self.prepare(&session);
+            self.map.insert(id, session);
+        }
+        if let Some(origin) = leaving.origin {
+            self.origins.insert(id, origin);
+        }
+        if let Some(waiting) = leaving.waiting {
+            self.waiting.insert(id, waiting);
+        }
+        id
     }
 
     pub fn cwd(&self, id: SessionId) -> Option<PathBuf> {

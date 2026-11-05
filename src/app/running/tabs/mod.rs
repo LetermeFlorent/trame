@@ -4,6 +4,7 @@ mod deferred;
 mod folder;
 mod restarts;
 mod ssh;
+mod tear;
 #[cfg(test)]
 mod tests;
 
@@ -22,6 +23,7 @@ use crate::app::sessions::ShellStart;
 pub(super) use closing::Closing;
 pub use folder::FolderTarget;
 pub(super) use restarts::Restarts;
+pub use tear::TornTab;
 
 pub(super) const FALLBACK_GRID: (usize, usize) = (24, 80);
 

@@ -38,3 +38,19 @@ fn output_keeps_waking_without_a_draw() {
     sessions.get(id).expect("the shell").write(PRINT);
     assert!(wakes(&events, id));
 }
+
+#[test]
+fn a_handed_over_shell_wakes_its_new_window_under_its_new_id() {
+    let (mut sessions, id, events) = started();
+    assert!(wakes(&events, id));
+    let (sender, moved) = mpsc::channel();
+    let mut other = Sessions::with_notifier(Arc::new(move |event| {
+        let _ = sender.send(event);
+    }));
+    other.reserve();
+    let new = other.take_in(sessions.hand_off(id));
+    assert_ne!(new, id);
+    assert!(sessions.get(id).is_none());
+    other.get(new).expect("the shell").write(PRINT);
+    assert!(wakes(&moved, new));
+}

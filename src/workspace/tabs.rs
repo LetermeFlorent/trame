@@ -1,6 +1,6 @@
 use super::instance::Instance;
 use super::tree::Edge;
-use super::{TabLocation, Workspace};
+use super::{TabLocation, TabMark, Workspace};
 use crate::session::SessionId;
 
 impl Workspace {
@@ -66,11 +66,19 @@ impl Workspace {
     }
 
     pub fn close_tab(&mut self, tab: SessionId) -> bool {
-        let Some(location) = self.locate(tab) else {
-            return false;
-        };
-        self.marks.remove(&tab);
+        self.take_tab(tab).is_some()
+    }
+
+    pub fn take_tab(&mut self, tab: SessionId) -> Option<TabMark> {
+        let location = self.locate(tab)?;
+        let mark = self.marks.remove(&tab).unwrap_or_default();
         self.detach(tab, location);
-        true
+        Some(mark)
+    }
+
+    pub fn mark_tab(&mut self, tab: SessionId, mark: TabMark) {
+        if !mark.is_blank() {
+            self.marks.insert(tab, mark);
+        }
     }
 }

@@ -1,4 +1,4 @@
-use winit::dpi::LogicalSize;
+use winit::dpi::{LogicalSize, PhysicalPosition};
 use winit::window::{CursorIcon, ResizeDirection, Theme, Window, WindowAttributes};
 
 use trame::theme::{Appearance, system};
@@ -37,6 +37,33 @@ pub fn restored_attributes(saved: Option<WindowSnapshot>) -> WindowAttributes {
     attributes
         .with_inner_size(LogicalSize::new(width, height))
         .with_maximized(saved.maximized)
+}
+
+pub fn place_near(
+    window: &Window,
+    cursor: PhysicalPosition<i32>,
+    offset: i32,
+) -> PhysicalPosition<i32> {
+    let corner = PhysicalPosition::new(cursor.x - offset, cursor.y - offset);
+    let size = window.outer_size();
+    let holds = |monitor: &winit::monitor::MonitorHandle| {
+        let (at, extent) = (monitor.position(), monitor.size());
+        (at.x..at.x + extent.width as i32).contains(&cursor.x)
+            && (at.y..at.y + extent.height as i32).contains(&cursor.y)
+    };
+    let Some(monitor) = window.available_monitors().find(holds) else {
+        return corner;
+    };
+    let (at, extent) = (monitor.position(), monitor.size());
+    let x = corner
+        .x
+        .min(at.x + extent.width as i32 - size.width as i32)
+        .max(at.x);
+    let y = corner
+        .y
+        .min(at.y + extent.height as i32 - size.height as i32)
+        .max(at.y);
+    PhysicalPosition::new(x, y)
 }
 
 pub fn snapshot(window: &Window) -> Option<WindowSnapshot> {

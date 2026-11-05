@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::time::Instant;
 
+use winit::dpi::PhysicalPosition;
 use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 
@@ -21,7 +22,7 @@ use trame::theme::Theme;
 use trame::ui::FrameView;
 use trame::workspace::Snapshot;
 
-use super::tabs::{Placement, Restarts};
+use super::tabs::{Placement, Restarts, TornTab};
 use super::{Memo, Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
 use crate::app::persist::{self, Saver, Slot};
@@ -30,6 +31,8 @@ use crate::app::sessions::Sessions;
 use crate::app::update::UpdateStatus;
 use crate::app::visibility::Visibility;
 use crate::app::{UserEvent, window};
+
+const TORN_OFFSET: f32 = 48.0;
 
 use first_frame::first_frame;
 pub use quit::{Quit, Restart};
@@ -60,6 +63,20 @@ impl Opened {
         running.draw();
         running.window.set_visible(true);
         Ok(running)
+    }
+}
+
+impl Opened {
+    pub fn adopt(self, update: &UpdateStatus, torn: TornTab, at: PhysicalPosition<i32>) -> Running {
+        let mut running = self.running;
+        running.set_update(update);
+        let offset = running.metrics.px(TORN_OFFSET).round() as i32;
+        let corner = window::place_near(&running.window, at, offset);
+        running.window.set_outer_position(corner);
+        running.take_torn_tab(torn);
+        running.draw();
+        running.window.set_visible(true);
+        running
     }
 }
 

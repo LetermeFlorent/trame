@@ -14,7 +14,7 @@ pub struct TabMark {
 }
 
 impl TabMark {
-    fn is_blank(&self) -> bool {
+    pub(super) fn is_blank(&self) -> bool {
         self.name.is_none() && self.color.is_none() && self.host.is_none() && !self.fill
     }
 }
