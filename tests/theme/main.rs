@@ -1,8 +1,7 @@
 mod colors;
 mod contrast;
+mod convert;
 mod emblems;
-mod hex;
-mod hsv;
 mod luminance;
 mod swatches;
 mod system;
