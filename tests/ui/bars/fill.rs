@@ -38,21 +38,25 @@ fn instance_filled(fill: bool) -> Workspace {
 }
 
 #[test]
-fn a_filled_tab_paints_its_solid_colour_and_a_readable_label() {
+fn a_filled_tab_takes_the_same_shade_as_its_terminal() {
     for appearance in THEMES {
         let theme = Theme::new(appearance);
         let mut text = text_system();
-        let solid = theme.swatch(SWATCH);
+        let shade = theme.terminal_under(Some(SWATCH));
         let [on, off] = [true, false].map(|fill| {
             let frame = frame(&mut text, &tab_filled(fill));
             let scene = paint_with(&mut text, &frame, &theme, None, draw_chrome);
             let tab = &frame.panes[0].strip.tabs[0];
             assert_eq!(tab.id, SessionId(1));
-            let filled = painted_at(&scene, tab.rect, solid);
-            (filled, inked_inside(&scene, tab.rect, solid.ink()))
+            painted_at(&scene, tab.rect, shade)
         });
-        assert!(on.0 && !off.0, "{appearance:?}");
-        assert!(on.1 > off.1, "{appearance:?}");
+        assert!(on && !off, "{appearance:?}");
+        let mut workspace = tab_filled(true);
+        workspace.activate_tab(SessionId(1));
+        let frame = frame(&mut text, &workspace);
+        assert_eq!(frame.panes[0].tint, Some(SWATCH));
+        let scene = paint_with(&mut text, &frame, &theme, None, draw_chrome);
+        assert!(painted_at(&scene, frame.panes[0].strip.tabs[0].rect, shade));
     }
 }
 

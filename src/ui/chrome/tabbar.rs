@@ -51,20 +51,19 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
     let solid = tab
         .color
         .filter(|_| tab.fill)
-        .map(|swatch| theme.swatch(swatch));
-    let ink = solid.map(Rgba::ink);
+        .map(|swatch| theme.terminal_under(Some(swatch)));
     painter.scene.push_clip(rect);
     draw_tab_fill(painter, pane, tab, glow, solid);
     if !tab.active && !before_active {
         draw_separator(painter, rect);
     }
-    let color = ink.unwrap_or_else(|| theme.label_text(tab.active, glow));
+    let color = theme.label_text(tab.active, glow);
     if !painter.renaming(|editor| editor.renames_tab(pane.id, tab.id)) {
         painter.label(&tab.label, tab.label_x, rect, color);
     }
     if tab.working {
         painter.scene.push_opacity(1.0 - glow);
-        painter.weaving(tab.close, ink);
+        painter.weaving(tab.close, None);
         painter.scene.pop_opacity();
     }
     let close_opacity = if tab.active && !tab.working {
@@ -73,7 +72,7 @@ fn draw_tab(painter: &mut Painter, pane: &PaneFrame, tab: &TabFrame, before_acti
         glow
     };
     painter.scene.push_opacity(close_opacity);
-    painter.small_inked(tab.close, Hit::TabClose(pane.id, tab.id), Icon::Close, ink);
+    painter.small_inked(tab.close, Hit::TabClose(pane.id, tab.id), Icon::Close, None);
     painter.scene.pop_opacity();
     painter.scene.pop_clip();
 }
