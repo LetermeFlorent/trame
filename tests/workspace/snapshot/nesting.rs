@@ -4,6 +4,13 @@ use trame::workspace::{Axis, Edge, Node, Snapshot, Workspace};
 use super::{pane, restore, shape, single, snapshot_of, split, split_row, through_json};
 use crate::workspace_with;
 
+fn root_pins(workspace: &Workspace) -> &Vec<bool> {
+    let Node::Split { pinned, .. } = &workspace.instances[0].root else {
+        panic!("root stays a split");
+    };
+    pinned
+}
+
 fn nested() -> Workspace {
     let mut workspace = workspace_with(&[1]);
     workspace.split_active(SessionId(2), Edge::Right);
@@ -82,10 +89,7 @@ fn pins_survive_a_round_trip() {
         vec![pane(1), pane(1)],
     );
     let (restored, _) = restore(&single(root));
-    let Node::Split { pinned, .. } = &restored.instances[0].root else {
-        panic!("root stays a split");
-    };
-    assert_eq!(pinned, &vec![true, false]);
+    assert_eq!(root_pins(&restored), &vec![true, false]);
 }
 
 #[test]
@@ -95,10 +99,7 @@ fn an_old_layout_without_pins_loads_as_unpinned() {
         "children":[{"Pane":{"tabs":[{}],"active":0}},{"Pane":{"tabs":[{}],"active":0}}]}}}]}"#;
     let snapshot = Snapshot::from_json(json).expect("old layouts still load");
     let (restored, _) = restore(&snapshot);
-    let Node::Split { pinned, .. } = &restored.instances[0].root else {
-        panic!("root stays a split");
-    };
-    assert_eq!(pinned, &vec![false, false]);
+    assert_eq!(root_pins(&restored), &vec![false, false]);
 }
 
 #[test]
@@ -110,8 +111,5 @@ fn a_pin_list_of_the_wrong_length_loads_as_unpinned() {
         vec![pane(1), pane(1)],
     );
     let (restored, _) = restore(&single(root));
-    let Node::Split { pinned, .. } = &restored.instances[0].root else {
-        panic!("root stays a split");
-    };
-    assert_eq!(pinned, &vec![false, false]);
+    assert_eq!(root_pins(&restored), &vec![false, false]);
 }

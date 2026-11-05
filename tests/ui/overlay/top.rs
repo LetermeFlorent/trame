@@ -1,38 +1,18 @@
 use trame::geometry::Rect;
-use trame::input::TextField;
-use trame::preferences::ConnectForm;
 use trame::text::TextSystem;
-use trame::ui::frame::{ColorsView, EditKind, HostsView, PickerView, SettingsTab};
+use trame::ui::frame::SettingsTab;
 
-use super::{editor_popup, message_popup, settings_popup, sized};
-use crate::{TEAL, WIDTH, text_system};
+use super::{editor_popups, message_popup, settings_popup, sized};
+use crate::{WIDTH, text_system};
 
 fn all_but_settings(text: &mut TextSystem, height: f32) -> Vec<Rect> {
-    let field = TextField::new("#408080");
-    let form = ConnectForm::new();
-    let colors = ColorsView {
-        selected: None,
-        custom: &[],
-        first: 0,
-        filled: false,
-    };
-    let picker = PickerView {
-        hsv: TEAL,
-        field: &field,
-        editing: false,
-    };
-    let hosts = HostsView {
-        hosts: &[],
-        first: 0,
-        form: Some(&form),
-        changing: false,
-    };
-    vec![
-        editor_popup(text, (WIDTH, height), EditKind::Color(colors)),
-        editor_popup(text, (WIDTH, height), EditKind::Picker(picker)),
-        editor_popup(text, (WIDTH, height), EditKind::Connect(hosts)),
-        message_popup(text, (WIDTH, height)),
-    ]
+    let size = (WIDTH, height);
+    let mut popups: Vec<Rect> = editor_popups(text, size)
+        .into_iter()
+        .map(|(_, popup)| popup)
+        .collect();
+    popups.push(message_popup(text, size));
+    popups
 }
 
 #[test]
