@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use trame::ui::SidebarMode;
 use trame::workspace::Snapshot;
 
 use super::MINIMAL;
@@ -26,4 +27,23 @@ fn directory_and_title_are_read_when_present() {
 fn unknown_extra_fields_are_ignored() {
     let text = MINIMAL.replace("\"sidebar_open\"", "\"theme\":\"dark\",\"sidebar_open\"");
     assert!(Snapshot::from_json(&text).is_ok());
+}
+
+#[test]
+fn an_older_open_flag_picks_the_open_panel_or_the_rail() {
+    for (open, mode) in [(true, SidebarMode::Open), (false, SidebarMode::Rail)] {
+        let flag = format!("\"sidebar_open\":{open}");
+        let text = MINIMAL.replace("\"sidebar_open\":true", &flag);
+        let snapshot = Snapshot::from_json(&text).expect("an older file parses");
+        let (workspace, _) = crate::snapshot::restore(&snapshot);
+        assert_eq!(workspace.sidebar, mode);
+    }
+}
+
+#[test]
+fn a_hidden_panel_survives_a_restart() {
+    let mut snapshot = Snapshot::from_json(MINIMAL).expect("parses");
+    snapshot.sidebar = SidebarMode::Hidden;
+    let (workspace, _) = crate::snapshot::restore(&crate::snapshot::through_json(&snapshot));
+    assert_eq!(workspace.sidebar, SidebarMode::Hidden);
 }

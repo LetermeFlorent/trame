@@ -11,6 +11,7 @@ use std::path::PathBuf;
 
 use trame::preferences::Preferences;
 use trame::session::SessionId;
+use trame::ui::SidebarMode;
 use trame::workspace::{
     Axis, Instance, InstanceSnapshot, Node, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot,
     TabSnapshot, Workspace,
@@ -98,7 +99,7 @@ pub fn single(root: NodeSnapshot) -> Snapshot {
     Snapshot {
         version: SNAPSHOT_VERSION,
         resume: false,
-        sidebar_open: true,
+        sidebar: SidebarMode::Open,
         sidebar_width: None,
         preferences: Preferences::default(),
         active_instance: 0,

@@ -10,7 +10,7 @@ mod update;
 use trame::geometry::Point;
 use trame::session::SessionId;
 use trame::ui::frame::{dragged_width, shown_width};
-use trame::ui::{FrameLayout, Hit, UiMetrics};
+use trame::ui::{FrameLayout, Hit, SidebarMode, UiMetrics};
 use trame::workspace::{Edge, MIN_PANE};
 
 use crate::{frame, input, text_system, workspace};
@@ -90,11 +90,15 @@ fn the_edge_can_be_grabbed_open_or_collapsed() {
     );
     let inside = Point::new(open.side.right() - 20.0, middle_of_edge(&open).y);
     assert_eq!(open.hit(inside, false), Some(Hit::Sidebar));
-    workspace.sidebar_open = false;
+    workspace.sidebar = SidebarMode::Rail;
     let collapsed = frame(&mut text, &workspace);
     assert_eq!(collapsed.side.width, UiMetrics::RAIL_WIDTH);
     assert_eq!(
         collapsed.hit(middle_of_edge(&collapsed), false),
         Some(Hit::SidebarEdge)
     );
+    workspace.sidebar = SidebarMode::Hidden;
+    let hidden = frame(&mut text, &workspace);
+    let edge = hidden.hit(middle_of_edge(&hidden), false);
+    assert_ne!(edge, Some(Hit::SidebarEdge));
 }

@@ -12,7 +12,7 @@ use trame::locale::Language;
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
 use trame::theme::Hsv;
-use trame::ui::{FrameInput, FrameLayout, Motion, UiMetrics};
+use trame::ui::{FrameInput, FrameLayout, Motion, SidebarMode, UiMetrics};
 use trame::workspace::Workspace;
 
 pub const WIDTH: f32 = 1200.0;
@@ -35,7 +35,7 @@ pub fn workspace() -> Workspace {
 
 pub fn closed_sidebar() -> Workspace {
     let mut workspace = workspace();
-    workspace.sidebar_open = false;
+    workspace.sidebar = SidebarMode::Rail;
     workspace
 }
 

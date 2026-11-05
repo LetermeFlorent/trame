@@ -13,7 +13,7 @@ const CLOSE_RED: Rgba = Rgba::hex(0xc42b1c);
 const CLOSE_PRESSED_SHADE: f32 = 0.15;
 const ROUND_IDLE_ALPHA: f32 = 0.7;
 
-pub(super) fn draw(painter: &mut Painter, bar: &TitleBarFrame, sidebar_open: bool) {
+pub(super) fn draw(painter: &mut Painter, bar: &TitleBarFrame, panel_shown: bool) {
     let theme = painter.theme;
     let line = painter.metrics.line();
     painter.rule(bar.rect, theme.chrome);
@@ -24,7 +24,7 @@ pub(super) fn draw(painter: &mut Painter, bar: &TitleBarFrame, sidebar_open: boo
     painter.button(
         bar.toggle,
         Hit::SidebarToggle,
-        Icon::Sidebar { open: sidebar_open },
+        Icon::Sidebar { open: panel_shown },
     );
     let title_color = match painter.view.window_focused {
         true => theme.text,

@@ -1,11 +1,11 @@
 use trame::session::SessionId;
 use trame::text::TextSystem;
 use trame::ui::motion::DURATION;
-use trame::ui::{FrameLayout, Motion, UiMetrics};
+use trame::ui::{FrameLayout, Motion, SidebarMode, UiMetrics};
 use trame::workspace::{Edge, Workspace};
 
 use super::{layout_at, settle};
-use crate::{frame, text_system, workspace};
+use crate::{closed_sidebar, frame, text_system, workspace};
 
 const NEW_TAB: SessionId = SessionId(9);
 
@@ -24,7 +24,7 @@ fn the_sidebar_slides_and_the_panes_follow() {
     let mut text = text_system();
     let mut workspace = workspace();
     let (mut motion, start) = settle(&mut text, &workspace);
-    workspace.sidebar_open = false;
+    workspace.sidebar = SidebarMode::Rail;
     motion.animate_next();
     let first = layout_at(&mut text, &workspace, &mut motion, start);
     assert_eq!(first.reveal, 1.0);
@@ -113,8 +113,24 @@ fn without_animation_every_change_snaps() {
     let mut motion = Motion::default();
     let now = motion.now();
     layout_at(&mut text, &workspace, &mut motion, now);
-    workspace.sidebar_open = false;
+    workspace.sidebar = SidebarMode::Rail;
     let snapped = layout_at(&mut text, &workspace, &mut motion, now);
     assert_eq!(snapped.reveal, 0.0);
     assert!(!motion.is_busy());
+}
+
+#[test]
+fn the_rail_slides_away_when_the_panel_hides() {
+    let mut text = text_system();
+    let mut workspace = closed_sidebar();
+    let (mut motion, start) = settle(&mut text, &workspace);
+    workspace.sidebar = SidebarMode::Hidden;
+    motion.animate_next();
+    layout_at(&mut text, &workspace, &mut motion, start);
+    let middle = layout_at(&mut text, &workspace, &mut motion, start + DURATION / 2);
+    assert!(middle.side.width > 0.0 && middle.side.width < UiMetrics::RAIL_WIDTH);
+    let end = layout_at(&mut text, &workspace, &mut motion, start + DURATION);
+    assert_eq!(end.side.width, 0.0);
+    assert!(end.rail.is_none());
+    assert_eq!(end.panes[0].rect.x, 0.0);
 }

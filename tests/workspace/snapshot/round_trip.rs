@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use trame::preferences::Preferences;
 use trame::session::SessionId;
+use trame::ui::SidebarMode;
 use trame::workspace::{Edge, Snapshot, TabSnapshot, WindowSnapshot, Workspace};
 
 use super::{FIRST_RESTORED_ID, restore, shape, snapshot_of, through_json};
@@ -77,7 +78,7 @@ fn restored_tabs_get_fresh_session_ids() {
 #[test]
 fn sidebar_font_size_and_window_survive() {
     let mut workspace = sample();
-    workspace.sidebar_open = false;
+    workspace.sidebar = SidebarMode::Rail;
     let preferences = Preferences::default().with_font_size(18.0);
     let mut snapshot = workspace.snapshot(preferences, &|_| TabSnapshot::default());
     snapshot.window = Some(WindowSnapshot {
@@ -89,7 +90,7 @@ fn sidebar_font_size_and_window_survive() {
     assert_eq!(parsed.preferences.font_size, 18.0);
     assert_eq!(parsed.window, snapshot.window);
     let (restored, _) = restore(&parsed);
-    assert!(!restored.sidebar_open);
+    assert_eq!(restored.sidebar, SidebarMode::Rail);
 }
 
 #[test]

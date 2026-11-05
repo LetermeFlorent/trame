@@ -9,6 +9,7 @@ use std::time::Instant;
 
 use crate::geometry::Rect;
 use crate::session::SessionId;
+use crate::ui::display::SidebarMode;
 use crate::ui::hit::Hit;
 use crate::workspace::PaneId;
 
@@ -72,8 +73,8 @@ impl Motion {
             || self.scrolls.values().any(|tween| !tween.is_done(now))
     }
 
-    pub fn sidebar(&mut self, open: bool) -> f32 {
-        let target = if open { 1.0 } else { 0.0 };
+    pub fn sidebar(&mut self, mode: SidebarMode) -> f32 {
+        let target = mode.extent();
         let now = self.now;
         let animate = self.animate;
         self.sidebar

@@ -105,7 +105,7 @@ impl FrameLayout {
         if self.title_bar.rect.contains(point) {
             return Some(hit_title_bar(&self.title_bar, point));
         }
-        if self.sidebar_edge().contains(point) {
+        if self.side.width > 0.0 && self.sidebar_edge().contains(point) {
             return Some(Hit::SidebarEdge);
         }
         if self.footer.rect.contains(point) {

@@ -7,7 +7,7 @@ pub mod motion;
 pub mod paint;
 pub mod terminal;
 
-pub use display::{Density, PanelSide};
+pub use display::{Density, PanelSide, SidebarMode};
 pub use frame::hit;
 pub use frame::{FrameInput, FrameLayout};
 pub use hit::{Hit, ResizeEdge};

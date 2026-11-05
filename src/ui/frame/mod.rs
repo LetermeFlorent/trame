@@ -79,13 +79,14 @@ impl FrameLayout {
         let bounds = Rect::new(0.0, 0.0, input.width, input.height);
         let (bar, rest) = bounds.split_top(metrics.px(UiMetrics::TITLE_BAR));
         let title_bar = titlebar::layout_title_bar(text, input, bar);
-        let reveal = motion.sidebar(input.workspace.sidebar_open);
-        let columns = sidebar::Columns::split(input, rest, reveal);
-        let (side, content) = (columns.side, columns.content);
+        let columns = sidebar::Columns::split(input, rest, motion.sidebar(input.workspace.sidebar));
+        let (side, content, reveal) = (columns.side, columns.content, columns.reveal);
         let footer = sidebar::layout_footer(text, input, side);
         let mut sidebar = (reveal > 0.0)
             .then(|| sidebar::layout_sidebar(text, input, footer.above(columns.sidebar)));
-        let rail = (reveal < 1.0).then(|| sidebar::layout_rail(input, footer.above(side)));
+        let rail = columns
+            .has_rail()
+            .then(|| sidebar::layout_rail(input, footer.above(side)));
         let mut context = panes::PaneContext {
             text,
             metrics,

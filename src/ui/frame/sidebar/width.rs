@@ -1,5 +1,5 @@
 use crate::geometry::Rect;
-use crate::ui::display::PanelSide;
+use crate::ui::display::{PanelSide, SidebarMode};
 use crate::ui::frame::FrameInput;
 use crate::ui::metrics::UiMetrics;
 
@@ -19,21 +19,25 @@ pub(in crate::ui::frame) struct Columns {
     pub(in crate::ui::frame) side: Rect,
     pub(in crate::ui::frame) sidebar: Rect,
     pub(in crate::ui::frame) content: Rect,
+    pub(in crate::ui::frame) reveal: f32,
 }
 
 impl Columns {
-    pub(in crate::ui::frame) fn split(input: &FrameInput, rest: Rect, reveal: f32) -> Self {
+    pub(in crate::ui::frame) fn split(input: &FrameInput, rest: Rect, extent: f32) -> Self {
         let metrics = input.metrics;
+        let rail_extent = SidebarMode::Rail.extent();
+        let reveal = (extent - rail_extent).clamp(0.0, 1.0);
         let rail_width = metrics.px(UiMetrics::RAIL_WIDTH);
         let full_width = metrics
             .px(shown_width(input.workspace.sidebar_width))
             .min(rest.width * MAX_WINDOW_SHARE)
             .round();
-        let visible_width = (rail_width + (full_width - rail_width) * reveal).round();
-        let shown = if input.workspace.sidebar_open {
-            full_width
-        } else {
-            rail_width
+        let rail_visible = rail_width * extent.clamp(0.0, rail_extent);
+        let visible_width = (rail_visible + (full_width - rail_visible) * reveal).round();
+        let shown = match input.workspace.sidebar {
+            SidebarMode::Open => full_width,
+            SidebarMode::Rail => rail_width,
+            SidebarMode::Hidden => 0.0,
         };
         let (side, content) = match metrics.panel {
             PanelSide::Left => (rest.split_left(visible_width).0, rest.split_left(shown).1),
@@ -50,6 +54,11 @@ impl Columns {
             side,
             sidebar: Rect::new(x, side.y, full_width, side.height),
             content,
+            reveal,
         }
+    }
+
+    pub(in crate::ui::frame) fn has_rail(&self) -> bool {
+        self.reveal < 1.0 && self.side.width > 0.0
     }
 }

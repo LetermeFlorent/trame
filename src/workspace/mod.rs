@@ -23,6 +23,7 @@ use std::collections::HashMap;
 
 use crate::session::SessionId;
 use crate::theme::Emblem;
+use crate::ui::display::SidebarMode;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TabLocation {
@@ -35,7 +36,7 @@ pub struct TabLocation {
 pub struct Workspace {
     pub instances: Vec<Instance>,
     pub active: usize,
-    pub sidebar_open: bool,
+    pub sidebar: SidebarMode,
     pub sidebar_width: Option<f32>,
     pub sidebar_first: usize,
     marks: HashMap<SessionId, TabMark>,
@@ -55,7 +56,7 @@ impl Workspace {
         Self {
             instances: Vec::new(),
             active: 0,
-            sidebar_open: true,
+            sidebar: SidebarMode::Open,
             sidebar_width: None,
             sidebar_first: 0,
             marks: HashMap::new(),

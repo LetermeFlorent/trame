@@ -1,7 +1,7 @@
 use trame::locale::{Language, Strings};
 use trame::session::SessionId;
 use trame::text::TextSystem;
-use trame::ui::{FrameLayout, UiMetrics};
+use trame::ui::{FrameLayout, SidebarMode, UiMetrics};
 use trame::workspace::Workspace;
 
 use crate::{input, text_system};
@@ -16,10 +16,10 @@ fn phrased() -> &'static Strings {
     }))
 }
 
-fn unnamed(sidebar_open: bool) -> Workspace {
+fn unnamed(mode: SidebarMode) -> Workspace {
     let mut workspace = Workspace::new();
     workspace.add_instance(None, SessionId(1));
-    workspace.sidebar_open = sidebar_open;
+    workspace.sidebar = mode;
     workspace
 }
 
@@ -32,12 +32,12 @@ fn laid_out(text: &mut TextSystem, workspace: &Workspace) -> FrameLayout {
 #[test]
 fn an_unnamed_instance_is_named_from_the_phrase_of_the_language() {
     let mut text = text_system();
-    let open = laid_out(&mut text, &unnamed(true));
+    let open = laid_out(&mut text, &unnamed(SidebarMode::Open));
     let expected = text.layout(SHOWN, open.metrics.strong());
     let row = &open.sidebar.as_ref().expect("the sidebar").rows[0];
     assert_eq!(row.label.width, expected.width);
     let (title, _) = open.title_bar.title.as_ref().expect("the instance name");
     assert_eq!(title.width, expected.width);
-    let closed = laid_out(&mut text, &unnamed(false));
+    let closed = laid_out(&mut text, &unnamed(SidebarMode::Rail));
     assert_eq!(closed.rail.as_ref().expect("the rail").slots[0].name, SHOWN);
 }

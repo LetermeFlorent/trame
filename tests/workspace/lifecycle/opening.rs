@@ -1,3 +1,4 @@
+use trame::ui::SidebarMode;
 use trame::workspace::{Edge, InstanceId, TabLocation, Workspace};
 
 use crate::{pane_of, tab, tabs, workspace_with};
@@ -6,7 +7,7 @@ use crate::{pane_of, tab, tabs, workspace_with};
 fn a_new_workspace_is_empty_with_the_sidebar_open() {
     let workspace = Workspace::new();
     assert!(workspace.is_empty());
-    assert!(workspace.sidebar_open);
+    assert_eq!(workspace.sidebar, SidebarMode::Open);
     assert!(workspace.active_instance().is_none());
     assert_eq!(workspace.active_tab(), None);
     assert!(workspace.tabs().is_empty());

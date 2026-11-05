@@ -25,7 +25,7 @@ impl Running {
                     self.close_tab(event_loop, id);
                 }
             }
-            Command::ToggleSidebar => self.workspace.sidebar_open = !self.workspace.sidebar_open,
+            Command::ToggleSidebar => self.workspace.sidebar = self.workspace.sidebar.next(),
             Command::Copy => self.copy_shortcut(),
             Command::Paste => self.paste(),
             Command::NextTab => self.cycle_tab(1),

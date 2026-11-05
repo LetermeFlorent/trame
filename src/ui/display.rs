@@ -27,3 +27,25 @@ impl Density {
         self == Self::Spacious
     }
 }
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum SidebarMode {
+    Hidden,
+    Rail,
+    #[default]
+    Open,
+}
+
+impl SidebarMode {
+    pub fn next(self) -> Self {
+        match self {
+            Self::Open => Self::Rail,
+            Self::Rail => Self::Hidden,
+            Self::Hidden => Self::Open,
+        }
+    }
+
+    pub fn extent(self) -> f32 {
+        f32::from(self as u8)
+    }
+}

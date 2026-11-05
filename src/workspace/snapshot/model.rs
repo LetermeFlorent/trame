@@ -1,11 +1,12 @@
 use std::path::PathBuf;
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 use super::SnapshotError;
 use crate::preferences::{Preferences, SshHost};
 use crate::theme::{Emblem, Swatch};
+use crate::ui::display::SidebarMode;
 use crate::workspace::Axis;
 
 pub const SNAPSHOT_VERSION: u32 = 1;
@@ -15,7 +16,8 @@ pub struct Snapshot {
     pub version: u32,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub resume: bool,
-    pub sidebar_open: bool,
+    #[serde(alias = "sidebar_open", deserialize_with = "stored_sidebar")]
+    pub sidebar: SidebarMode,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sidebar_width: Option<f32>,
     #[serde(flatten)]
@@ -99,4 +101,19 @@ impl Snapshot {
     pub fn to_json(&self) -> Result<String, SnapshotError> {
         Ok(serde_json::to_string_pretty(self)?)
     }
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum StoredSidebar {
+    Mode(SidebarMode),
+    Open(bool),
+}
+
+fn stored_sidebar<'de, D: Deserializer<'de>>(deserializer: D) -> Result<SidebarMode, D::Error> {
+    Ok(match StoredSidebar::deserialize(deserializer)? {
+        StoredSidebar::Mode(mode) => mode,
+        StoredSidebar::Open(true) => SidebarMode::Open,
+        StoredSidebar::Open(false) => SidebarMode::Rail,
+    })
 }

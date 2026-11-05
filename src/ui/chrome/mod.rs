@@ -24,7 +24,6 @@ use crate::ui::motion::Motion;
 use crate::ui::paint::FrameView;
 
 const ACTIVE_DIVIDER: f32 = 2.0;
-const SIDEBAR_SHOWN: f32 = 0.5;
 
 pub struct ChromeInput<'a> {
     pub theme: &'a Theme,
@@ -37,26 +36,32 @@ pub struct ChromeInput<'a> {
 pub fn draw_chrome(scene: &mut Scene, text: &mut TextSystem, input: &ChromeInput) {
     let frame = input.frame;
     let mut painter = Painter::new(scene, text, input);
-    let shown = frame.reveal >= SIDEBAR_SHOWN;
+    let shown = frame.side.width > 0.0;
     titlebar::draw(&mut painter, &frame.title_bar, shown);
-    sidebar::draw_panel(&mut painter, frame.side);
-    if let Some(rail) = &frame.rail {
-        painter.scene.push_opacity(1.0 - frame.reveal);
-        sidebar::draw_rail(&mut painter, rail);
-        painter.scene.pop_opacity();
-    }
-    if let Some(sidebar) = &frame.sidebar {
+    if shown {
         painter.scene.push_clip(frame.side);
-        painter.scene.push_opacity(frame.reveal);
-        sidebar::draw(&mut painter, sidebar);
-        painter.scene.pop_opacity();
+        draw_side(&mut painter, frame);
         painter.scene.pop_clip();
     }
-    let open = frame.settings.is_some();
-    sidebar::draw_footer(&mut painter, &frame.footer, open, frame.reveal);
     for pane in &frame.panes {
         tabbar::draw(&mut painter, pane);
     }
+}
+
+fn draw_side(painter: &mut Painter, frame: &FrameLayout) {
+    sidebar::draw_panel(painter, frame.side);
+    if let Some(rail) = &frame.rail {
+        painter.scene.push_opacity(1.0 - frame.reveal);
+        sidebar::draw_rail(painter, rail);
+        painter.scene.pop_opacity();
+    }
+    if let Some(sidebar) = &frame.sidebar {
+        painter.scene.push_opacity(frame.reveal);
+        sidebar::draw(painter, sidebar);
+        painter.scene.pop_opacity();
+    }
+    let open = frame.settings.is_some();
+    sidebar::draw_footer(painter, &frame.footer, open, frame.reveal);
 }
 
 pub fn draw_dividers(scene: &mut Scene, theme: &Theme, frame: &FrameLayout, view: &FrameView) {

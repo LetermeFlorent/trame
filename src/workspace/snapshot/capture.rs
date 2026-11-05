@@ -12,7 +12,7 @@ impl Workspace {
         Snapshot {
             version: SNAPSHOT_VERSION,
             resume: false,
-            sidebar_open: self.sidebar_open,
+            sidebar: self.sidebar,
             sidebar_width: self.sidebar_width,
             preferences,
             active_instance: self.active,
