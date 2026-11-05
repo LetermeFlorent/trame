@@ -1,8 +1,9 @@
 use std::mem::size_of;
 
 use super::atlas::{Atlas, AtlasKind};
+use super::draw_pipeline::render_pipeline;
 use super::gpu::Gpu;
-use super::pipeline::{self, Bindings, Globals};
+use super::pipeline::{Bindings, Globals};
 use super::scene::{INITIAL_QUAD_CAPACITY, Quad, Scene};
 use super::slack::Slack;
 use crate::theme::Rgba;
@@ -28,7 +29,7 @@ impl Renderer {
         atlas.limit_to(device.limits().max_texture_dimension_2d);
         let bindings = Bindings::new(device, atlas);
         Self {
-            pipeline: pipeline::render_pipeline(device, bindings.layout(), format),
+            pipeline: render_pipeline(device, bindings.layout(), format),
             bind_group: bindings.group(device),
             bindings,
             quads: create_quad_buffer(device, INITIAL_QUAD_CAPACITY),

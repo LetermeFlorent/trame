@@ -1,4 +1,5 @@
 mod atlas;
+mod draw_pipeline;
 mod gpu;
 mod pipeline;
 mod renderer;
