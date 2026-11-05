@@ -25,7 +25,7 @@ impl Entrance {
 
     pub fn next_visitor(&mut self) -> io::Result<UnixStream> {
         let (visitor, _) = self.listener.accept()?;
-        visitor.set_read_timeout(Some(PATIENCE))?;
+        visitor.set_read_timeout(Some(PATIENCE)).ok();
         Ok(visitor)
     }
 }
