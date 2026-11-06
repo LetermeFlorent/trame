@@ -3,6 +3,7 @@ mod history;
 mod launch;
 mod links;
 mod persistence;
+mod scrolling;
 mod sizes;
 mod ssh;
 mod updates;

@@ -5,13 +5,15 @@ pub use fades::Fades;
 pub use tween::{DURATION, Tween, ease_out};
 
 use std::collections::{HashMap, HashSet};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use crate::geometry::Rect;
 use crate::session::SessionId;
 use crate::ui::display::SidebarMode;
 use crate::ui::hit::Hit;
 use crate::workspace::PaneId;
+
+pub const SCROLL_GLIDE: Duration = Duration::from_millis(260);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum MotionKey {
@@ -139,7 +141,7 @@ impl Motion {
         let current = self.scroll_offset(id);
         let start = (current + lines).clamp(-limit, limit);
         self.scrolls
-            .insert(id, Tween::between(start, 0.0, self.now));
+            .insert(id, Tween::over(start, 0.0, self.now, SCROLL_GLIDE));
     }
 
     pub fn scroll_offset(&self, id: SessionId) -> f32 {

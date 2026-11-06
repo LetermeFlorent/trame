@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use trame::session::SessionId;
 use trame::ui::Motion;
-use trame::ui::motion::DURATION;
+use trame::ui::motion::SCROLL_GLIDE;
 
 const SESSION: SessionId = SessionId(7);
 
@@ -12,10 +12,10 @@ fn a_scroll_glides_back_to_rest() {
     let mut motion = Motion::new(start);
     motion.scroll_by(SESSION, 3.0, 10.0);
     assert_eq!(motion.scroll_offset(SESSION), 3.0);
-    motion.tick(start + DURATION / 2);
+    motion.tick(start + SCROLL_GLIDE / 2);
     let middle = motion.scroll_offset(SESSION);
     assert!(middle > 0.0 && middle < 3.0, "{middle}");
-    motion.tick(start + DURATION);
+    motion.tick(start + SCROLL_GLIDE);
     assert_eq!(motion.scroll_offset(SESSION), 0.0);
     assert!(!motion.is_busy());
 }

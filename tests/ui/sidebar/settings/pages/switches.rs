@@ -61,3 +61,20 @@ fn the_link_switch_sits_below_the_paste_switch_and_follows_its_preference() {
         Preferences::default().with(|next| next.detect_links = false),
     );
 }
+
+#[test]
+fn the_smooth_scrolling_switch_closes_the_display_page_and_follows_its_preference() {
+    let control = SettingControl::SmoothScroll;
+    let layout = on_tab(&Preferences::default(), SettingsTab::Display);
+    let row = switch(&layout, control);
+    assert!(row.on && row.enabled);
+    let rows = &page(&layout).rows;
+    assert!(
+        rows.iter()
+            .all(|above| above.line.rect.bottom() <= row.line.rect.y)
+    );
+    let hit = layout.hit(row.line.rect.center(), false);
+    assert_eq!(hit, Some(Hit::Setting(control)));
+    let off = Preferences::default().with(|next| next.smooth_scroll = false);
+    assert!(!switch(&on_tab(&off, SettingsTab::Display), control).on);
+}

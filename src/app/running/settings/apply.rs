@@ -78,6 +78,7 @@ fn flip(next: &mut Preferences, control: SettingControl) {
     let switch = match control {
         SettingControl::ConfirmPaste => &mut next.confirm_paste,
         SettingControl::DetectLinks => &mut next.detect_links,
+        SettingControl::SmoothScroll => &mut next.smooth_scroll,
         SettingControl::Efficiency => &mut next.efficiency,
         SettingControl::RestHiddenTabs => &mut next.rest_hidden_tabs,
         SettingControl::NotifyWaiting => &mut next.notify_waiting,

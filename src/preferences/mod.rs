@@ -60,6 +60,8 @@ pub struct Preferences {
     pub confirm_paste: bool,
     #[serde(default = "enabled")]
     pub detect_links: bool,
+    #[serde(default = "enabled")]
+    pub smooth_scroll: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub custom_colors: Vec<Swatch>,
     #[serde(default)]
@@ -101,6 +103,7 @@ impl Default for Preferences {
             confirm_close: true,
             confirm_paste: true,
             detect_links: true,
+            smooth_scroll: true,
             custom_colors: Vec::new(),
             panel_side: PanelSide::Left,
             density: Density::Compact,

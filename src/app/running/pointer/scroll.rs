@@ -28,7 +28,8 @@ impl Running {
         match scroll {
             Scroll::Pages(pages) => {
                 let page = screen.rows().saturating_sub(1).max(1) as isize;
-                scroll_history(&mut self.motion, id, screen, pages * page);
+                let smooth = self.preferences.smooth_scroll;
+                scroll_history(&mut self.motion, id, screen, pages * page, smooth);
             }
             Scroll::Top => {
                 let history = screen.grid().history_len() as isize;
@@ -86,7 +87,8 @@ impl Running {
         let modes = terminal.screen().modes();
         match wheel_action(lines, modes) {
             WheelAction::History(lines) => {
-                scroll_history(&mut self.motion, id, terminal.screen_mut(), lines);
+                let smooth = self.preferences.smooth_scroll;
+                scroll_history(&mut self.motion, id, terminal.screen_mut(), lines, smooth);
                 drop(terminal);
                 self.window.request_redraw();
             }
@@ -104,9 +106,18 @@ impl Running {
     }
 }
 
-fn scroll_history(motion: &mut Motion, id: SessionId, screen: &mut Screen, lines: isize) {
+fn scroll_history(
+    motion: &mut Motion,
+    id: SessionId,
+    screen: &mut Screen,
+    lines: isize,
+    smooth: bool,
+) {
     let before = screen.grid().display_offset();
     screen.scroll_display(lines);
     let after = screen.grid().display_offset();
-    motion.scroll_by(id, before as f32 - after as f32, screen.rows() as f32);
+    match smooth {
+        true => motion.scroll_by(id, before as f32 - after as f32, screen.rows() as f32),
+        false => motion.stop_scroll(id),
+    }
 }

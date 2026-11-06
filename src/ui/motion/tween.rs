@@ -36,22 +36,24 @@ pub struct Tween<T> {
     from: T,
     to: T,
     start: Instant,
+    length: Duration,
 }
 
 impl<T: Lerp> Tween<T> {
     pub fn settled(value: T, now: Instant) -> Self {
-        Self {
-            from: value,
-            to: value,
-            start: now,
-        }
+        Self::between(value, value, now)
     }
 
     pub fn between(from: T, to: T, now: Instant) -> Self {
+        Self::over(from, to, now, DURATION)
+    }
+
+    pub fn over(from: T, to: T, now: Instant, length: Duration) -> Self {
         Self {
             from,
             to,
             start: now,
+            length,
         }
     }
 
@@ -74,7 +76,7 @@ impl<T: Lerp> Tween<T> {
         if to == self.to {
             return;
         }
-        *self = Self::between(self.value(now), to, now);
+        *self = Self::over(self.value(now), to, now, self.length);
     }
 
     pub fn snap(&mut self, to: T) {
@@ -93,6 +95,6 @@ impl<T: Lerp> Tween<T> {
 
     fn progress(&self, now: Instant) -> f32 {
         let elapsed = now.saturating_duration_since(self.start);
-        elapsed.as_secs_f32() / DURATION.as_secs_f32()
+        elapsed.as_secs_f32() / self.length.as_secs_f32()
     }
 }

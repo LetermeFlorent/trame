@@ -24,6 +24,7 @@ fn every_preference_changed() -> Preferences {
         confirm_close: false,
         confirm_paste: false,
         detect_links: false,
+        smooth_scroll: false,
         custom_colors: vec![Swatch::custom(0x12ab34)],
         panel_side: PanelSide::Right,
         density: Density::Spacious,
