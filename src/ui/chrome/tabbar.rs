@@ -96,13 +96,11 @@ fn draw_tab_fill(
     painter.scene.fill_top(shape, solid.unwrap_or(base), radius);
     let current = tab.active && pane.focused;
     let height = painter.metrics.px(ACCENT_HEIGHT);
-    let top = if pane.radius > 0.0 {
-        rect.y + line
-    } else {
-        rect.y
-    };
+    let inset = if pane.radius > 0.0 { line } else { 0.0 };
+    let top = rect.y + inset;
+    let left = rect.x.max(pane.strip.tabs_area.x + inset);
     if current && tab.color.is_none() {
-        let reach = Rect::new(rect.x, top, rect.width, rect.height + radius + height);
+        let reach = Rect::from_edges(left, top, rect.right(), top + rect.height + radius + height);
         painter.scene.push_clip(rect);
         painter.scene.border(reach, theme.accent, radius, height);
         painter.scene.pop_clip();

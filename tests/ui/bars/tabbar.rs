@@ -85,6 +85,23 @@ fn a_plain_tab_is_outlined_only_once_it_is_open() {
 }
 
 #[test]
+fn the_first_rounded_tab_keeps_its_left_outline_clear_of_the_card_edge() {
+    let mut text = text_system();
+    let theme = Theme::new(Appearance::Dark);
+    let metrics = UiMetrics::new(1.0).with_display(PanelSide::Left, Density::Spacious);
+    let mut workspace = workspace();
+    workspace.activate_tab(SessionId(1));
+    let frame = frame_with_metrics(&mut text, &workspace, metrics);
+    let scene = paint(&mut text, &frame, &theme);
+    let pane = &frame.panes[0];
+    assert!(pane.radius > 0.0);
+    let first = pane.strip.tabs[0].rect;
+    let outline = line_over(&scene, first, theme.accent).expect("an outline");
+    assert_eq!(outline.x, first.x + metrics.line());
+    assert!((outline.right() - first.right()).abs() < EPSILON);
+}
+
+#[test]
 fn a_rounded_tab_keeps_its_colour_line_off_the_corners() {
     let mut text = text_system();
     let theme = Theme::new(Appearance::Dark);
