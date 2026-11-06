@@ -77,3 +77,12 @@ fn malformed_reports_change_nothing() {
         assert!(!terminal.screen().program_working(), "{report}");
     }
 }
+
+#[test]
+fn a_finished_command_reports_its_exit_code_once() {
+    let mut ran = feed(1, 10, "]133;C]133;D;255]133;A");
+    assert_eq!(ran.screen_mut().take_exit(), Some(255));
+    assert_eq!(ran.screen_mut().take_exit(), None);
+    let mut prompt = feed(1, 10, "]133;D;1]133;A");
+    assert_eq!(prompt.screen_mut().take_exit(), None);
+}

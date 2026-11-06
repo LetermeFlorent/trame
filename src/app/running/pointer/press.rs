@@ -83,6 +83,7 @@ impl Running {
             Hit::SidebarBar(BarPart::Track) => self.page_list(ListKind::Sidebar),
             Hit::FormField(field) => self.focus_form(field),
             Hit::FormButton(action) => self.form_action(action),
+            Hit::Disconnect(tab) => self.disconnect(tab),
             Hit::RowClose(SidebarItem::Instance(id)) => self.ask_close(Closing::Instance(id)),
             Hit::RowClose(SidebarItem::Tab(id)) | Hit::TabClose(_, id) => {
                 self.close_tab(event_loop, id)

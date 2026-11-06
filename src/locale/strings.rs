@@ -53,6 +53,8 @@ pub struct Strings {
     pub ssh_port: &'static str,
     pub ssh_password: &'static str,
     pub connect: &'static str,
+    pub waiting_connection: &'static str,
+    pub disconnect: &'static str,
     pub general: &'static str,
     pub connections_tab: &'static str,
     pub change_connection: &'static str,

@@ -47,6 +47,8 @@ pub const FRENCH: Strings = Strings {
     ssh_port: "Port",
     ssh_password: "Mot de passe",
     connect: "Se connecter",
+    waiting_connection: "En attente de la connexion",
+    disconnect: "Se déconnecter",
     general: "Général",
     connections_tab: "Connexions",
     change_connection: "MODIFIER LA CONNEXION",

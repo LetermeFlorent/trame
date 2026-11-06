@@ -47,6 +47,8 @@ pub const ENGLISH: Strings = Strings {
     ssh_port: "Port",
     ssh_password: "Password",
     connect: "Connect",
+    waiting_connection: "Waiting for the connection",
+    disconnect: "Disconnect",
     general: "General",
     connections_tab: "Connections",
     change_connection: "EDIT CONNECTION",

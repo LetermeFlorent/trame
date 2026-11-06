@@ -80,6 +80,9 @@ impl Running {
 
     pub(in crate::app::running) fn output(&mut self, id: SessionId) {
         self.sessions.output(id);
+        if self.sessions.notice_exit(id) {
+            self.relayout();
+        }
         self.forward_clipboard(id);
         self.forward_attention(id);
         if self.pane_showing(id).is_some() || self.relabeled(id) {

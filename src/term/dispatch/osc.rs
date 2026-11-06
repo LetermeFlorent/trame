@@ -37,15 +37,21 @@ impl Screen {
             b"7501" => {
                 self.program_status(params.get(1).copied().unwrap_or_default(), bell_terminated)
             }
-            b"133" if params.get(1) == Some(&&b"C"[..]) => self.status.start_command(),
-            b"133" if matches!(params.get(1), Some(&&[b'A' | b'D'])) => {
-                self.status.drop_running();
-            }
+            b"133" => self.prompt_mark(params),
             b"10" | b"11" | b"12" if params.get(1) == Some(&&b"?"[..]) => {
                 self.report_color(kind, bell_terminated);
             }
             b"8" => self.set_link(params.get(2..).unwrap_or_default()),
             b"52" => self.store_clipboard(params.get(2).copied().unwrap_or_default()),
+            _ => {}
+        }
+    }
+
+    fn prompt_mark(&mut self, params: &[&[u8]]) {
+        match params.get(1).copied() {
+            Some(b"C") => self.status.start_command(),
+            Some(b"D") => self.status.end_command(params.get(2).copied()),
+            Some(b"A") => self.status.drop_running(),
             _ => {}
         }
     }

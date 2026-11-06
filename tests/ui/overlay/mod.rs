@@ -1,4 +1,5 @@
 mod loader;
+mod offline;
 mod popup;
 mod tooltip;
 mod top;

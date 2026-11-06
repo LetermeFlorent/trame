@@ -104,9 +104,7 @@ impl Running {
         };
         self.motion.tick(Instant::now());
         self.frame = compute(&mut self.text, &layout, &mut self.motion, &title);
-        let sessions = &self.sessions;
-        self.frame
-            .mark_working(&self.workspace, |id| sessions.working(id));
+        self.mark_sessions();
         self.frame.blocked = self.loader.is_some();
         self.place_editor();
         self.place_menu();
@@ -115,6 +113,14 @@ impl Running {
         self.sync_sizes();
         self.sync_rest();
         self.refresh_hover();
+    }
+
+    fn mark_sessions(&mut self) {
+        let sessions = &self.sessions;
+        self.frame
+            .mark_working(&self.workspace, |id| sessions.working(id));
+        self.frame
+            .mark_offline(&mut self.text, self.strings, |id| sessions.offline(id));
     }
 
     pub(super) fn active_folder(&self) -> Option<PathBuf> {

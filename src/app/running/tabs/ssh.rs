@@ -1,11 +1,15 @@
+use std::time::Instant;
+
 use trame::log_error;
-use trame::preferences::{SshHost, SshLogin, menu_hosts, vault};
+use trame::preferences::{HostEntry, SshHost, SshLogin, menu_hosts, vault};
 use trame::session::SessionId;
 use trame::ui::frame::EditTarget;
 
 use super::Placement;
 use crate::app::persist;
 use crate::app::running::Running;
+
+const SSH_PORT: u16 = 22;
 
 impl Running {
     pub(in crate::app::running) fn known_hosts(&self) -> Vec<SshHost> {
@@ -30,20 +34,48 @@ impl Running {
     }
 
     pub(super) fn greet(&mut self, id: SessionId, fresh: bool) {
-        let host = self.workspace.tab_host(id).cloned();
-        let line = match &host {
-            Some(host) => Some(host.command()),
-            None => self.preferences.startup_line().filter(|_| fresh),
-        };
+        if let Some(host) = self.workspace.tab_host(id).cloned() {
+            self.dial(id, &host);
+            return;
+        }
+        let line = self.preferences.startup_line().filter(|_| fresh);
         if let (Some(line), Some(session)) = (line, self.sessions.get(id)) {
             session.write(line);
         }
-        if let Some(host) = &host
-            && let Some(secret) = vault::SSH.load(host)
-        {
-            let entry = persist::ssh_entry(host.split().1);
+    }
+
+    fn dial(&mut self, id: SessionId, host: &SshHost) {
+        if let Some(session) = self.sessions.get(id) {
+            session.write(host.command());
+        }
+        let entry = persist::ssh_entry(host.split().1);
+        if let Some(secret) = vault::SSH.load(host) {
             let login = SshLogin::of(host, entry.as_ref());
             self.sessions.expect_secret(id, secret, login);
         }
+        let entry = entry.unwrap_or_else(|| HostEntry::of(host));
+        let port = host.port.or(entry.port).unwrap_or(SSH_PORT);
+        self.sessions.watch_remote(id, entry.address, port);
+    }
+
+    pub(in crate::app::running) fn redial(&mut self, now: Instant) -> Option<Instant> {
+        let due = self.sessions.redial_due(now);
+        for id in &due {
+            match self.workspace.tab_host(*id).cloned() {
+                Some(host) => self.dial(*id, &host),
+                None => self.sessions.forget_remote(*id),
+            }
+        }
+        if !due.is_empty() {
+            self.relayout();
+            self.window.request_redraw();
+        }
+        self.sessions.remote_deadline(now)
+    }
+
+    pub(in crate::app::running) fn disconnect(&mut self, id: SessionId) {
+        self.sessions.forget_remote(id);
+        self.relayout();
+        self.window.request_redraw();
     }
 }

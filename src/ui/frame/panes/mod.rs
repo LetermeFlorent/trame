@@ -1,12 +1,14 @@
 mod badge;
 mod dividers;
 mod entry;
+mod offline;
 mod tabs;
 mod widths;
 
 use std::collections::HashMap;
 
 pub use badge::HostBadge;
+pub use offline::OfflineCard;
 pub use tabs::{TabFrame, TabStrip};
 
 use crate::geometry::Rect;
@@ -39,6 +41,7 @@ pub struct PaneFrame {
     pub tabs: Vec<SessionId>,
     pub active: Option<SessionId>,
     pub tint: Option<Swatch>,
+    pub offline: Option<OfflineCard>,
 }
 
 impl PaneFrame {
@@ -123,5 +126,6 @@ fn pane_frame(
         tabs: pane.tabs.clone(),
         active: pane.active_tab(),
         tint: None,
+        offline: None,
     })
 }

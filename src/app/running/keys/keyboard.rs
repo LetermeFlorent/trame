@@ -76,6 +76,9 @@ impl Running {
             return;
         };
         let id = session.id();
+        if self.sessions.offline(id) {
+            return;
+        }
         let bytes = {
             let mut terminal = session.terminal();
             let bytes = bytes_for(terminal.screen().modes());

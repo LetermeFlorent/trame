@@ -97,6 +97,10 @@ impl Screen {
         self.attention.take()
     }
 
+    pub fn take_exit(&mut self) -> Option<i32> {
+        self.status.take_exit()
+    }
+
     pub fn program_working(&self) -> bool {
         self.status.working()
     }

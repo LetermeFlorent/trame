@@ -51,6 +51,7 @@ pub enum Hit {
     Split(PaneId),
     Divider(usize),
     Terminal(PaneId),
+    Disconnect(SessionId),
     EditField,
     EditStrip,
     EditSwatch(Option<Swatch>),

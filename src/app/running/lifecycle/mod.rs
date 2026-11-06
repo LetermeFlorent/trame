@@ -118,12 +118,14 @@ impl Running {
         let loader = self.loader_wake(Instant::now());
         let work = self.work_wake(Instant::now());
         let secret = self.sessions.secret_deadline(Instant::now());
+        let remote = self.redial(Instant::now());
         save.into_iter()
             .chain(text)
             .chain(retry)
             .chain(loader)
             .chain(work)
             .chain(secret)
+            .chain(remote)
             .chain(self.power.deadline())
             .min()
     }

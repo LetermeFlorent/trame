@@ -64,6 +64,13 @@ pub(super) fn hit_settings(panel: &SettingsFrame, point: Point) -> Option<Hit> {
 }
 
 pub(super) fn hit_pane(pane: &PaneFrame, point: Point) -> Hit {
+    if let Some(card) = pane
+        .offline
+        .as_ref()
+        .filter(|card| card.button.contains(point))
+    {
+        return Hit::Disconnect(card.tab);
+    }
     let strip = &pane.strip;
     if !strip.rect.contains(point) {
         return Hit::Terminal(pane.id);

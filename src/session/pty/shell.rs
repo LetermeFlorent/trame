@@ -9,7 +9,7 @@ pub struct ShellCommand {
 }
 
 #[cfg(windows)]
-const POWERSHELL_PROMPT_HOOK: &str = r"$global:__trame_prompt = $function:prompt; function global:prompt { if (-not $global:__trame_read -and (Test-Path Function:PSConsoleHostReadLine)) { $global:__trame_read = $function:PSConsoleHostReadLine; function global:PSConsoleHostReadLine { $c = & $global:__trame_read; if ([string]$c -match '\S') { [Console]::Write([char]27 + ']133;C' + [char]27 + '\') }; $c } }; $l = $executionContext.SessionState.Path.CurrentLocation; $o = [char]27 + ']133;A' + [char]27 + '\'; if ($l.Provider.Name -eq 'FileSystem') { $o += [char]27 + ']9;9;' + [char]34 + $l.ProviderPath + [char]34 + [char]27 + '\' }; $o + (& $global:__trame_prompt) }";
+const POWERSHELL_PROMPT_HOOK: &str = r"$global:__trame_prompt = $function:prompt; function global:prompt { if (-not $global:__trame_read -and (Test-Path Function:PSConsoleHostReadLine)) { $global:__trame_read = $function:PSConsoleHostReadLine; function global:PSConsoleHostReadLine { $c = & $global:__trame_read; if ([string]$c -match '\S') { [Console]::Write([char]27 + ']133;C' + [char]27 + '\') }; $c } }; $l = $executionContext.SessionState.Path.CurrentLocation; $o = [char]27 + ']133;D;' + $global:LASTEXITCODE + [char]27 + '\' + [char]27 + ']133;A' + [char]27 + '\'; if ($l.Provider.Name -eq 'FileSystem') { $o += [char]27 + ']9;9;' + [char]34 + $l.ProviderPath + [char]34 + [char]27 + '\' }; $o + (& $global:__trame_prompt) }";
 
 #[cfg(windows)]
 const COMMAND_PROMPT: &str = r"$e]9;9;$P$e\$P$G";

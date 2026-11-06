@@ -33,6 +33,8 @@ The window lists the saved connections and the hosts of `~/.ssh/config`: a click
 
 The form takes an address, a user, a port and a password, all optional but the address. Connect writes the host to `~/.ssh/config` (or changes its block there), keeps the password in the Windows Credential Manager on Windows, and opens the tab. trame types the system `ssh` command (OpenSSH, part of Windows 10 and 11) and types the saved password once, into the password prompt of that user and host only (the address and user set in `~/.ssh/config` count). A key passphrase or the password of a jump host is left to you, and trame stops waiting for the prompt after a minute or at the first line that is not part of connecting. Each connection used goes first in the list, and a long list scrolls with the wheel or its bar.
 
+When a connection that held for a while drops, `ssh` ending on a network error, trame does not leave you on the local prompt. The pane turns grey with "Waiting for the connection" and a Disconnect button, and the keyboard waits too. trame knocks on the server every few seconds and, once it answers, types `ssh` again with the saved password, so the session comes back on its own. Disconnect stops trying and gives you the local prompt. This works in PowerShell; trame checks the address and port of the host itself, so a host reached only through a jump host keeps waiting until you press Disconnect.
+
 ### Shells and themes
 
 Every new tab opens the default shell of the system: PowerShell 7 when it is installed, Windows PowerShell otherwise, and `$SHELL` on Linux and macOS. The light or dark theme follows the system and changes when the system does.

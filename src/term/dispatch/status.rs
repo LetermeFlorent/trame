@@ -29,6 +29,7 @@ pub(crate) struct ProgramStatus {
     records: HashMap<String, (State, u64)>,
     clock: u64,
     command: bool,
+    exit: Option<i32>,
 }
 
 impl ProgramStatus {
@@ -64,6 +65,19 @@ impl ProgramStatus {
                 (calls && changed).then_some(message)
             }
         }
+    }
+
+    pub(crate) fn end_command(&mut self, code: Option<&[u8]>) {
+        if self.command {
+            self.exit = code
+                .and_then(|code| std::str::from_utf8(code).ok())
+                .and_then(|code| code.parse().ok());
+        }
+        self.drop_running();
+    }
+
+    pub(crate) fn take_exit(&mut self) -> Option<i32> {
+        self.exit.take()
     }
 
     pub(crate) fn drop_running(&mut self) {

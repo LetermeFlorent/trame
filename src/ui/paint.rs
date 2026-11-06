@@ -61,6 +61,7 @@ pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSourc
     for pane in &frame.panes {
         draw_body(scene, text, pane, sources);
     }
+    chrome::draw_offline(scene, text, &input);
     chrome::draw_dividers(scene, theme, frame, view);
     chrome::draw_editor(scene, text, &input);
     chrome::draw_settings(scene, text, &input);

@@ -1,4 +1,5 @@
 mod deferred;
+mod remotes;
 mod screens;
 mod secrets;
 #[cfg(test)]
@@ -41,6 +42,7 @@ pub struct Sessions {
     origins: HashMap<SessionId, PathBuf>,
     waiting: HashMap<SessionId, Waiting>,
     answers: HashMap<SessionId, SecretAnswer>,
+    remotes: HashMap<SessionId, remotes::Remote>,
     next: u64,
     shell: ShellCommand,
     notify: Notifier,
@@ -64,6 +66,7 @@ impl Sessions {
             origins: HashMap::new(),
             waiting: HashMap::new(),
             answers: HashMap::new(),
+            remotes: HashMap::new(),
             next: 0,
             shell: default_shell(),
             notify,
@@ -90,6 +93,7 @@ impl Sessions {
             transcript: start.transcript,
         };
         let session = Session::spawn(id, &options, self.notify.clone())?;
+        self.remotes.remove(&id);
         self.prepare(&session);
         self.map.insert(id, session);
         if let Some(path) = cwd {
@@ -121,11 +125,13 @@ impl Sessions {
         self.origins.remove(&id);
         self.waiting.remove(&id);
         self.answers.remove(&id);
+        self.remotes.remove(&id);
         self.map.remove(&id);
     }
 
     pub fn hand_off(&mut self, id: SessionId) -> Leaving {
         self.answers.remove(&id);
+        self.remotes.remove(&id);
         Leaving {
             session: self.map.remove(&id),
             origin: self.origins.remove(&id),
