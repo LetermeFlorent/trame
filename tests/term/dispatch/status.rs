@@ -1,3 +1,5 @@
+use std::time::{Duration, Instant};
+
 use crate::feed;
 
 const WORKING: &str = "\x1b]7501;state=working:app=claude\x1b\\";
@@ -22,6 +24,18 @@ fn a_working_program_stays_busy_until_it_reports_another_state() {
     assert!(!prompt.screen().program_working());
     let cleared = feed(1, 10, &format!("{WORKING}\x1b]7501;state=clear\x07"));
     assert!(!cleared.screen().program_working());
+}
+
+#[test]
+fn a_silent_program_stops_looking_busy_until_it_prints_again() {
+    for start in [WORKING, "\x1b]133;C\x07"] {
+        let mut terminal = feed(1, 10, start);
+        let later = Instant::now() + Duration::from_secs(16);
+        assert!(terminal.screen().program_working());
+        assert!(!terminal.screen().program_working_at(later), "{start}");
+        terminal.feed(b"\r|");
+        assert!(terminal.screen().program_working(), "{start}");
+    }
 }
 
 #[test]

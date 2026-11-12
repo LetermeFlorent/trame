@@ -6,6 +6,8 @@ pub mod modes;
 pub mod screen;
 pub mod vt;
 
+use std::time::Instant;
+
 use vt::Parser;
 
 pub use cell::{Cell, Color, Flags, MAX_LINKS, Marks};
@@ -35,6 +37,7 @@ impl Terminal {
 
     pub fn feed(&mut self, bytes: &[u8]) {
         self.parser.advance(&mut self.screen, bytes);
+        self.screen.status.hear(Instant::now());
         self.generation = self.generation.wrapping_add(1);
     }
 

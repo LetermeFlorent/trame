@@ -1,27 +1,22 @@
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 
-use super::decode::{decode_base64, is_invisible_format};
+mod parse;
+
+use parse::{Report, parse};
 
 const MAX_RECORDS: usize = 256;
-const MAX_ID: usize = 128;
-const MAX_SEGMENT: usize = 32;
-const MAX_DEPTH: usize = 8;
-const MAX_TEXT: usize = 2048;
+const QUIET_AFTER: Duration = Duration::from_secs(15);
 pub(crate) const PROBE_REPLY: &str =
     "\x1b]7501;?:states=idle,working,done,blocked,error:kinds=permission,question,auth";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum State {
+pub(super) enum State {
     Idle,
     Working,
     Done,
     Blocked,
     Error,
-}
-
-enum Report {
-    Set(String, State, String),
-    Clear(String),
 }
 
 #[derive(Clone, Debug, Default)]
@@ -30,15 +25,23 @@ pub(crate) struct ProgramStatus {
     clock: u64,
     command: bool,
     exit: Option<i32>,
+    heard: Option<Instant>,
 }
 
 impl ProgramStatus {
-    pub(crate) fn working(&self) -> bool {
+    pub(crate) fn working(&self, now: Instant) -> bool {
         let reported = self
             .records
             .values()
             .any(|(state, _)| *state == State::Working);
-        reported || (self.command && self.records.is_empty())
+        let recent = self
+            .heard
+            .is_some_and(|at| now.saturating_duration_since(at) <= QUIET_AFTER);
+        recent && (reported || (self.command && self.records.is_empty()))
+    }
+
+    pub(crate) fn hear(&mut self, now: Instant) {
+        self.heard = Some(now);
     }
 
     pub(crate) fn start_command(&mut self) {
@@ -96,55 +99,4 @@ impl ProgramStatus {
             self.records.remove(&key);
         }
     }
-}
-
-fn parse(payload: &[u8]) -> Option<Report> {
-    let text = std::str::from_utf8(payload).ok()?;
-    let mut fields: HashMap<&str, &str> = HashMap::new();
-    for pair in text.split(':') {
-        if let Some((key, value)) = pair.split_once('=') {
-            fields.insert(key, value);
-        }
-    }
-    let id = fields.get("id").copied().unwrap_or_default();
-    if !valid_id(id) {
-        return None;
-    }
-    let message = match fields.get("msg") {
-        Some(encoded) => decoded(encoded)?,
-        None => String::new(),
-    };
-    if let Some(title) = fields.get("title") {
-        decoded(title)?;
-    }
-    let state = match *fields.get("state")? {
-        "idle" => State::Idle,
-        "working" => State::Working,
-        "done" => State::Done,
-        "blocked" => State::Blocked,
-        "error" => State::Error,
-        "clear" => return Some(Report::Clear(id.to_string())),
-        _ => return None,
-    };
-    Some(Report::Set(id.to_string(), state, message))
-}
-
-fn valid_id(id: &str) -> bool {
-    id.is_empty()
-        || (id.len() <= MAX_ID
-            && id.split('/').count() <= MAX_DEPTH
-            && id.split('/').all(|segment| {
-                (1..=MAX_SEGMENT).contains(&segment.len())
-                    && segment
-                        .bytes()
-                        .all(|b| b.is_ascii_alphanumeric() || b"_.+-".contains(&b))
-            }))
-}
-
-fn decoded(encoded: &str) -> Option<String> {
-    let text = String::from_utf8(decode_base64(encoded.as_bytes())?).ok()?;
-    if text.len() > MAX_TEXT || text.chars().any(char::is_control) {
-        return None;
-    }
-    Some(text.chars().filter(|&c| !is_invisible_format(c)).collect())
 }

@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use super::Screen;
 use crate::term::cursor::CursorShape;
 use crate::term::grid::Grid;
@@ -102,7 +104,11 @@ impl Screen {
     }
 
     pub fn program_working(&self) -> bool {
-        self.status.working()
+        self.program_working_at(Instant::now())
+    }
+
+    pub fn program_working_at(&self, now: Instant) -> bool {
+        self.status.working(now)
     }
 
     pub fn scroll_display(&mut self, delta: isize) {
