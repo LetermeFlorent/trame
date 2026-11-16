@@ -3,6 +3,7 @@ mod fleet;
 mod graphics;
 mod handler;
 mod notice;
+mod relay;
 mod restart;
 mod running;
 mod sessions;

@@ -9,10 +9,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, PoisonError};
-
-use winit::event_loop::EventLoopProxy;
-use winit::window::WindowId;
 
 use trame::preferences::{DEFAULT_HISTORY_LINES, SecretAnswer};
 use trame::session::pty::{ShellCommand, default_shell};
@@ -21,7 +17,6 @@ use trame::term::ReportedColors;
 use trame::ui::terminal::links::LinkCache;
 use trame::workspace::Workspace;
 
-use super::UserEvent;
 pub use deferred::Waiting;
 
 pub struct Leaving {
@@ -52,15 +47,7 @@ pub struct Sessions {
 }
 
 impl Sessions {
-    pub fn new(proxy: EventLoopProxy<UserEvent>, window: WindowId) -> Self {
-        let proxy = Mutex::new(proxy);
-        Self::with_notifier(Arc::new(move |event| {
-            let proxy = proxy.lock().unwrap_or_else(PoisonError::into_inner);
-            let _ = proxy.send_event(UserEvent::Session(window, event));
-        }))
-    }
-
-    fn with_notifier(notify: Notifier) -> Self {
+    pub fn new(notify: Notifier) -> Self {
         Self {
             map: HashMap::new(),
             origins: HashMap::new(),

@@ -31,7 +31,7 @@ use super::{Memo, Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
 use crate::app::sessions::Sessions;
 use crate::app::visibility::Visibility;
-use crate::app::{UserEvent, explorer, window};
+use crate::app::{UserEvent, explorer, relay, window};
 
 const TORN_OFFSET: f32 = 48.0;
 
@@ -144,7 +144,7 @@ impl Running {
             preferences: surface.preferences,
             keymap: Memo::default(),
             workspace: first.workspace,
-            sessions: Sessions::new(proxy.clone(), id),
+            sessions: Sessions::new(relay::session_notifier(proxy.clone(), id)),
             proxy,
             transcripts: Transcripts::new(saver.transcript_dir()),
             saver,

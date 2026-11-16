@@ -15,7 +15,7 @@ const PRINT: &[u8] = b"echo trame-output\r";
 
 fn started() -> (Sessions, SessionId, Receiver<SessionEvent>) {
     let (sender, events) = mpsc::channel();
-    let mut sessions = Sessions::with_notifier(Arc::new(move |event| {
+    let mut sessions = Sessions::new(Arc::new(move |event| {
         let _ = sender.send(event);
     }));
     let id = sessions.reserve();
@@ -47,7 +47,7 @@ fn a_handed_over_shell_wakes_its_new_window_under_its_new_id() {
     let (mut sessions, id, events) = started();
     assert!(wakes(&events, id));
     let (sender, moved) = mpsc::channel();
-    let mut other = Sessions::with_notifier(Arc::new(move |event| {
+    let mut other = Sessions::new(Arc::new(move |event| {
         let _ = sender.send(event);
     }));
     other.reserve();
@@ -74,7 +74,7 @@ fn redialed(sessions: &mut Sessions) -> Vec<SessionId> {
 fn a_dropped_ssh_link_waits_for_its_server_then_redials() {
     let server = TcpListener::bind("127.0.0.1:0").expect("a local port");
     let port = server.local_addr().expect("its address").port();
-    let mut sessions = Sessions::with_notifier(Arc::new(|_| {}));
+    let mut sessions = Sessions::new(Arc::new(|_| {}));
     let id = sessions.reserve();
     sessions.watch_remote(id, "127.0.0.1".into(), port);
     assert!(!sessions.ended(id, 255));
