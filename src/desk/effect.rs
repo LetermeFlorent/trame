@@ -11,6 +11,7 @@ pub enum Effect {
     StartQueued,
     StartShown,
     Typed(SessionId),
+    HostsChanged,
 }
 
 #[must_use]

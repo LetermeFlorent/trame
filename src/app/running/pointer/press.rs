@@ -1,12 +1,13 @@
 use std::time::Instant;
 
+use trame::desk::Closing;
 use trame::input::Command;
 use trame::log_error;
 use trame::ui::Hit;
 use trame::ui::frame::{BarPart, SidebarItem};
 
+use crate::app::running::Running;
 use crate::app::running::settings::ListKind;
-use crate::app::running::{Closing, Running};
 use crate::app::window;
 
 impl Running {

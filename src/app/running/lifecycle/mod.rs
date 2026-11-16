@@ -4,7 +4,6 @@ mod peers;
 mod quit;
 mod saved;
 mod surface;
-mod text;
 mod update;
 
 use std::cell::RefCell;
@@ -68,7 +67,7 @@ impl Running {
             .power
             .set_background(self.visibility.seen_hidden());
         let save = self.save_deadline();
-        let text = self.transcript_deadline();
+        let text = self.desk.transcript_deadline(Instant::now());
         let loader = self.loader_wake(Instant::now());
         let work = self.work_wake(Instant::now());
         let secret = self.desk.sessions.secret_deadline(Instant::now());
@@ -113,7 +112,6 @@ impl Running {
             modifiers: ModifiersState::empty(),
             visibility: Visibility::default(),
             loader: None,
-            closing: None,
         }
     }
 }

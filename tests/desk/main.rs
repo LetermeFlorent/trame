@@ -1,13 +1,16 @@
+mod closing;
 mod commands;
 mod desk;
 mod edits;
 mod effects;
 mod folders;
 mod grids;
+mod paste;
 mod quit;
 mod restarts;
 #[path = "../support/sandbox.rs"]
 mod sandbox;
+mod saved;
 mod sessions;
 mod settings;
 mod support;

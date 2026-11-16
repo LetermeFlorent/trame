@@ -42,6 +42,7 @@ impl Desk {
             preferences,
             update: UpdateState::default(),
             restarts: Restarts::default(),
+            closing: None,
             quit: None,
             starting: Vec::new(),
         }

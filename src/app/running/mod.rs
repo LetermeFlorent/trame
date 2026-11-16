@@ -17,7 +17,7 @@ use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
-use trame::desk::Desk;
+use trame::desk::{Closing, Desk};
 use trame::geometry::Point;
 use trame::input::{Keymap, Overrides};
 use trame::render::Scene;
@@ -35,7 +35,6 @@ use frame::Loader;
 use keys::Memo;
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
-use tabs::Closing;
 pub use tabs::Lifted;
 
 pub struct Running {
@@ -64,7 +63,6 @@ pub struct Running {
     visibility: Visibility,
     loader: Option<Loader>,
     notifier: Notifier,
-    closing: Option<Closing>,
 }
 
 impl Running {

@@ -23,6 +23,7 @@ impl Running {
                     self.motion.stop_scroll(id);
                     self.window.request_redraw();
                 }
+                Effect::HostsChanged => self.reload_hosts(),
             }
         }
     }

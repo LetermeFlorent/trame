@@ -1,32 +1,20 @@
-use trame::desk::written_by_hand;
-use trame::preferences::SshHost;
+use trame::desk::{Closing, written_by_hand};
 
-use crate::app::running::{Closing, Running};
+use crate::app::running::Running;
 
 impl Running {
     pub(super) fn forget_listed(&mut self, index: usize) {
-        let Some(host) = self.listed_host(index) else {
+        let Some(host) = self
+            .panel_mut()
+            .and_then(|panel| panel.hosts.get(index).cloned())
+        else {
             return;
         };
-        if written_by_hand(&host) {
-            self.closing = Some(Closing::Forget(index));
+        if host.alias().is_some() && written_by_hand(&host) {
+            self.desk.closing = Some(Closing::Forget(host));
             return;
         }
-        self.forget(&host);
-    }
-
-    pub(in crate::app::running) fn forget_at(&mut self, index: usize) {
-        if let Some(host) = self.listed_host(index) {
-            self.forget(&host);
-        }
-    }
-
-    pub(in crate::app::running) fn listed_host(&mut self, index: usize) -> Option<SshHost> {
-        self.panel_mut()?.hosts.get(index).cloned()
-    }
-
-    fn forget(&mut self, host: &SshHost) {
-        let effects = self.desk.forget_host(host);
+        let effects = self.desk.forget_host(&host);
         self.apply(effects);
         self.reload_hosts();
     }
