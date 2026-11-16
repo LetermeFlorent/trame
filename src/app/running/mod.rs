@@ -34,7 +34,7 @@ use super::graphics::Graphics;
 use super::notice::Notifier;
 use super::sessions::Sessions;
 use super::visibility::Visibility;
-use super::{UserEvent, window};
+use super::{AppEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
 use keys::Memo;
@@ -56,7 +56,7 @@ pub struct Running {
     keymap: Memo<Overrides, Keymap>,
     workspace: Workspace,
     sessions: Sessions,
-    proxy: EventLoopProxy<UserEvent>,
+    proxy: EventLoopProxy<AppEvent>,
     saver: Saver,
     transcripts: Transcripts,
     icons: IconStore,

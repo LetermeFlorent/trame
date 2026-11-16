@@ -1,3 +1,4 @@
+mod event;
 mod explorer;
 mod fleet;
 mod graphics;
@@ -25,19 +26,12 @@ use trame::host::power::Process;
 use trame::host::quit::Restart;
 use trame::host::update::{self, UpdateStatus};
 use trame::log_error;
-use trame::session::SessionEvent;
-use trame::workspace::InstanceId;
 
-use running::{FolderTarget, Running};
+use running::Running;
 
-#[derive(Clone, Debug)]
-pub enum UserEvent {
-    Session(WindowId, SessionEvent),
-    Update(UpdateStatus),
-    Folder(WindowId, FolderTarget, PathBuf),
-    Icon(WindowId, InstanceId, u64),
-    Open(Option<PathBuf>),
-}
+pub use event::UserEvent;
+
+pub type AppEvent = UserEvent<WindowId>;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     if let Some(path) = persist::log_path() {
@@ -50,7 +44,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
     let saved = persist::load(&mut role);
-    let event_loop = EventLoop::<UserEvent>::with_user_event().build()?;
+    let event_loop = EventLoop::<AppEvent>::with_user_event().build()?;
     let proxy = event_loop.create_proxy();
     if let Some(folder) = role.folder() {
         let visitor = proxy.clone();
@@ -78,7 +72,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 }
 
 struct App {
-    proxy: EventLoopProxy<UserEvent>,
+    proxy: EventLoopProxy<AppEvent>,
     update: UpdateStatus,
     offer: PendingOffer,
     role: Role,

@@ -31,7 +31,7 @@ use super::{Memo, Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
 use crate::app::sessions::Sessions;
 use crate::app::visibility::Visibility;
-use crate::app::{UserEvent, explorer, relay, window};
+use crate::app::{AppEvent, explorer, relay, window};
 
 const TORN_OFFSET: f32 = 48.0;
 
@@ -86,7 +86,7 @@ impl Opened {
 impl Running {
     pub fn open_window(
         event_loop: &ActiveEventLoop,
-        proxy: EventLoopProxy<UserEvent>,
+        proxy: EventLoopProxy<AppEvent>,
         saved: Option<Snapshot>,
         slot: Slot,
         shared: Option<Preferences>,
@@ -128,7 +128,7 @@ impl Running {
             .min()
     }
 
-    fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>, saver: Saver) -> Self {
+    fn with_surface(mut surface: Surface, proxy: EventLoopProxy<AppEvent>, saver: Saver) -> Self {
         let first = first_frame(&mut surface, &saver);
         let id = surface.window.id();
         Self {
