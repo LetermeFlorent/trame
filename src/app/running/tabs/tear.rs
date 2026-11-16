@@ -1,11 +1,9 @@
-use std::collections::HashMap;
-
 use winit::dpi::PhysicalPosition;
 
-use trame::desk::Leaving;
+use trame::desk::{MovedInstance, TornTab};
 use trame::geometry::{Point, Rect};
 use trame::session::SessionId;
-use trame::workspace::{InstanceId, MovingInstance, TabMark};
+use trame::workspace::InstanceId;
 
 use crate::app::running::Running;
 
@@ -15,58 +13,32 @@ pub enum Lifted {
     Instance(InstanceId),
 }
 
-pub struct TornTab {
-    leaving: Leaving,
-    mark: TabMark,
-}
-
-pub struct MovedInstance {
-    moving: MovingInstance,
-    sessions: Vec<(SessionId, Leaving)>,
-}
-
 impl Running {
     pub fn can_tear(&self, tab: SessionId) -> bool {
-        self.desk.workspace.locate(tab).is_some() && !self.desk.workspace.is_only_tab(tab)
+        self.desk.can_tear(tab)
     }
 
     pub fn tear_tab(&mut self, tab: SessionId) -> Option<TornTab> {
-        let mark = self.desk.workspace.take_tab(tab)?;
-        let leaving = self.desk.sessions.hand_off(tab);
-        let effects = self.desk.after_close();
-        self.apply(effects);
-        Some(TornTab { leaving, mark })
+        let outcome = self.desk.tear_tab(tab);
+        self.apply(outcome.effects);
+        outcome.value
     }
 
     pub fn give_instance(&mut self, id: InstanceId) -> Option<MovedInstance> {
-        let moving = self.desk.workspace.take_instance(id)?;
-        let tabs = moving.instance.tabs();
-        let sessions = tabs
-            .into_iter()
-            .map(|tab| (tab, self.desk.sessions.hand_off(tab)))
-            .collect();
-        let effects = self.desk.after_close();
-        self.apply(effects);
-        Some(MovedInstance { moving, sessions })
+        let outcome = self.desk.give_instance(id);
+        self.apply(outcome.effects);
+        outcome.value
     }
 
     pub(in crate::app::running) fn take_torn_tab(&mut self, torn: TornTab) {
-        let id = self.desk.sessions.take_in(torn.leaving);
-        self.desk.workspace.add_instance(None, id);
-        self.desk.workspace.mark_tab(id, torn.mark);
-        self.relayout();
-        self.start_shown();
-        self.changed();
+        let effects = self.desk.adopt_torn(torn);
+        self.apply(effects);
     }
 
     pub fn take_dropped_tab(&mut self, torn: TornTab, at: PhysicalPosition<i32>) {
-        let id = self.desk.sessions.take_in(torn.leaving);
         let point = self.client_point(at);
-        if let Some(index) = point.and_then(|point| self.instance_target(point)) {
-            self.desk.workspace.active = index;
-        }
-        self.desk.workspace.add_tab(id);
-        self.desk.workspace.mark_tab(id, torn.mark);
+        let index = point.and_then(|point| self.instance_target(point));
+        let id = self.desk.receive_tab(torn, index);
         let instance = self
             .desk
             .workspace
@@ -79,23 +51,16 @@ impl Running {
             self.desk.workspace.move_tab(id, spot.target);
         }
         self.desk.workspace.activate_tab(id);
-        self.welcome();
+        let effects = self.desk.welcome();
+        self.apply(effects);
     }
 
     pub fn take_moved_instance(&mut self, moved: MovedInstance, at: PhysicalPosition<i32>) {
-        let renamed: HashMap<SessionId, SessionId> = moved
-            .sessions
-            .into_iter()
-            .map(|(old, leaving)| (old, self.desk.sessions.take_in(leaving)))
-            .collect();
         let index = self
             .client_point(at)
             .and_then(|point| self.instance_target(point));
-        let index = index.unwrap_or(self.desk.workspace.instances.len());
-        self.desk
-            .workspace
-            .adopt_instance(moved.moving, &renamed, index);
-        self.welcome();
+        let effects = self.desk.receive_instance(moved, index);
+        self.apply(effects);
     }
 
     pub fn holds(&self, at: PhysicalPosition<i32>) -> bool {
@@ -124,13 +89,5 @@ impl Running {
         let x = origin.x + point.x.round() as i32;
         let y = origin.y + point.y.round() as i32;
         Some(PhysicalPosition::new(x, y))
-    }
-
-    fn welcome(&mut self) {
-        self.motion.animate_next();
-        self.relayout();
-        self.start_shown();
-        self.changed();
-        self.bring_forward();
     }
 }

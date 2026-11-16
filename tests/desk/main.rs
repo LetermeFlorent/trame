@@ -1,3 +1,4 @@
+mod commands;
 mod desk;
 mod effects;
 mod folders;
@@ -10,4 +11,6 @@ mod sessions;
 mod settings;
 mod support;
 mod tabs;
+mod transfer;
 mod update;
+mod write;

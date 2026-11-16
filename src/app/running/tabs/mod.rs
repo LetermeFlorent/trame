@@ -4,4 +4,4 @@ mod folder;
 mod tear;
 
 pub(super) use closing::Closing;
-pub use tear::{Lifted, TornTab};
+pub use tear::Lifted;

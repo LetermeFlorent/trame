@@ -3,13 +3,12 @@ use std::path::PathBuf;
 
 use winit::dpi::PhysicalPosition;
 
-use trame::desk::Placement;
+use trame::desk::{Placement, TornTab};
 use trame::host::update::UpdateStatus;
 use trame::preferences::Recall;
 use trame::workspace::Snapshot;
 
 use super::super::Running;
-use super::super::tabs::TornTab;
 use crate::app::window;
 
 const TORN_OFFSET: f32 = 48.0;

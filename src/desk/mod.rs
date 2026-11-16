@@ -1,3 +1,4 @@
+mod commands;
 mod effect;
 mod grids;
 pub mod hosts;
@@ -7,7 +8,9 @@ pub mod sessions;
 mod settings;
 mod setup;
 mod tabs;
+mod transfer;
 mod update;
+mod write;
 
 use crate::files::IconStore;
 use crate::host::persist::Saver;
@@ -27,6 +30,7 @@ pub use sessions::{Leaving, Sessions, ShellStart, Waiting};
 pub use setup::DeskSetup;
 use tabs::Starting;
 pub use tabs::{FolderTarget, Placement};
+pub use transfer::{MovedInstance, TornTab};
 pub use update::UpdateState;
 
 pub struct Desk {

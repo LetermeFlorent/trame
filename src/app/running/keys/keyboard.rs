@@ -73,29 +73,8 @@ impl Running {
         &mut self,
         bytes_for: impl FnOnce(Modes) -> Vec<u8>,
     ) {
-        let Some(session) = self.desk.sessions.active(&self.desk.workspace) else {
-            return;
-        };
-        let id = session.id();
-        if self.desk.sessions.offline(id) {
-            return;
-        }
-        let bytes = {
-            let mut terminal = session.terminal();
-            let bytes = bytes_for(terminal.screen().modes());
-            if !bytes.is_empty() {
-                let screen = terminal.screen_mut();
-                screen.reset_display();
-                screen.clear_selection();
-            }
-            bytes
-        };
-
-        if !bytes.is_empty() {
-            session.write(bytes);
-            self.motion.stop_scroll(id);
-            self.window.request_redraw();
-        }
+        let effects = self.desk.write_to_active(bytes_for);
+        self.apply(effects);
     }
 
     pub(in crate::app::running) fn focus_changed(&mut self, focused: bool) {

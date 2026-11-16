@@ -19,6 +19,10 @@ impl Running {
                 Effect::StartShown => {
                     self.start_shown();
                 }
+                Effect::Typed(id) => {
+                    self.motion.stop_scroll(id);
+                    self.window.request_redraw();
+                }
             }
         }
     }

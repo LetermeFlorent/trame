@@ -1,3 +1,5 @@
+use crate::session::SessionId;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Effect {
     Redraw,
@@ -8,6 +10,7 @@ pub enum Effect {
     Raise,
     StartQueued,
     StartShown,
+    Typed(SessionId),
 }
 
 #[must_use]
