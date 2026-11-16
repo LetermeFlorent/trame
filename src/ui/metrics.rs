@@ -1,33 +1,10 @@
+use crate::display::{Density, PanelSide, SPACING};
+pub use crate::display::{
+    MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, Platform, TERMINAL_FONT_SIZE,
+};
 use crate::text::{REGULAR, SEMIBOLD, TextStyle};
-use crate::ui::display::{Density, PanelSide, SPACING};
 
-pub const TERMINAL_FONT_SIZE: f32 = 14.0;
-pub const MIN_TERMINAL_FONT_SIZE: f32 = 8.0;
-pub const MAX_TERMINAL_FONT_SIZE: f32 = 32.0;
 const WINDOWS_SHADOW_SHIFT: f32 = 1.0;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Platform {
-    Windows,
-    Mac,
-    Linux,
-}
-
-impl Platform {
-    pub const fn current() -> Self {
-        if cfg!(windows) {
-            Self::Windows
-        } else if cfg!(target_os = "macos") {
-            Self::Mac
-        } else {
-            Self::Linux
-        }
-    }
-
-    pub fn draws_window_controls(self) -> bool {
-        self != Self::Mac
-    }
-}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct UiMetrics {
