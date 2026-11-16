@@ -16,6 +16,7 @@ use crate::theme::Theme;
 pub use cursor::CursorPlace;
 use links::LinkSpan;
 use row::{RowPaint, draw_backgrounds, draw_glyphs};
+pub use style::colors;
 
 pub struct TerminalPaint<'a> {
     pub screen: &'a Screen,
