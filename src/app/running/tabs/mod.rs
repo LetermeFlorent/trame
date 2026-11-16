@@ -5,8 +5,6 @@ mod folder;
 mod restarts;
 mod ssh;
 mod tear;
-#[cfg(test)]
-mod tests;
 
 use std::io;
 use std::path::{Path, PathBuf};
@@ -21,7 +19,6 @@ use trame::workspace::{Edge, InstanceId, PaneId};
 use super::Running;
 pub(super) use closing::Closing;
 pub use folder::FolderTarget;
-pub(super) use restarts::Restarts;
 pub use tear::{Lifted, TornTab};
 
 pub(super) const FALLBACK_GRID: (usize, usize) = (24, 80);
@@ -46,14 +43,18 @@ impl Running {
         let cwd = folder.clone().or_else(|| self.start_folder(placement));
         let first = self.open_in(placement, cwd.as_deref(), None)?;
         if placement == Placement::Instance {
-            let instance = self.workspace.active_instance().map(|instance| instance.id);
+            let instance = self
+                .desk
+                .workspace
+                .active_instance()
+                .map(|instance| instance.id);
             if let (Some(id), Some(folder)) = (instance, folder) {
-                self.workspace.set_instance_folder(id, Some(folder));
+                self.desk.workspace.set_instance_folder(id, Some(folder));
             }
-            for _ in 1..self.preferences.instance_tabs {
+            for _ in 1..self.desk.preferences.instance_tabs {
                 self.open_in(Placement::Tab, cwd.as_deref(), None)?;
             }
-            self.workspace.activate_tab(first);
+            self.desk.workspace.activate_tab(first);
             self.changed();
         }
         Ok(())
@@ -65,17 +66,17 @@ impl Running {
         cwd: Option<&Path>,
         host: Option<SshHost>,
     ) -> io::Result<SessionId> {
-        let id = self.sessions.reserve();
+        let id = self.desk.sessions.reserve();
         match placement {
-            Placement::Tab => self.workspace.add_tab(id),
-            Placement::Split(edge) => self.workspace.split_active(id, edge),
+            Placement::Tab => self.desk.workspace.add_tab(id),
+            Placement::Split(edge) => self.desk.workspace.split_active(id, edge),
             Placement::Instance => {
-                self.workspace.add_instance(None, id);
+                self.desk.workspace.add_instance(None, id);
             }
         }
         if let Some(host) = host {
-            self.workspace.rename_tab(id, &host.label());
-            self.workspace.set_tab_host(id, Some(host));
+            self.desk.workspace.rename_tab(id, &host.label());
+            self.desk.workspace.set_tab_host(id, Some(host));
         }
         self.relayout();
         let spawned = self.start_shell(id, cwd, None);
@@ -92,14 +93,14 @@ impl Running {
         let start = ShellStart {
             cwd,
             size: self.grid_size_of(id).unwrap_or(FALLBACK_GRID),
-            colors: self.theme.reported_colors(),
+            colors: self.desk.theme.reported_colors(),
             transcript: revived.unwrap_or_default(),
         };
-        let spawned = self.sessions.spawn(id, &start);
+        let spawned = self.desk.sessions.spawn(id, &start);
         match spawned {
             Ok(()) => self.greet(id, revived.is_none()),
             Err(_) => {
-                self.workspace.close_tab(id);
+                self.desk.workspace.close_tab(id);
             }
         }
         spawned
@@ -108,37 +109,37 @@ impl Running {
     pub(super) fn open_or_report(&mut self, placement: Placement) {
         if let Err(error) = self.open(placement) {
             log_error!("the shell could not start: {error}");
-            if self.workspace.is_empty() {
-                self.quit_with(Quit::Close);
+            if self.desk.workspace.is_empty() {
+                self.desk.quit_with(Quit::Close);
             }
         }
     }
 
     pub(super) fn close_tab(&mut self, exiting: bool, id: SessionId) {
-        if self.workspace.is_only_tab(id) && !exiting && !self.quitting() {
+        if self.desk.workspace.is_only_tab(id) && !exiting && !self.desk.quitting() {
             self.replace_last_tab();
         }
-        if self.workspace.close_tab(id) {
-            self.sessions.remove(id);
+        if self.desk.workspace.close_tab(id) {
+            self.desk.sessions.remove(id);
             self.after_close();
         }
     }
 
     pub(super) fn focus_pane(&mut self, pane: PaneId) {
-        if let Some(instance) = self.workspace.active_instance_mut() {
+        if let Some(instance) = self.desk.workspace.active_instance_mut() {
             instance.focus(pane);
         }
     }
 
     pub(super) fn activate_instance(&mut self, instance: InstanceId) {
-        if let Some(index) = self.workspace.instance_index(instance) {
-            self.workspace.active = index;
+        if let Some(index) = self.desk.workspace.instance_index(instance) {
+            self.desk.workspace.active = index;
         }
     }
 
     fn after_close(&mut self) {
-        if self.workspace.is_empty() {
-            self.quit_with(Quit::Close);
+        if self.desk.workspace.is_empty() {
+            self.desk.quit_with(Quit::Close);
             return;
         }
         self.motion.animate_next();

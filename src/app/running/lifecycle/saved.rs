@@ -16,8 +16,8 @@ type SavedTabs = HashMap<SessionId, TabSnapshot>;
 
 impl Running {
     pub(super) fn save_deadline(&mut self) -> Option<Instant> {
-        self.saver.watch(&self.workspace);
-        let due = self.saver.due()?;
+        self.desk.saver.watch(&self.desk.workspace);
+        let due = self.desk.saver.due()?;
         if due > Instant::now() {
             return Some(due);
         }
@@ -26,10 +26,10 @@ impl Running {
     }
 
     pub(super) fn save_session(&mut self, resume: bool) {
-        self.transcripts.assign(&self.workspace.tabs());
-        let sessions = &self.sessions;
-        let transcripts = &self.transcripts;
-        let keeps_text = resume || self.preferences.recalls(Recall::Text);
+        self.desk.transcripts.assign(&self.desk.workspace.tabs());
+        let sessions = &self.desk.sessions;
+        let transcripts = &self.desk.transcripts;
+        let keeps_text = resume || self.desk.preferences.recalls(Recall::Text);
         let describe = |id: SessionId| TabSnapshot {
             cwd: sessions.cwd(id),
             transcript: transcripts
@@ -38,12 +38,18 @@ impl Running {
                 .map(str::to_owned),
             ..TabSnapshot::default()
         };
-        let mut snapshot = self.workspace.snapshot(self.preferences.clone(), &describe);
+        let mut snapshot = self
+            .desk
+            .workspace
+            .snapshot(self.desk.preferences.clone(), &describe);
         snapshot.resume = resume;
-        snapshot.window = self.saver.remember_window(window::snapshot(&self.window));
-        let kept = self.saver.keeps_session();
-        self.saver.save(&snapshot);
-        if self.saver.keeps_session() != kept {
+        snapshot.window = self
+            .desk
+            .saver
+            .remember_window(window::snapshot(&self.window));
+        let kept = self.desk.saver.keeps_session();
+        self.desk.saver.save(&snapshot);
+        if self.desk.saver.keeps_session() != kept {
             self.changed();
         }
     }
@@ -53,7 +59,7 @@ impl Running {
             return false;
         };
         let mut tabs = SavedTabs::new();
-        let sessions = &mut self.sessions;
+        let sessions = &mut self.desk.sessions;
         let restored = Workspace::restore(&saved, &mut |tab| {
             let id = sessions.reserve();
             tabs.insert(id, tab.clone());
@@ -61,8 +67,10 @@ impl Running {
         });
         match restored {
             Ok(workspace) => {
-                self.workspace = workspace;
-                self.workspace.set_numbering(self.preferences.numbering);
+                self.desk.workspace = workspace;
+                self.desk
+                    .workspace
+                    .set_numbering(self.desk.preferences.numbering);
             }
             Err(error) => {
                 log_error!("{error}, starting a fresh session");
@@ -72,24 +80,25 @@ impl Running {
         self.relayout();
         self.defer_restored(tabs, saved.resume);
         self.start_shown();
-        if self.workspace.is_empty() {
+        if self.desk.workspace.is_empty() {
             return false;
         }
-        self.saver.baseline(&self.workspace);
+        self.desk.saver.baseline(&self.desk.workspace);
         self.changed();
         true
     }
 
     fn defer_restored(&mut self, mut tabs: SavedTabs, resume: bool) {
-        let keeps_text = resume || self.preferences.recalls(Recall::Text);
-        for id in self.workspace.tabs() {
+        let keeps_text = resume || self.desk.preferences.recalls(Recall::Text);
+        for id in self.desk.workspace.tabs() {
             let saved = tabs.remove(&id).unwrap_or_default();
             let waiting = Waiting {
                 transcript: saved.transcript.clone().filter(|_| keeps_text),
             };
-            self.sessions
+            self.desk
+                .sessions
                 .defer(id, existing_or_home(saved.cwd), waiting);
-            self.transcripts.adopt(id, saved.transcript.as_deref());
+            self.desk.transcripts.adopt(id, saved.transcript.as_deref());
         }
     }
 }

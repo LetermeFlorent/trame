@@ -1,8 +1,7 @@
 use std::time::{Duration, Instant};
 
+use trame::desk::Restarts;
 use trame::session::SessionId;
-
-use super::restarts::Restarts;
 
 const SOON: Duration = Duration::from_secs(1);
 const LATER: Duration = Duration::from_secs(60);

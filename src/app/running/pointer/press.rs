@@ -28,7 +28,9 @@ impl Running {
             }
             Hit::TitleBar => return report(self.window.drag_window(), "move"),
             Hit::Backdrop if self.settings.is_some() => return self.toggle_settings(),
-            Hit::Tab(_, id) | Hit::Row(SidebarItem::Tab(id)) => self.workspace.activate_tab(id),
+            Hit::Tab(_, id) | Hit::Row(SidebarItem::Tab(id)) => {
+                self.desk.workspace.activate_tab(id)
+            }
             Hit::Row(SidebarItem::Instance(instance)) | Hit::RailInstance(instance) => {
                 self.activate_instance(instance)
             }
@@ -44,7 +46,7 @@ impl Running {
     fn double_press(&mut self, exiting: bool, hit: Hit) -> bool {
         match hit {
             Hit::TitleBar => self.toggle_maximized(),
-            Hit::Tab(_, tab) if self.primary_held() => self.workspace.toggle_even_tabs(tab),
+            Hit::Tab(_, tab) if self.primary_held() => self.desk.workspace.toggle_even_tabs(tab),
             Hit::TabBar(pane) => {
                 self.focus_pane(pane);
                 self.command(exiting, Command::NewTab);
@@ -86,7 +88,7 @@ impl Running {
             Hit::RowClose(SidebarItem::Tab(id)) | Hit::TabClose(_, id) => {
                 self.close_tab(exiting, id)
             }
-            Hit::RowFold(id) => self.workspace.toggle_folded(id),
+            Hit::RowFold(id) => self.desk.workspace.toggle_folded(id),
             Hit::NewTab(pane) => self.open_adding_menu(exiting, pane),
             Hit::Split(pane) => {
                 self.focus_pane(pane);

@@ -3,39 +3,25 @@ use trame::host::quit::{Quit, Restart};
 
 use crate::app::running::Running;
 
-#[derive(Default)]
-pub(in crate::app::running) struct UpdateState {
-    pub(in crate::app::running) offer: Option<Offer>,
-    pub(in crate::app::running) failed: bool,
-    pub(in crate::app::running) restarting: bool,
-}
-
 impl Running {
     pub fn offer_update(&mut self, offer: Offer) {
-        self.update.offer = Some(offer);
-        self.changed();
-    }
-
-    pub(in crate::app::running) fn restart_for_update(&mut self) {
-        if self.update.offer.is_some() {
-            self.quit_with(Quit::Restart(Restart::Update));
-        }
+        let effects = self.desk.offer_update(offer);
+        self.apply(effects);
     }
 
     pub(in crate::app::running) fn restart_if_card_lost(&mut self) {
-        if !self.update.restarting && self.graphics.is_lost() {
-            self.quit_with(Quit::Restart(Restart::Again));
+        if !self.desk.update.restarting && self.graphics.is_lost() {
+            self.desk.quit_with(Quit::Restart(Restart::Again));
         }
     }
 
     pub fn update_failed(&mut self) {
-        self.update.failed = true;
-        self.changed();
+        let effects = self.desk.update_failed();
+        self.apply(effects);
     }
 
     pub fn mark_restarting(&mut self) {
-        self.update.restarting = true;
-        self.saver.stop();
+        self.desk.mark_restarting();
     }
 }
 

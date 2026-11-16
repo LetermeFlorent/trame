@@ -13,7 +13,7 @@ impl Running {
             return false;
         };
         let first = *first;
-        let listed = |index: usize| self.preferences.custom_colors.get(index).copied();
+        let listed = |index: usize| self.desk.preferences.custom_colors.get(index).copied();
         match control {
             ListControl::Pick(index) => {
                 if let Some(color) = listed(index) {
@@ -22,12 +22,12 @@ impl Running {
             }
             ListControl::Change(index) => {
                 if let Some(color) = listed(index) {
-                    let rgb = rgb_of(self.theme.swatch(color));
+                    let rgb = rgb_of(self.desk.theme.swatch(color));
                     self.open_picker(Picker::new(Some(index), rgb, first));
                 }
             }
             ListControl::Forget(index) => {
-                let next = self.preferences.without_custom_color(index);
+                let next = self.desk.preferences.without_custom_color(index);
                 self.set_preferences(next);
             }
             ListControl::Thumb | ListControl::Track => return false,
@@ -63,7 +63,9 @@ impl Running {
             return;
         };
         let color = self.color_of(editing.target);
-        let shown = color.map_or(self.theme.accent, |color| self.theme.swatch(color));
+        let shown = color.map_or(self.desk.theme.accent, |color| {
+            self.desk.theme.swatch(color)
+        });
         self.open_picker(Picker::new(None, rgb_of(shown), first));
     }
 
@@ -79,12 +81,12 @@ impl Running {
         picker: &Picker,
     ) {
         let color = Swatch::custom(picker.hsv.to_rgb());
-        let custom = &self.preferences.custom_colors;
+        let custom = &self.desk.preferences.custom_colors;
         let old = picker.slot.and_then(|slot| custom.get(slot).copied());
-        let next = self.preferences.with_custom_color(picker.slot, color);
+        let next = self.desk.preferences.with_custom_color(picker.slot, color);
         self.set_preferences(next);
         if let Some(old) = old.filter(|old| *old != color) {
-            self.workspace.replace_color(old, color);
+            self.desk.workspace.replace_color(old, color);
         }
         self.paint_target(target, Some(color));
     }
@@ -99,15 +101,19 @@ impl Running {
 
     pub(in crate::app::running::editing) fn color_of(&self, target: EditTarget) -> Option<Swatch> {
         match target {
-            EditTarget::Tab(id) => self.workspace.tab_color(id),
-            EditTarget::Instance(id) => self.workspace.instance(id)?.color,
+            EditTarget::Tab(id) => self.desk.workspace.tab_color(id),
+            EditTarget::Instance(id) => self.desk.workspace.instance(id)?.color,
         }
     }
 
     pub(in crate::app::running::editing) fn fill_of(&self, target: EditTarget) -> bool {
         match target {
-            EditTarget::Tab(id) => self.workspace.tab_fill(id),
-            EditTarget::Instance(id) => self.workspace.instance(id).is_some_and(|item| item.fill),
+            EditTarget::Tab(id) => self.desk.workspace.tab_fill(id),
+            EditTarget::Instance(id) => self
+                .desk
+                .workspace
+                .instance(id)
+                .is_some_and(|item| item.fill),
         }
     }
 

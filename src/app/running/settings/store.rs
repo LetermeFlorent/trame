@@ -44,12 +44,12 @@ impl Running {
                 if *original != host || secret.is_none() {
                     vault::SSH.forget(original);
                 }
-                self.set_preferences(self.preferences.replace_host(original, host.clone()));
+                self.set_preferences(self.desk.preferences.replace_host(original, host.clone()));
                 host
             }
             None => {
                 let host = kept_in_config(host);
-                self.set_preferences(self.preferences.remember_host(host.clone()));
+                self.set_preferences(self.desk.preferences.remember_host(host.clone()));
                 host
             }
         };

@@ -19,7 +19,7 @@ pub(in crate::app::running) enum Scroll {
 
 impl Running {
     pub(in crate::app::running) fn scroll_active(&mut self, scroll: Scroll) {
-        let Some(session) = self.sessions.active(&self.workspace) else {
+        let Some(session) = self.desk.sessions.active(&self.desk.workspace) else {
             return;
         };
         let id = session.id();
@@ -28,7 +28,7 @@ impl Running {
         match scroll {
             Scroll::Pages(pages) => {
                 let page = screen.rows().saturating_sub(1).max(1) as isize;
-                let smooth = self.preferences.smooth_scroll;
+                let smooth = self.desk.preferences.smooth_scroll;
                 scroll_history(&mut self.motion, id, screen, pages * page, smooth);
             }
             Scroll::Top => {
@@ -80,14 +80,14 @@ impl Running {
     }
 
     fn scroll_session(&mut self, id: SessionId, lines: isize) {
-        let Some(session) = self.sessions.get(id) else {
+        let Some(session) = self.desk.sessions.get(id) else {
             return;
         };
         let mut terminal = session.terminal();
         let modes = terminal.screen().modes();
         match wheel_action(lines, modes) {
             WheelAction::History(lines) => {
-                let smooth = self.preferences.smooth_scroll;
+                let smooth = self.desk.preferences.smooth_scroll;
                 scroll_history(&mut self.motion, id, terminal.screen_mut(), lines, smooth);
                 drop(terminal);
                 self.window.request_redraw();

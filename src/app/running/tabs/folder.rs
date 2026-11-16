@@ -30,7 +30,7 @@ impl Running {
     pub(in crate::app::running) fn ask_folder(&self, target: FolderTarget, start: Option<PathBuf>) {
         let request = PickRequest {
             owner: window::owner(&self.window),
-            title: self.strings.pick_folder.to_owned(),
+            title: self.desk.strings.pick_folder.to_owned(),
             start,
         };
         let proxy = self.proxy.clone();
@@ -48,13 +48,16 @@ impl Running {
         match target {
             FolderTarget::Default => {
                 let next = self
+                    .desk
                     .preferences
                     .with(|next| next.default_folder = Some(folder));
                 self.set_preferences(next);
             }
             FolderTarget::Instance(id) => {
-                self.workspace.set_instance_folder(id, Some(folder.clone()));
-                let tabs = self.workspace.instance(id).map(Instance::tabs);
+                self.desk
+                    .workspace
+                    .set_instance_folder(id, Some(folder.clone()));
+                let tabs = self.desk.workspace.instance(id).map(Instance::tabs);
                 self.relaunch(tabs.unwrap_or_default(), &folder);
             }
             FolderTarget::Tab(id) => self.relaunch(vec![id], &folder),
@@ -63,8 +66,9 @@ impl Running {
 
     pub(super) fn start_folder(&self, placement: Placement) -> Option<PathBuf> {
         let chosen = match placement {
-            Placement::Instance => self.preferences.default_folder.clone(),
+            Placement::Instance => self.desk.preferences.default_folder.clone(),
             Placement::Tab | Placement::Split(_) => self
+                .desk
                 .workspace
                 .active_instance()
                 .and_then(|instance| instance.folder.clone()),
@@ -75,22 +79,24 @@ impl Running {
 
     pub(in crate::app::running) fn folder_of(&self, target: FolderTarget) -> Option<PathBuf> {
         match target {
-            FolderTarget::Default => self.preferences.default_folder.clone(),
+            FolderTarget::Default => self.desk.preferences.default_folder.clone(),
             FolderTarget::Instance(id) => {
-                let instance = self.workspace.instance(id)?;
-                let current = instance.active_tab().and_then(|tab| self.sessions.cwd(tab));
+                let instance = self.desk.workspace.instance(id)?;
+                let current = instance
+                    .active_tab()
+                    .and_then(|tab| self.desk.sessions.cwd(tab));
                 instance.folder.clone().or(current)
             }
-            FolderTarget::Tab(id) => self.sessions.cwd(id),
+            FolderTarget::Tab(id) => self.desk.sessions.cwd(id),
         }
     }
 
     fn relaunch(&mut self, tabs: Vec<SessionId>, folder: &Path) {
         let mut fresh = Vec::with_capacity(tabs.len());
         for old in tabs {
-            let new = self.sessions.reserve();
-            if self.workspace.replace_tab(old, new) {
-                self.sessions.remove(old);
+            let new = self.desk.sessions.reserve();
+            if self.desk.workspace.replace_tab(old, new) {
+                self.desk.sessions.remove(old);
                 fresh.push(new);
             }
         }

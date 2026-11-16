@@ -10,25 +10,25 @@ impl Running {
     }
 
     pub fn slot(&self) -> usize {
-        self.saver.slot().index()
+        self.desk.saver.slot().index()
     }
 
     pub fn preferences(&self) -> &Preferences {
-        &self.preferences
+        &self.desk.preferences
     }
 
     pub fn follow_preferences(&mut self, preferences: &Preferences) {
-        if preferences != &self.preferences {
+        if preferences != &self.desk.preferences {
             self.set_preferences(preferences.clone());
         }
     }
 
     pub fn rests(&self) -> bool {
-        self.power.rests()
+        self.desk.power.rests()
     }
 
     pub fn hidden(&self) -> bool {
-        self.power.hidden()
+        self.desk.power.hidden()
     }
 
     pub fn bring_forward(&self) {
@@ -36,6 +36,6 @@ impl Running {
     }
 
     pub fn retire(&mut self) {
-        self.transcripts.flush();
+        self.desk.transcripts.flush();
     }
 }

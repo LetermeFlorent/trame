@@ -33,7 +33,7 @@ impl Running {
             log_error!("{alias} could not be removed from the SSH config: {error}");
         }
         vault::SSH.forget(host);
-        self.set_preferences(self.preferences.forget_host(host));
+        self.set_preferences(self.desk.preferences.forget_host(host));
         self.reload_hosts();
     }
 }

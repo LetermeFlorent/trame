@@ -15,11 +15,13 @@ impl Running {
             Command::SplitRight => self.open_or_report(Placement::Split(Edge::Right)),
             Command::SplitDown => self.open_or_report(Placement::Split(Edge::Bottom)),
             Command::CloseTab => {
-                if let Some(id) = self.workspace.active_tab() {
+                if let Some(id) = self.desk.workspace.active_tab() {
                     self.close_tab(exiting, id);
                 }
             }
-            Command::ToggleSidebar => self.workspace.sidebar = self.workspace.sidebar.next(),
+            Command::ToggleSidebar => {
+                self.desk.workspace.sidebar = self.desk.workspace.sidebar.next()
+            }
             Command::Copy => self.copy_shortcut(),
             Command::Paste => self.paste(),
             Command::NextTab => self.cycle_tab(1),
@@ -27,10 +29,10 @@ impl Running {
             Command::NextInstance => self.cycle_instance(1),
             Command::PreviousInstance => self.cycle_instance(-1),
             Command::FocusPane(edge) => self.focus_neighbor(edge),
-            Command::FontBigger => self.set_preferences(self.preferences.step_font_size(1)),
-            Command::FontSmaller => self.set_preferences(self.preferences.step_font_size(-1)),
+            Command::FontBigger => self.set_preferences(self.desk.preferences.step_font_size(1)),
+            Command::FontSmaller => self.set_preferences(self.desk.preferences.step_font_size(-1)),
             Command::FontReset => {
-                self.set_preferences(self.preferences.with_font_size(TERMINAL_FONT_SIZE))
+                self.set_preferences(self.desk.preferences.with_font_size(TERMINAL_FONT_SIZE))
             }
             Command::ScrollPageUp => self.scroll_active(Scroll::Pages(1)),
             Command::ScrollPageDown => self.scroll_active(Scroll::Pages(-1)),
@@ -42,6 +44,7 @@ impl Running {
 
     fn cycle_tab(&mut self, step: isize) {
         if let Some(pane) = self
+            .desk
             .workspace
             .active_instance_mut()
             .and_then(Instance::active_mut)
@@ -51,10 +54,10 @@ impl Running {
     }
 
     fn cycle_instance(&mut self, step: isize) {
-        let count = self.workspace.instances.len() as isize;
+        let count = self.desk.workspace.instances.len() as isize;
         if count > 1 {
-            let next = (self.workspace.active as isize + step).rem_euclid(count);
-            self.workspace.active = next as usize;
+            let next = (self.desk.workspace.active as isize + step).rem_euclid(count);
+            self.desk.workspace.active = next as usize;
         }
     }
 
@@ -68,7 +71,7 @@ impl Running {
                 .collect(),
             dividers: Vec::new(),
         };
-        let Some(instance) = self.workspace.active_instance_mut() else {
+        let Some(instance) = self.desk.workspace.active_instance_mut() else {
             return;
         };
         if let Some(next) = layout.neighbor(instance.active_pane, edge) {

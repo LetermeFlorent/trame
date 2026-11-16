@@ -34,13 +34,13 @@ impl Running {
             title: &question.title,
             lines: &lines,
             actions: question.actions,
-            strings: self.strings,
+            strings: self.desk.strings,
         };
         self.frame.place_message(&mut self.text, &request);
     }
 
     fn question(&mut self, closing: Closing) -> Option<Question> {
-        let strings = self.strings;
+        let strings = self.desk.strings;
         if let Closing::Forget(index) = closing {
             let host = self.listed_host(index)?;
             return Some(Question {
@@ -57,7 +57,7 @@ impl Running {
             });
         }
         if let Closing::Update = closing {
-            let offer = self.update.offer.as_ref()?;
+            let offer = self.desk.update.offer.as_ref()?;
             return Some(Question {
                 title: offer.question(strings),
                 body: strings.update_restarts.to_owned(),

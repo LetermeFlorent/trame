@@ -13,7 +13,7 @@ impl Running {
         if self.graphics.take_fresh() {
             self.changed();
         }
-        self.power.tick(Instant::now());
+        self.desk.power.tick(Instant::now());
         self.compact_rested();
         self.restart_if_card_lost();
     }
@@ -25,35 +25,40 @@ impl Running {
             .iter()
             .filter_map(|pane| pane.active)
             .collect();
-        let tabs = self.sessions.map().iter().filter_map(|(&id, session)| {
-            let shell = session.shell_id()?;
-            Some(Shown {
-                id,
-                shell,
-                shown: shown.contains(&id),
-            })
-        });
-        self.power.set_tabs(tabs);
+        let tabs = self
+            .desk
+            .sessions
+            .map()
+            .iter()
+            .filter_map(|(&id, session)| {
+                let shell = session.shell_id()?;
+                Some(Shown {
+                    id,
+                    shell,
+                    shown: shown.contains(&id),
+                })
+            });
+        self.desk.power.set_tabs(tabs);
     }
 
     fn compact_rested(&mut self) {
-        for id in self.power.take_rested() {
-            if let Some(session) = self.sessions.get(id) {
+        for id in self.desk.power.take_rested() {
+            if let Some(session) = self.desk.sessions.get(id) {
                 session.terminal().compact();
             }
         }
     }
 
     pub(in crate::app::running) fn clear_color(&self) -> Rgba {
-        self.theme.chrome
+        self.desk.theme.chrome
     }
 
     pub(in crate::app::running) fn apply_system(&mut self, previous: &Preferences) {
-        let current = &self.preferences;
-        self.workspace.set_numbering(current.numbering);
+        let current = &self.desk.preferences;
+        self.desk.workspace.set_numbering(current.numbering);
         let wanted = current.power_switches();
         if previous.power_switches() != wanted {
-            self.power.set_enabled(wanted);
+            self.desk.power.set_enabled(wanted);
         }
     }
 }

@@ -27,52 +27,56 @@ pub struct MovedInstance {
 
 impl Running {
     pub fn can_tear(&self, tab: SessionId) -> bool {
-        self.workspace.locate(tab).is_some() && !self.workspace.is_only_tab(tab)
+        self.desk.workspace.locate(tab).is_some() && !self.desk.workspace.is_only_tab(tab)
     }
 
     pub fn tear_tab(&mut self, tab: SessionId) -> Option<TornTab> {
-        let mark = self.workspace.take_tab(tab)?;
-        let leaving = self.sessions.hand_off(tab);
+        let mark = self.desk.workspace.take_tab(tab)?;
+        let leaving = self.desk.sessions.hand_off(tab);
         self.after_close();
         Some(TornTab { leaving, mark })
     }
 
     pub fn give_instance(&mut self, id: InstanceId) -> Option<MovedInstance> {
-        let moving = self.workspace.take_instance(id)?;
+        let moving = self.desk.workspace.take_instance(id)?;
         let tabs = moving.instance.tabs();
         let sessions = tabs
             .into_iter()
-            .map(|tab| (tab, self.sessions.hand_off(tab)))
+            .map(|tab| (tab, self.desk.sessions.hand_off(tab)))
             .collect();
         self.after_close();
         Some(MovedInstance { moving, sessions })
     }
 
     pub(in crate::app::running) fn take_torn_tab(&mut self, torn: TornTab) {
-        let id = self.sessions.take_in(torn.leaving);
-        self.workspace.add_instance(None, id);
-        self.workspace.mark_tab(id, torn.mark);
+        let id = self.desk.sessions.take_in(torn.leaving);
+        self.desk.workspace.add_instance(None, id);
+        self.desk.workspace.mark_tab(id, torn.mark);
         self.relayout();
         self.start_shown();
         self.changed();
     }
 
     pub fn take_dropped_tab(&mut self, torn: TornTab, at: PhysicalPosition<i32>) {
-        let id = self.sessions.take_in(torn.leaving);
+        let id = self.desk.sessions.take_in(torn.leaving);
         let point = self.client_point(at);
         if let Some(index) = point.and_then(|point| self.instance_target(point)) {
-            self.workspace.active = index;
+            self.desk.workspace.active = index;
         }
-        self.workspace.add_tab(id);
-        self.workspace.mark_tab(id, torn.mark);
-        let instance = self.workspace.active_instance().map(|instance| instance.id);
+        self.desk.workspace.add_tab(id);
+        self.desk.workspace.mark_tab(id, torn.mark);
+        let instance = self
+            .desk
+            .workspace
+            .active_instance()
+            .map(|instance| instance.id);
         let spot = point
             .zip(instance)
             .and_then(|(point, instance)| self.frame.drop_at(point, instance));
         if let Some(spot) = spot {
-            self.workspace.move_tab(id, spot.target);
+            self.desk.workspace.move_tab(id, spot.target);
         }
-        self.workspace.activate_tab(id);
+        self.desk.workspace.activate_tab(id);
         self.welcome();
     }
 
@@ -80,13 +84,15 @@ impl Running {
         let renamed: HashMap<SessionId, SessionId> = moved
             .sessions
             .into_iter()
-            .map(|(old, leaving)| (old, self.sessions.take_in(leaving)))
+            .map(|(old, leaving)| (old, self.desk.sessions.take_in(leaving)))
             .collect();
         let index = self
             .client_point(at)
             .and_then(|point| self.instance_target(point));
-        let index = index.unwrap_or(self.workspace.instances.len());
-        self.workspace.adopt_instance(moved.moving, &renamed, index);
+        let index = index.unwrap_or(self.desk.workspace.instances.len());
+        self.desk
+            .workspace
+            .adopt_instance(moved.moving, &renamed, index);
         self.welcome();
     }
 

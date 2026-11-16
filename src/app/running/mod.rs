@@ -1,4 +1,5 @@
 mod editing;
+mod effects;
 mod frame;
 mod keys;
 mod lifecycle;
@@ -16,22 +17,14 @@ use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
-use trame::desk::Sessions;
-use trame::files::IconStore;
+use trame::desk::Desk;
 use trame::geometry::Point;
-use trame::host::persist::Saver;
-use trame::host::power::Power;
-use trame::host::quit::Quit;
 use trame::input::{Keymap, Overrides};
-use trame::locale::Strings;
-use trame::preferences::Preferences;
 use trame::render::Scene;
-use trame::session::{SessionEvent, SessionId, Transcripts};
+use trame::session::{SessionEvent, SessionId};
 use trame::text::TextSystem;
-use trame::theme::Theme;
 use trame::ui::terminal::links::LinkCache;
 use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
-use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
 use super::notice::Notifier;
@@ -40,29 +33,22 @@ use super::{AppEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
 use keys::Memo;
-use lifecycle::UpdateState;
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
-use tabs::{Closing, Restarts};
+use tabs::Closing;
 pub use tabs::{FolderTarget, Lifted};
 
 pub struct Running {
+    desk: Desk,
     window: Arc<Window>,
     graphics: Graphics,
     text: TextSystem,
     scene: Scene,
-    theme: Theme,
     metrics: UiMetrics,
     window_scale: f32,
-    preferences: Preferences,
     keymap: Memo<Overrides, Keymap>,
-    workspace: Workspace,
-    sessions: Sessions,
     links: RefCell<LinkCache>,
     proxy: EventLoopProxy<AppEvent>,
-    saver: Saver,
-    transcripts: Transcripts,
-    icons: IconStore,
     labels: HashMap<SessionId, String>,
     frame: FrameLayout,
     motion: Motion,
@@ -77,20 +63,15 @@ pub struct Running {
     modifiers: ModifiersState,
     visibility: Visibility,
     loader: Option<Loader>,
-    update: UpdateState,
-    restarts: Restarts,
-    power: Power,
     notifier: Notifier,
     closing: Option<Closing>,
-    quit: Option<Quit>,
-    strings: &'static Strings,
 }
 
 impl Running {
     pub fn session_event(&mut self, exiting: bool, event: SessionEvent) {
         match event {
             SessionEvent::Output(id) => {
-                self.power.output(id);
+                self.desk.power.output(id);
                 self.output(id);
             }
             SessionEvent::Exited(id) => self.shell_exited(exiting, id),
@@ -99,7 +80,7 @@ impl Running {
 
     pub fn window_event(&mut self, event_loop: &ActiveEventLoop, event: WindowEvent) {
         if !matches!(event, WindowEvent::RedrawRequested) {
-            self.power.touch();
+            self.desk.power.touch();
         }
         match event {
             WindowEvent::CloseRequested => self.ask_close(Closing::Window),

@@ -109,7 +109,7 @@ impl Running {
             EditMode::Form(panel) => EditKind::Connect(panel.view()),
             EditMode::Color { first } => EditKind::Color(ColorsView {
                 selected: self.color_of(editing.target),
-                custom: &self.preferences.custom_colors,
+                custom: &self.desk.preferences.custom_colors,
                 first: *first,
                 filled: self.fill_of(editing.target),
             }),
@@ -123,7 +123,7 @@ impl Running {
             target: editing.target,
             anchor: editing.anchor,
             kind,
-            strings: self.strings,
+            strings: self.desk.strings,
         };
         self.frame.place_editor(&mut self.text, &request);
         if self.frame.editor.is_none() {
@@ -135,9 +135,14 @@ impl Running {
         match target {
             EditTarget::Tab(id) => self.tab_title(id),
             EditTarget::Instance(id) => self
+                .desk
                 .workspace
                 .instance(id)
-                .map(|instance| instance.shown_name(self.strings.instance_name).into_owned())
+                .map(|instance| {
+                    instance
+                        .shown_name(self.desk.strings.instance_name)
+                        .into_owned()
+                })
                 .unwrap_or_default(),
         }
     }

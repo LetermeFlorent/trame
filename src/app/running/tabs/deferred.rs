@@ -10,7 +10,7 @@ impl Running {
             .panes
             .iter()
             .filter_map(|pane| pane.active)
-            .filter(|id| self.sessions.is_waiting(*id))
+            .filter(|id| self.desk.sessions.is_waiting(*id))
             .collect();
         for id in &shown {
             self.start_waiting(*id);
@@ -19,13 +19,13 @@ impl Running {
     }
 
     fn start_waiting(&mut self, id: SessionId) {
-        let Some(waiting) = self.sessions.take_waiting(id) else {
+        let Some(waiting) = self.desk.sessions.take_waiting(id) else {
             return;
         };
-        let cwd = self.sessions.cwd(id);
+        let cwd = self.desk.sessions.cwd(id);
         let text = waiting
             .transcript
-            .map(|key| self.transcripts.read(&key).unwrap_or_default());
+            .map(|key| self.desk.transcripts.read(&key).unwrap_or_default());
         if let Err(error) = self.start_shell(id, cwd.as_deref(), text.as_deref()) {
             log_error!("a saved shell could not start: {error}");
         }

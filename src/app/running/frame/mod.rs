@@ -79,28 +79,30 @@ impl Running {
         if !window::has_area(&self.window) {
             return;
         }
-        let visible = self.workspace.active_instance().map(Instance::tabs);
+        let visible = self.desk.workspace.active_instance().map(Instance::tabs);
         self.labels = visible
             .unwrap_or_default()
             .into_iter()
-            .map(|id| (id, self.sessions.label(id)))
+            .map(|id| (id, self.desk.sessions.label(id)))
             .collect();
-        let title = |id: SessionId| title_of(&self.workspace, &self.labels, &self.sessions, id);
+        let title =
+            |id: SessionId| title_of(&self.desk.workspace, &self.labels, &self.desk.sessions, id);
         let folder = self.active_folder();
         let update = self
+            .desk
             .update
             .offer
             .as_ref()
-            .map(|offer| offer.label(self.strings));
+            .map(|offer| offer.label(self.desk.strings));
         let layout = LayoutInput {
-            workspace: &self.workspace,
+            workspace: &self.desk.workspace,
             window: &self.window,
             metrics: self.metrics,
             folder: folder.as_deref(),
             update: update.as_deref(),
-            unsaved: !self.saver.keeps_session(),
-            update_failed: self.update.failed,
-            strings: self.strings,
+            unsaved: !self.desk.saver.keeps_session(),
+            update_failed: self.desk.update.failed,
+            strings: self.desk.strings,
         };
         self.motion.tick(Instant::now());
         self.frame = compute(&mut self.text, &layout, &mut self.motion, &title);
@@ -116,16 +118,16 @@ impl Running {
     }
 
     fn mark_sessions(&mut self) {
-        let sessions = &self.sessions;
+        let sessions = &self.desk.sessions;
         self.frame
-            .mark_working(&self.workspace, |id| sessions.working(id));
+            .mark_working(&self.desk.workspace, |id| sessions.working(id));
         self.frame
-            .mark_offline(&mut self.text, self.strings, |id| sessions.offline(id));
+            .mark_offline(&mut self.text, self.desk.strings, |id| sessions.offline(id));
     }
 
     pub(super) fn active_folder(&self) -> Option<PathBuf> {
-        let tab = self.workspace.active_tab()?;
-        self.sessions.cwd(tab)
+        let tab = self.desk.workspace.active_tab()?;
+        self.desk.sessions.cwd(tab)
     }
 
     pub(super) fn pane_showing(&self, id: SessionId) -> Option<&PaneFrame> {
@@ -133,7 +135,7 @@ impl Running {
     }
 
     pub(super) fn tab_title(&self, id: SessionId) -> String {
-        title_of(&self.workspace, &self.labels, &self.sessions, id)
+        title_of(&self.desk.workspace, &self.labels, &self.desk.sessions, id)
     }
 
     fn sync_sizes(&mut self) {
@@ -141,7 +143,7 @@ impl Running {
         for pane in &self.frame.panes {
             let size = pane.grid_size(&cell);
             for tab in &pane.tabs {
-                self.sessions.resize(*tab, size);
+                self.desk.sessions.resize(*tab, size);
             }
         }
     }

@@ -39,13 +39,13 @@ impl Running {
     pub(super) fn emblem_of(&self, target: EditTarget) -> Option<Emblem> {
         match target {
             EditTarget::Tab(_) => None,
-            EditTarget::Instance(id) => Some(self.workspace.instance(id)?.emblem),
+            EditTarget::Instance(id) => Some(self.desk.workspace.instance(id)?.emblem),
         }
     }
 
     pub(super) fn set_emblem(&mut self, target: EditTarget, emblem: Emblem) {
         if let EditTarget::Instance(id) = target {
-            self.workspace.set_instance_emblem(id, emblem);
+            self.desk.workspace.set_instance_emblem(id, emblem);
         }
     }
 
@@ -54,13 +54,13 @@ impl Running {
         else {
             return;
         };
-        let Some(dir) = self.icons.dir().map(ToOwned::to_owned) else {
+        let Some(dir) = self.desk.icons.dir().map(ToOwned::to_owned) else {
             log_error!("there is no folder to keep icons in");
             return;
         };
         let request = PickRequest {
             owner: window::owner(&self.window),
-            title: self.strings.pick_image.to_owned(),
+            title: self.desk.strings.pick_image.to_owned(),
             start: None,
         };
         let proxy = self.proxy.clone();
@@ -74,7 +74,7 @@ impl Running {
     }
 
     pub fn icon_picked(&mut self, id: InstanceId, image: u64) {
-        self.icons.reload(image);
+        self.desk.icons.reload(image);
         let target = EditTarget::Instance(id);
         if self
             .editing

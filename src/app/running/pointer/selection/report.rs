@@ -42,6 +42,7 @@ impl Running {
 
     pub(super) fn reports_mouse(&self, id: SessionId) -> bool {
         let modes = self
+            .desk
             .sessions
             .get(id)
             .map(|session| session.terminal().screen().modes());
@@ -56,7 +57,7 @@ impl Running {
         held: Option<MouseButton>,
         cell: Cell,
     ) {
-        let Some(session) = self.sessions.get(id) else {
+        let Some(session) = self.desk.sessions.get(id) else {
             return;
         };
         let modes = session.terminal().screen().modes();

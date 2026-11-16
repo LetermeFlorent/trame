@@ -52,7 +52,7 @@ impl Running {
         event_loop: &ActiveEventLoop,
         label: &str,
     ) -> Result<CustomCursor, Box<dyn Error>> {
-        let scene = ghost_scene(&mut self.text, &self.theme, self.metrics, label);
+        let scene = ghost_scene(&mut self.text, &self.desk.theme, self.metrics, label);
         let mut pixels = self.graphics.render_image(&scene, self.text.atlas_mut())?;
         let width = scene.width() as u16;
         let height = scene.height() as u16;

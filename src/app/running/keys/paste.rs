@@ -20,12 +20,12 @@ impl Running {
         let Some(text) = read_terminal_clipboard() else {
             return;
         };
-        let Some(session) = self.sessions.active(&self.workspace) else {
+        let Some(session) = self.desk.sessions.active(&self.desk.workspace) else {
             return;
         };
         let id = session.id();
         let modes = session.terminal().screen().modes();
-        if !self.preferences.confirm_paste || !asks_before_pasting(&text, modes) {
+        if !self.desk.preferences.confirm_paste || !asks_before_pasting(&text, modes) {
             return self.write_to_active(|modes| paste_bytes(&text, modes));
         }
         if self.closing.is_none() {
@@ -41,14 +41,18 @@ impl Running {
     }
 
     pub(in crate::app::running) fn send_paste(&mut self, pending: &PendingPaste) {
-        let active = self.sessions.active(&self.workspace).map(Session::id);
+        let active = self
+            .desk
+            .sessions
+            .active(&self.desk.workspace)
+            .map(Session::id);
         if active == Some(pending.session) {
             self.write_to_active(|modes| paste_bytes(&pending.text, modes));
         }
     }
 
     fn paste_body(&self, text: &str) -> String {
-        let strings = self.strings;
+        let strings = self.desk.strings;
         let preview = paste_preview(text);
         let mut lines = preview.lines;
         if preview.line_count > lines.len() {

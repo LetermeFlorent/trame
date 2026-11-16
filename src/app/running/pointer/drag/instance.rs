@@ -14,7 +14,7 @@ impl Running {
                     return Some(false);
                 }
                 self.drop_press();
-                (id, self.workspace.instance_index(id)?)
+                (id, self.desk.workspace.instance_index(id)?)
             }
             Some(Drag::Instance(id, start, _)) => (id, start),
             _ => return None,
@@ -26,9 +26,9 @@ impl Running {
     }
 
     pub(super) fn move_instance_to(&mut self, id: InstanceId, target: Option<usize>) {
-        let from = self.workspace.instance_index(id);
+        let from = self.desk.workspace.instance_index(id);
         let moved = match (from, target) {
-            (Some(from), Some(to)) => self.workspace.move_instance(from, to),
+            (Some(from), Some(to)) => self.desk.workspace.move_instance(from, to),
             _ => false,
         };
         if moved {
@@ -39,9 +39,9 @@ impl Running {
     pub(in crate::app::running) fn instance_target(&self, point: Point) -> Option<usize> {
         match self.frame.hit(point, false)? {
             Hit::Row(SidebarItem::Instance(id)) | Hit::RailInstance(id) => {
-                self.workspace.instance_index(id)
+                self.desk.workspace.instance_index(id)
             }
-            Hit::Row(SidebarItem::Tab(tab)) => Some(self.workspace.locate(tab)?.instance),
+            Hit::Row(SidebarItem::Tab(tab)) => Some(self.desk.workspace.locate(tab)?.instance),
             _ => None,
         }
     }

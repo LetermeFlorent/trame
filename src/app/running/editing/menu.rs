@@ -106,8 +106,8 @@ impl Running {
             return;
         };
         let entries = match menu.adding {
-            true => MenuEntry::adding(self.strings).to_vec(),
-            false => edit_entries(menu.target, self.strings),
+            true => MenuEntry::adding(self.desk.strings).to_vec(),
+            false => edit_entries(menu.target, self.desk.strings),
         };
         let request = MenuRequest {
             at: menu.at,

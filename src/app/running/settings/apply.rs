@@ -8,7 +8,7 @@ use crate::app::running::{FolderTarget, Running};
 
 impl Running {
     pub(in crate::app::running) fn apply_setting(&mut self, control: SettingControl) {
-        let current = &self.preferences;
+        let current = &self.desk.preferences;
         let next = match control {
             SettingControl::Close => return self.toggle_settings(),
             SettingControl::Tab(tab) => return self.show_tab(tab),
@@ -36,7 +36,7 @@ impl Running {
             SettingControl::PanelSide(side) => current.with(|next| next.panel_side = side),
             SettingControl::Density(density) => current.with(|next| next.density = density),
             SettingControl::DefaultFolder => {
-                let start = self.preferences.default_folder.clone();
+                let start = self.desk.preferences.default_folder.clone();
                 return self.ask_folder(FolderTarget::Default, start);
             }
             SettingControl::ClearFolder => current.with(|next| next.default_folder = None),
@@ -47,23 +47,24 @@ impl Running {
     }
 
     fn toggle_explorer_menu(&mut self) {
-        let on = !self.preferences.explorer_menu;
-        if let Err(error) = explorer::set_menu(on, self.strings.open_in_trame) {
+        let on = !self.desk.preferences.explorer_menu;
+        if let Err(error) = explorer::set_menu(on, self.desk.strings.open_in_trame) {
             return log_error!("the right-click menu could not change: {error}");
         }
-        let next = self.preferences.with(|next| next.explorer_menu = on);
+        let next = self.desk.preferences.with(|next| next.explorer_menu = on);
         self.set_preferences(next);
     }
 
     fn edit_setting(&mut self, control: SettingControl) {
         let field = match control {
             SettingControl::HistoryLines => {
-                let mut field = TextField::new(&self.preferences.history_lines.to_string());
+                let mut field = TextField::new(&self.desk.preferences.history_lines.to_string());
                 field.select_all();
                 field
             }
             _ => TextField::new(
-                self.preferences
+                self.desk
+                    .preferences
                     .startup_command
                     .as_deref()
                     .unwrap_or_default(),

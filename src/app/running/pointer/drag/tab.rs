@@ -15,13 +15,13 @@ impl Running {
                 if let Some(at) = self.outside_at(pointer) {
                     self.drag = Some(Drag::Out(Lifted::Tab(tab), at));
                 } else if let Some(spot) = self.drop_spot(tab, pointer) {
-                    self.workspace.move_tab(tab, spot.target);
+                    self.desk.workspace.move_tab(tab, spot.target);
                     self.motion.animate_next();
                 }
                 true
             }
             Some(Drag::Instance(id, _, pointer)) => {
-                self.workspace.renumber_after_move();
+                self.desk.workspace.renumber_after_move();
                 if let Some(at) = self.outside_at(pointer) {
                     self.drag = Some(Drag::Out(Lifted::Instance(id), at));
                 }
@@ -62,9 +62,10 @@ impl Running {
     }
 
     fn drop_spot(&self, tab: SessionId, pointer: Point) -> Option<DropSpot> {
-        let instance = self.workspace.active_instance()?.id;
+        let instance = self.desk.workspace.active_instance()?.id;
         let spot = self.frame.drop_at(pointer, instance)?;
-        self.workspace
+        self.desk
+            .workspace
             .clone()
             .move_tab(tab, spot.target)
             .then_some(spot)

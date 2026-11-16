@@ -53,15 +53,15 @@ impl Running {
         for _ in 0..ATLAS_ATTEMPTS {
             self.scene.reset(size.width as f32, size.height as f32);
             let sources = FrameSources {
-                theme: &self.theme,
+                theme: &self.desk.theme,
                 frame: &self.frame,
                 view: &self.view,
-                sessions: self.sessions.map(),
+                sessions: self.desk.sessions.map(),
                 motion: &self.motion,
                 drag: drag.as_ref(),
                 loader: loader.as_ref(),
-                icons: &self.icons,
-                links: self.preferences.detect_links.then_some(&self.links),
+                icons: &self.desk.icons,
+                links: self.desk.preferences.detect_links.then_some(&self.links),
             };
             draw_frame(&mut self.scene, &mut self.text, &sources);
             if !self.text.end_frame() {
@@ -71,16 +71,16 @@ impl Running {
     }
 
     fn load_icons(&mut self) {
-        for instance in &self.workspace.instances {
+        for instance in &self.desk.workspace.instances {
             if let Emblem::Image(id) = instance.emblem {
-                self.icons.load(id);
+                self.desk.icons.load(id);
             }
         }
     }
 
     pub(in crate::app::running) fn output(&mut self, id: SessionId) {
-        self.sessions.output(id);
-        if self.sessions.notice_exit(id) {
+        self.desk.sessions.output(id);
+        if self.desk.sessions.notice_exit(id) {
             self.relayout();
         }
         self.forward_clipboard(id);
@@ -91,7 +91,7 @@ impl Running {
     }
 
     fn relabeled(&self, id: SessionId) -> bool {
-        let Some(session) = self.sessions.get(id) else {
+        let Some(session) = self.desk.sessions.get(id) else {
             return false;
         };
         let known = self.labels.get(&id);

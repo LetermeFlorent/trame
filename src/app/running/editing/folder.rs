@@ -18,7 +18,7 @@ impl Running {
     }
 
     pub(super) fn place_folder(&mut self, shown: Option<String>) {
-        let strings = self.strings;
+        let strings = self.desk.strings;
         let request = MessageRequest {
             title: strings.change_folder,
             lines: &[shown.as_deref().unwrap_or(strings.pick_folder)],

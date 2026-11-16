@@ -49,20 +49,22 @@ impl Running {
 
     pub(in crate::app::running) fn keymap(&mut self) -> &Keymap {
         let platform = self.metrics.platform;
-        self.keymap.get(&self.preferences.shortcuts, |overrides| {
-            Keymap::new(platform, overrides)
-        })
+        self.keymap
+            .get(&self.desk.preferences.shortcuts, |overrides| {
+                Keymap::new(platform, overrides)
+            })
     }
 
     fn claims(&self, command: Command) -> bool {
-        self.sessions
-            .active(&self.workspace)
+        self.desk
+            .sessions
+            .active(&self.desk.workspace)
             .is_none_or(|session| takes_key(command, self.modifiers, &session.terminal()))
     }
 
     pub(in crate::app::running) fn copy_shortcut(&mut self) {
         self.copy_selection();
-        if let Some(session) = self.sessions.active(&self.workspace) {
+        if let Some(session) = self.desk.sessions.active(&self.desk.workspace) {
             after_copy(&mut session.terminal(), self.modifiers);
         }
     }
@@ -71,11 +73,11 @@ impl Running {
         &mut self,
         bytes_for: impl FnOnce(Modes) -> Vec<u8>,
     ) {
-        let Some(session) = self.sessions.active(&self.workspace) else {
+        let Some(session) = self.desk.sessions.active(&self.desk.workspace) else {
             return;
         };
         let id = session.id();
-        if self.sessions.offline(id) {
+        if self.desk.sessions.offline(id) {
             return;
         }
         let bytes = {
@@ -106,7 +108,7 @@ impl Running {
             self.modifiers = ModifiersState::empty();
             self.drop_press();
         }
-        if let Some(session) = self.sessions.active(&self.workspace) {
+        if let Some(session) = self.desk.sessions.active(&self.desk.workspace) {
             let reports = session
                 .terminal()
                 .screen()

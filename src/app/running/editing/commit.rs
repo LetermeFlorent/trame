@@ -7,8 +7,10 @@ impl Running {
     pub(super) fn commit_edit(&mut self) {
         if let Some((control, field)) = self.setting_field.take() {
             let next = match control {
-                SettingControl::HistoryLines => self.preferences.typed_history_lines(field.text()),
-                _ => self.preferences.with_startup_command(field.text()),
+                SettingControl::HistoryLines => {
+                    self.desk.preferences.typed_history_lines(field.text())
+                }
+                _ => self.desk.preferences.with_startup_command(field.text()),
             };
             return self.set_preferences(next);
         }
@@ -63,8 +65,8 @@ impl Running {
             return;
         }
         match target {
-            EditTarget::Tab(id) => self.workspace.rename_tab(id, text),
-            EditTarget::Instance(id) => self.workspace.rename_instance(id, text),
+            EditTarget::Tab(id) => self.desk.workspace.rename_tab(id, text),
+            EditTarget::Instance(id) => self.desk.workspace.rename_instance(id, text),
         }
     }
 
@@ -95,8 +97,8 @@ impl Running {
 
     pub(super) fn paint_target(&mut self, target: EditTarget, color: Option<Swatch>) {
         match target {
-            EditTarget::Tab(id) => self.workspace.set_tab_color(id, color),
-            EditTarget::Instance(id) => self.workspace.set_instance_color(id, color),
+            EditTarget::Tab(id) => self.desk.workspace.set_tab_color(id, color),
+            EditTarget::Instance(id) => self.desk.workspace.set_instance_color(id, color),
         }
     }
 
@@ -106,8 +108,8 @@ impl Running {
         };
         let on = !self.fill_of(target);
         match target {
-            EditTarget::Tab(id) => self.workspace.set_tab_fill(id, on),
-            EditTarget::Instance(id) => self.workspace.set_instance_fill(id, on),
+            EditTarget::Tab(id) => self.desk.workspace.set_tab_fill(id, on),
+            EditTarget::Instance(id) => self.desk.workspace.set_instance_fill(id, on),
         }
     }
 

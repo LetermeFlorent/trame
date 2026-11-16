@@ -15,24 +15,25 @@ impl Running {
 
     pub(in crate::app::running) fn set_preferences(&mut self, preferences: Preferences) {
         let preferences = preferences.sanitized();
-        if preferences == self.preferences {
+        if preferences == self.desk.preferences {
             return;
         }
-        let previous = mem::replace(&mut self.preferences, preferences);
+        let previous = mem::replace(&mut self.desk.preferences, preferences);
         self.apply_system(&previous);
-        let current = &self.preferences;
+        let current = &self.desk.preferences;
         if previous.recalls(Recall::Text) && !current.recalls(Recall::Text) {
-            self.transcripts.clear();
+            self.desk.transcripts.clear();
         }
         if previous.history_lines != current.history_lines {
-            self.sessions.set_history(current.history_lines);
+            self.desk.sessions.set_history(current.history_lines);
         }
         if previous.program_clipboard != current.program_clipboard {
-            self.sessions
+            self.desk
+                .sessions
                 .set_program_clipboard(current.program_clipboard);
         }
-        self.saver.touch();
-        self.strings = current.language.resolve().strings();
+        self.desk.saver.touch();
+        self.desk.strings = current.language.resolve().strings();
         let layout = |kept: &Preferences| {
             let sizes = (kept.font_size, kept.interface_size);
             (sizes, kept.panel_side, kept.density)
@@ -43,20 +44,22 @@ impl Running {
         }
     }
 
-    fn apply_scale(&mut self) {
+    pub(in crate::app::running) fn apply_scale(&mut self) {
         let border = window::frame_border(&self.window);
-        self.metrics = self.preferences.ui_metrics(self.window_scale, border);
-        let font = self.preferences.font_pixels(self.window_scale);
+        self.metrics = self.desk.preferences.ui_metrics(self.window_scale, border);
+        let font = self.desk.preferences.font_pixels(self.window_scale);
         self.text.set_terminal_font(font, DEFAULT_LINE_HEIGHT);
         self.changed();
     }
 
     pub(in crate::app::running) fn set_appearance(&mut self, appearance: Appearance) {
-        if appearance == self.theme.appearance {
+        if appearance == self.desk.theme.appearance {
             return;
         }
-        self.theme = Theme::new(appearance);
-        self.sessions.set_colors(self.theme.reported_colors());
+        self.desk.theme = Theme::new(appearance);
+        self.desk
+            .sessions
+            .set_colors(self.desk.theme.reported_colors());
         self.window.request_redraw();
     }
 }

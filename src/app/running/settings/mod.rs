@@ -29,8 +29,8 @@ impl Running {
         if let Some(state) = &self.settings {
             let folder = self.active_folder();
             let request = SettingsRequest {
-                preferences: &self.preferences,
-                strings: self.strings,
+                preferences: &self.desk.preferences,
+                strings: self.desk.strings,
                 folder: folder.as_deref(),
                 tab: state.tab,
                 hosts: state.hosts.as_ref().map(HostsPanel::view),
