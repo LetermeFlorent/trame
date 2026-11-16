@@ -1,9 +1,16 @@
+#[doc(hidden)]
 pub mod download;
+#[doc(hidden)]
 pub mod installer;
+#[doc(hidden)]
 pub mod launch;
+#[doc(hidden)]
 pub mod replace;
+#[doc(hidden)]
 pub mod route;
+#[doc(hidden)]
 pub mod version;
+#[doc(hidden)]
 pub mod watch;
 
 use std::env;
@@ -19,9 +26,12 @@ use replace::{bundle, staged, swap};
 use route::Route;
 use version::Version;
 
+#[doc(hidden)]
 pub const RELEASES: &str = "https://github.com/LetermeFlorent/trame/releases";
 const SKIP_VARIABLE: &str = "TRAME_NO_UPDATE";
+#[doc(hidden)]
 pub const UPDATED_FLAG: &str = "--updated";
+#[doc(hidden)]
 pub const INSTALL_FLAG: &str = "--install";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -63,12 +73,14 @@ fn allowed() -> bool {
     !cfg!(debug_assertions) && env::var_os(SKIP_VARIABLE).is_none()
 }
 
+#[doc(hidden)]
 pub fn installs(arguments: impl Iterator<Item = OsString>) -> bool {
     let arguments: Vec<OsString> = arguments.collect();
     let flagged = |flag: &str| arguments.iter().any(|arg| arg == flag);
     flagged(INSTALL_FLAG) && !flagged(UPDATED_FLAG)
 }
 
+#[doc(hidden)]
 pub fn plain(mut arguments: impl Iterator<Item = OsString>) -> bool {
     !arguments.any(|arg| arg == INSTALL_FLAG || arg == UPDATED_FLAG)
 }

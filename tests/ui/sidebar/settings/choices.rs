@@ -1,8 +1,8 @@
+use trame::display::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE};
 use trame::locale::{Language, LanguageChoice};
 use trame::preferences::{MAX_INTERFACE_SIZE, MIN_INTERFACE_SIZE, Preferences};
 use trame::ui::FrameLayout;
 use trame::ui::frame::{SettingControl, SettingsTab, Stepper};
-use trame::ui::metrics::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE};
 
 use super::{on_tab, page, panel, with_settings};
 use crate::text_system;

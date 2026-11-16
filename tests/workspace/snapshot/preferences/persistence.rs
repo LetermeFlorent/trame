@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
+use trame::display::{Density, PanelSide};
 use trame::locale::LanguageChoice;
 use trame::preferences::{Preferences, SshHost};
 use trame::theme::Swatch;
-use trame::ui::{Density, PanelSide};
 use trame::workspace::{NodeSnapshot, Numbering, PaneSnapshot, TabSnapshot};
 
 use crate::snapshot::{restore, single, through_json};

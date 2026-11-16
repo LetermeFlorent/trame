@@ -7,9 +7,9 @@ pub use tween::{DURATION, Tween, ease_out};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
+use crate::display::SidebarMode;
 use crate::geometry::Rect;
 use crate::session::SessionId;
-use crate::ui::display::SidebarMode;
 use crate::ui::hit::Hit;
 use crate::workspace::PaneId;
 

@@ -1,7 +1,7 @@
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::ui::display::SidebarMode;
+use crate::display::SidebarMode;
 
 #[derive(Serialize, Deserialize)]
 struct StoredSidebar {

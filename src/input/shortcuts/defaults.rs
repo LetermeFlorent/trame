@@ -1,7 +1,7 @@
 use winit::keyboard::{KeyCode, NamedKey};
 
 use super::combo::{Chord, Combo, Trigger};
-use crate::ui::Platform;
+use crate::display::Platform;
 
 const CONTROL: Chord = Chord::new(true, false, false, false);
 const CONTROL_SHIFT: Chord = Chord::new(true, true, false, false);

@@ -1,5 +1,5 @@
+use trame::display::TERMINAL_FONT_SIZE;
 use trame::input::Command;
-use trame::ui::metrics::TERMINAL_FONT_SIZE;
 use trame::workspace::{Edge, Instance, PaneLayout};
 
 use crate::app::running::Running;

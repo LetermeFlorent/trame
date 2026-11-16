@@ -1,6 +1,6 @@
+use crate::display::Platform;
 use crate::input::{Keymap, Overrides};
 use crate::locale::KeyStrings;
-use crate::ui::Platform;
 use crate::ui::frame::fit_label;
 use crate::ui::frame::sidebar::settings::column::{Column, LINE_INSET};
 use crate::ui::frame::sidebar::settings::{

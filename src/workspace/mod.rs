@@ -23,9 +23,9 @@ pub use tree::{Axis, Divider, Edge, MIN_PANE, Node, PaneId, PaneLayout, resize_s
 
 use std::collections::HashMap;
 
+use crate::display::SidebarMode;
 use crate::session::SessionId;
 use crate::theme::Emblem;
-use crate::ui::display::SidebarMode;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TabLocation {

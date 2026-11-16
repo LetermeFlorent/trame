@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::SnapshotError;
+use crate::display::SidebarMode;
 use crate::preferences::{Preferences, SshHost};
 use crate::theme::{Emblem, Swatch};
-use crate::ui::display::SidebarMode;
 use crate::workspace::Axis;
 
 pub const SNAPSHOT_VERSION: u32 = 1;

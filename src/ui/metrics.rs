@@ -1,7 +1,4 @@
-use crate::display::{Density, PanelSide, SPACING};
-pub use crate::display::{
-    MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, Platform, TERMINAL_FONT_SIZE,
-};
+use crate::display::{Density, PanelSide, Platform, SPACING};
 use crate::text::{REGULAR, SEMIBOLD, TextStyle};
 
 const WINDOWS_SHADOW_SHIFT: f32 = 1.0;

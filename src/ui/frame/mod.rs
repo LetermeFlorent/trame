@@ -25,11 +25,11 @@ pub use titlebar::{TitleBarFrame, WindowControls};
 
 use std::path::Path;
 
+use crate::display::PanelSide;
 use crate::geometry::Rect;
 use crate::locale::Strings;
 use crate::session::SessionId;
 use crate::text::TextSystem;
-use crate::ui::display::PanelSide;
 use crate::ui::metrics::UiMetrics;
 use crate::ui::motion::Motion;
 use crate::workspace::{Divider, PaneId, Workspace};

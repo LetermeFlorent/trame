@@ -6,8 +6,7 @@ use winit::dpi::PhysicalPosition;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::WindowId;
 
-use trame::host::persist::free_slot;
-use trame::host::quit::Quit;
+use trame::host::{persist::free_slot, quit::Quit};
 use trame::log_error;
 use trame::session::SessionId;
 use trame::workspace::Snapshot;

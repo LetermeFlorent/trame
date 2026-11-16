@@ -6,7 +6,7 @@ use serde_json::Value;
 use super::actions::{action_id, action_of};
 use super::combo::Combo;
 use super::defaults::default_keys;
-use crate::ui::Platform;
+use crate::display::Platform;
 
 pub const MAX_KEYS: usize = 4;
 

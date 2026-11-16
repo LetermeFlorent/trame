@@ -3,10 +3,11 @@ use std::sync::Arc;
 
 use super::FrameInput;
 use super::label::{fit_label, fit_label_start};
+use crate::display::Platform;
 use crate::files::{home_dir, short_path};
 use crate::geometry::Rect;
 use crate::text::{TextLayout, TextSystem};
-use crate::ui::metrics::{Platform, UiMetrics};
+use crate::ui::metrics::UiMetrics;
 
 const TOGGLE_MARGIN: f32 = 8.0;
 const TITLE_GAP: f32 = 10.0;

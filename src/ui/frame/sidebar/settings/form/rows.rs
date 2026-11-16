@@ -1,9 +1,9 @@
 use std::path::Path;
 
+use crate::display::{Density, PanelSide};
 use crate::files::{home_dir, short_path};
 use crate::locale::{LanguageChoice, Strings};
 use crate::preferences::Preferences;
-use crate::ui::display::{Density, PanelSide};
 use crate::ui::frame::fit_text_start;
 
 use super::{ChoiceRow, SettingControl, Stepper};

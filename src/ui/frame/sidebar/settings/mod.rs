@@ -11,11 +11,11 @@ mod shortcuts;
 
 use std::sync::Arc;
 
+use crate::display::{Density, PanelSide};
 use crate::geometry::{Point, Rect};
 use crate::locale::LanguageChoice;
 use crate::preferences::Recall;
 use crate::text::TextLayout;
-use crate::ui::display::{Density, PanelSide};
 pub(in crate::ui::frame) use column::{
     CAPTION_HEIGHT, Column, LINE_HEIGHT, LINE_INSET, SECTION_GAP,
 };

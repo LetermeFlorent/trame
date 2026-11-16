@@ -8,8 +8,8 @@ mod overrides;
 
 use winit::keyboard::{Key, ModifiersState, PhysicalKey};
 
+use crate::display::Platform;
 use crate::input::Command;
-use crate::ui::Platform;
 pub use actions::{ACTIONS, action_of};
 pub use combo::{Combo, Trigger};
 pub use defaults::default_keys;
