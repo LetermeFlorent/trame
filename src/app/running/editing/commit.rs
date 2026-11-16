@@ -1,7 +1,8 @@
-use trame::preferences::SshHost;
-use trame::theme::{Emblem, Letters, Swatch};
+use trame::desk::Edit;
+use trame::theme::{Emblem, Swatch};
 use trame::ui::frame::{EditTarget, FormAction, SettingControl};
 
+use super::ending::Ending;
 use super::{EditMode, Running};
 
 impl Running {
@@ -21,30 +22,19 @@ impl Running {
         let Some(mut editing) = self.editing.take() else {
             return;
         };
-        match &mut editing.mode {
-            EditMode::Text { field, original } => {
-                self.rename(editing.target, field.text(), original)
-            }
+        let ending = match &mut editing.mode {
             EditMode::Form(panel) => {
                 match panel.form.as_mut().and_then(|entry| self.store_host(entry)) {
-                    Some(host) => self.connect(editing.target, host),
-                    None => self.editing = Some(editing),
+                    Some(host) => Ending::Commit(Edit::Host(host)),
+                    None => Ending::Keep,
                 }
             }
-            EditMode::Folder { original, chosen } => {
-                if let Some(folder) = chosen
-                    .take()
-                    .filter(|folder| Some(folder) != original.as_ref())
-                {
-                    self.folder_picked(editing.target.into(), folder);
-                }
-            }
-            EditMode::Picker(picker) => self.apply_color(editing.target, picker),
-            EditMode::Emblem { letters } => match Letters::parse(letters.text()) {
-                Some(letters) => self.set_emblem(editing.target, Emblem::Letters(letters)),
-                None => self.editing = Some(editing),
-            },
-            EditMode::Color { .. } => {}
+            mode => mode.ending(),
+        };
+        match ending {
+            Ending::Commit(edit) => self.commit(editing.target, edit),
+            Ending::Keep => self.editing = Some(editing),
+            Ending::Close => {}
         }
     }
 
@@ -61,14 +51,9 @@ impl Running {
         }
     }
 
-    fn rename(&mut self, target: EditTarget, text: &str, original: &str) {
-        if text == original {
-            return;
-        }
-        match target {
-            EditTarget::Tab(id) => self.desk.workspace.rename_tab(id, text),
-            EditTarget::Instance(id) => self.desk.workspace.rename_instance(id, text),
-        }
+    fn commit(&mut self, target: EditTarget, edit: Edit) {
+        let effects = self.desk.commit(target, edit);
+        self.apply(effects);
     }
 
     pub(in crate::app::running) fn connect_listed(&mut self, index: usize) {
@@ -78,13 +63,8 @@ impl Running {
         if let EditMode::Form(panel) = editing.mode
             && let Some(host) = panel.hosts.into_iter().nth(index)
         {
-            self.connect(editing.target, host);
+            self.commit(editing.target, Edit::Host(host));
         }
-    }
-
-    fn connect(&mut self, target: EditTarget, host: SshHost) {
-        let effects = self.desk.connect(target, host);
-        self.apply(effects);
     }
 
     pub(super) fn cancel_edit(&mut self) {
@@ -97,14 +77,7 @@ impl Running {
 
     pub(super) fn pick_color(&mut self, color: Option<Swatch>) {
         if let Some(editing) = self.editing.take() {
-            self.paint_target(editing.target, color);
-        }
-    }
-
-    pub(super) fn paint_target(&mut self, target: EditTarget, color: Option<Swatch>) {
-        match target {
-            EditTarget::Tab(id) => self.desk.workspace.set_tab_color(id, color),
-            EditTarget::Instance(id) => self.desk.workspace.set_instance_color(id, color),
+            self.commit(editing.target, Edit::Color(color));
         }
     }
 
@@ -112,16 +85,13 @@ impl Running {
         let Some(target) = self.editing.as_ref().map(|editing| editing.target) else {
             return;
         };
-        let on = !self.fill_of(target);
-        match target {
-            EditTarget::Tab(id) => self.desk.workspace.set_tab_fill(id, on),
-            EditTarget::Instance(id) => self.desk.workspace.set_instance_fill(id, on),
-        }
+        let on = !self.desk.fill_of(target);
+        self.commit(target, Edit::Fill(on));
     }
 
     pub(super) fn pick_emblem(&mut self, emblem: Emblem) {
         if let Some(editing) = self.editing.take() {
-            self.set_emblem(editing.target, emblem);
+            self.commit(editing.target, Edit::Emblem(emblem));
         }
     }
 }

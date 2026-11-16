@@ -1,4 +1,5 @@
 mod commands;
+mod edit;
 mod effect;
 mod grids;
 pub mod hosts;
@@ -22,6 +23,7 @@ use crate::session::Transcripts;
 use crate::theme::Theme;
 use crate::workspace::Workspace;
 
+pub use edit::Edit;
 pub use effect::{Effect, Effects, Outcome};
 pub use grids::{FALLBACK_GRID, Grids};
 pub use hosts::{HostForm, written_by_hand};

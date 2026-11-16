@@ -1,5 +1,6 @@
 mod color;
 mod commit;
+mod ending;
 mod folder;
 mod icons;
 mod keys;
@@ -108,14 +109,14 @@ impl Running {
             EditMode::Text { field, .. } => EditKind::Name(field),
             EditMode::Form(panel) => EditKind::Connect(panel.view()),
             EditMode::Color { first } => EditKind::Color(ColorsView {
-                selected: self.color_of(editing.target),
+                selected: self.desk.color_of(editing.target),
                 custom: &self.desk.preferences.custom_colors,
                 first: *first,
-                filled: self.fill_of(editing.target),
+                filled: self.desk.fill_of(editing.target),
             }),
             EditMode::Picker(picker) => EditKind::Picker(picker.view()),
             EditMode::Emblem { letters } => EditKind::Emblem(EmblemView {
-                selected: self.emblem_of(editing.target),
+                selected: self.desk.emblem_of(editing.target),
                 letters,
             }),
         };

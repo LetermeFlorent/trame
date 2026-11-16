@@ -27,26 +27,13 @@ pub(super) fn edit_letters(field: &mut TextField, change: impl FnOnce(&mut TextF
 
 impl Running {
     pub(super) fn emblem_mode(&self, target: EditTarget) -> EditMode {
-        let shown = match self.emblem_of(target) {
+        let shown = match self.desk.emblem_of(target) {
             Some(Emblem::Letters(letters)) => letters.to_string(),
             _ => String::new(),
         };
         let mut letters = TextField::new(&shown);
         letters.select_all();
         EditMode::Emblem { letters }
-    }
-
-    pub(super) fn emblem_of(&self, target: EditTarget) -> Option<Emblem> {
-        match target {
-            EditTarget::Tab(_) => None,
-            EditTarget::Instance(id) => Some(self.desk.workspace.instance(id)?.emblem),
-        }
-    }
-
-    pub(super) fn set_emblem(&mut self, target: EditTarget, emblem: Emblem) {
-        if let EditTarget::Instance(id) = target {
-            self.desk.workspace.set_instance_emblem(id, emblem);
-        }
     }
 
     pub(super) fn ask_image(&self) {
@@ -74,7 +61,6 @@ impl Running {
     }
 
     pub fn icon_picked(&mut self, id: InstanceId, image: u64) {
-        self.desk.icons.reload(image);
         let target = EditTarget::Instance(id);
         if self
             .editing
@@ -83,7 +69,7 @@ impl Running {
         {
             self.editing = None;
         }
-        self.set_emblem(target, Emblem::Image(image));
-        self.changed();
+        let effects = self.desk.icon_picked(id, image);
+        self.apply(effects);
     }
 }

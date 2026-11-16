@@ -1,5 +1,6 @@
 mod commands;
 mod desk;
+mod edits;
 mod effects;
 mod folders;
 mod grids;
