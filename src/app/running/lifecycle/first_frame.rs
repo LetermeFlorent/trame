@@ -1,10 +1,10 @@
+use trame::host::persist::Saver;
 use trame::locale::Strings;
 use trame::ui::{FrameLayout, Motion, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::super::frame;
 use super::surface::Surface;
-use crate::app::persist::Saver;
 
 pub(super) struct FirstFrame {
     pub(super) workspace: Workspace,

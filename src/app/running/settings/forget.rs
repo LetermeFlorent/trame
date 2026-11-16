@@ -1,7 +1,7 @@
+use trame::host::persist;
 use trame::log_error;
 use trame::preferences::{SshHost, vault};
 
-use crate::app::persist;
 use crate::app::running::{Closing, Running};
 
 impl Running {

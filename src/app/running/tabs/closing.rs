@@ -1,9 +1,10 @@
 use std::rc::Rc;
 
+use trame::host::quit::Quit;
 use trame::workspace::{Instance, InstanceId};
 
+use crate::app::running::Running;
 use crate::app::running::keys::PendingPaste;
-use crate::app::running::{Quit, Running};
 
 #[derive(Clone)]
 pub(in crate::app::running) enum Closing {

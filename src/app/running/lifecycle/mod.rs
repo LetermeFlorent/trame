@@ -16,6 +16,9 @@ use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 
 use trame::files::IconStore;
+use trame::host::persist::{self, Saver, Slot};
+use trame::host::power::Power;
+use trame::host::update::UpdateStatus;
 use trame::preferences::{Preferences, Recall};
 use trame::render::Scene;
 use trame::session::Transcripts;
@@ -26,19 +29,14 @@ use trame::workspace::Snapshot;
 use super::tabs::{Placement, Restarts, TornTab};
 use super::{Memo, Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
-use crate::app::persist::{self, Saver, Slot};
-use crate::app::power::Power;
 use crate::app::sessions::Sessions;
-use crate::app::update::UpdateStatus;
 use crate::app::visibility::Visibility;
 use crate::app::{UserEvent, explorer, window};
 
 const TORN_OFFSET: f32 = 48.0;
 
 use first_frame::first_frame;
-pub use quit::{Quit, Restart};
 use surface::Surface;
-pub use update::Offer;
 pub(super) use update::UpdateState;
 
 pub struct Opened {

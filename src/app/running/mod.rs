@@ -17,6 +17,9 @@ use winit::window::Window;
 
 use trame::files::IconStore;
 use trame::geometry::Point;
+use trame::host::persist::Saver;
+use trame::host::power::Power;
+use trame::host::quit::Quit;
 use trame::input::{Keymap, Overrides};
 use trame::locale::Strings;
 use trame::preferences::Preferences;
@@ -29,8 +32,6 @@ use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
 use super::notice::Notifier;
-use super::persist::Saver;
-use super::power::Power;
 use super::sessions::Sessions;
 use super::visibility::Visibility;
 use super::{UserEvent, window};
@@ -38,7 +39,6 @@ use editing::{Editing, Menu};
 use frame::Loader;
 use keys::Memo;
 use lifecycle::UpdateState;
-pub use lifecycle::{Offer, Quit, Restart};
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
 use tabs::{Closing, Restarts};

@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 use std::time::Instant;
 
+use trame::host::power::Shown;
 use trame::preferences::Preferences;
 use trame::session::SessionId;
 use trame::theme::Rgba;
 
-use crate::app::power::Shown;
 use crate::app::running::Running;
 
 impl Running {

@@ -1,6 +1,7 @@
 pub mod display;
 pub mod files;
 pub mod geometry;
+pub mod host;
 pub mod input;
 pub mod locale;
 pub mod preferences;

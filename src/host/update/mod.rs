@@ -1,0 +1,117 @@
+pub mod download;
+pub mod installer;
+pub mod launch;
+pub mod replace;
+pub mod route;
+pub mod version;
+pub mod watch;
+
+use std::env;
+use std::ffi::OsString;
+use std::io;
+use std::path::{Path, PathBuf};
+use std::thread;
+
+use crate::log_error;
+
+pub use launch::{Handoff, restart, start_again};
+use replace::{bundle, staged, swap};
+use route::Route;
+use version::Version;
+
+pub const RELEASES: &str = "https://github.com/LetermeFlorent/trame/releases";
+const SKIP_VARIABLE: &str = "TRAME_NO_UPDATE";
+pub const UPDATED_FLAG: &str = "--updated";
+pub const INSTALL_FLAG: &str = "--install";
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum UpdateStatus {
+    Checking,
+    Downloading { version: String, percent: u8 },
+    Installing(String),
+    Done,
+    Failed,
+    Installed(Handoff),
+    Available(String),
+    AvailableAtStart(String),
+}
+
+pub fn start(notify: impl Fn(UpdateStatus) + Send + 'static) -> UpdateStatus {
+    let Ok(exe) = env::current_exe() else {
+        return UpdateStatus::Done;
+    };
+    swap::remove_leftover(&bundle::root(&exe).unwrap_or_else(|| exe.clone()));
+    let Some(route) = allowed().then(|| Route::of(&exe)).flatten() else {
+        return UpdateStatus::Done;
+    };
+    let installs = installs(env::args_os());
+    let plain = plain(env::args_os());
+    let spawned = thread::Builder::new()
+        .name("trame-update".into())
+        .spawn(move || follow(route, installs, plain, exe, &notify));
+    match spawned {
+        Ok(_) if installs => UpdateStatus::Checking,
+        Ok(_) => UpdateStatus::Done,
+        Err(error) => {
+            log_error!("the update check did not start: {error}");
+            UpdateStatus::Done
+        }
+    }
+}
+
+fn allowed() -> bool {
+    !cfg!(debug_assertions) && env::var_os(SKIP_VARIABLE).is_none()
+}
+
+pub fn installs(arguments: impl Iterator<Item = OsString>) -> bool {
+    let arguments: Vec<OsString> = arguments.collect();
+    let flagged = |flag: &str| arguments.iter().any(|arg| arg == flag);
+    flagged(INSTALL_FLAG) && !flagged(UPDATED_FLAG)
+}
+
+pub fn plain(mut arguments: impl Iterator<Item = OsString>) -> bool {
+    !arguments.any(|arg| arg == INSTALL_FLAG || arg == UPDATED_FLAG)
+}
+
+fn follow(route: Route, installs: bool, plain: bool, exe: PathBuf, notify: &dyn Fn(UpdateStatus)) {
+    staged::tidy(&route.target(&exe));
+    installer::clear(route);
+    if installs {
+        notify(check(route, &exe, notify));
+    }
+    watch::watch(plain, notify);
+}
+
+fn check(route: Route, exe: &Path, notify: &dyn Fn(UpdateStatus)) -> UpdateStatus {
+    let Some(latest) = watch::newer_release() else {
+        log_error!("no newer release could be found to install");
+        return UpdateStatus::Failed;
+    };
+    match install(route, latest, exe, notify) {
+        Ok(()) => UpdateStatus::Installed(Handoff::after(route, exe, latest)),
+        Err(error) => {
+            log_error!("the update to {latest} failed: {error}");
+            UpdateStatus::Failed
+        }
+    }
+}
+
+fn install(
+    route: Route,
+    version: Version,
+    exe: &Path,
+    notify: &dyn Fn(UpdateStatus),
+) -> io::Result<()> {
+    let number = version.number();
+    let downloading = |percent| {
+        notify(UpdateStatus::Downloading {
+            version: number.clone(),
+            percent,
+        })
+    };
+    let installing = || notify(UpdateStatus::Installing(number.clone()));
+    match route.replaces() {
+        true => replace::put_in_place(route, exe, version, &downloading, &installing),
+        false => installer::fetch(route, version, &downloading).map(|()| installing()),
+    }
+}

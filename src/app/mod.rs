@@ -1,18 +1,11 @@
-mod door;
 mod explorer;
 mod fleet;
 mod graphics;
 mod handler;
 mod notice;
-mod pending;
-mod persist;
-mod power;
 mod restart;
 mod running;
-#[cfg(test)]
-mod scratch;
 mod sessions;
-mod update;
 mod visibility;
 mod window;
 
@@ -24,15 +17,17 @@ use std::path::PathBuf;
 use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
 use winit::window::WindowId;
 
+use trame::host::door;
+use trame::host::pending::{Offer, PendingOffer};
+use trame::host::persist::{self, Role, Saved};
+use trame::host::power::Process;
+use trame::host::quit::Restart;
+use trame::host::update::{self, UpdateStatus};
 use trame::log_error;
 use trame::session::SessionEvent;
 use trame::workspace::InstanceId;
 
-use pending::PendingOffer;
-use persist::{Role, Saved};
-use power::Process;
-use running::{FolderTarget, Offer, Restart, Running};
-use update::UpdateStatus;
+use running::{FolderTarget, Running};
 
 #[derive(Clone, Debug)]
 pub enum UserEvent {

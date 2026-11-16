@@ -1,8 +1,8 @@
+use trame::host::persist;
 use trame::log_error;
 use trame::preferences::{ConnectForm, HostEntry, SshHost, vault};
 
 use super::hosts::settings_panel;
-use crate::app::persist;
 use crate::app::running::Running;
 
 pub(in crate::app::running) struct HostForm {

@@ -6,13 +6,14 @@ use winit::dpi::PhysicalPosition;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::WindowId;
 
+use trame::host::persist::free_slot;
+use trame::host::quit::Quit;
 use trame::log_error;
 use trame::session::SessionId;
 use trame::workspace::Snapshot;
 
 use super::App;
-use super::persist::free_slot;
-use super::running::{Lifted, Quit, Running};
+use super::running::{Lifted, Running};
 
 impl App {
     pub(super) fn open_saved(&mut self, event_loop: &ActiveEventLoop) {

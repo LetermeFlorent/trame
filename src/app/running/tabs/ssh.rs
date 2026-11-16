@@ -1,12 +1,12 @@
 use std::time::Instant;
 
+use trame::host::persist;
 use trame::log_error;
 use trame::preferences::{HostEntry, SshHost, SshLogin, menu_hosts, vault};
 use trame::session::SessionId;
 use trame::ui::frame::EditTarget;
 
 use super::Placement;
-use crate::app::persist;
 use crate::app::running::Running;
 
 const SSH_PORT: u16 = 22;

@@ -1,16 +1,6 @@
+use trame::host::quit::Quit;
+
 use crate::app::running::Running;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Restart {
-    Update,
-    Again,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Quit {
-    Close,
-    Restart(Restart),
-}
 
 impl Running {
     pub fn take_quit(&mut self) -> Option<Quit> {

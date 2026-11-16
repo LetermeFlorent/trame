@@ -1,22 +1,7 @@
-use trame::locale::{Strings, VERSION_SLOT};
+use trame::host::pending::{Offer, ShowsOffer};
+use trame::host::quit::{Quit, Restart};
 
-use super::quit::{Quit, Restart};
 use crate::app::running::Running;
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Offer {
-    pub version: String,
-}
-
-impl Offer {
-    pub fn label(&self, strings: &Strings) -> String {
-        strings.update_to.replace(VERSION_SLOT, &self.version)
-    }
-
-    pub fn question(&self, strings: &Strings) -> String {
-        strings.update_question.replace(VERSION_SLOT, &self.version)
-    }
-}
 
 #[derive(Default)]
 pub(in crate::app::running) struct UpdateState {
@@ -54,28 +39,8 @@ impl Running {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use trame::locale::Language;
-
-    fn offer() -> Offer {
-        Offer {
-            version: "9.8.7".to_owned(),
-        }
-    }
-
-    #[test]
-    fn an_offer_asks_to_update() {
-        let strings = Language::English.strings();
-        assert_eq!(offer().label(strings), "Update to 9.8.7");
-        assert_eq!(offer().question(strings), "Update to 9.8.7?");
-    }
-
-    #[test]
-    fn the_french_question_names_the_version() {
-        let strings = Language::French.strings();
-        assert_eq!(offer().label(strings), "Installer la 9.8.7");
-        assert_eq!(offer().question(strings), "Mettre à jour en 9.8.7 ?");
+impl ShowsOffer for Running {
+    fn show_offer(&mut self, offer: Offer) {
+        self.offer_update(offer);
     }
 }

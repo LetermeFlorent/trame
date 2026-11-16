@@ -4,10 +4,10 @@ mod view;
 
 use std::time::{Duration, Instant};
 
+use trame::host::update::UpdateStatus;
 use trame::locale::VERSION_SLOT;
 
 use crate::app::running::Running;
-use crate::app::update::UpdateStatus;
 use view::FULL;
 pub(in crate::app::running) use view::Loader;
 
