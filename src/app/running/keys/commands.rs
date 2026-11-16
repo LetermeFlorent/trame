@@ -1,5 +1,3 @@
-use winit::event_loop::ActiveEventLoop;
-
 use trame::input::Command;
 use trame::ui::metrics::TERMINAL_FONT_SIZE;
 use trame::workspace::{Edge, Instance, PaneLayout};
@@ -9,11 +7,7 @@ use crate::app::running::pointer::Scroll;
 use crate::app::running::tabs::Placement;
 
 impl Running {
-    pub(in crate::app::running) fn command(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        command: Command,
-    ) {
+    pub(in crate::app::running) fn command(&mut self, exiting: bool, command: Command) {
         self.motion.animate_next();
         match command {
             Command::NewTab => self.open_or_report(Placement::Tab),
@@ -22,7 +16,7 @@ impl Running {
             Command::SplitDown => self.open_or_report(Placement::Split(Edge::Bottom)),
             Command::CloseTab => {
                 if let Some(id) = self.workspace.active_tab() {
-                    self.close_tab(event_loop, id);
+                    self.close_tab(exiting, id);
                 }
             }
             Command::ToggleSidebar => self.workspace.sidebar = self.workspace.sidebar.next(),

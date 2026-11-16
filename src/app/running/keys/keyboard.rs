@@ -1,5 +1,4 @@
 use winit::event::{ElementState, KeyEvent};
-use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
@@ -14,7 +13,7 @@ const FOCUS_IN: &[u8] = b"\x1b[I";
 const FOCUS_OUT: &[u8] = b"\x1b[O";
 
 impl Running {
-    pub(in crate::app::running) fn key(&mut self, event_loop: &ActiveEventLoop, event: &KeyEvent) {
+    pub(in crate::app::running) fn key(&mut self, exiting: bool, event: &KeyEvent) {
         if self.frame.blocked
             || event.state != ElementState::Pressed
             || self.closing_key(event)
@@ -29,7 +28,7 @@ impl Running {
             .shortcut_for(event)
             .filter(|command| self.claims(*command))
         {
-            self.command(event_loop, command);
+            self.command(exiting, command);
             return;
         }
         let base = event.key_without_modifiers();

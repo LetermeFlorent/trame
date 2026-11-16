@@ -1,5 +1,4 @@
 use winit::event::{ElementState, KeyEvent, MouseButton};
-use winit::event_loop::ActiveEventLoop;
 
 use trame::geometry::Point;
 use trame::input::Command;
@@ -21,7 +20,7 @@ pub(in super::super) struct Menu {
 impl Running {
     pub(in super::super) fn menu_button(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        exiting: bool,
         state: ElementState,
         button: MouseButton,
     ) -> bool {
@@ -35,7 +34,7 @@ impl Running {
         let hit = self.frame.hit(point, false);
         let was_open = self.menu.is_some();
         if let Some(menu) = self.menu.take() {
-            self.choose(event_loop, menu, hit);
+            self.choose(exiting, menu, hit);
         }
         let target = hit
             .filter(|_| button == MouseButton::Right)
@@ -56,11 +55,7 @@ impl Running {
         handled
     }
 
-    pub(in super::super) fn open_adding_menu(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        pane: PaneId,
-    ) {
+    pub(in super::super) fn open_adding_menu(&mut self, exiting: bool, pane: PaneId) {
         self.focus_pane(pane);
         let found = self
             .frame
@@ -69,7 +64,7 @@ impl Running {
             .find(|frame| frame.id == pane)
             .and_then(|frame| Some((frame.active?, frame.adding_menu_at())));
         let Some((tab, at)) = found else {
-            return self.command(event_loop, Command::NewTab);
+            return self.command(exiting, Command::NewTab);
         };
         self.editing = None;
         self.menu = Some(Menu {
@@ -81,14 +76,14 @@ impl Running {
         self.changed();
     }
 
-    fn choose(&mut self, event_loop: &ActiveEventLoop, menu: Menu, hit: Option<Hit>) {
+    fn choose(&mut self, exiting: bool, menu: Menu, hit: Option<Hit>) {
         match hit {
             Some(Hit::Menu) => self.menu = Some(menu),
             Some(Hit::MenuEntry(MenuEntry::NewTab)) => {
                 if let EditAnchor::Strip(pane) = menu.anchor {
                     self.focus_pane(pane);
                 }
-                self.command(event_loop, Command::NewTab);
+                self.command(exiting, Command::NewTab);
             }
             Some(Hit::MenuEntry(entry)) => self.start_edit(menu.target, menu.anchor, entry),
             _ => {}

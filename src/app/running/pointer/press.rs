@@ -1,7 +1,5 @@
 use std::time::Instant;
 
-use winit::event_loop::ActiveEventLoop;
-
 use trame::input::Command;
 use trame::log_error;
 use trame::ui::Hit;
@@ -12,14 +10,14 @@ use crate::app::running::{Closing, Running};
 use crate::app::window;
 
 impl Running {
-    pub(super) fn press(&mut self, event_loop: &ActiveEventLoop, hit: Option<Hit>) {
+    pub(super) fn press(&mut self, exiting: bool, hit: Option<Hit>) {
         let Some(hit) = hit else {
             return;
         };
         let previous = self.pointer.last_click.replace((Instant::now(), hit));
         let double =
             previous.is_some_and(|(at, last)| last == hit && at.elapsed() < super::MULTI_CLICK);
-        if double && self.double_press(event_loop, hit) {
+        if double && self.double_press(exiting, hit) {
             self.pointer.last_click = None;
             return;
         }
@@ -43,20 +41,20 @@ impl Running {
         self.changed();
     }
 
-    fn double_press(&mut self, event_loop: &ActiveEventLoop, hit: Hit) -> bool {
+    fn double_press(&mut self, exiting: bool, hit: Hit) -> bool {
         match hit {
             Hit::TitleBar => self.toggle_maximized(),
             Hit::Tab(_, tab) if self.primary_held() => self.workspace.toggle_even_tabs(tab),
             Hit::TabBar(pane) => {
                 self.focus_pane(pane);
-                self.command(event_loop, Command::NewTab);
+                self.command(exiting, Command::NewTab);
             }
             _ => return self.open_editor(hit),
         }
         true
     }
 
-    pub(super) fn release(&mut self, event_loop: &ActiveEventLoop, hit: Option<Hit>) {
+    pub(super) fn release(&mut self, exiting: bool, hit: Option<Hit>) {
         self.view.pressed = None;
         let pressed = self.pointer.pressed.take();
         if self.drag_released() {
@@ -64,18 +62,18 @@ impl Running {
             return;
         }
         if let Some(pressed) = pressed.filter(|pressed| hit == Some(*pressed)) {
-            self.click(event_loop, pressed);
+            self.click(exiting, pressed);
         }
         self.changed();
     }
 
-    fn click(&mut self, event_loop: &ActiveEventLoop, hit: Hit) {
+    fn click(&mut self, exiting: bool, hit: Hit) {
         match hit {
-            Hit::SidebarToggle => self.command(event_loop, Command::ToggleSidebar),
+            Hit::SidebarToggle => self.command(exiting, Command::ToggleSidebar),
             Hit::Minimize => self.window.set_minimized(true),
             Hit::Maximize => self.toggle_maximized(),
             Hit::Close => self.ask_close(Closing::Window),
-            Hit::NewInstance => self.command(event_loop, Command::NewInstance),
+            Hit::NewInstance => self.command(exiting, Command::NewInstance),
             Hit::Settings => self.toggle_settings(),
             Hit::Update => self.ask_close(Closing::Update),
             Hit::Setting(control) => self.apply_setting(control),
@@ -86,25 +84,25 @@ impl Running {
             Hit::Disconnect(tab) => self.disconnect(tab),
             Hit::RowClose(SidebarItem::Instance(id)) => self.ask_close(Closing::Instance(id)),
             Hit::RowClose(SidebarItem::Tab(id)) | Hit::TabClose(_, id) => {
-                self.close_tab(event_loop, id)
+                self.close_tab(exiting, id)
             }
             Hit::RowFold(id) => self.workspace.toggle_folded(id),
-            Hit::NewTab(pane) => self.open_adding_menu(event_loop, pane),
+            Hit::NewTab(pane) => self.open_adding_menu(exiting, pane),
             Hit::Split(pane) => {
                 self.focus_pane(pane);
                 let command = match self.modifiers.shift_key() {
                     true => Command::SplitDown,
                     false => Command::SplitRight,
                 };
-                self.command(event_loop, command);
+                self.command(exiting, command);
             }
             _ => {}
         }
     }
 
-    pub(super) fn middle_click(&mut self, event_loop: &ActiveEventLoop, hit: Option<Hit>) {
+    pub(super) fn middle_click(&mut self, exiting: bool, hit: Option<Hit>) {
         if let Some(Hit::Tab(_, id) | Hit::Row(SidebarItem::Tab(id))) = hit {
-            self.close_tab(event_loop, id);
+            self.close_tab(exiting, id);
         }
     }
 

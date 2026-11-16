@@ -1,7 +1,5 @@
 use std::time::{Duration, Instant};
 
-use winit::event_loop::ActiveEventLoop;
-
 use trame::log_error;
 use trame::session::SessionId;
 
@@ -28,15 +26,11 @@ impl Restarts {
 }
 
 impl Running {
-    pub(in crate::app::running) fn shell_exited(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        id: SessionId,
-    ) {
+    pub(in crate::app::running) fn shell_exited(&mut self, exiting: bool, id: SessionId) {
         if self.workspace.is_only_tab(id) && !self.restarts.allows(id, Instant::now()) {
             self.show_quick_exit(id);
         } else {
-            self.close_tab(event_loop, id);
+            self.close_tab(exiting, id);
         }
     }
 

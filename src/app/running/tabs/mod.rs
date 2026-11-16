@@ -11,8 +11,6 @@ mod tests;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use winit::event_loop::ActiveEventLoop;
-
 use trame::host::quit::Quit;
 use trame::log_error;
 use trame::preferences::SshHost;
@@ -116,8 +114,8 @@ impl Running {
         }
     }
 
-    pub(super) fn close_tab(&mut self, event_loop: &ActiveEventLoop, id: SessionId) {
-        if self.workspace.is_only_tab(id) && !event_loop.exiting() && !self.quitting() {
+    pub(super) fn close_tab(&mut self, exiting: bool, id: SessionId) {
+        if self.workspace.is_only_tab(id) && !exiting && !self.quitting() {
             self.replace_last_tab();
         }
         if self.workspace.close_tab(id) {

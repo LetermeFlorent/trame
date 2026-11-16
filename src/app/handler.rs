@@ -19,7 +19,7 @@ impl ApplicationHandler<AppEvent> for App {
             UserEvent::Open(folder) => self.open_another(event_loop, folder),
             UserEvent::Session(id, event) => {
                 self.on(event_loop, id, |running| {
-                    running.session_event(event_loop, event)
+                    running.session_event(event_loop.exiting(), event)
                 });
             }
             UserEvent::Folder(id, target, folder) => {
