@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Instant;
 
+use trame::desk::Waiting;
 use trame::files::home_dir;
 use trame::log_error;
 use trame::preferences::Recall;
@@ -9,7 +10,6 @@ use trame::session::SessionId;
 use trame::workspace::{Snapshot, TabSnapshot, Workspace};
 
 use crate::app::running::Running;
-use crate::app::sessions::Waiting;
 use crate::app::window;
 
 type SavedTabs = HashMap<SessionId, TabSnapshot>;

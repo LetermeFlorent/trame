@@ -4,11 +4,9 @@ use std::sync::mpsc::{self, Receiver};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use trame::desk::sessions::{RETRY, Sessions, ShellStart};
 use trame::session::{SessionEvent, SessionId};
 use trame::term::ReportedColors;
-
-use super::remotes::RETRY;
-use super::{Sessions, ShellStart};
 
 const TIMEOUT: Duration = Duration::from_secs(40);
 const PRINT: &[u8] = b"echo trame-output\r";

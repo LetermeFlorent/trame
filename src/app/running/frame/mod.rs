@@ -10,6 +10,7 @@ use std::time::Instant;
 
 use winit::window::Window;
 
+use trame::desk::Sessions;
 use trame::locale::Strings;
 use trame::session::SessionId;
 use trame::text::TextSystem;
@@ -18,7 +19,6 @@ use trame::ui::{FrameInput, FrameLayout, Motion, UiMetrics};
 use trame::workspace::{Instance, Workspace};
 
 use super::Running;
-use crate::app::sessions::Sessions;
 use crate::app::window;
 pub(super) use loader::Loader;
 

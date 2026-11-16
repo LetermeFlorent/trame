@@ -6,6 +6,7 @@ mod surface;
 mod text;
 mod update;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::PathBuf;
@@ -15,6 +16,7 @@ use winit::dpi::PhysicalPosition;
 use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 
+use trame::desk::Sessions;
 use trame::files::IconStore;
 use trame::host::persist::{self, Saver, Slot};
 use trame::host::power::Power;
@@ -29,7 +31,6 @@ use trame::workspace::Snapshot;
 use super::tabs::{Placement, Restarts, TornTab};
 use super::{Memo, Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
-use crate::app::sessions::Sessions;
 use crate::app::visibility::Visibility;
 use crate::app::{AppEvent, explorer, relay, window};
 
@@ -130,11 +131,11 @@ impl Running {
 
     fn with_surface(mut surface: Surface, proxy: EventLoopProxy<AppEvent>, saver: Saver) -> Self {
         let first = first_frame(&mut surface, &saver);
-        let id = surface.window.id();
         Self {
             theme: Theme::new(window::appearance(&surface.window)),
             power: Power::new(surface.preferences.power_switches()),
             notifier: Notifier::default(),
+            sessions: Sessions::new(relay::session_notifier(proxy.clone(), surface.window.id())),
             window: surface.window,
             graphics: surface.graphics,
             text: surface.text,
@@ -144,7 +145,7 @@ impl Running {
             preferences: surface.preferences,
             keymap: Memo::default(),
             workspace: first.workspace,
-            sessions: Sessions::new(relay::session_notifier(proxy.clone(), id)),
+            links: RefCell::default(),
             proxy,
             transcripts: Transcripts::new(saver.transcript_dir()),
             saver,

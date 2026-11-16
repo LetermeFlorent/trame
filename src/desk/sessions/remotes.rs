@@ -2,13 +2,13 @@ use std::net::{TcpStream, ToSocketAddrs};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
-use trame::session::SessionId;
+use crate::session::SessionId;
 
 use super::Sessions;
 
 const SSH_FAILED: i32 = 255;
 const SETTLED: Duration = Duration::from_secs(10);
-pub(super) const RETRY: Duration = Duration::from_secs(3);
+pub const RETRY: Duration = Duration::from_secs(3);
 const POLL: Duration = Duration::from_millis(500);
 const PROBE_TIMEOUT: Duration = Duration::from_secs(3);
 
@@ -64,7 +64,7 @@ impl Sessions {
         code.is_some_and(|code| self.ended(id, code))
     }
 
-    pub(super) fn ended(&mut self, id: SessionId, code: i32) -> bool {
+    pub fn ended(&mut self, id: SessionId, code: i32) -> bool {
         let Some(remote) = self.remotes.get_mut(&id) else {
             return false;
         };

@@ -7,7 +7,6 @@ mod notice;
 mod relay;
 mod restart;
 mod running;
-mod sessions;
 mod visibility;
 mod window;
 

@@ -2,12 +2,12 @@ use std::collections::HashMap;
 
 use winit::dpi::PhysicalPosition;
 
+use trame::desk::Leaving;
 use trame::geometry::{Point, Rect};
 use trame::session::SessionId;
 use trame::workspace::{InstanceId, MovingInstance, TabMark};
 
 use crate::app::running::Running;
-use crate::app::sessions::Leaving;
 
 #[derive(Clone, Copy)]
 pub enum Lifted {

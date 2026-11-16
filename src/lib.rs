@@ -1,3 +1,4 @@
+pub mod desk;
 pub mod display;
 pub mod files;
 pub mod geometry;

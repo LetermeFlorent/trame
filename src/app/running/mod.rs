@@ -6,6 +6,7 @@ mod pointer;
 mod settings;
 mod tabs;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -15,6 +16,7 @@ use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
+use trame::desk::Sessions;
 use trame::files::IconStore;
 use trame::geometry::Point;
 use trame::host::persist::Saver;
@@ -27,12 +29,12 @@ use trame::render::Scene;
 use trame::session::{SessionEvent, SessionId, Transcripts};
 use trame::text::TextSystem;
 use trame::theme::Theme;
+use trame::ui::terminal::links::LinkCache;
 use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
 use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
 use super::notice::Notifier;
-use super::sessions::Sessions;
 use super::visibility::Visibility;
 use super::{AppEvent, window};
 use editing::{Editing, Menu};
@@ -56,6 +58,7 @@ pub struct Running {
     keymap: Memo<Overrides, Keymap>,
     workspace: Workspace,
     sessions: Sessions,
+    links: RefCell<LinkCache>,
     proxy: EventLoopProxy<AppEvent>,
     saver: Saver,
     transcripts: Transcripts,

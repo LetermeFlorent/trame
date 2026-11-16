@@ -11,6 +11,7 @@ mod tests;
 use std::io;
 use std::path::{Path, PathBuf};
 
+use trame::desk::ShellStart;
 use trame::host::quit::Quit;
 use trame::log_error;
 use trame::preferences::SshHost;
@@ -18,7 +19,6 @@ use trame::session::SessionId;
 use trame::workspace::{Edge, InstanceId, PaneId};
 
 use super::Running;
-use crate::app::sessions::ShellStart;
 pub(super) use closing::Closing;
 pub use folder::FolderTarget;
 pub(super) use restarts::Restarts;

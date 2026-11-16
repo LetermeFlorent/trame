@@ -1,6 +1,6 @@
-use trame::preferences::Preferences;
-use trame::session::Session;
-use trame::term::ReportedColors;
+use crate::preferences::Preferences;
+use crate::session::Session;
+use crate::term::ReportedColors;
 
 use super::Sessions;
 

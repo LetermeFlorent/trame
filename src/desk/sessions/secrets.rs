@@ -1,7 +1,7 @@
 use std::time::Instant;
 
-use trame::preferences::{SecretAnswer, SshLogin};
-use trame::session::SessionId;
+use crate::preferences::{SecretAnswer, SshLogin};
+use crate::session::SessionId;
 
 use super::Sessions;
 

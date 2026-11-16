@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use trame::session::SessionId;
+use crate::session::SessionId;
 
 use super::Sessions;
 
