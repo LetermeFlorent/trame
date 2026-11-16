@@ -1,16 +1,16 @@
 use std::path::PathBuf;
 
+use trame::desk::FolderTarget;
 use trame::files::{home_dir, short_path};
 use trame::ui::frame::{EditTarget, FormAction, MessageRequest};
 
 use super::{EditMode, Editing, Running};
-use crate::app::running::FolderTarget;
 
 const FOLDER_ACTIONS: [FormAction; 2] = [FormAction::Change, FormAction::Apply];
 
 impl Running {
     pub(super) fn folder_mode(&self, target: EditTarget) -> EditMode {
-        let original = self.folder_of(target.into());
+        let original = self.desk.folder_of(target.into());
         EditMode::Folder {
             chosen: original.clone(),
             original,

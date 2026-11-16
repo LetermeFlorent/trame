@@ -8,10 +8,9 @@ use super::{FrameLayout, HostList, HostsView, PopupFrame, SettingLine, ToggleRow
 use crate::geometry::{Point, Rect};
 use crate::input::TextField;
 use crate::locale::Strings;
-use crate::session::SessionId;
 use crate::text::TextSystem;
 use crate::theme::{Emblem, Swatch};
-use crate::workspace::InstanceId;
+pub use crate::workspace::EditTarget;
 use anchor::AnchorSpot;
 pub use anchor::EditAnchor;
 pub use field::FieldFrame;
@@ -24,12 +23,6 @@ use popups::ConnectDialog;
 pub use popups::{
     ColorsView, EmblemSlot, EmblemView, PickerFrame, PickerPart, PickerView, SwatchSlot,
 };
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum EditTarget {
-    Instance(InstanceId),
-    Tab(SessionId),
-}
 
 #[derive(Clone, Copy, Debug)]
 pub enum EditKind<'a> {

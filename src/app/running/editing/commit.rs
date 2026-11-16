@@ -1,3 +1,4 @@
+use trame::preferences::SshHost;
 use trame::theme::{Emblem, Letters, Swatch};
 use trame::ui::frame::{EditTarget, FormAction, SettingControl};
 
@@ -79,6 +80,11 @@ impl Running {
         {
             self.connect(editing.target, host);
         }
+    }
+
+    fn connect(&mut self, target: EditTarget, host: SshHost) {
+        let effects = self.desk.connect(target, host);
+        self.apply(effects);
     }
 
     pub(super) fn cancel_edit(&mut self) {

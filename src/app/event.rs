@@ -4,7 +4,7 @@ use trame::host::update::UpdateStatus;
 use trame::session::SessionEvent;
 use trame::workspace::InstanceId;
 
-use super::running::FolderTarget;
+use trame::desk::FolderTarget;
 
 #[derive(Clone, Debug)]
 pub enum UserEvent<K> {

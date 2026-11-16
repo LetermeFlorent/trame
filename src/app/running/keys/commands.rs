@@ -1,22 +1,23 @@
+use trame::desk::Placement;
 use trame::display::TERMINAL_FONT_SIZE;
 use trame::input::Command;
 use trame::workspace::{Edge, Instance, PaneLayout};
 
 use crate::app::running::Running;
 use crate::app::running::pointer::Scroll;
-use crate::app::running::tabs::Placement;
 
 impl Running {
     pub(in crate::app::running) fn command(&mut self, exiting: bool, command: Command) {
         self.motion.animate_next();
         match command {
-            Command::NewTab => self.open_or_report(Placement::Tab),
-            Command::NewInstance => self.open_or_report(Placement::Instance),
-            Command::SplitRight => self.open_or_report(Placement::Split(Edge::Right)),
-            Command::SplitDown => self.open_or_report(Placement::Split(Edge::Bottom)),
+            Command::NewTab => self.open(Placement::Tab),
+            Command::NewInstance => self.open(Placement::Instance),
+            Command::SplitRight => self.open(Placement::Split(Edge::Right)),
+            Command::SplitDown => self.open(Placement::Split(Edge::Bottom)),
             Command::CloseTab => {
                 if let Some(id) = self.desk.workspace.active_tab() {
-                    self.close_tab(exiting, id);
+                    let effects = self.desk.close_tab(exiting, id);
+                    self.apply(effects);
                 }
             }
             Command::ToggleSidebar => {
@@ -40,6 +41,11 @@ impl Running {
             Command::ScrollBottom => self.scroll_active(Scroll::Bottom),
         }
         self.changed();
+    }
+
+    fn open(&mut self, placement: Placement) {
+        let effects = self.desk.open(placement);
+        self.apply(effects);
     }
 
     fn cycle_tab(&mut self, step: isize) {

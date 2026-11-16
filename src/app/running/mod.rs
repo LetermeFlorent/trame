@@ -36,7 +36,7 @@ use keys::Memo;
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
 use tabs::Closing;
-pub use tabs::{FolderTarget, Lifted};
+pub use tabs::Lifted;
 
 pub struct Running {
     desk: Desk,
@@ -74,7 +74,10 @@ impl Running {
                 self.desk.power.output(id);
                 self.output(id);
             }
-            SessionEvent::Exited(id) => self.shell_exited(exiting, id),
+            SessionEvent::Exited(id) => {
+                let effects = self.desk.shell_exited(exiting, id);
+                self.apply(effects);
+            }
         }
     }
 

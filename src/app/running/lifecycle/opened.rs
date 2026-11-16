@@ -3,12 +3,13 @@ use std::path::PathBuf;
 
 use winit::dpi::PhysicalPosition;
 
+use trame::desk::Placement;
 use trame::host::update::UpdateStatus;
 use trame::preferences::Recall;
 use trame::workspace::Snapshot;
 
 use super::super::Running;
-use super::super::tabs::{Placement, TornTab};
+use super::super::tabs::TornTab;
 use crate::app::window;
 
 const TORN_OFFSET: f32 = 48.0;
@@ -32,7 +33,11 @@ impl Opened {
         }
         let restored = running.desk.saver.owns() && running.restore_session(saved.as_ref());
         if !restored || folder.is_some() {
-            running.open_at(Placement::Instance, folder)?;
+            let effects = running.desk.open_at(Placement::Instance, folder);
+            running.apply(effects);
+            if running.desk.workspace.is_empty() {
+                return Err("the first shell could not start".into());
+            }
         }
         if !running.desk.preferences.recalls(Recall::Text) {
             running.desk.transcripts.clear();

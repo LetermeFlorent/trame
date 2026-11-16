@@ -34,21 +34,14 @@ impl Running {
     fn close(&mut self, closing: Closing) {
         match closing {
             Closing::Window => self.desk.quit_with(Quit::Close),
-            Closing::Instance(id) => self.close_instance(id),
+            Closing::Instance(id) => {
+                let effects = self.desk.close_instance(id);
+                self.apply(effects);
+            }
             Closing::Update => self.desk.restart_for_update(),
             Closing::Forget(index) => self.forget_at(index),
             Closing::Paste(pending) => self.send_paste(&pending),
         }
-    }
-
-    fn close_instance(&mut self, instance: InstanceId) {
-        let Some(index) = self.desk.workspace.instance_index(instance) else {
-            return;
-        };
-        for id in self.desk.workspace.remove_instance(index) {
-            self.desk.sessions.remove(id);
-        }
-        self.after_close();
     }
 
     pub(super) fn tabs_closing(&self, closing: &Closing) -> usize {

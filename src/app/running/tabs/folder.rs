@@ -1,30 +1,10 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
+use trame::desk::FolderTarget;
 use trame::files::{PickRequest, pick_folder};
-use trame::log_error;
-use trame::session::SessionId;
-use trame::ui::frame::EditTarget;
-use trame::workspace::{Instance, InstanceId};
 
-use super::Placement;
 use crate::app::running::Running;
 use crate::app::{UserEvent, window};
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum FolderTarget {
-    Default,
-    Instance(InstanceId),
-    Tab(SessionId),
-}
-
-impl From<EditTarget> for FolderTarget {
-    fn from(target: EditTarget) -> Self {
-        match target {
-            EditTarget::Instance(id) => Self::Instance(id),
-            EditTarget::Tab(id) => Self::Tab(id),
-        }
-    }
-}
 
 impl Running {
     pub(in crate::app::running) fn ask_folder(&self, target: FolderTarget, start: Option<PathBuf>) {
@@ -45,67 +25,7 @@ impl Running {
             *chosen = Some(folder);
             return self.changed();
         }
-        match target {
-            FolderTarget::Default => {
-                let next = self
-                    .desk
-                    .preferences
-                    .with(|next| next.default_folder = Some(folder));
-                self.set_preferences(next);
-            }
-            FolderTarget::Instance(id) => {
-                self.desk
-                    .workspace
-                    .set_instance_folder(id, Some(folder.clone()));
-                let tabs = self.desk.workspace.instance(id).map(Instance::tabs);
-                self.relaunch(tabs.unwrap_or_default(), &folder);
-            }
-            FolderTarget::Tab(id) => self.relaunch(vec![id], &folder),
-        }
-    }
-
-    pub(super) fn start_folder(&self, placement: Placement) -> Option<PathBuf> {
-        let chosen = match placement {
-            Placement::Instance => self.desk.preferences.default_folder.clone(),
-            Placement::Tab | Placement::Split(_) => self
-                .desk
-                .workspace
-                .active_instance()
-                .and_then(|instance| instance.folder.clone()),
-        };
-        let current = self.active_folder();
-        chosen.filter(|folder| folder.is_dir()).or(current)
-    }
-
-    pub(in crate::app::running) fn folder_of(&self, target: FolderTarget) -> Option<PathBuf> {
-        match target {
-            FolderTarget::Default => self.desk.preferences.default_folder.clone(),
-            FolderTarget::Instance(id) => {
-                let instance = self.desk.workspace.instance(id)?;
-                let current = instance
-                    .active_tab()
-                    .and_then(|tab| self.desk.sessions.cwd(tab));
-                instance.folder.clone().or(current)
-            }
-            FolderTarget::Tab(id) => self.desk.sessions.cwd(id),
-        }
-    }
-
-    fn relaunch(&mut self, tabs: Vec<SessionId>, folder: &Path) {
-        let mut fresh = Vec::with_capacity(tabs.len());
-        for old in tabs {
-            let new = self.desk.sessions.reserve();
-            if self.desk.workspace.replace_tab(old, new) {
-                self.desk.sessions.remove(old);
-                fresh.push(new);
-            }
-        }
-        self.relayout();
-        for id in fresh {
-            if let Err(error) = self.start_shell(id, Some(folder), None) {
-                log_error!("the shell could not start in the new folder: {error}");
-            }
-        }
-        self.changed();
+        let effects = self.desk.folder_picked(target, folder);
+        self.apply(effects);
     }
 }

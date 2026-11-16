@@ -6,6 +6,7 @@ mod pane;
 mod snapshot;
 mod swap;
 mod tabs;
+mod target;
 mod transfer;
 mod tree;
 
@@ -18,6 +19,7 @@ pub use snapshot::{
     InstanceSnapshot, NodeSnapshot, PaneSnapshot, SNAPSHOT_VERSION, Snapshot, SnapshotError,
     TabSnapshot, WindowSnapshot,
 };
+pub use target::EditTarget;
 pub use transfer::MovingInstance;
 pub use tree::{Axis, Divider, Edge, MIN_PANE, Node, PaneId, PaneLayout, resize_split, resized};
 

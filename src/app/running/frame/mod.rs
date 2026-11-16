@@ -1,3 +1,4 @@
+mod grids;
 mod loader;
 mod paint;
 mod style;
@@ -5,7 +6,7 @@ mod system;
 mod work;
 
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::Instant;
 
 use winit::window::Window;
@@ -87,7 +88,7 @@ impl Running {
             .collect();
         let title =
             |id: SessionId| title_of(&self.desk.workspace, &self.labels, &self.desk.sessions, id);
-        let folder = self.active_folder();
+        let folder = self.desk.active_folder();
         let update = self
             .desk
             .update
@@ -112,7 +113,7 @@ impl Running {
         self.place_menu();
         self.place_settings();
         self.place_message();
-        self.sync_sizes();
+        self.desk.resize_shells(&self.grids());
         self.sync_rest();
         self.refresh_hover();
     }
@@ -125,26 +126,11 @@ impl Running {
             .mark_offline(&mut self.text, self.desk.strings, |id| sessions.offline(id));
     }
 
-    pub(super) fn active_folder(&self) -> Option<PathBuf> {
-        let tab = self.desk.workspace.active_tab()?;
-        self.desk.sessions.cwd(tab)
-    }
-
     pub(super) fn pane_showing(&self, id: SessionId) -> Option<&PaneFrame> {
         self.frame.panes.iter().find(|pane| pane.active == Some(id))
     }
 
     pub(super) fn tab_title(&self, id: SessionId) -> String {
         title_of(&self.desk.workspace, &self.labels, &self.desk.sessions, id)
-    }
-
-    fn sync_sizes(&mut self) {
-        let cell = self.text.cell_metrics();
-        for pane in &self.frame.panes {
-            let size = pane.grid_size(&cell);
-            for tab in &pane.tabs {
-                self.desk.sessions.resize(*tab, size);
-            }
-        }
     }
 }

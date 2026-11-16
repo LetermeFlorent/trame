@@ -33,7 +33,8 @@ impl Running {
     pub fn tear_tab(&mut self, tab: SessionId) -> Option<TornTab> {
         let mark = self.desk.workspace.take_tab(tab)?;
         let leaving = self.desk.sessions.hand_off(tab);
-        self.after_close();
+        let effects = self.desk.after_close();
+        self.apply(effects);
         Some(TornTab { leaving, mark })
     }
 
@@ -44,7 +45,8 @@ impl Running {
             .into_iter()
             .map(|tab| (tab, self.desk.sessions.hand_off(tab)))
             .collect();
-        self.after_close();
+        let effects = self.desk.after_close();
+        self.apply(effects);
         Some(MovedInstance { moving, sessions })
     }
 

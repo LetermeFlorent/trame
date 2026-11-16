@@ -56,7 +56,7 @@ impl Running {
     }
 
     pub(in super::super) fn open_adding_menu(&mut self, exiting: bool, pane: PaneId) {
-        self.focus_pane(pane);
+        self.desk.focus_pane(pane);
         let found = self
             .frame
             .panes
@@ -81,7 +81,7 @@ impl Running {
             Some(Hit::Menu) => self.menu = Some(menu),
             Some(Hit::MenuEntry(MenuEntry::NewTab)) => {
                 if let EditAnchor::Strip(pane) = menu.anchor {
-                    self.focus_pane(pane);
+                    self.desk.focus_pane(pane);
                 }
                 self.command(exiting, Command::NewTab);
             }

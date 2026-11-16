@@ -1,10 +1,11 @@
+use trame::desk::FolderTarget;
 use trame::input::TextField;
 use trame::log_error;
 use trame::preferences::Preferences;
 use trame::ui::frame::SettingControl;
 
 use crate::app::explorer;
-use crate::app::running::{FolderTarget, Running};
+use crate::app::running::Running;
 
 impl Running {
     pub(in crate::app::running) fn apply_setting(&mut self, control: SettingControl) {

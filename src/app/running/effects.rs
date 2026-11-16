@@ -12,6 +12,13 @@ impl Running {
                 Effect::Rescale => self.apply_scale(),
                 Effect::Animate => self.motion.animate_next(),
                 Effect::Raise => self.bring_forward(),
+                Effect::StartQueued => {
+                    let grids = self.grids();
+                    self.desk.start_queued(&grids);
+                }
+                Effect::StartShown => {
+                    self.start_shown();
+                }
             }
         }
     }

@@ -32,9 +32,9 @@ impl Running {
                 self.desk.workspace.activate_tab(id)
             }
             Hit::Row(SidebarItem::Instance(instance)) | Hit::RailInstance(instance) => {
-                self.activate_instance(instance)
+                self.desk.activate_instance(instance)
             }
-            Hit::Terminal(pane) | Hit::TabBar(pane) => self.focus_pane(pane),
+            Hit::Terminal(pane) | Hit::TabBar(pane) => self.desk.focus_pane(pane),
             _ => {}
         }
         self.drag_pressed(hit);
@@ -48,7 +48,7 @@ impl Running {
             Hit::TitleBar => self.toggle_maximized(),
             Hit::Tab(_, tab) if self.primary_held() => self.desk.workspace.toggle_even_tabs(tab),
             Hit::TabBar(pane) => {
-                self.focus_pane(pane);
+                self.desk.focus_pane(pane);
                 self.command(exiting, Command::NewTab);
             }
             _ => return self.open_editor(hit),
@@ -83,15 +83,19 @@ impl Running {
             Hit::SidebarBar(BarPart::Track) => self.page_list(ListKind::Sidebar),
             Hit::FormField(field) => self.focus_form(field),
             Hit::FormButton(action) => self.form_action(action),
-            Hit::Disconnect(tab) => self.disconnect(tab),
+            Hit::Disconnect(tab) => {
+                let effects = self.desk.disconnect(tab);
+                self.apply(effects);
+            }
             Hit::RowClose(SidebarItem::Instance(id)) => self.ask_close(Closing::Instance(id)),
             Hit::RowClose(SidebarItem::Tab(id)) | Hit::TabClose(_, id) => {
-                self.close_tab(exiting, id)
+                let effects = self.desk.close_tab(exiting, id);
+                self.apply(effects);
             }
             Hit::RowFold(id) => self.desk.workspace.toggle_folded(id),
             Hit::NewTab(pane) => self.open_adding_menu(exiting, pane),
             Hit::Split(pane) => {
-                self.focus_pane(pane);
+                self.desk.focus_pane(pane);
                 let command = match self.modifiers.shift_key() {
                     true => Command::SplitDown,
                     false => Command::SplitRight,
@@ -104,7 +108,8 @@ impl Running {
 
     pub(super) fn middle_click(&mut self, exiting: bool, hit: Option<Hit>) {
         if let Some(Hit::Tab(_, id) | Hit::Row(SidebarItem::Tab(id))) = hit {
-            self.close_tab(exiting, id);
+            let effects = self.desk.close_tab(exiting, id);
+            self.apply(effects);
         }
     }
 

@@ -6,6 +6,8 @@ pub enum Effect {
     Rescale,
     Animate,
     Raise,
+    StartQueued,
+    StartShown,
 }
 
 #[must_use]
@@ -33,6 +35,12 @@ impl Effects {
 impl From<Effect> for Effects {
     fn from(effect: Effect) -> Self {
         Self(vec![effect])
+    }
+}
+
+impl<const N: usize> From<[Effect; N]> for Effects {
+    fn from(effects: [Effect; N]) -> Self {
+        Self(effects.into())
     }
 }
 
