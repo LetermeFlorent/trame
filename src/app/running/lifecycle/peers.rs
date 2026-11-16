@@ -18,9 +18,8 @@ impl Running {
     }
 
     pub fn follow_preferences(&mut self, preferences: &Preferences) {
-        if preferences != &self.desk.preferences {
-            self.set_preferences(preferences.clone());
-        }
+        let effects = self.desk.follow_preferences(preferences);
+        self.apply(effects);
     }
 
     pub fn rests(&self) -> bool {

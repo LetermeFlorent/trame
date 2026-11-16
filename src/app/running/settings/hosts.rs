@@ -1,8 +1,8 @@
+use trame::desk::HostForm;
 use trame::preferences::{ConnectForm, SshHost};
 use trame::ui::frame::HostsView;
 
 use super::SettingsState;
-use super::store::HostForm;
 use crate::app::running::Running;
 
 pub(in crate::app::running) struct HostsPanel {

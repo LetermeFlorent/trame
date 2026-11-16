@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use std::time::Instant;
 
 use trame::host::power::Shown;
-use trame::preferences::Preferences;
 use trame::session::SessionId;
 use trame::theme::Rgba;
 
@@ -51,14 +50,5 @@ impl Running {
 
     pub(in crate::app::running) fn clear_color(&self) -> Rgba {
         self.desk.theme.chrome
-    }
-
-    pub(in crate::app::running) fn apply_system(&mut self, previous: &Preferences) {
-        let current = &self.desk.preferences;
-        self.desk.workspace.set_numbering(current.numbering);
-        let wanted = current.power_switches();
-        if previous.power_switches() != wanted {
-            self.desk.power.set_enabled(wanted);
-        }
     }
 }

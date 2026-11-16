@@ -1,60 +1,14 @@
-use trame::host::persist;
-use trame::log_error;
-use trame::preferences::{ConnectForm, HostEntry, SshHost, vault};
+use trame::desk::HostForm;
+use trame::preferences::SshHost;
 
 use super::hosts::settings_panel;
 use crate::app::running::Running;
 
-pub(in crate::app::running) struct HostForm {
-    pub(in crate::app::running) form: ConnectForm,
-    pub(in crate::app::running) original: Option<SshHost>,
-}
-
-impl HostForm {
-    pub(in crate::app::running) fn new() -> Self {
-        Self {
-            form: ConnectForm::new(),
-            original: None,
-        }
-    }
-
-    fn changing(host: SshHost) -> Self {
-        let entry = host.alias().and_then(persist::ssh_entry);
-        let entry = entry.unwrap_or_else(|| HostEntry::of(&host));
-        let secret = vault::SSH.load(&host);
-        Self {
-            form: ConnectForm::filled(&entry, secret.as_deref()),
-            original: Some(host),
-        }
-    }
-}
-
 impl Running {
     pub(in crate::app::running) fn store_host(&mut self, entry: &mut HostForm) -> Option<SshHost> {
-        let Some(host) = entry.form.host() else {
-            if let Some(field) = entry.form.first_invalid() {
-                entry.form.focus_on(field);
-            }
-            return None;
-        };
-        let secret = entry.form.secret();
-        let host = match &entry.original {
-            Some(original) => {
-                let host = changed_in_config(original, host);
-                if *original != host || secret.is_none() {
-                    vault::SSH.forget(original);
-                }
-                self.set_preferences(self.desk.preferences.replace_host(original, host.clone()));
-                host
-            }
-            None => {
-                let host = kept_in_config(host);
-                self.set_preferences(self.desk.preferences.remember_host(host.clone()));
-                host
-            }
-        };
-        save_secret(&host, secret);
-        Some(host)
+        let stored = self.desk.store_host(entry);
+        self.apply(stored.effects);
+        stored.value
     }
 
     pub(in crate::app::running) fn save_settings_form(&mut self) {
@@ -78,42 +32,4 @@ impl Running {
             panel.form = Some(HostForm::changing(host));
         }
     }
-}
-
-fn save_secret(host: &SshHost, secret: Option<&str>) {
-    let Some(secret) = secret else {
-        return;
-    };
-    if let Err(error) = vault::SSH.store(host, secret) {
-        log_error!(
-            "the password for {} could not be saved: {error}",
-            host.label()
-        );
-    }
-}
-
-fn kept_in_config(host: SshHost) -> SshHost {
-    let Some(config) = persist::ssh_config() else {
-        return host;
-    };
-    config.keep(&host).unwrap_or_else(|error| {
-        log_error!(
-            "{} could not be added to the SSH config: {error}",
-            host.label()
-        );
-        host
-    })
-}
-
-fn changed_in_config(original: &SshHost, host: SshHost) -> SshHost {
-    let (Some(alias), Some(config)) = (original.alias(), persist::ssh_config()) else {
-        return kept_in_config(host);
-    };
-    config.replace(alias, &host).unwrap_or_else(|error| {
-        log_error!(
-            "{} could not be changed in the SSH config: {error}",
-            host.label()
-        );
-        host
-    })
 }

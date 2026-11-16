@@ -1,6 +1,5 @@
-use trame::host::persist;
-use trame::log_error;
-use trame::preferences::{SshHost, vault};
+use trame::desk::written_by_hand;
+use trame::preferences::SshHost;
 
 use crate::app::running::{Closing, Running};
 
@@ -9,7 +8,7 @@ impl Running {
         let Some(host) = self.listed_host(index) else {
             return;
         };
-        if host.alias().is_some_and(written_by_hand) {
+        if written_by_hand(&host) {
             self.closing = Some(Closing::Forget(index));
             return;
         }
@@ -27,23 +26,8 @@ impl Running {
     }
 
     fn forget(&mut self, host: &SshHost) {
-        if let (Some(alias), Some(config)) = (host.alias(), persist::ssh_config())
-            && let Err(error) = config.remove(alias)
-        {
-            log_error!("{alias} could not be removed from the SSH config: {error}");
-        }
-        vault::SSH.forget(host);
-        self.set_preferences(self.desk.preferences.forget_host(host));
+        let effects = self.desk.forget_host(host);
+        self.apply(effects);
         self.reload_hosts();
     }
-}
-
-fn written_by_hand(alias: &str) -> bool {
-    let Some(config) = persist::ssh_config() else {
-        return false;
-    };
-    config.written_by_hand(alias).unwrap_or_else(|error| {
-        log_error!("the SSH config could not be read: {error}");
-        false
-    })
 }

@@ -1,7 +1,9 @@
 mod effect;
+pub mod hosts;
 mod quit;
 mod restarts;
 pub mod sessions;
+mod settings;
 mod setup;
 mod update;
 
@@ -16,6 +18,7 @@ use crate::theme::Theme;
 use crate::workspace::Workspace;
 
 pub use effect::{Effect, Effects, Outcome};
+pub use hosts::{HostForm, written_by_hand};
 pub use restarts::Restarts;
 pub use sessions::{Leaving, Sessions, ShellStart, Waiting};
 pub use setup::DeskSetup;
