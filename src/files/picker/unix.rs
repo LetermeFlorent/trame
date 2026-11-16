@@ -5,7 +5,25 @@ use super::{PickKind, PickRequest};
 use crate::log_error;
 
 #[cfg(target_os = "macos")]
-fn command(request: &PickRequest, kind: PickKind) -> Command {
+pub(super) fn choose(request: &PickRequest, kind: PickKind) -> Option<PathBuf> {
+    run(osascript(request, kind))
+}
+
+#[cfg(not(target_os = "macos"))]
+pub(super) fn choose(request: &PickRequest, kind: PickKind) -> Option<PathBuf> {
+    use super::portal::{self, Answer};
+    match portal::choose(request, kind) {
+        Ok(Answer::Picked(path)) => Some(path),
+        Ok(Answer::Cancelled) => None,
+        Err(error) => {
+            log_error!("the file portal is not available ({error}), trying zenity");
+            run(zenity(request, kind))
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn osascript(request: &PickRequest, kind: PickKind) -> Command {
     let chooser = match kind {
         PickKind::Folder => "choose folder",
         PickKind::Image => "choose file of type {\"public.png\"}",
@@ -17,7 +35,7 @@ fn command(request: &PickRequest, kind: PickKind) -> Command {
 }
 
 #[cfg(not(target_os = "macos"))]
-fn command(request: &PickRequest, kind: PickKind) -> Command {
+fn zenity(request: &PickRequest, kind: PickKind) -> Command {
     let mut command = Command::new("zenity");
     command.arg("--file-selection");
     match kind {
@@ -31,8 +49,8 @@ fn command(request: &PickRequest, kind: PickKind) -> Command {
     command
 }
 
-pub(super) fn choose(request: &PickRequest, kind: PickKind) -> Option<PathBuf> {
-    let output = command(request, kind)
+fn run(mut command: Command) -> Option<PathBuf> {
+    let output = command
         .output()
         .inspect_err(|error| log_error!("the file window could not open: {error}"))
         .ok()?;

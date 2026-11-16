@@ -1,7 +1,11 @@
 #[cfg(windows)]
 pub(super) mod com;
+#[cfg(all(unix, not(target_os = "macos")))]
+mod portal;
 #[cfg(unix)]
 mod unix;
+#[cfg(all(unix, not(target_os = "macos")))]
+mod uri;
 #[cfg(windows)]
 mod windows;
 
@@ -10,6 +14,8 @@ use std::thread;
 
 #[cfg(unix)]
 use unix::choose;
+#[cfg(all(unix, not(target_os = "macos")))]
+pub use uri::path_from_uri;
 #[cfg(windows)]
 use windows::choose;
 

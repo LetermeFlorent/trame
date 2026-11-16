@@ -7,6 +7,8 @@ mod open;
 mod resample;
 #[path = "../support/sandbox.rs"]
 mod sandbox;
+#[cfg(all(unix, not(target_os = "macos")))]
+mod uri;
 
 use std::fs;
 use std::path::{Path, PathBuf};

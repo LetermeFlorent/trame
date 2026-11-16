@@ -22,6 +22,8 @@ pub use icons::{ICON_SIZE, IconStore, fingerprint, fit, import_icon, load_icon};
 pub use log::{LogFile, record_error, start_log};
 pub use modes::private_folder;
 pub use open::{is_web, open_link};
+#[cfg(all(unix, not(target_os = "macos")))]
+pub use picker::path_from_uri;
 pub use picker::{PickRequest, pick_folder, pick_image};
 pub use places::{home_dir, short_path};
 pub use quoting::{join_paths, quote_path};

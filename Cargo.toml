@@ -68,6 +68,7 @@ wgpu = { version = "30.0.1", default-features = false, features = ["metal"] }
 
 [target.'cfg(all(unix, not(target_vendor = "apple")))'.dependencies]
 wgpu = { version = "30.0.1", default-features = false, features = ["vulkan", "gles"] }
+zbus = { version = "5", default-features = false, features = ["async-io", "blocking-api"] }
 
 [profile.release]
 opt-level = 3
