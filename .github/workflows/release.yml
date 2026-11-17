@@ -74,7 +74,7 @@ jobs:
           tool: cargo-deb,cargo-generate-rpm
 
       - name: Build
-        run: cargo build --release --locked
+        run: cargo build --release --locked --no-default-features
 
       - name: Package
         run: |
@@ -204,7 +204,7 @@ jobs:
           printf '#!/bin/sh\nexec sudo "$@"\n' | sudo tee /usr/bin/pkexec > /dev/null
           sudo chmod 755 /usr/bin/pkexec
           perl -0pi -e 's/^version = ".*?"/version = "0.0.1"/m' Cargo.toml
-          cargo build --release
+          cargo build --release --no-default-features
           cargo deb --no-build --output old.deb
           git checkout Cargo.toml Cargo.lock
           sudo apt-get install -y --allow-downgrades ./old.deb
