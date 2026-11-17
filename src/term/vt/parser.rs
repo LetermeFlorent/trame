@@ -7,11 +7,12 @@ pub(super) const ESC: u8 = 0x1B;
 pub(super) const DEL: u8 = 0x7F;
 const CAN: u8 = 0x18;
 const SUB: u8 = 0x1A;
-const BEL: u8 = 0x07;
 pub(super) const C0_FIRST: u8 = 0x00;
 pub(super) const C0_LAST: u8 = 0x1F;
 pub(super) const INTERMEDIATE_FIRST: u8 = 0x20;
 pub(super) const INTERMEDIATE_LAST: u8 = 0x2F;
+const PRINTABLE_FIRST: u8 = 0x20;
+const PRINTABLE_LAST: u8 = 0x7E;
 const NON_ASCII_FIRST: u8 = 0x80;
 const REPLACEMENT: char = '\u{FFFD}';
 
@@ -55,8 +56,23 @@ impl Parser {
     }
 
     pub fn advance<P: Perform>(&mut self, performer: &mut P, bytes: &[u8]) {
-        for &byte in bytes {
-            self.advance_byte(performer, byte);
+        let mut rest = bytes;
+        while let Some((&byte, tail)) = rest.split_first() {
+            let taken = if self.state == State::Ground {
+                let run = self.ascii_run(rest);
+                if run > 0 {
+                    performer.print_ascii(&rest[..run]);
+                }
+                run
+            } else {
+                self.csi_run(performer, rest)
+            };
+            if taken == 0 {
+                self.advance_byte(performer, byte);
+                rest = tail;
+            } else {
+                rest = &rest[taken..];
+            }
         }
     }
 
@@ -120,27 +136,13 @@ impl Parser {
         self.state = State::Escape;
     }
 
-    fn osc_byte<P: Perform>(&mut self, performer: &mut P, byte: u8) {
-        match byte {
-            BEL => {
-                self.osc.dispatch(performer, true);
-                self.state = State::Ground;
-            }
-            C0_FIRST..=C0_LAST => {}
-            _ => self.osc.push(byte),
+    fn ascii_run(&self, bytes: &[u8]) -> usize {
+        if self.state != State::Ground || self.utf8.is_pending() {
+            return 0;
         }
-    }
-
-    pub(super) fn collect(&mut self, byte: u8) {
-        if self.intermediate_len == MAX_INTERMEDIATES {
-            self.ignoring = true;
-            return;
-        }
-        self.intermediates[self.intermediate_len] = byte;
-        self.intermediate_len += 1;
-    }
-
-    pub(super) fn intermediates(&self) -> &[u8] {
-        &self.intermediates[..self.intermediate_len]
+        bytes
+            .iter()
+            .position(|byte| !(PRINTABLE_FIRST..=PRINTABLE_LAST).contains(byte))
+            .unwrap_or(bytes.len())
     }
 }

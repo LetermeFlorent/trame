@@ -1,4 +1,13 @@
+use trame::term::{Flags, Terminal};
+
 use super::{cursor, feed, lines, terminal};
+
+fn width_marked_columns(term: &Terminal) -> Vec<usize> {
+    let row = term.screen().grid().row(0);
+    (0..term.screen().cols())
+        .filter(|&col| row.cell(col).flags.intersects(Flags::WIDTH_MARKS))
+        .collect()
+}
 
 #[test]
 fn wraps_at_last_column_only_when_next_char_arrives() {
@@ -63,6 +72,16 @@ fn wide_characters_take_two_cells_and_wrap_early() {
 fn overwriting_half_of_wide_char_clears_the_other_half() {
     let term = feed(1, 4, "漢\x1b[1;2Hx");
     assert_eq!(lines(&term)[0], " x");
+}
+
+#[test]
+fn insert_mode_print_clears_the_wide_chars_it_cuts() {
+    let term = feed(1, 6, "漢\x1b[D\x1b[4h!");
+    let shown = (lines(&term)[0].clone(), width_marked_columns(&term));
+    assert_eq!(shown, (" !".to_owned(), vec![]));
+    let term = feed(1, 4, "ab漢\x1b[1;1H\x1b[4hx");
+    let shown = (lines(&term)[0].clone(), width_marked_columns(&term));
+    assert_eq!(shown, ("xab".to_owned(), vec![]));
 }
 
 #[test]

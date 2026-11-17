@@ -1,5 +1,5 @@
 use super::decode::{decode_base64, file_url_path, is_invisible_format, local_folder};
-use super::status::PROBE_REPLY;
+use super::status::{PROBE_REPLY, is_status_mark};
 use crate::term::MAX_CLIPBOARD_BYTES;
 use crate::term::cell::MAX_LINK_LEN;
 use crate::term::screen::Screen;
@@ -89,6 +89,7 @@ impl Screen {
 
     fn set_title(&mut self, parts: &[&[u8]]) {
         let title = printable_text(parts);
+        self.status.read_title(&title);
         let name = title.trim_start_matches(is_status_mark);
         self.title = (!name.is_empty()).then(|| name.to_string());
     }
@@ -99,8 +100,7 @@ impl Screen {
 
     fn program_status(&mut self, payload: &[u8], bell_terminated: bool) {
         if payload == b"?" {
-            let terminator = if bell_terminated { "\x07" } else { "\x1b\\" };
-            self.respond(format!("{PROBE_REPLY}{terminator}").as_bytes());
+            self.respond_osc(PROBE_REPLY, bell_terminated);
         } else if let Some(message) = self.status.apply(payload) {
             self.attention = Some(message);
         }
@@ -112,18 +112,13 @@ impl Screen {
             b"11" => self.colors.background,
             _ => self.colors.cursor,
         };
-        let terminator = if bell_terminated { "\x07" } else { "\x1b\\" };
         let code = String::from_utf8_lossy(kind);
         let reply = format!(
-            "\x1b]{code};rgb:{0:02x}{0:02x}/{1:02x}{1:02x}/{2:02x}{2:02x}{terminator}",
+            "\x1b]{code};rgb:{0:02x}{0:02x}/{1:02x}{1:02x}/{2:02x}{2:02x}",
             rgb[0], rgb[1], rgb[2]
         );
-        self.respond(reply.as_bytes());
+        self.respond_osc(&reply, bell_terminated);
     }
-}
-
-fn is_status_mark(c: char) -> bool {
-    c.is_whitespace() || (!c.is_ascii() && !c.is_alphanumeric())
 }
 
 fn printable_text(parts: &[&[u8]]) -> String {

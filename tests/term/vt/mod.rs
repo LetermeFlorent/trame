@@ -1,4 +1,6 @@
+mod ascii_runs;
 mod control_strings;
+mod random_input;
 mod recorder;
 
 use recorder::{Event, Recorder};
@@ -103,6 +105,21 @@ fn ignores_sequences_with_too_many_params() {
     }
     bytes.extend_from_slice(b"mZ");
     assert_eq!(parse(&bytes), vec![Event::Print('Z')]);
+}
+
+#[test]
+fn csi_cut_anywhere_dispatches_the_same() {
+    let bytes = b"\x1b[38;2;249;38;114ma\x1b[?25l\x1b[2 q\x1b[48:2::9:8:7m\x1b[70000;m\x1b[1\x18b";
+    let whole = parse(bytes);
+    assert_eq!(whole.len(), 8);
+    for size in 1..bytes.len() {
+        let mut parser = trame::term::vt::Parser::new();
+        let mut recorder = Recorder::default();
+        for chunk in bytes.chunks(size) {
+            parser.advance(&mut recorder, chunk);
+        }
+        assert_eq!(recorder.events, whole, "chunks of {size} bytes");
+    }
 }
 
 #[test]

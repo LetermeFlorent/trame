@@ -1,5 +1,5 @@
-use crate::term::cell::Cell;
-use crate::term::grid::Grid;
+use crate::term::cell::{Cell, Flags};
+use crate::term::grid::{Grid, Row};
 use crate::term::screen::Screen;
 
 type LineShift = fn(&mut Grid, usize, usize, usize, &Cell);
@@ -31,7 +31,7 @@ impl Screen {
             _ => return,
         };
         let line = self.grid_mut().row_mut(row);
-        line.clear_range(start, end, &template);
+        clear_cut_span(line, start, end, cols, &template);
         if end == cols {
             line.wrapped = false;
         }
@@ -40,24 +40,25 @@ impl Screen {
     pub(crate) fn erase_chars(&mut self, count: usize) {
         let (row, col, cols, template) = self.cursor_span();
         let end = col.saturating_add(count).min(cols);
-        self.grid_mut()
-            .row_mut(row)
-            .clear_range(col, end, &template);
+        clear_cut_span(self.grid_mut().row_mut(row), col, end, cols, &template);
     }
 
     pub(crate) fn insert_chars(&mut self, count: usize) {
         let (row, col, cols, template) = self.cursor_span();
-        self.grid_mut()
-            .row_mut(row)
-            .insert_blanks(col, count, cols, &template);
+        let line = self.grid_mut().row_mut(row);
+        let dropped = cols.saturating_sub(count).max(col);
+        clear_cut_wide_char(line, col, cols, &template);
+        clear_cut_wide_char(line, dropped, cols, &template);
+        line.insert_blanks(col, count, cols, &template);
         self.cursor.pending_wrap = false;
     }
 
     pub(crate) fn delete_chars(&mut self, count: usize) {
         let (row, col, cols, template) = self.cursor_span();
-        self.grid_mut()
-            .row_mut(row)
-            .delete_cells(col, count, cols, &template);
+        let line = self.grid_mut().row_mut(row);
+        clear_cut_wide_char(line, col, cols, &template);
+        clear_cut_wide_char(line, col.saturating_add(count), cols, &template);
+        line.delete_cells(col, count, cols, &template);
         self.cursor.pending_wrap = false;
     }
 
@@ -94,5 +95,21 @@ impl Screen {
             line.clear_range(0, cols, &template);
             line.wrapped = false;
         }
+    }
+}
+
+fn clear_cut_span(line: &mut Row, start: usize, end: usize, cols: usize, template: &Cell) {
+    clear_cut_wide_char(line, start, cols, template);
+    clear_cut_wide_char(line, end, cols, template);
+    line.clear_range(start, end, template);
+}
+
+fn clear_cut_wide_char(line: &mut Row, edge: usize, cols: usize, template: &Cell) {
+    let pair_cut = edge > 0
+        && edge < cols
+        && line.cell(edge - 1).flags.contains(Flags::WIDE)
+        && line.cell(edge).flags.contains(Flags::WIDE_SPACER);
+    if pair_cut {
+        line.clear_range(edge - 1, edge + 1, template);
     }
 }

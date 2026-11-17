@@ -1,4 +1,5 @@
 mod marks;
+mod recycle;
 
 use marks::MarkStore;
 
@@ -12,22 +13,6 @@ pub struct Row {
 }
 
 impl Row {
-    pub fn blank(cols: usize, template: &Cell) -> Self {
-        let blank = Cell::blank_with(template);
-        if blank == Cell::default() {
-            return Self {
-                cells: Vec::with_capacity(cols),
-                marks: None,
-                wrapped: false,
-            };
-        }
-        Self {
-            cells: vec![blank; cols],
-            marks: None,
-            wrapped: false,
-        }
-    }
-
     pub fn len(&self) -> usize {
         self.cells.len()
     }

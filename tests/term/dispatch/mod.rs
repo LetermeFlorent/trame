@@ -1,5 +1,6 @@
 mod attention;
 mod clipboard;
+mod erase;
 mod folder;
 mod modes;
 mod reports;

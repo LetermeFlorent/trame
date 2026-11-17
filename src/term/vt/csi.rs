@@ -34,11 +34,33 @@ impl Parser {
         }
     }
 
+    #[inline(never)]
+    pub(super) fn csi_run<P: Perform>(&mut self, performer: &mut P, bytes: &[u8]) -> usize {
+        if !matches!(self.state, State::CsiEntry | State::CsiParam) {
+            return 0;
+        }
+        for (taken, &byte) in bytes.iter().enumerate() {
+            match byte {
+                b'0'..=b'9' | b';' | b':' => self.param_byte(byte),
+                FINAL_FIRST..=FINAL_LAST => {
+                    self.csi_final(performer, byte);
+                    return taken + 1;
+                }
+                _ => return taken,
+            }
+        }
+        bytes.len()
+    }
+
     fn csi_param(&mut self, byte: u8) {
         if self.state == State::CsiIntermediate {
             self.state = State::CsiIgnore;
             return;
         }
+        self.param_byte(byte);
+    }
+
+    fn param_byte(&mut self, byte: u8) {
         self.state = State::CsiParam;
         self.has_params = true;
         match byte {

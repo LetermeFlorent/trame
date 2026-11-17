@@ -38,21 +38,35 @@ impl Grid {
 
     fn cycle_rows(&mut self, removed: usize, inserted: usize, count: usize, template: &Cell) {
         for _ in 0..count {
-            self.lines.remove(removed);
-            self.lines.insert(inserted, Row::blank(self.cols, template));
+            let Some(mut row) = self.lines.remove(removed) else {
+                return;
+            };
+            row.reset(self.cols, template);
+            self.lines.insert(inserted, row);
         }
     }
 
     fn push_into_history(&mut self, count: usize, template: &Cell) {
         for _ in 0..count {
+            let mut kept = self.evict_oldest().unwrap_or_default();
             let leaving = self.screen_start();
-            self.lines[leaving].compact();
-            self.lines.push_back(Row::blank(self.cols, template));
+            kept.refill_from(&mut self.lines[leaving]);
+            let mut blank = std::mem::replace(&mut self.lines[leaving], kept);
+            blank.reset(self.cols, template);
+            self.lines.push_back(blank);
             if self.display_offset > 0 {
                 self.display_offset += 1;
             }
         }
         self.enforce_history_limit();
+    }
+
+    fn evict_oldest(&mut self) -> Option<Row> {
+        if self.history_len() < self.max_history {
+            return None;
+        }
+        self.dropped += 1;
+        self.lines.pop_front()
     }
 
     pub(super) fn enforce_history_limit(&mut self) {

@@ -1,3 +1,5 @@
+mod ascii;
+
 use unicode_width::UnicodeWidthChar;
 
 use super::Screen;
@@ -28,10 +30,7 @@ impl Screen {
             self.wrap_line();
         }
         if self.modes.contains(Modes::INSERT) {
-            let (row, col, template) = (self.cursor.row, self.cursor.col, self.cursor.template);
-            self.grid_mut()
-                .row_mut(row)
-                .insert_blanks(col, width, cols, &template);
+            self.insert_chars(width);
         }
         self.write_cell(c, width);
         let next = self.cursor.col + width;
@@ -61,28 +60,18 @@ impl Screen {
         self.index();
     }
 
-    fn write_cell(&mut self, c: char, width: usize) {
-        let (row, col, template) = (self.cursor.row, self.cursor.col, self.cursor.template);
-        let template = Cell {
+    fn print_template(&self) -> Cell {
+        let mut template = Cell {
             link: self.link,
-            ..template
+            ..self.cursor.template
         };
-        let line = self.grid_mut().row_mut(row);
-        clear_wide_fragments(line, col, width);
-        line.clear_marks(col..col + width);
-        let cell = line.cell_mut(col);
-        *cell = Cell { ch: c, ..template };
-        cell.flags.remove(Flags::WIDTH_MARKS);
-        if width == WIDE_WIDTH {
-            cell.flags.insert(Flags::WIDE);
-            let spacer = line.cell_mut(col + 1);
-            *spacer = Cell {
-                ch: ' ',
-                ..template
-            };
-            spacer.flags.remove(Flags::WIDTH_MARKS);
-            spacer.flags.insert(Flags::WIDE_SPACER);
-        }
+        template.flags.remove(Flags::WIDTH_MARKS);
+        template
+    }
+
+    fn write_cell(&mut self, c: char, width: usize) {
+        let (row, col, template) = (self.cursor.row, self.cursor.col, self.print_template());
+        put_cell(self.grid_mut().row_mut(row), col, c, width, &template);
     }
 
     fn attach_mark(&mut self, mark: char) {
@@ -97,6 +86,22 @@ impl Screen {
             col -= 1;
         }
         line.add_mark(col, mark);
+    }
+}
+
+fn put_cell(line: &mut Row, col: usize, c: char, width: usize, template: &Cell) {
+    clear_wide_fragments(line, col, width);
+    line.clear_marks(col..col + width);
+    let cell = line.cell_mut(col);
+    *cell = Cell { ch: c, ..*template };
+    if width == WIDE_WIDTH {
+        cell.flags.insert(Flags::WIDE);
+        let spacer = line.cell_mut(col + 1);
+        *spacer = Cell {
+            ch: ' ',
+            ..*template
+        };
+        spacer.flags.insert(Flags::WIDE_SPACER);
     }
 }
 

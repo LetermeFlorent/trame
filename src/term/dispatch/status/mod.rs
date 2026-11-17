@@ -5,8 +5,11 @@ mod parse;
 
 use parse::{Report, parse};
 
+use crate::term::screen::Screen;
+
 const MAX_RECORDS: usize = 256;
 const QUIET_AFTER: Duration = Duration::from_secs(15);
+const IDLE_MARK: char = '\u{2733}';
 pub(crate) const PROBE_REPLY: &str =
     "\x1b]7501;?:states=idle,working,done,blocked,error:kinds=permission,question,auth";
 
@@ -26,6 +29,8 @@ pub(crate) struct ProgramStatus {
     command: bool,
     exit: Option<i32>,
     heard: Option<Instant>,
+    pub(crate) resting: bool,
+    shell_front: bool,
 }
 
 impl ProgramStatus {
@@ -37,15 +42,36 @@ impl ProgramStatus {
         let recent = self
             .heard
             .is_some_and(|at| now.saturating_duration_since(at) <= QUIET_AFTER);
-        recent && (reported || (self.command && self.records.is_empty()))
+        let running = self.command && self.records.is_empty() && !self.resting;
+        recent && (reported || running)
     }
 
     pub(crate) fn hear(&mut self, now: Instant) {
         self.heard = Some(now);
     }
 
+    pub(crate) fn read_title(&mut self, title: &str) {
+        self.resting = title.starts_with(IDLE_MARK);
+    }
+
+    pub(crate) fn follow_shell(&mut self, front: bool) {
+        if front && !self.shell_front {
+            self.resting = false;
+        }
+        self.shell_front = front;
+    }
+
+    pub(crate) fn keep_across_reset(&self) -> Self {
+        Self {
+            resting: self.resting,
+            shell_front: self.shell_front,
+            ..Self::default()
+        }
+    }
+
     pub(crate) fn start_command(&mut self) {
         self.command = true;
+        self.resting = false;
         self.records.clear();
     }
 
@@ -85,6 +111,7 @@ impl ProgramStatus {
 
     pub(crate) fn drop_running(&mut self) {
         self.command = false;
+        self.resting = false;
         self.records
             .retain(|_, (state, _)| !matches!(state, State::Working | State::Blocked));
     }
@@ -98,5 +125,15 @@ impl ProgramStatus {
         if let Some(key) = oldest {
             self.records.remove(&key);
         }
+    }
+}
+
+pub(super) fn is_status_mark(c: char) -> bool {
+    c.is_whitespace() || (!c.is_ascii() && !c.is_alphanumeric())
+}
+
+impl Screen {
+    pub fn shell_in_front(&mut self, front: bool) {
+        self.status.follow_shell(front);
     }
 }

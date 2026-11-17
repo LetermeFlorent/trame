@@ -1,5 +1,7 @@
 use super::Perform;
+use super::parser::{C0_FIRST, C0_LAST, Parser, State};
 
+const BEL: u8 = 0x07;
 const MAX_OSC_LEN: usize = 1 << 20;
 const MAX_OSC_PARAMS: usize = 16;
 const KEPT_CAPACITY: usize = 4096;
@@ -43,6 +45,19 @@ impl OscBuffer {
             performer.osc_dispatch(&params, bell_terminated);
         }
         self.clear();
+    }
+}
+
+impl Parser {
+    pub(super) fn osc_byte<P: Perform>(&mut self, performer: &mut P, byte: u8) {
+        match byte {
+            BEL => {
+                self.osc.dispatch(performer, true);
+                self.state = State::Ground;
+            }
+            C0_FIRST..=C0_LAST => {}
+            _ => self.osc.push(byte),
+        }
     }
 }
 

@@ -6,6 +6,10 @@ impl Perform for Screen {
         self.print_char(c);
     }
 
+    fn print_ascii(&mut self, text: &[u8]) {
+        self.print_ascii_run(text);
+    }
+
     fn execute(&mut self, byte: u8) {
         self.execute_control(byte);
     }

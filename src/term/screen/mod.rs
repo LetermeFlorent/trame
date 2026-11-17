@@ -95,6 +95,7 @@ impl Screen {
         fresh.primary.reset();
         fresh.title = self.title.take();
         fresh.cwd = self.cwd.take();
+        fresh.status = self.status.keep_across_reset();
         fresh.colors = self.colors;
         fresh.links = std::mem::take(&mut self.links);
         fresh.clipboard_writes = self.clipboard_writes;

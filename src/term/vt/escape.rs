@@ -1,7 +1,22 @@
 use super::Perform;
-use super::parser::{C0_FIRST, C0_LAST, DEL, INTERMEDIATE_FIRST, INTERMEDIATE_LAST, Parser, State};
+use super::parser::{
+    C0_FIRST, C0_LAST, DEL, INTERMEDIATE_FIRST, INTERMEDIATE_LAST, MAX_INTERMEDIATES, Parser, State,
+};
 
 impl Parser {
+    pub(super) fn collect(&mut self, byte: u8) {
+        if self.intermediate_len == MAX_INTERMEDIATES {
+            self.ignoring = true;
+            return;
+        }
+        self.intermediates[self.intermediate_len] = byte;
+        self.intermediate_len += 1;
+    }
+
+    pub(super) fn intermediates(&self) -> &[u8] {
+        &self.intermediates[..self.intermediate_len]
+    }
+
     pub(super) fn escape<P: Perform>(&mut self, performer: &mut P, byte: u8) {
         match byte {
             C0_FIRST..=C0_LAST => performer.execute(byte),

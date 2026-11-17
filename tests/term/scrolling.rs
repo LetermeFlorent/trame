@@ -25,10 +25,20 @@ fn reverse_index_at_top_scrolls_down() {
 #[test]
 fn history_is_capped() {
     let mut term = terminal(2, 4);
-    for index in 0..300 {
+    let written = 300;
+    for index in 0..written {
         term.feed(format!("{index}\r\n").as_bytes());
     }
-    assert_eq!(term.screen().grid().history_len(), 100);
+    let grid = term.screen().grid();
+    let kept = grid.history_len();
+    assert_eq!(kept, 100);
+    let pushed = written - 1;
+    let first_kept = pushed - kept;
+    assert_eq!(grid.first_line(), first_kept as u64);
+    assert_eq!(
+        grid.line(grid.first_line()).unwrap().text(),
+        first_kept.to_string()
+    );
 }
 
 #[test]

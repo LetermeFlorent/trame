@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use super::codes::{MODE_RESET, MODE_SET, MODE_UNKNOWN, ansi_mode};
 use crate::term::modes::Modes;
 use crate::term::screen::Screen;
@@ -38,6 +40,21 @@ impl Screen {
             }
             _ => {}
         }
+    }
+
+    pub(super) fn respond_osc(&mut self, body: &str, bell_terminated: bool) {
+        let terminator = if bell_terminated { "\x07" } else { "\x1b\\" };
+        if !self.modes.contains(Modes::WIN32_INPUT) {
+            self.respond(format!("{body}{terminator}").as_bytes());
+            return;
+        }
+        let mut pressed = Vec::new();
+        for unit in body.encode_utf16().chain(terminator.encode_utf16()) {
+            for key_down in [1, 0] {
+                let _ = write!(pressed, "\x1b[0;0;{unit};{key_down};0;1_");
+            }
+        }
+        self.respond(&pressed);
     }
 
     fn report_status(&mut self, kind: u16, private: bool) {

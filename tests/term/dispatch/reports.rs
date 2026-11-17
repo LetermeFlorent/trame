@@ -6,6 +6,21 @@ fn responses(input: &str) -> String {
 }
 
 #[test]
+fn a_console_reading_win32_input_gets_the_status_reply_as_key_presses() {
+    let reply = responses("\x1b[?9001h\x1b]7501;?\x07");
+    let pressed: String = reply
+        .split_terminator('_')
+        .filter_map(|event| event.strip_prefix("\x1b[0;0;")?.strip_suffix(";1;0;1"))
+        .map(|unit| char::from_u32(unit.parse().unwrap()).unwrap())
+        .collect();
+    assert_eq!(
+        pressed,
+        "\x1b]7501;?:states=idle,working,done,blocked,error:kinds=permission,question,auth\x07"
+    );
+    assert_eq!(reply.matches(";0;0;1_").count(), pressed.len());
+}
+
+#[test]
 fn reports_cursor_position() {
     assert_eq!(responses("\x1b[3;4H\x1b[6n"), "\x1b[3;4R");
 }

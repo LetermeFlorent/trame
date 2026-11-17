@@ -111,6 +111,10 @@ impl Screen {
         self.status.working(now)
     }
 
+    pub fn program_resting(&self) -> bool {
+        self.status.resting
+    }
+
     pub fn scroll_display(&mut self, delta: isize) {
         self.grid_mut().scroll_display(delta);
     }
