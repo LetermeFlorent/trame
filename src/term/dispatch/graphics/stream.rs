@@ -45,8 +45,10 @@ impl Screen {
             0 => self.graphics.assign(command.number),
             id => id,
         };
+        self.replace_image(id);
         self.graphics.insert(id, width, height, pixels);
-        self.graphics.evict_until(ImageStore::QUOTA, &|_| false);
+        self.graphics
+            .evict_unreferenced(ImageStore::QUOTA, [&self.primary, &self.alternate]);
         self.graphics_reply(command, id, Ok(()));
         if command.action == Action::TransmitPlace {
             self.place(command, id);

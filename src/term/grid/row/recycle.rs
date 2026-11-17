@@ -7,6 +7,7 @@ impl Row {
     pub(in crate::term::grid) fn reset(&mut self, cols: usize, template: &Cell) {
         self.empty_with_room_for(cols);
         self.marks = None;
+        self.anchors = None;
         self.wrapped = false;
         let blank = Cell::blank_with(template);
         if blank != Cell::default() {
@@ -19,6 +20,7 @@ impl Row {
         self.empty_with_room_for(source.cells.len());
         self.cells.extend_from_slice(&source.cells);
         self.marks = source.marks.take();
+        self.anchors = source.anchors.take();
         self.wrapped = source.wrapped;
     }
 

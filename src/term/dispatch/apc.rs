@@ -23,7 +23,7 @@ impl Screen {
                 let id = self.graphics_id(&command);
                 self.place(&command, id);
             }
-            Action::Delete => {}
+            Action::Delete => self.delete_images(&command),
             Action::Unsupported => self.graphics_reply(&command, command.id, Err(Error::Inval)),
         }
     }

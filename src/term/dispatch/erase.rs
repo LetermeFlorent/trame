@@ -16,8 +16,11 @@ impl Screen {
                 self.erase_line(1);
                 self.clear_rows(0, row);
             }
-            2 => self.clear_rows(0, rows),
-            3 if !self.alt_active() => self.primary.clear_history(),
+            2 => {
+                self.clear_rows(0, rows);
+                self.clear_screen_images();
+            }
+            3 if !self.alt_active() => self.clear_history_images(),
             _ => {}
         }
     }

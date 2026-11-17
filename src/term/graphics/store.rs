@@ -14,6 +14,7 @@ pub struct ImageStore {
     next_serial: u64,
     next_auto: u32,
     pub virtuals: HashMap<u32, (u16, u16)>,
+    tallest: u16,
 }
 
 impl Default for ImageStore {
@@ -26,6 +27,7 @@ impl Default for ImageStore {
             next_serial: 0,
             next_auto: FIRST_AUTO,
             virtuals: HashMap::new(),
+            tallest: 0,
         }
     }
 }
@@ -54,6 +56,22 @@ impl ImageStore {
 
     pub fn bytes(&self) -> usize {
         self.bytes
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.images.is_empty()
+    }
+
+    pub fn ids(&self) -> Vec<u32> {
+        self.images.keys().copied().collect()
+    }
+
+    pub fn tallest(&self) -> u16 {
+        self.tallest
+    }
+
+    pub fn note_rows(&mut self, rows: u16) {
+        self.tallest = self.tallest.max(rows);
     }
 
     pub fn assign(&mut self, number: u32) -> u32 {

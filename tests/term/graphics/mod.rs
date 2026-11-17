@@ -1,5 +1,10 @@
 mod chunks;
 mod command;
 mod decode;
+mod delete;
+mod fixture;
+mod lifecycle;
+mod placement;
 mod reply;
+mod span;
 mod store;

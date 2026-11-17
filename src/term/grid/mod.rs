@@ -1,3 +1,4 @@
+mod anchors;
 mod links;
 mod resize;
 mod row;

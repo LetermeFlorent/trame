@@ -1,13 +1,19 @@
+mod anchor;
 mod chunks;
+mod collect;
 mod command;
 mod decode;
 mod error;
 mod image;
 mod png;
 mod reply;
+mod span;
 mod split;
 mod store;
+mod target;
+mod tiles;
 
+pub use anchor::Anchor;
 pub use chunks::{Chunks, MAX_ENCODED};
 pub use command::{Action, Command, Crop, Format, parse};
 pub use decode::{MAX_BYTES, MAX_SIDE, decode};
@@ -15,5 +21,8 @@ pub use error::Error;
 pub use image::Image;
 pub use png::decode_png;
 pub use reply::{reply, wanted};
+pub use span::{crop, span};
 pub use split::split;
 pub use store::ImageStore;
+pub use target::Target;
+pub use tiles::{ImageTile, Layer};

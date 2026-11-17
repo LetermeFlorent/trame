@@ -1,6 +1,8 @@
+mod anchors;
 mod marks;
 mod recycle;
 
+use anchors::AnchorStore;
 use marks::MarkStore;
 
 use crate::term::cell::{Cell, Flags};
@@ -9,6 +11,7 @@ use crate::term::cell::{Cell, Flags};
 pub struct Row {
     cells: Vec<Cell>,
     marks: MarkStore,
+    anchors: AnchorStore,
     pub wrapped: bool,
 }
 
@@ -37,7 +40,7 @@ impl Row {
     }
 
     pub fn is_blank(&self) -> bool {
-        self.marks.is_none() && self.cells.iter().all(Cell::is_blank)
+        self.marks.is_none() && self.anchors.is_none() && self.cells.iter().all(Cell::is_blank)
     }
 
     pub fn clear_range(&mut self, start: usize, end: usize, template: &Cell) {
