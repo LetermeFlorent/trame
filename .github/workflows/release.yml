@@ -55,7 +55,7 @@ jobs:
         uses: ./.github/actions/linux-packages
 
       - name: Test
-        run: cargo test --locked --no-fail-fast
+        run: cargo test --locked --no-fail-fast --no-default-features
 
   linux:
     runs-on: ubuntu-22.04
