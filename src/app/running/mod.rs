@@ -1,4 +1,5 @@
 mod editing;
+mod effects;
 mod frame;
 mod keys;
 mod lifecycle;
@@ -6,6 +7,7 @@ mod pointer;
 mod settings;
 mod tabs;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -15,51 +17,37 @@ use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 use winit::window::Window;
 
-use trame::files::IconStore;
+use trame::desk::{Closing, Desk};
 use trame::geometry::Point;
 use trame::input::{Keymap, Overrides};
-use trame::locale::Strings;
-use trame::preferences::Preferences;
 use trame::render::Scene;
-use trame::session::{SessionEvent, SessionId, Transcripts};
+use trame::session::{SessionEvent, SessionId};
 use trame::text::TextSystem;
-use trame::theme::Theme;
+use trame::ui::terminal::links::LinkCache;
 use trame::ui::{FrameLayout, FrameView, Motion, UiMetrics};
-use trame::workspace::Workspace;
 
 use super::graphics::Graphics;
 use super::notice::Notifier;
-use super::persist::Saver;
-use super::power::Power;
-use super::sessions::Sessions;
 use super::visibility::Visibility;
-use super::{UserEvent, window};
+use super::{AppEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
 use keys::Memo;
-use lifecycle::UpdateState;
-pub use lifecycle::{Offer, Quit, Restart};
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
-use tabs::{Closing, Restarts};
-pub use tabs::{FolderTarget, Lifted};
+pub use tabs::Lifted;
 
 pub struct Running {
+    desk: Desk,
     window: Arc<Window>,
     graphics: Graphics,
     text: TextSystem,
     scene: Scene,
-    theme: Theme,
     metrics: UiMetrics,
     window_scale: f32,
-    preferences: Preferences,
     keymap: Memo<Overrides, Keymap>,
-    workspace: Workspace,
-    sessions: Sessions,
-    proxy: EventLoopProxy<UserEvent>,
-    saver: Saver,
-    transcripts: Transcripts,
-    icons: IconStore,
+    links: RefCell<LinkCache>,
+    proxy: EventLoopProxy<AppEvent>,
     labels: HashMap<SessionId, String>,
     frame: FrameLayout,
     motion: Motion,
@@ -74,29 +62,26 @@ pub struct Running {
     modifiers: ModifiersState,
     visibility: Visibility,
     loader: Option<Loader>,
-    update: UpdateState,
-    restarts: Restarts,
-    power: Power,
     notifier: Notifier,
-    closing: Option<Closing>,
-    quit: Option<Quit>,
-    strings: &'static Strings,
 }
 
 impl Running {
-    pub fn session_event(&mut self, event_loop: &ActiveEventLoop, event: SessionEvent) {
+    pub fn session_event(&mut self, exiting: bool, event: SessionEvent) {
         match event {
             SessionEvent::Output(id) => {
-                self.power.output(id, self.sessions.resting(id));
+                self.desk.power.output(id, self.desk.sessions.resting(id));
                 self.output(id);
             }
-            SessionEvent::Exited(id) => self.shell_exited(event_loop, id),
+            SessionEvent::Exited(id) => {
+                let effects = self.desk.shell_exited(exiting, id);
+                self.apply(effects);
+            }
         }
     }
 
     pub fn window_event(&mut self, event_loop: &ActiveEventLoop, event: WindowEvent) {
         if !matches!(event, WindowEvent::RedrawRequested) {
-            self.power.touch();
+            self.desk.power.touch();
         }
         match event {
             WindowEvent::CloseRequested => self.ask_close(Closing::Window),
@@ -119,13 +104,13 @@ impl Running {
                 event,
                 is_synthetic: false,
                 ..
-            } => self.key(event_loop, &event),
+            } => self.key(event_loop.exiting(), &event),
             WindowEvent::CursorMoved { position, .. } => {
                 self.pointer_moved(event_loop, Point::new(position.x as f32, position.y as f32))
             }
             WindowEvent::CursorLeft { .. } => self.pointer_left(),
             WindowEvent::MouseInput { state, button, .. } => {
-                self.mouse_button(event_loop, state, button)
+                self.mouse_button(event_loop.exiting(), state, button)
             }
             WindowEvent::MouseWheel { delta, .. } => self.wheel(delta),
             WindowEvent::DroppedFile(path) => self.file_dropped(&path),

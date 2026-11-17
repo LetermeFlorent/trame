@@ -13,8 +13,8 @@ pub(in crate::app::running) struct SidebarDrag {
 impl Running {
     pub(super) fn sidebar_drag(&self) -> SidebarDrag {
         SidebarDrag {
-            width: self.workspace.sidebar_width,
-            mode: self.workspace.sidebar,
+            width: self.desk.workspace.sidebar_width,
+            mode: self.desk.workspace.sidebar,
         }
     }
 
@@ -30,18 +30,18 @@ impl Running {
             Some(_) => SidebarMode::Open,
             None => SidebarMode::Rail,
         };
-        if mode != self.workspace.sidebar {
-            self.workspace.sidebar = mode;
+        if mode != self.desk.workspace.sidebar {
+            self.desk.workspace.sidebar = mode;
             self.motion.animate_next();
         }
-        self.workspace.sidebar_width = width.or(drag.width);
+        self.desk.workspace.sidebar_width = width.or(drag.width);
     }
 
     pub(super) fn restore_sidebar(&mut self, drag: SidebarDrag) {
-        if drag.mode != self.workspace.sidebar {
+        if drag.mode != self.desk.workspace.sidebar {
             self.motion.animate_next();
         }
-        self.workspace.sidebar_width = drag.width;
-        self.workspace.sidebar = drag.mode;
+        self.desk.workspace.sidebar_width = drag.width;
+        self.desk.workspace.sidebar = drag.mode;
     }
 }

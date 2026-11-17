@@ -73,14 +73,9 @@ impl Running {
         }
     }
 
-    pub(super) fn mouse_button(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        state: ElementState,
-        button: MouseButton,
-    ) {
+    pub(super) fn mouse_button(&mut self, exiting: bool, state: ElementState, button: MouseButton) {
         if self.closing_button(state)
-            || self.menu_button(event_loop, state, button)
+            || self.menu_button(exiting, state, button)
             || self.editing_button(state)
             || self.terminal_button(state, button)
         {
@@ -91,9 +86,9 @@ impl Running {
             .position
             .and_then(|point| self.frame.hit(point, self.resizable()));
         match (button, state) {
-            (MouseButton::Left, ElementState::Pressed) => self.press(event_loop, hit),
-            (MouseButton::Left, ElementState::Released) => self.release(event_loop, hit),
-            (MouseButton::Middle, ElementState::Released) => self.middle_click(event_loop, hit),
+            (MouseButton::Left, ElementState::Pressed) => self.press(exiting, hit),
+            (MouseButton::Left, ElementState::Released) => self.release(exiting, hit),
+            (MouseButton::Middle, ElementState::Released) => self.middle_click(exiting, hit),
             _ => {}
         }
     }

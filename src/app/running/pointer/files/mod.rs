@@ -21,7 +21,7 @@ impl Running {
         }
         match drop_target(self.dropped_on(), self.modal_open()) {
             DropTarget::Ignored => return,
-            DropTarget::Pane(pane) => self.focus_pane(pane),
+            DropTarget::Pane(pane) => self.desk.focus_pane(pane),
             DropTarget::Focused => {}
         }
         self.write_to_active(|_| text.into_bytes());
@@ -39,7 +39,7 @@ impl Running {
 
     fn modal_open(&self) -> bool {
         self.frame.blocked
-            || self.closing.is_some()
+            || self.desk.closing.is_some()
             || self.menu.is_some()
             || self.editing.is_some()
             || self.settings.is_some()

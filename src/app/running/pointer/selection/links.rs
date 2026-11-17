@@ -31,11 +31,11 @@ impl Running {
     }
 
     fn link_target(&self, id: SessionId, cell: Cell) -> Option<String> {
-        if !self.preferences.detect_links || !self.primary_held() {
+        if !self.desk.preferences.detect_links || !self.primary_held() {
             return None;
         }
         let row = isize::try_from(cell.0).unwrap_or(isize::MAX);
-        let session = self.sessions.get(id)?;
+        let session = self.desk.sessions.get(id)?;
         link_at(session.terminal().screen(), row, cell.1)
     }
 

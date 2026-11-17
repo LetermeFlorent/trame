@@ -27,10 +27,10 @@ pub(super) struct SettingsState {
 impl Running {
     pub(super) fn place_settings(&mut self) {
         if let Some(state) = &self.settings {
-            let folder = self.active_folder();
+            let folder = self.desk.active_folder();
             let request = SettingsRequest {
-                preferences: &self.preferences,
-                strings: self.strings,
+                preferences: &self.desk.preferences,
+                strings: self.desk.strings,
                 folder: folder.as_deref(),
                 tab: state.tab,
                 hosts: state.hosts.as_ref().map(HostsPanel::view),
@@ -75,7 +75,8 @@ impl Running {
         if self.settings.as_ref().is_none_or(|state| state.tab == tab) {
             return;
         }
-        let hosts = (tab == SettingsTab::Connections).then(|| HostsPanel::new(self.known_hosts()));
+        let hosts =
+            (tab == SettingsTab::Connections).then(|| HostsPanel::new(self.desk.known_hosts()));
         let keys = (tab == SettingsTab::Shortcuts).then(ShortcutsView::default);
         self.settings = Some(SettingsState { tab, hosts, keys });
         self.setting_field = None;

@@ -1,18 +1,13 @@
-mod door;
+mod event;
 mod explorer;
 mod fleet;
 mod graphics;
 mod handler;
 mod notice;
-mod pending;
-mod persist;
-mod power;
+mod relay;
 mod restart;
 mod running;
-#[cfg(test)]
-mod scratch;
-mod sessions;
-mod update;
+mod transfer;
 mod visibility;
 mod window;
 
@@ -24,24 +19,19 @@ use std::path::PathBuf;
 use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
 use winit::window::WindowId;
 
+use trame::host::door;
+use trame::host::pending::{Offer, PendingOffer};
+use trame::host::persist::{self, Role, Saved};
+use trame::host::power::Process;
+use trame::host::quit::Restart;
+use trame::host::update::{self, UpdateStatus};
 use trame::log_error;
-use trame::session::SessionEvent;
-use trame::workspace::InstanceId;
 
-use pending::PendingOffer;
-use persist::{Role, Saved};
-use power::Process;
-use running::{FolderTarget, Offer, Restart, Running};
-use update::UpdateStatus;
+use running::Running;
 
-#[derive(Clone, Debug)]
-pub enum UserEvent {
-    Session(WindowId, SessionEvent),
-    Update(UpdateStatus),
-    Folder(WindowId, FolderTarget, PathBuf),
-    Icon(WindowId, InstanceId, u64),
-    Open(Option<PathBuf>),
-}
+pub use event::UserEvent;
+
+pub type AppEvent = UserEvent<WindowId>;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     if let Some(path) = persist::log_path() {
@@ -54,7 +44,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
     let saved = persist::load(&mut role);
-    let event_loop = EventLoop::<UserEvent>::with_user_event().build()?;
+    let event_loop = EventLoop::<AppEvent>::with_user_event().build()?;
     let proxy = event_loop.create_proxy();
     if let Some(folder) = role.folder() {
         let visitor = proxy.clone();
@@ -82,7 +72,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 }
 
 struct App {
-    proxy: EventLoopProxy<UserEvent>,
+    proxy: EventLoopProxy<AppEvent>,
     update: UpdateStatus,
     offer: PendingOffer,
     role: Role,

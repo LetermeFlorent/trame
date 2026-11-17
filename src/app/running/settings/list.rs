@@ -55,7 +55,7 @@ impl Running {
     pub(in crate::app::running) fn scroll_list_to(&mut self, list: ListKind, first: usize) {
         let shown = match list {
             ListKind::Hosts => self.list_first_mut(),
-            ListKind::Sidebar => Some(&mut self.workspace.sidebar_first),
+            ListKind::Sidebar => Some(&mut self.desk.workspace.sidebar_first),
         };
         let Some(shown) = shown else {
             return;

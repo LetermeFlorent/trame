@@ -1,6 +1,6 @@
+use crate::display::PanelSide;
 use crate::geometry::{Point, Rect};
 use crate::theme::{Emblem, Swatch};
-use crate::ui::display::PanelSide;
 use crate::ui::frame::FrameInput;
 use crate::ui::metrics::UiMetrics;
 use crate::workspace::InstanceId;

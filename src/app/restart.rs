@@ -2,10 +2,12 @@ use std::io;
 
 use winit::event_loop::ActiveEventLoop;
 
+use trame::host::quit::Restart;
+use trame::host::update;
 use trame::log_error;
 
-use super::running::{Restart, Running};
-use super::{App, update};
+use super::App;
+use super::running::Running;
 
 impl App {
     pub(super) fn restart(

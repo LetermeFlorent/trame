@@ -1,0 +1,118 @@
+use std::io;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+
+use super::RELEASES;
+use super::version::Version;
+
+pub mod progress;
+
+pub type Progress<'a> = &'a dyn Fn(u8);
+
+#[cfg(windows)]
+const CURL_PROGRAM: &str = "curl.exe";
+const CHECK_SECONDS: &str = "1";
+const DOWNLOAD_SECONDS: &str = "120";
+const SLOWEST_BYTES_PER_SECOND: &str = "10000";
+const STALL_SECONDS: &str = "10";
+const LIST_SECONDS: &str = "30";
+const LARGEST_LIST_BYTES: &str = "65536";
+
+#[cfg(windows)]
+const NULL_DEVICE: &str = "NUL";
+#[cfg(not(windows))]
+const NULL_DEVICE: &str = "/dev/null";
+
+pub fn latest() -> Option<Version> {
+    let output = curl()
+        .args([
+            "--silent",
+            "--max-time",
+            CHECK_SECONDS,
+            "--output",
+            NULL_DEVICE,
+        ])
+        .args(["--write-out", "%{redirect_url}"])
+        .arg(format!("{RELEASES}/latest"))
+        .output()
+        .ok()?;
+    Version::released(&String::from_utf8_lossy(&output.stdout))
+}
+
+pub fn download(version: Version, asset: &str, target: &Path, shown: Progress) -> io::Result<()> {
+    let mut child = curl()
+        .args(["--progress-bar", "--fail", "--location"])
+        .args(["--max-time", DOWNLOAD_SECONDS])
+        .args(["--speed-limit", SLOWEST_BYTES_PER_SECOND])
+        .args(["--speed-time", STALL_SECONDS, "--output"])
+        .arg(target)
+        .arg(address(version, asset))
+        .stderr(Stdio::piped())
+        .spawn()?;
+    if let Some(bar) = child.stderr.take() {
+        progress::follow(bar, shown);
+    }
+    let status = child.wait()?;
+    match status.success() {
+        true => Ok(()),
+        false => Err(io::Error::other(format!("the download stopped ({status})"))),
+    }
+}
+
+pub fn read(version: Version, asset: &str) -> io::Result<Vec<u8>> {
+    let output = curl()
+        .args(["--silent", "--fail", "--location"])
+        .args([
+            "--max-time",
+            LIST_SECONDS,
+            "--max-filesize",
+            LARGEST_LIST_BYTES,
+        ])
+        .arg(address(version, asset))
+        .output()?;
+    match output.status.success() {
+        true => Ok(output.stdout),
+        false => Err(io::Error::other(format!(
+            "{asset} did not download ({})",
+            output.status
+        ))),
+    }
+}
+
+pub fn address(version: Version, asset: &str) -> String {
+    format!("{RELEASES}/download/{version}/{asset}")
+}
+
+pub fn curl() -> Command {
+    let mut command = Command::new(curl_program());
+    command
+        .arg("-q")
+        .args(["--proto", "=https", "--proto-redir", "=https"])
+        .stdin(Stdio::null())
+        .stderr(Stdio::null());
+    hide_console(&mut command);
+    command
+}
+
+#[cfg(windows)]
+pub fn curl_program() -> PathBuf {
+    std::env::var_os("SystemRoot").map_or_else(
+        || PathBuf::from(CURL_PROGRAM),
+        |root| PathBuf::from(root).join("System32").join(CURL_PROGRAM),
+    )
+}
+
+#[cfg(not(windows))]
+pub fn curl_program() -> PathBuf {
+    PathBuf::from("/usr/bin/curl")
+}
+
+#[cfg(windows)]
+fn hide_console(command: &mut Command) {
+    use std::os::windows::process::CommandExt;
+    use windows_sys::Win32::System::Threading::CREATE_NO_WINDOW;
+    command.creation_flags(CREATE_NO_WINDOW);
+}
+
+#[cfg(not(windows))]
+fn hide_console(_: &mut Command) {}

@@ -1,9 +1,9 @@
 use super::{Icon, Painter, Press, centered};
+use crate::display::Platform;
 use crate::geometry::Rect;
 use crate::theme::Rgba;
 use crate::ui::frame::{TitleBarFrame, WindowControls};
 use crate::ui::hit::Hit;
-use crate::ui::metrics::Platform;
 
 const SQUARE_GLYPH: f32 = 13.0;
 const SQUARE_CROSS: f32 = 16.0;

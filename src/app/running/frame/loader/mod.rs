@@ -4,10 +4,10 @@ mod view;
 
 use std::time::{Duration, Instant};
 
+use trame::host::update::UpdateStatus;
 use trame::locale::VERSION_SLOT;
 
 use crate::app::running::Running;
-use crate::app::update::UpdateStatus;
 use view::FULL;
 pub(in crate::app::running) use view::Loader;
 
@@ -39,7 +39,7 @@ impl Loader {
 
 impl Running {
     pub fn set_update(&mut self, status: &UpdateStatus) {
-        let strings = self.strings;
+        let strings = self.desk.strings;
         let (message, percent) = match status {
             UpdateStatus::Checking => (strings.checking_updates.to_owned(), None),
             UpdateStatus::Downloading { version, percent } => (
@@ -51,7 +51,7 @@ impl Running {
                 Some(FULL),
             ),
             UpdateStatus::Failed => {
-                self.update.failed = true;
+                self.desk.update.failed = true;
                 self.changed();
                 return self.close_loader();
             }

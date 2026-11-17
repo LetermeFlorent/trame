@@ -1,10 +1,10 @@
 use winit::keyboard::{Key, PhysicalKey};
 
 use super::fit::{alt_graph, char_of, chord_of};
+use crate::display::Platform;
 use crate::input::shortcuts::ShortcutInput;
 use crate::input::shortcuts::combo::{Chord, Combo, Trigger};
 use crate::input::shortcuts::names::{DIGITS, MODIFIER_KEYS, NAMED, NUMPAD, is_function_key};
-use crate::ui::Platform;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Pressed {

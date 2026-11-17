@@ -1,5 +1,6 @@
 mod color;
 mod commit;
+mod ending;
 mod folder;
 mod icons;
 mod keys;
@@ -86,7 +87,7 @@ impl Running {
             MenuEntry::Color => EditMode::Color { first: 0 },
             MenuEntry::Icon => self.emblem_mode(target),
             MenuEntry::Folder => self.folder_mode(target),
-            MenuEntry::Ssh => EditMode::Form(HostsPanel::connecting(self.known_hosts())),
+            MenuEntry::Ssh => EditMode::Form(HostsPanel::connecting(self.desk.known_hosts())),
             MenuEntry::NewTab => return,
         };
         self.editing = Some(Editing {
@@ -108,14 +109,14 @@ impl Running {
             EditMode::Text { field, .. } => EditKind::Name(field),
             EditMode::Form(panel) => EditKind::Connect(panel.view()),
             EditMode::Color { first } => EditKind::Color(ColorsView {
-                selected: self.color_of(editing.target),
-                custom: &self.preferences.custom_colors,
+                selected: self.desk.color_of(editing.target),
+                custom: &self.desk.preferences.custom_colors,
                 first: *first,
-                filled: self.fill_of(editing.target),
+                filled: self.desk.fill_of(editing.target),
             }),
             EditMode::Picker(picker) => EditKind::Picker(picker.view()),
             EditMode::Emblem { letters } => EditKind::Emblem(EmblemView {
-                selected: self.emblem_of(editing.target),
+                selected: self.desk.emblem_of(editing.target),
                 letters,
             }),
         };
@@ -123,7 +124,7 @@ impl Running {
             target: editing.target,
             anchor: editing.anchor,
             kind,
-            strings: self.strings,
+            strings: self.desk.strings,
         };
         self.frame.place_editor(&mut self.text, &request);
         if self.frame.editor.is_none() {
@@ -135,9 +136,14 @@ impl Running {
         match target {
             EditTarget::Tab(id) => self.tab_title(id),
             EditTarget::Instance(id) => self
+                .desk
                 .workspace
                 .instance(id)
-                .map(|instance| instance.shown_name(self.strings.instance_name).into_owned())
+                .map(|instance| {
+                    instance
+                        .shown_name(self.desk.strings.instance_name)
+                        .into_owned()
+                })
                 .unwrap_or_default(),
         }
     }

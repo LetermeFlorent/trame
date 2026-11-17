@@ -16,7 +16,7 @@ impl Running {
         };
         match drag {
             Drag::Divider(drag) => {
-                if let Some(instance) = self.workspace.active_instance_mut() {
+                if let Some(instance) = self.desk.workspace.active_instance_mut() {
                     instance.root = drag.root;
                 }
             }

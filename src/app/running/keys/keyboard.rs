@@ -1,5 +1,4 @@
 use winit::event::{ElementState, KeyEvent};
-use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
@@ -14,7 +13,7 @@ const FOCUS_IN: &[u8] = b"\x1b[I";
 const FOCUS_OUT: &[u8] = b"\x1b[O";
 
 impl Running {
-    pub(in crate::app::running) fn key(&mut self, event_loop: &ActiveEventLoop, event: &KeyEvent) {
+    pub(in crate::app::running) fn key(&mut self, exiting: bool, event: &KeyEvent) {
         if self.frame.blocked
             || event.state != ElementState::Pressed
             || self.closing_key(event)
@@ -29,7 +28,7 @@ impl Running {
             .shortcut_for(event)
             .filter(|command| self.claims(*command))
         {
-            self.command(event_loop, command);
+            self.command(exiting, command);
             return;
         }
         let base = event.key_without_modifiers();
@@ -50,20 +49,22 @@ impl Running {
 
     pub(in crate::app::running) fn keymap(&mut self) -> &Keymap {
         let platform = self.metrics.platform;
-        self.keymap.get(&self.preferences.shortcuts, |overrides| {
-            Keymap::new(platform, overrides)
-        })
+        self.keymap
+            .get(&self.desk.preferences.shortcuts, |overrides| {
+                Keymap::new(platform, overrides)
+            })
     }
 
     fn claims(&self, command: Command) -> bool {
-        self.sessions
-            .active(&self.workspace)
+        self.desk
+            .sessions
+            .active(&self.desk.workspace)
             .is_none_or(|session| takes_key(command, self.modifiers, &session.terminal()))
     }
 
     pub(in crate::app::running) fn copy_shortcut(&mut self) {
         self.copy_selection();
-        if let Some(session) = self.sessions.active(&self.workspace) {
+        if let Some(session) = self.desk.sessions.active(&self.desk.workspace) {
             after_copy(&mut session.terminal(), self.modifiers);
         }
     }
@@ -72,29 +73,8 @@ impl Running {
         &mut self,
         bytes_for: impl FnOnce(Modes) -> Vec<u8>,
     ) {
-        let Some(session) = self.sessions.active(&self.workspace) else {
-            return;
-        };
-        let id = session.id();
-        if self.sessions.offline(id) {
-            return;
-        }
-        let bytes = {
-            let mut terminal = session.terminal();
-            let bytes = bytes_for(terminal.screen().modes());
-            if !bytes.is_empty() {
-                let screen = terminal.screen_mut();
-                screen.reset_display();
-                screen.clear_selection();
-            }
-            bytes
-        };
-
-        if !bytes.is_empty() {
-            session.write(bytes);
-            self.motion.stop_scroll(id);
-            self.window.request_redraw();
-        }
+        let effects = self.desk.write_to_active(bytes_for);
+        self.apply(effects);
     }
 
     pub(in crate::app::running) fn focus_changed(&mut self, focused: bool) {
@@ -107,7 +87,7 @@ impl Running {
             self.modifiers = ModifiersState::empty();
             self.drop_press();
         }
-        if let Some(session) = self.sessions.active(&self.workspace) {
+        if let Some(session) = self.desk.sessions.active(&self.desk.workspace) {
             let reports = session
                 .terminal()
                 .screen()

@@ -1,7 +1,6 @@
 use super::Preferences;
-use crate::ui::metrics::{
-    MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE, UiMetrics,
-};
+use crate::display::{MAX_TERMINAL_FONT_SIZE, MIN_TERMINAL_FONT_SIZE, TERMINAL_FONT_SIZE};
+use crate::ui::metrics::UiMetrics;
 
 pub const MIN_INTERFACE_SIZE: u16 = 80;
 pub const MAX_INTERFACE_SIZE: u16 = 150;

@@ -1,3 +1,4 @@
+mod grids;
 mod loader;
 mod paint;
 mod style;
@@ -5,11 +6,12 @@ mod system;
 mod work;
 
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::Instant;
 
 use winit::window::Window;
 
+use trame::desk::Sessions;
 use trame::locale::Strings;
 use trame::session::SessionId;
 use trame::text::TextSystem;
@@ -18,7 +20,6 @@ use trame::ui::{FrameInput, FrameLayout, Motion, UiMetrics};
 use trame::workspace::{Instance, Workspace};
 
 use super::Running;
-use crate::app::sessions::Sessions;
 use crate::app::window;
 pub(super) use loader::Loader;
 
@@ -79,28 +80,30 @@ impl Running {
         if !window::has_area(&self.window) {
             return;
         }
-        let visible = self.workspace.active_instance().map(Instance::tabs);
+        let visible = self.desk.workspace.active_instance().map(Instance::tabs);
         self.labels = visible
             .unwrap_or_default()
             .into_iter()
-            .map(|id| (id, self.sessions.label(id)))
+            .map(|id| (id, self.desk.sessions.label(id)))
             .collect();
-        let title = |id: SessionId| title_of(&self.workspace, &self.labels, &self.sessions, id);
-        let folder = self.active_folder();
+        let title =
+            |id: SessionId| title_of(&self.desk.workspace, &self.labels, &self.desk.sessions, id);
+        let folder = self.desk.active_folder();
         let update = self
+            .desk
             .update
             .offer
             .as_ref()
-            .map(|offer| offer.label(self.strings));
+            .map(|offer| offer.label(self.desk.strings));
         let layout = LayoutInput {
-            workspace: &self.workspace,
+            workspace: &self.desk.workspace,
             window: &self.window,
             metrics: self.metrics,
             folder: folder.as_deref(),
             update: update.as_deref(),
-            unsaved: !self.saver.keeps_session(),
-            update_failed: self.update.failed,
-            strings: self.strings,
+            unsaved: !self.desk.saver.keeps_session(),
+            update_failed: self.desk.update.failed,
+            strings: self.desk.strings,
         };
         self.motion.tick(Instant::now());
         self.frame = compute(&mut self.text, &layout, &mut self.motion, &title);
@@ -110,22 +113,17 @@ impl Running {
         self.place_menu();
         self.place_settings();
         self.place_message();
-        self.sync_sizes();
+        self.desk.resize_shells(&self.grids());
         self.sync_rest();
         self.refresh_hover();
     }
 
     fn mark_sessions(&mut self) {
-        let sessions = &self.sessions;
+        let sessions = &self.desk.sessions;
         self.frame
-            .mark_working(&self.workspace, |id| sessions.working(id));
+            .mark_working(&self.desk.workspace, |id| sessions.working(id));
         self.frame
-            .mark_offline(&mut self.text, self.strings, |id| sessions.offline(id));
-    }
-
-    pub(super) fn active_folder(&self) -> Option<PathBuf> {
-        let tab = self.workspace.active_tab()?;
-        self.sessions.cwd(tab)
+            .mark_offline(&mut self.text, self.desk.strings, |id| sessions.offline(id));
     }
 
     pub(super) fn pane_showing(&self, id: SessionId) -> Option<&PaneFrame> {
@@ -133,16 +131,6 @@ impl Running {
     }
 
     pub(super) fn tab_title(&self, id: SessionId) -> String {
-        title_of(&self.workspace, &self.labels, &self.sessions, id)
-    }
-
-    fn sync_sizes(&mut self) {
-        let cell = self.text.cell_metrics();
-        for pane in &self.frame.panes {
-            let size = pane.grid_size(&cell);
-            for tab in &pane.tabs {
-                self.sessions.resize(*tab, size);
-            }
-        }
+        title_of(&self.desk.workspace, &self.labels, &self.desk.sessions, id)
     }
 }

@@ -4,22 +4,22 @@ use winit::event_loop::{ActiveEventLoop, ControlFlow};
 use winit::window::WindowId;
 
 use super::running::Running;
-use super::{App, UserEvent};
+use super::{App, AppEvent, UserEvent};
 
-impl ApplicationHandler<UserEvent> for App {
+impl ApplicationHandler<AppEvent> for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if self.windows.is_empty() {
             self.open_saved(event_loop);
         }
     }
 
-    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: UserEvent) {
+    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: AppEvent) {
         match event {
             UserEvent::Update(status) => self.updated(event_loop, status),
             UserEvent::Open(folder) => self.open_another(event_loop, folder),
             UserEvent::Session(id, event) => {
                 self.on(event_loop, id, |running| {
-                    running.session_event(event_loop, event)
+                    running.session_event(event_loop.exiting(), event)
                 });
             }
             UserEvent::Folder(id, target, folder) => {

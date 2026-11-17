@@ -8,7 +8,7 @@ impl Running {
     pub(super) fn begin_selection(&mut self, id: SessionId, cell: Cell) {
         let count = self.selecting.count_click(cell);
         let extend = self.modifiers.shift_key() && count == 1;
-        if let Some(session) = self.sessions.get(id) {
+        if let Some(session) = self.desk.sessions.get(id) {
             let mut terminal = session.terminal();
             let screen = terminal.screen_mut();
             if extend && screen.selection().is_some() {
@@ -27,7 +27,7 @@ impl Running {
         if self.selecting.cell.replace(cell) == Some(cell) {
             return;
         }
-        if let Some(session) = self.sessions.get(id) {
+        if let Some(session) = self.desk.sessions.get(id) {
             session
                 .terminal()
                 .screen_mut()

@@ -79,7 +79,7 @@ impl Running {
         if !reports && button != MouseButton::Left {
             return false;
         }
-        self.focus_pane(pane_id);
+        self.desk.focus_pane(pane_id);
         if !reports && self.open_link_at(id, cell) {
             self.changed();
             return true;

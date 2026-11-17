@@ -1,94 +1,39 @@
 mod first_frame;
+mod opened;
 mod peers;
 mod quit;
 mod saved;
 mod surface;
-mod text;
 mod update;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::error::Error;
-use std::path::PathBuf;
 use std::time::Instant;
 
-use winit::dpi::PhysicalPosition;
 use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::keyboard::ModifiersState;
 
-use trame::files::IconStore;
-use trame::preferences::{Preferences, Recall};
+use trame::desk::{Desk, DeskSetup};
+use trame::host::persist::{self, Slot};
+use trame::preferences::Preferences;
 use trame::render::Scene;
-use trame::session::Transcripts;
-use trame::theme::Theme;
 use trame::ui::FrameView;
 use trame::workspace::Snapshot;
 
-use super::tabs::{Placement, Restarts, TornTab};
 use super::{Memo, Pointer, Running, Selecting};
 use crate::app::notice::Notifier;
-use crate::app::persist::{self, Saver, Slot};
-use crate::app::power::Power;
-use crate::app::sessions::Sessions;
-use crate::app::update::UpdateStatus;
 use crate::app::visibility::Visibility;
-use crate::app::{UserEvent, explorer, window};
-
-const TORN_OFFSET: f32 = 48.0;
+use crate::app::{AppEvent, explorer, relay, window};
 
 use first_frame::first_frame;
-pub use quit::{Quit, Restart};
+pub use opened::Opened;
 use surface::Surface;
-pub use update::Offer;
-pub(super) use update::UpdateState;
-
-pub struct Opened {
-    running: Running,
-    saved: Option<Snapshot>,
-}
-
-impl Opened {
-    pub fn show(
-        self,
-        update: &UpdateStatus,
-        folder: Option<PathBuf>,
-    ) -> Result<Running, Box<dyn Error>> {
-        let Opened { mut running, saved } = self;
-        running.set_update(update);
-        if running.loader.is_some() {
-            running.draw();
-            running.window.set_visible(true);
-        }
-        let restored = running.saver.owns() && running.restore_session(saved.as_ref());
-        if !restored || folder.is_some() {
-            running.open_at(Placement::Instance, folder)?;
-        }
-        if !running.preferences.recalls(Recall::Text) {
-            running.transcripts.clear();
-        }
-        running.draw();
-        running.window.set_visible(true);
-        Ok(running)
-    }
-}
-
-impl Opened {
-    pub fn adopt(self, update: &UpdateStatus, torn: TornTab, at: PhysicalPosition<i32>) -> Running {
-        let mut running = self.running;
-        running.set_update(update);
-        let offset = running.metrics.px(TORN_OFFSET).round() as i32;
-        let corner = window::place_near(&running.window, at, offset);
-        running.window.set_outer_position(corner);
-        running.take_torn_tab(torn);
-        running.draw();
-        running.window.set_visible(true);
-        running
-    }
-}
 
 impl Running {
     pub fn open_window(
         event_loop: &ActiveEventLoop,
-        proxy: EventLoopProxy<UserEvent>,
+        proxy: EventLoopProxy<AppEvent>,
         saved: Option<Snapshot>,
         slot: Slot,
         shared: Option<Preferences>,
@@ -102,40 +47,47 @@ impl Running {
             .unwrap_or_default()
             .sanitized();
         preferences.explorer_menu = explorer::menu_installed();
-        let surface = Surface::open(event_loop, window, preferences)?;
-        let mut running = Self::with_surface(surface, proxy, Saver::new(slot));
-        running.sessions.follow_preferences(&running.preferences);
-        running.saver.remember_window(window);
+        let surface = Surface::open(event_loop, window, &preferences)?;
+        let desk = Desk::new(DeskSetup {
+            preferences,
+            slot,
+            notifier: relay::session_notifier(proxy.clone(), surface.window.id()),
+            appearance: window::appearance(&surface.window),
+            icon_dir: persist::icon_dir(),
+        });
+        let mut running = Self::with_surface(surface, proxy, desk);
+        running.desk.saver.remember_window(window);
         Ok(Opened { running, saved })
     }
 
     pub fn about_to_wait(&mut self) -> Option<Instant> {
         self.sync_graphics();
         let retry = self.visibility.retry(&self.window);
-        self.power.set_background(self.visibility.seen_hidden());
+        self.desk
+            .power
+            .set_background(self.visibility.seen_hidden());
         let save = self.save_deadline();
-        let text = self.transcript_deadline();
+        let text = self.desk.transcript_deadline(Instant::now());
         let loader = self.loader_wake(Instant::now());
         let work = self.work_wake(Instant::now());
-        let secret = self.sessions.secret_deadline(Instant::now());
-        let remote = self.redial(Instant::now());
+        let secret = self.desk.sessions.secret_deadline(Instant::now());
+        let remote = self.desk.redial(Instant::now());
+        self.apply(remote.effects);
         save.into_iter()
             .chain(text)
             .chain(retry)
             .chain(loader)
             .chain(work)
             .chain(secret)
-            .chain(remote)
-            .chain(self.power.deadline())
+            .chain(remote.value)
+            .chain(self.desk.power.deadline())
             .min()
     }
 
-    fn with_surface(mut surface: Surface, proxy: EventLoopProxy<UserEvent>, saver: Saver) -> Self {
-        let first = first_frame(&mut surface, &saver);
-        let id = surface.window.id();
+    fn with_surface(mut surface: Surface, proxy: EventLoopProxy<AppEvent>, desk: Desk) -> Self {
+        let first = first_frame(&mut surface, &desk);
         Self {
-            theme: Theme::new(window::appearance(&surface.window)),
-            power: Power::new(surface.preferences.power_switches()),
+            desk,
             notifier: Notifier::default(),
             window: surface.window,
             graphics: surface.graphics,
@@ -143,14 +95,9 @@ impl Running {
             scene: Scene::new(0.0, 0.0),
             metrics: first.metrics,
             window_scale: surface.window_scale,
-            preferences: surface.preferences,
             keymap: Memo::default(),
-            workspace: first.workspace,
-            sessions: Sessions::new(proxy.clone(), id),
+            links: RefCell::default(),
             proxy,
-            transcripts: Transcripts::new(saver.transcript_dir()),
-            saver,
-            icons: IconStore::new(persist::icon_dir()),
             labels: HashMap::new(),
             frame: first.frame,
             motion: first.motion,
@@ -165,11 +112,6 @@ impl Running {
             modifiers: ModifiersState::empty(),
             visibility: Visibility::default(),
             loader: None,
-            update: UpdateState::default(),
-            restarts: Restarts::default(),
-            closing: None,
-            quit: None,
-            strings: first.strings,
         }
     }
 }

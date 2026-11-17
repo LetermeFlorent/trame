@@ -46,7 +46,7 @@ impl Running {
         self.drag = match hit {
             Hit::Tab(_, tab) | Hit::Row(SidebarItem::Tab(tab)) => Some(Drag::Pending(tab, origin)),
             Hit::Divider(index) => self.divider_drag(index, origin).map(Drag::Divider),
-            Hit::SidebarEdge if self.workspace.sidebar != SidebarMode::Hidden => {
+            Hit::SidebarEdge if self.desk.workspace.sidebar != SidebarMode::Hidden => {
                 Some(Drag::Sidebar(self.sidebar_drag()))
             }
             Hit::List(ListControl::Thumb) => self.list_drag(ListKind::Hosts, origin),
@@ -61,7 +61,7 @@ impl Running {
 
     fn divider_drag(&self, index: usize, origin: Point) -> Option<DividerDrag> {
         let divider = self.frame.dividers.get(index)?.clone();
-        let root = self.workspace.active_instance()?.root.clone();
+        let root = self.desk.workspace.active_instance()?.root.clone();
         Some(DividerDrag {
             divider,
             origin,
@@ -109,7 +109,7 @@ impl Running {
 
     fn drag_divider(&mut self, drag: &DividerDrag, point: Point) {
         let delta = drag.divider.delta(drag.origin, point);
-        if let Some(instance) = self.workspace.active_instance_mut() {
+        if let Some(instance) = self.desk.workspace.active_instance_mut() {
             instance.root = resized(&drag.root, &drag.divider, delta);
         }
     }

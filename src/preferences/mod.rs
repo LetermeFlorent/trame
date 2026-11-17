@@ -9,11 +9,11 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
+use crate::display::TERMINAL_FONT_SIZE;
+use crate::display::{Density, PanelSide};
 use crate::input::Overrides;
 use crate::locale::LanguageChoice;
 use crate::theme::Swatch;
-use crate::ui::display::{Density, PanelSide};
-use crate::ui::metrics::TERMINAL_FONT_SIZE;
 use crate::workspace::Numbering;
 pub use closing::CONFIRM_FROM_TABS;
 pub use colors::MAX_CUSTOM_COLORS;

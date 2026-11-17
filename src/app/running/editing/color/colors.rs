@@ -1,6 +1,5 @@
-use trame::theme::Swatch;
 use trame::ui::Hit;
-use trame::ui::frame::{EditTarget, ListControl, PickerPart};
+use trame::ui::frame::{ListControl, PickerPart};
 
 use super::picker::{Picker, rgb_of};
 use crate::app::running::Running;
@@ -13,7 +12,7 @@ impl Running {
             return false;
         };
         let first = *first;
-        let listed = |index: usize| self.preferences.custom_colors.get(index).copied();
+        let listed = |index: usize| self.desk.preferences.custom_colors.get(index).copied();
         match control {
             ListControl::Pick(index) => {
                 if let Some(color) = listed(index) {
@@ -22,13 +21,13 @@ impl Running {
             }
             ListControl::Change(index) => {
                 if let Some(color) = listed(index) {
-                    let rgb = rgb_of(self.theme.swatch(color));
+                    let rgb = rgb_of(self.desk.theme.swatch(color));
                     self.open_picker(Picker::new(Some(index), rgb, first));
                 }
             }
             ListControl::Forget(index) => {
-                let next = self.preferences.without_custom_color(index);
-                self.set_preferences(next);
+                let effects = self.desk.forget_custom_color(index);
+                self.apply(effects);
             }
             ListControl::Thumb | ListControl::Track => return false,
         }
@@ -62,8 +61,10 @@ impl Running {
         let EditMode::Color { first } = editing.mode else {
             return;
         };
-        let color = self.color_of(editing.target);
-        let shown = color.map_or(self.theme.accent, |color| self.theme.swatch(color));
+        let color = self.desk.color_of(editing.target);
+        let shown = color.map_or(self.desk.theme.accent, |color| {
+            self.desk.theme.swatch(color)
+        });
         self.open_picker(Picker::new(None, rgb_of(shown), first));
     }
 
@@ -73,41 +74,11 @@ impl Running {
         }
     }
 
-    pub(in crate::app::running::editing) fn apply_color(
-        &mut self,
-        target: EditTarget,
-        picker: &Picker,
-    ) {
-        let color = Swatch::custom(picker.hsv.to_rgb());
-        let custom = &self.preferences.custom_colors;
-        let old = picker.slot.and_then(|slot| custom.get(slot).copied());
-        let next = self.preferences.with_custom_color(picker.slot, color);
-        self.set_preferences(next);
-        if let Some(old) = old.filter(|old| *old != color) {
-            self.workspace.replace_color(old, color);
-        }
-        self.paint_target(target, Some(color));
-    }
-
     pub(in crate::app::running::editing) fn step_back(&mut self) {
         let picker = self.editing.as_mut().and_then(Editing::picker_mut);
         match picker.map(|picker| picker.first) {
             Some(first) => self.open_colors(first),
             None => self.cancel_edit(),
-        }
-    }
-
-    pub(in crate::app::running::editing) fn color_of(&self, target: EditTarget) -> Option<Swatch> {
-        match target {
-            EditTarget::Tab(id) => self.workspace.tab_color(id),
-            EditTarget::Instance(id) => self.workspace.instance(id)?.color,
-        }
-    }
-
-    pub(in crate::app::running::editing) fn fill_of(&self, target: EditTarget) -> bool {
-        match target {
-            EditTarget::Tab(id) => self.workspace.tab_fill(id),
-            EditTarget::Instance(id) => self.workspace.instance(id).is_some_and(|item| item.fill),
         }
     }
 

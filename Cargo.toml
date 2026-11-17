@@ -17,8 +17,10 @@ name = "trame"
 path = "src/main.rs"
 
 [features]
+default = ["gnome"]
 capture = []
 dump = []
+gnome = ["dep:gtk", "dep:adw", "dep:async-channel"]
 
 [dependencies]
 winit = { version = "0.30.13", default-features = false, features = ["rwh_06", "x11", "wayland", "wayland-dlopen"] }
@@ -69,6 +71,11 @@ wgpu = { version = "30.0.1", default-features = false, features = ["metal"] }
 [target.'cfg(all(unix, not(target_vendor = "apple")))'.dependencies]
 wgpu = { version = "30.0.1", default-features = false, features = ["vulkan", "gles"] }
 zbus = { version = "5", default-features = false, features = ["async-io", "blocking-api"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk = { package = "gtk4", version = "0.10", features = ["v4_14"], optional = true }
+adw = { package = "libadwaita", version = "0.8", features = ["v1_5"], optional = true }
+async-channel = { version = "2", optional = true }
 
 [profile.release]
 opt-level = 3

@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-22.04, macos-latest]
+        os: [windows-latest, ubuntu-24.04, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -26,6 +26,8 @@ jobs:
       - name: Install the drivers and fonts
         if: runner.os == 'Linux'
         uses: ./.github/actions/linux-packages
+        with:
+          extra: libgtk-4-dev libadwaita-1-dev
 
       - name: Format
         run: cargo fmt --all -- --check
@@ -37,3 +39,18 @@ jobs:
       - name: Test
         if: ${{ !cancelled() }}
         run: cargo test --locked --no-fail-fast
+
+  linux-classic:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the drivers and fonts
+        uses: ./.github/actions/linux-packages
+
+      - name: Lint
+        run: cargo clippy --all-targets --locked --no-default-features -- -D warnings
+
+      - name: Test
+        if: ${{ !cancelled() }}
+        run: cargo test --locked --no-fail-fast --no-default-features

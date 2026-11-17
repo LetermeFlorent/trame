@@ -1,8 +1,8 @@
+use trame::desk::HostForm;
 use trame::preferences::{ConnectForm, SshHost};
 use trame::ui::frame::HostsView;
 
 use super::SettingsState;
-use super::store::HostForm;
 use crate::app::running::Running;
 
 pub(in crate::app::running) struct HostsPanel {
@@ -76,7 +76,7 @@ impl Running {
     }
 
     pub(in crate::app::running) fn reload_hosts(&mut self) {
-        let hosts = self.known_hosts();
+        let hosts = self.desk.known_hosts();
         if let Some(panel) = self.panel_mut() {
             panel.hosts = hosts;
         }

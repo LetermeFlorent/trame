@@ -8,9 +8,9 @@ mod sizes;
 mod ssh;
 mod updates;
 
+use trame::display::{Density, PanelSide};
 use trame::locale::LanguageChoice;
 use trame::preferences::Preferences;
-use trame::ui::{Density, PanelSide};
 use trame::workspace::Snapshot;
 
 const OLDER_FILE: &str = r#"{"version":1,"sidebar_open":true,"font_size":16.0,"active_instance":0,"instances":[{"name":"a","active_pane":0,"root":{"Pane":{"tabs":[{}],"active":0}}}]}"#;

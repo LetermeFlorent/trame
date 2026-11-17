@@ -1,5 +1,5 @@
+use crate::display::{PanelSide, SidebarMode};
 use crate::geometry::Rect;
-use crate::ui::display::{PanelSide, SidebarMode};
 use crate::ui::frame::FrameInput;
 use crate::ui::metrics::UiMetrics;
 

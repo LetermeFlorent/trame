@@ -33,7 +33,7 @@ impl Running {
             (KeyControl::Add, Some(_)) => view.capturing = true,
             (KeyControl::ResetAll, _) => self.set_shortcuts(Overrides::default()),
             (KeyControl::Reset, Some(action)) => {
-                let next = self.preferences.shortcuts.reset(action);
+                let next = self.desk.preferences.shortcuts.reset(action);
                 self.set_shortcuts(next);
             }
             (KeyControl::Remove(index), Some(action)) => {
@@ -114,12 +114,19 @@ impl Running {
 
     fn set_keys(&mut self, action: usize, keys: Vec<Combo>) {
         let platform = self.metrics.platform;
-        let next = self.preferences.shortcuts.with_keys(action, keys, platform);
+        let next = self
+            .desk
+            .preferences
+            .shortcuts
+            .with_keys(action, keys, platform);
         self.set_shortcuts(next);
     }
 
     fn set_shortcuts(&mut self, shortcuts: Overrides) {
-        let next = self.preferences.with(|next| next.shortcuts = shortcuts);
+        let next = self
+            .desk
+            .preferences
+            .with(|next| next.shortcuts = shortcuts);
         self.set_preferences(next);
     }
 }

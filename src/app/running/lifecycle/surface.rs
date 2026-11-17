@@ -17,14 +17,13 @@ pub(super) struct Surface {
     pub(super) graphics: Graphics,
     pub(super) text: TextSystem,
     pub(super) window_scale: f32,
-    pub(super) preferences: Preferences,
 }
 
 impl Surface {
     pub(super) fn open(
         event_loop: &ActiveEventLoop,
         saved: Option<WindowSnapshot>,
-        preferences: Preferences,
+        preferences: &Preferences,
     ) -> Result<Self, Box<dyn Error>> {
         let window = Arc::new(event_loop.create_window(window::restored_attributes(saved))?);
         window::round_corners(&window);
@@ -43,12 +42,11 @@ impl Surface {
             graphics,
             text,
             window_scale,
-            preferences,
         })
     }
 
-    pub(super) fn metrics(&self) -> UiMetrics {
+    pub(super) fn metrics(&self, preferences: &Preferences) -> UiMetrics {
         let border = window::frame_border(&self.window);
-        self.preferences.ui_metrics(self.window_scale, border)
+        preferences.ui_metrics(self.window_scale, border)
     }
 }

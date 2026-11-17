@@ -1,6 +1,6 @@
+use crate::display::Platform;
 use crate::input::{Combo, Trigger};
 use crate::locale::KeyStrings;
-use crate::ui::Platform;
 
 pub fn key_label(combo: &Combo, strings: &KeyStrings, platform: Platform) -> String {
     let alt = match platform {

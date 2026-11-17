@@ -4,8 +4,8 @@ use super::combo::Combo;
 use super::defaults::default_keys;
 use super::event::Fit;
 use super::overrides::Overrides;
+use crate::display::Platform;
 use crate::input::Command;
-use crate::ui::Platform;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Keymap {

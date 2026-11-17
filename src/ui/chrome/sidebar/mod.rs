@@ -3,9 +3,9 @@ mod row_end;
 mod scroll;
 
 use super::{Icon, Painter, Press};
+use crate::display::PanelSide;
 use crate::geometry::Rect;
 use crate::theme::{Rgba, Swatch, Theme};
-use crate::ui::display::PanelSide;
 use crate::ui::frame::{BarPart, RailFrame, RailSlot, SidebarFrame, SidebarItem, SidebarRow};
 use crate::ui::hit::Hit;
 use crate::ui::metrics::UiMetrics;
