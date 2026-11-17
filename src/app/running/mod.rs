@@ -68,10 +68,7 @@ pub struct Running {
 impl Running {
     pub fn session_event(&mut self, exiting: bool, event: SessionEvent) {
         match event {
-            SessionEvent::Output(id) => {
-                self.desk.power.output(id, self.desk.sessions.resting(id));
-                self.output(id);
-            }
+            SessionEvent::Output(id) => self.output(id),
             SessionEvent::Exited(id) => {
                 let effects = self.desk.shell_exited(exiting, id);
                 self.apply(effects);
@@ -91,7 +88,10 @@ impl Running {
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 self.rescale(scale_factor as f32)
             }
-            WindowEvent::ThemeChanged(theme) => self.set_appearance(window::appearance_of(theme)),
+            WindowEvent::ThemeChanged(theme) => {
+                let effects = self.desk.set_appearance(window::appearance_of(theme));
+                self.apply(effects);
+            }
             WindowEvent::Focused(focused) => {
                 self.visibility.forget();
                 self.focus_changed(focused);

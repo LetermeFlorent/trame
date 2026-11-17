@@ -34,4 +34,12 @@ impl Desk {
         self.set_emblem(EditTarget::Instance(id), Emblem::Image(image));
         Effect::Changed.into()
     }
+
+    pub fn load_icons(&mut self) {
+        for instance in &self.workspace.instances {
+            if let Emblem::Image(id) = instance.emblem {
+                self.icons.load(id);
+            }
+        }
+    }
 }

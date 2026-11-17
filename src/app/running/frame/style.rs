@@ -1,6 +1,5 @@
 use trame::preferences::Preferences;
 use trame::text::DEFAULT_LINE_HEIGHT;
-use trame::theme::{Appearance, Theme};
 
 use crate::app::running::Running;
 use crate::app::window;
@@ -22,16 +21,5 @@ impl Running {
         let font = self.desk.preferences.font_pixels(self.window_scale);
         self.text.set_terminal_font(font, DEFAULT_LINE_HEIGHT);
         self.changed();
-    }
-
-    pub(in crate::app::running) fn set_appearance(&mut self, appearance: Appearance) {
-        if appearance == self.desk.theme.appearance {
-            return;
-        }
-        self.desk.theme = Theme::new(appearance);
-        self.desk
-            .sessions
-            .set_colors(self.desk.theme.reported_colors());
-        self.window.request_redraw();
     }
 }

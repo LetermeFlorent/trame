@@ -15,6 +15,7 @@ use trame::session::SessionId;
 use trame::ui::Hit;
 
 use crate::app::running::Running;
+pub(in crate::app::running) use clipboard::write_clipboard;
 
 type Cell = (usize, usize);
 

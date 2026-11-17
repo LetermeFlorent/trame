@@ -66,21 +66,16 @@ impl Running {
         self.desk
             .power
             .set_background(self.visibility.seen_hidden());
-        let save = self.save_deadline();
-        let text = self.desk.transcript_deadline(Instant::now());
-        let loader = self.loader_wake(Instant::now());
-        let work = self.work_wake(Instant::now());
-        let secret = self.desk.sessions.secret_deadline(Instant::now());
-        let remote = self.desk.redial(Instant::now());
-        self.apply(remote.effects);
-        save.into_iter()
-            .chain(text)
-            .chain(retry)
-            .chain(loader)
-            .chain(work)
-            .chain(secret)
-            .chain(remote.value)
-            .chain(self.desk.power.deadline())
+        let now = Instant::now();
+        let next = self
+            .desk
+            .next_deadline(now, || window::snapshot(&self.window));
+        self.apply(next.effects);
+        let loader = self.loader_wake(now);
+        let work = self.work_wake(now);
+        [next.value, retry, loader, work]
+            .into_iter()
+            .flatten()
             .min()
     }
 

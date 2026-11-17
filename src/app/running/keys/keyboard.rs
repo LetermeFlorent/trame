@@ -81,7 +81,8 @@ impl Running {
         self.view.window_focused = focused;
         if focused {
             self.notifier.clear();
-            self.set_appearance(window::appearance(&self.window));
+            let effects = self.desk.set_appearance(window::appearance(&self.window));
+            self.apply(effects);
         } else {
             self.cancel_drag();
             self.modifiers = ModifiersState::empty();

@@ -113,8 +113,9 @@ impl Running {
         self.place_menu();
         self.place_settings();
         self.place_message();
-        self.desk.resize_shells(&self.grids());
-        self.sync_rest();
+        let grids = self.grids();
+        self.desk.resize_shells(&grids);
+        self.desk.sync_rest(&grids);
         self.refresh_hover();
     }
 

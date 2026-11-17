@@ -19,7 +19,7 @@ use super::Running;
 use crate::app::window;
 pub(super) use drag::{Drag, Ghost};
 pub(super) use scroll::Scroll;
-pub(super) use selection::Selecting;
+pub(super) use selection::{Selecting, write_clipboard};
 const MULTI_CLICK: Duration = Duration::from_millis(500);
 
 #[derive(Default)]

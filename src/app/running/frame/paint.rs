@@ -1,7 +1,7 @@
 use std::time::Instant;
 
+use trame::desk::Seen;
 use trame::session::SessionId;
-use trame::theme::Emblem;
 use trame::ui::{FrameSources, draw_frame};
 
 use crate::app::running::Running;
@@ -45,7 +45,7 @@ impl Running {
     }
 
     fn paint(&mut self, now: Instant) {
-        self.load_icons();
+        self.desk.load_icons();
         let size = self.window.inner_size();
         let drag = self.drag_view();
         let loader = self.loader.as_ref().map(|loader| loader.view(now));
@@ -70,21 +70,13 @@ impl Running {
         }
     }
 
-    fn load_icons(&mut self) {
-        for instance in &self.desk.workspace.instances {
-            if let Emblem::Image(id) = instance.emblem {
-                self.desk.icons.load(id);
-            }
-        }
-    }
-
     pub(in crate::app::running) fn output(&mut self, id: SessionId) {
-        self.desk.sessions.output(id);
-        if self.desk.sessions.notice_exit(id) {
-            self.relayout();
-        }
-        self.forward_clipboard(id);
-        self.forward_attention(id);
+        let seen = Seen {
+            focused: self.view.window_focused,
+            showing: self.pane_showing(id).is_some(),
+        };
+        let effects = self.desk.output(id, seen);
+        self.apply(effects);
         if self.pane_showing(id).is_some() || self.relabeled(id) {
             self.window.request_redraw();
         }

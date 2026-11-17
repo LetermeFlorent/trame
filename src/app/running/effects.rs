@@ -1,6 +1,7 @@
 use trame::desk::{Effect, Effects};
 
 use super::Running;
+use super::pointer::write_clipboard;
 
 impl Running {
     pub(super) fn apply(&mut self, effects: Effects) {
@@ -24,6 +25,8 @@ impl Running {
                     self.window.request_redraw();
                 }
                 Effect::HostsChanged => self.reload_hosts(),
+                Effect::Clipboard(text) => write_clipboard(&text),
+                Effect::Notify { title, body } => self.notifier.show(&self.window, &title, &body),
             }
         }
     }

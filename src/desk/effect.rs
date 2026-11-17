@@ -12,6 +12,8 @@ pub enum Effect {
     StartShown,
     Typed(SessionId),
     HostsChanged,
+    Clipboard(String),
+    Notify { title: String, body: String },
 }
 
 #[must_use]
@@ -33,6 +35,12 @@ impl Effects {
 
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+}
+
+impl Extend<Effect> for Effects {
+    fn extend<I: IntoIterator<Item = Effect>>(&mut self, effects: I) {
+        self.0.extend(effects);
     }
 }
 

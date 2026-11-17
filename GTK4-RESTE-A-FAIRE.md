@@ -10,7 +10,7 @@ Branche : `feat/gtk4`. Le plan complet, avec l'architecture, la correspondance d
 |---|---|---|
 | **M1** : fenêtre GTK4/libadwaita avec un terminal | Fait. CI verte sur les 3 OS | `f3e2cc7` |
 | **M2** : coutures neutres | Fait. Relu, CI verte | `765c605` → `f1e5b09` |
-| **M3** : extraction de `Desk` | 7 étapes sur 8 faites, voir ci-dessous | `c48aac8` → `62f61a7` |
+| **M3** : extraction de `Desk` | 8 étapes sur 8 faites, relecture à faire, voir ci-dessous | `c48aac8` → `62f61a7` |
 
 ### Détail de M1
 
@@ -29,7 +29,7 @@ Branche : `feat/gtk4`. Le plan complet, avec l'architecture, la correspondance d
 - `UserEvent<K>` et `WindowKey(u32)`.
 - Les méthodes reçoivent `exiting: bool` au lieu de `&ActiveEventLoop`.
 
-### Détail de M3 (en cours)
+### Détail de M3 (à relire)
 
 Le contrôleur par fenêtre `trame::desk::Desk` (`src/desk/`) est neutre : ni winit, ni wgpu, ni ui. Ses méthodes renvoient une liste ordonnée d'`Effect`, que `Running::apply` exécute côté winit. Les tests sont dans `tests/desk/`.
 
@@ -41,12 +41,12 @@ Le contrôleur par fenêtre `trame::desk::Desk` (`src/desk/`) est neutre : ni wi
 6. ✅ Validation des éditions : nom, couleur, emblème, icône, couleurs perso, dossier, hôte.
 7. ✅ Sauvegarde et restauration, fermeture avec confirmation (`Closing`, `Question`), confirmation de collage (`62f61a7`).
    - ⚠️ Cette étape compile, passe clippy sur les 3 OS, passe les 1106 tests et le smoke test, mais **elle n'a pas encore été relue**.
-8. ⬜ **À faire.** Partie système de `Desk` :
-   - `src/desk/system.rs` : `tick`, `sync_rest`, `set_appearance`, `rests`, `hidden`.
+8. ✅ Partie système de `Desk` :
+   - `src/desk/system.rs` : `tick`, `sync_rest`, `set_appearance`, `rests`, `hidden`. `load_icons` est dans `src/desk/edit/look.rs`.
    - `src/desk/output.rs` : `output(id, Seen)`, avec les réponses aux mots de passe SSH, plus `Effect::Clipboard(String)` pour OSC 52 et `Effect::Notify { title, body }` pour OSC 9/777.
-   - `src/desk/deadline.rs` : `next_deadline`, le minimum de save, transcripts, secrets, redial et power, évalués dans cet ordre.
-   - `Running` ne doit plus garder que l'état de vue plus `desk`.
+   - `src/desk/deadline.rs` : `next_deadline`, le minimum de save, transcripts, secrets, redial et power, évalués dans cet ordre. `Running::about_to_wait` n'ajoute que ses réveils de vue (visibilité, chargement, travail).
    - Test garde-fou `tests/desk/neutral.rs` : aucun import winit, wgpu, arboard, ui, render, text, gtk ou adw dans `src/desk`, et 150 lignes au plus par fichier dans `src/desk` et `src/app/running`.
+   - ⚠️ Comme l'étape 7, cette étape n'a pas encore été relue.
 
 **Avant de passer à M4** : relire tout M3 (`git diff f1e5b09..HEAD`). Points à vérifier :
 - comportement identique sur Windows et macOS ;
@@ -58,7 +58,7 @@ Le contrôleur par fenêtre `trame::desk::Desk` (`src/desk/`) est neutre : ni wi
 
 | Jalon | Contenu | Terminé quand |
 |---|---|---|
-| **M3** | Étape 8 ci-dessus, puis relecture de M3 | UI winit inchangée sur les 3 OS, fichiers de 150 lignes max, clippy propre |
+| **M3** | Relecture de M3 (étapes 7 et 8 surtout) | UI winit inchangée sur les 3 OS, fichiers de 150 lignes max, clippy propre |
 | **M4** | Onglets, splits et actions sous GTK : `TabView`/`TabBar` par pane, `Paned` depuis `Node`, registre `SessionId` → vue, `GAction` par `Command` + accélérateurs depuis `Keymap`, taille de police | Ouvrir, fermer, splitter, changer de pane et tous les raccourcis fonctionnent |
 | **M5** | Barre latérale (`OverlaySplitView` + `ListBox`), `Stack` par instance, `claim`/`load`/saver sur l'horloge glib, transcripts, `door` et `fleet`, page de chargement. **C'est à partir d'ici que GTK écrit le dossier d'état** | Quitter et relancer restaure tout ; un 2e lancement ouvre une fenêtre dans le processus existant |
 | **M6** | Parité du terminal : sélection et copie (Ctrl+Shift+C), souris, molette, barre de défilement, liens, boîtes et soulignés, caractères larges, dépôt de fichiers, confirmation de collage, OSC 52, `gio::Notification`, `CellPainter` partagé | tmux, nvim, mc et Powerline s'affichent correctement |

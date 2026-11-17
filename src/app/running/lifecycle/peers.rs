@@ -23,11 +23,11 @@ impl Running {
     }
 
     pub fn rests(&self) -> bool {
-        self.desk.power.rests()
+        self.desk.rests()
     }
 
     pub fn hidden(&self) -> bool {
-        self.desk.power.hidden()
+        self.desk.hidden()
     }
 
     pub fn bring_forward(&self) {
