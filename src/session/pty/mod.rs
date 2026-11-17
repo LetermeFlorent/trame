@@ -83,6 +83,10 @@ pub(crate) fn shell_in_foreground(terminal: &File, shell: u32) -> bool {
     platform::shell_in_foreground(terminal, shell)
 }
 
+pub(crate) fn waiting_bytes(terminal: &File) -> usize {
+    platform::waiting_bytes(terminal)
+}
+
 fn terminal_env() -> [(&'static str, &'static str); 3] {
     [
         ("COLORTERM", "truecolor"),

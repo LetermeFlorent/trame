@@ -1,4 +1,4 @@
-#[cfg(feature = "dump")]
+#[cfg(any(test, feature = "dump"))]
 mod dump;
 pub mod pty;
 mod sync;

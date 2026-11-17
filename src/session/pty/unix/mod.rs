@@ -1,7 +1,9 @@
 mod cwd;
 mod foreground;
+mod waiting;
 
 pub(super) use foreground::shell_in_foreground;
+pub(super) use waiting::waiting_bytes;
 
 use std::fs::File;
 use std::io;

@@ -60,6 +60,80 @@ fn shell_runs_a_command_and_exits() {
     assert!(output_ends(&chunks), "reader never reached end of output");
 }
 
+#[cfg(windows)]
+const STATUS_PROBE: &str = "$e = [string][char]27; $b = [string][char]7; [Console]::Write($e + ']7501;?' + $b); $got = ''; $end = [DateTime]::Now.AddSeconds(5); while ([DateTime]::Now -lt $end -and -not $got.EndsWith($b)) { if ([Console]::KeyAvailable) { $got += [Console]::ReadKey($true).KeyChar } else { Start-Sleep -Milliseconds 10 } }; [Console]::Write('reply:' + $got.Replace($e, '^').Replace($b, '!') + ':end')";
+
+#[cfg(windows)]
+const STATUS_REPLY: &str =
+    "reply:^]7501;?:states=idle,working,done,blocked,error:kinds=permission,question,auth!:end";
+
+#[cfg(windows)]
+const PROBE: &[u8] = b"\x1b]7501;?";
+
+#[cfg(windows)]
+fn watch_probe(
+    chunks: Receiver<Vec<u8>>,
+) -> (
+    Receiver<Vec<u8>>,
+    std::sync::Arc<std::sync::atomic::AtomicBool>,
+) {
+    use std::sync::atomic::Ordering;
+
+    let seen = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let flag = std::sync::Arc::clone(&seen);
+    let (sender, forwarded) = mpsc::channel();
+    thread::spawn(move || {
+        let mut received = Vec::new();
+        while let Ok(chunk) = chunks.recv() {
+            received.extend_from_slice(&chunk);
+            if received.windows(PROBE.len()).any(|window| window == PROBE) {
+                flag.store(true, Ordering::SeqCst);
+            }
+            if sender.send(chunk).is_err() {
+                break;
+            }
+        }
+    });
+    (forwarded, seen)
+}
+
+#[cfg(windows)]
+fn joined_screen(terminal: &Terminal) -> String {
+    screen_text(terminal).replace('\n', "")
+}
+
+#[cfg(windows)]
+#[test]
+fn a_program_behind_conpty_reads_the_program_status_reply() {
+    let system_root = std::env::var_os("SystemRoot").expect("SystemRoot is set");
+    let shell = trame::session::pty::ShellCommand {
+        program: Path::new(&system_root).join(r"System32\WindowsPowerShell\v1.0\powershell.exe"),
+        args: ["-NoProfile", "-Command", STATUS_PROBE]
+            .into_iter()
+            .map(std::ffi::OsString::from)
+            .collect(),
+        env: Vec::new(),
+    };
+    let Opened {
+        pty: _pty,
+        child: _child,
+        mut writer,
+        chunks,
+        mut terminal,
+    } = open_shell(&shell, Path::new(env!("CARGO_MANIFEST_DIR")));
+    let (chunks, probe_seen) = watch_probe(chunks);
+    let finished = pump_until(&mut terminal, &chunks, &mut writer, |terminal| {
+        joined_screen(terminal).contains(":end")
+    });
+    let screen = joined_screen(&terminal);
+    assert!(finished, "no output before the timeout:\n{screen}");
+    if !probe_seen.load(std::sync::atomic::Ordering::SeqCst) {
+        println!("skipped: conhost did not forward OSC 7501");
+        return;
+    }
+    assert!(screen.contains(STATUS_REPLY), "reply lost:\n{screen}");
+}
+
 fn output_ends(chunks: &Receiver<Vec<u8>>) -> bool {
     let deadline = Instant::now() + TIMEOUT;
     loop {

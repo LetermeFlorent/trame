@@ -5,6 +5,9 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+#[cfg(test)]
+mod tests;
+
 #[cfg(feature = "dump")]
 use super::dump::Dump;
 use super::sync::SyncHold;
@@ -14,6 +17,7 @@ use crate::session::pty::{self, Child};
 use crate::term::{Modes, Terminal};
 
 const READ_BUFFER: usize = 64 * 1024;
+const BACKLOG: usize = 1024;
 const STACK_SIZE: usize = 256 * 1024;
 
 pub struct Reader {
@@ -49,31 +53,33 @@ pub fn spawn_waiter(id: SessionId, child: Child, notify: Notifier) -> io::Result
     })
 }
 
-fn read_loop(mut reader: Reader) {
+fn read_loop(reader: Reader) {
     let mut buffer = vec![0; READ_BUFFER];
     let mut hold = SyncHold::new(reader.id, reader.pending.clone(), reader.notify.clone());
     #[cfg(feature = "dump")]
     let mut dump = Dump::open(reader.id);
-    loop {
-        let count = match reader.source.read(&mut buffer) {
-            Ok(0) => break,
-            Ok(count) => count,
-            Err(error) if error.kind() == ErrorKind::Interrupted => continue,
-            Err(_) => break,
-        };
+    let source = &reader.source;
+    while let Some(count) = read_batch(source, &mut buffer, || pty::waiting_bytes(source)) {
+        let shell_in_front = pty::shell_in_foreground(source, reader.shell);
         #[cfg(feature = "dump")]
-        dump.record(&buffer[..count]);
-        let shell_in_front = pty::shell_in_foreground(&reader.source, reader.shell);
+        let working;
         let (responses, synchronized) = {
             let mut terminal = lock(&reader.terminal);
             terminal.feed(&buffer[..count]);
             let screen = terminal.screen_mut();
+            screen.shell_in_front(shell_in_front);
+            #[cfg(feature = "dump")]
+            {
+                working = screen.program_working();
+            }
             if shell_in_front {
                 screen.forget_mouse();
             }
             let synchronized = screen.modes().contains(Modes::SYNC_UPDATE);
             (screen.take_responses(), synchronized)
         };
+        #[cfg(feature = "dump")]
+        dump.record(&buffer[..count], working);
         if !responses.is_empty() && reader.input.send(responses).is_err() {
             break;
         }
@@ -82,6 +88,32 @@ fn read_loop(mut reader: Reader) {
         }
     }
     wake_output(reader.id, &reader.pending, &reader.notify);
+}
+
+fn read_batch(
+    source: &File,
+    buffer: &mut [u8],
+    mut waiting: impl FnMut() -> usize,
+) -> Option<usize> {
+    let mut count = read_some(source, buffer)?;
+    while count >= BACKLOG && count < buffer.len() && waiting() > 0 {
+        let Some(more) = read_some(source, &mut buffer[count..]) else {
+            break;
+        };
+        count += more;
+    }
+    Some(count)
+}
+
+fn read_some(mut source: &File, buffer: &mut [u8]) -> Option<usize> {
+    loop {
+        match source.read(buffer) {
+            Ok(0) => return None,
+            Ok(count) => return Some(count),
+            Err(error) if error.kind() == ErrorKind::Interrupted => continue,
+            Err(_) => return None,
+        }
+    }
 }
 
 pub(super) fn wake_output(id: SessionId, pending: &AtomicBool, notify: &Notifier) {

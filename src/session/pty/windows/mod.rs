@@ -2,6 +2,8 @@ mod command_line;
 mod pipes;
 mod process;
 
+pub(super) use pipes::waiting_bytes;
+
 use std::ffi::OsString;
 use std::fs::File;
 use std::io;
