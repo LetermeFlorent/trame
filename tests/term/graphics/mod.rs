@@ -4,6 +4,7 @@ mod decode;
 mod delete;
 mod fixture;
 mod lifecycle;
+mod placeholders;
 mod placement;
 mod reply;
 mod span;

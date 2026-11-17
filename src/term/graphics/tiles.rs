@@ -83,6 +83,8 @@ impl Screen {
             }
         }
         found.sort_by_key(|(z, _)| *z);
-        found.into_iter().map(|(_, tile)| tile).collect()
+        let mut tiles: Vec<ImageTile> = found.into_iter().map(|(_, tile)| tile).collect();
+        self.placeholder_tiles(first_line, rows, &mut tiles);
+        tiles
     }
 }

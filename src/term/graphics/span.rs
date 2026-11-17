@@ -15,10 +15,7 @@ pub fn crop(command: &Command, width: u32, height: u32) -> Crop {
 }
 
 pub fn span(command: &Command, crop: Crop, cell: (u16, u16)) -> (u16, u16) {
-    let (cell_w, cell_h) = match cell {
-        (0, _) | (_, 0) => FALLBACK_CELL,
-        known => known,
-    };
+    let (cell_w, cell_h) = cell_size(cell);
     let (cell_w, cell_h) = (u64::from(cell_w), u64::from(cell_h));
     let (width, height) = (u64::from(crop.w.max(1)), u64::from(crop.h.max(1)));
     let (cols, rows) = (u64::from(command.cols), u64::from(command.rows));
@@ -32,6 +29,13 @@ pub fn span(command: &Command, crop: Crop, cell: (u16, u16)) -> (u16, u16) {
         both => both,
     };
     (cells(cols), cells(rows))
+}
+
+pub(super) fn cell_size(cell: (u16, u16)) -> (u16, u16) {
+    match cell {
+        (0, _) | (_, 0) => FALLBACK_CELL,
+        known => known,
+    }
 }
 
 fn cells(count: u64) -> u16 {
