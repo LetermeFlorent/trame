@@ -1,5 +1,6 @@
 mod control;
 mod cursor_ops;
+mod graphics;
 mod perform;
 mod print;
 mod resize;
@@ -10,6 +11,7 @@ use super::cell::Links;
 use super::cursor::charset::CharsetState;
 use super::cursor::{Cursor, CursorShape, SavedCursor};
 use super::dispatch::status::ProgramStatus;
+use super::graphics::ImageStore;
 use super::grid::Grid;
 use super::modes::Modes;
 
@@ -40,6 +42,8 @@ pub struct Screen {
     pub(crate) colors: ReportedColors,
     pub(crate) link: u16,
     pub(crate) links: Links,
+    pub(crate) graphics: ImageStore,
+    pub(crate) cell_pixels: (u16, u16),
 }
 
 impl Screen {
@@ -68,6 +72,8 @@ impl Screen {
             colors: ReportedColors::default(),
             link: 0,
             links: Links::default(),
+            graphics: ImageStore::default(),
+            cell_pixels: (0, 0),
         }
     }
 
@@ -100,6 +106,10 @@ impl Screen {
         fresh.links = std::mem::take(&mut self.links);
         fresh.clipboard_writes = self.clipboard_writes;
         fresh.responses = std::mem::take(&mut self.responses);
+        fresh.graphics = std::mem::take(&mut self.graphics);
+        fresh.graphics.pending = None;
+        fresh.graphics.virtuals.clear();
+        fresh.cell_pixels = self.cell_pixels;
         *self = fresh;
     }
 

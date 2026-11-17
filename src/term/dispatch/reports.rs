@@ -9,8 +9,6 @@ const PRIMARY_ATTRIBUTES: &[u8] = b"\x1b[?62;22c";
 const SECONDARY_ATTRIBUTES: &[u8] = b"\x1b[>1;10;0c";
 const DEVICE_STATUS_REQUEST: u16 = 5;
 const CURSOR_POSITION_REQUEST: u16 = 6;
-const WINDOW_SIZE_REQUEST: u16 = 18;
-const WINDOW_SIZE_REPORT_KIND: u8 = 8;
 const VERSION_REPORT: &str = concat!("\x1bP>|trame ", env!("CARGO_PKG_VERSION"), "\x1b\\");
 
 impl Screen {
@@ -30,26 +28,23 @@ impl Screen {
                 self.respond(format!("\x1b[{raw};{state}$y").as_bytes());
             }
             ([b'>'], b'q') => self.respond(VERSION_REPORT.as_bytes()),
-            ([], b't') if raw == WINDOW_SIZE_REQUEST => {
-                let report = format!(
-                    "\x1b[{WINDOW_SIZE_REPORT_KIND};{};{}t",
-                    self.rows(),
-                    self.cols()
-                );
-                self.respond(report.as_bytes());
-            }
+            ([], b't') => self.report_window(raw),
             _ => {}
         }
     }
 
     pub(super) fn respond_osc(&mut self, body: &str, bell_terminated: bool) {
         let terminator = if bell_terminated { "\x07" } else { "\x1b\\" };
+        self.respond_string(&format!("{body}{terminator}"));
+    }
+
+    pub(super) fn respond_string(&mut self, sequence: &str) {
         if !self.modes.contains(Modes::WIN32_INPUT) {
-            self.respond(format!("{body}{terminator}").as_bytes());
+            self.respond(sequence.as_bytes());
             return;
         }
         let mut pressed = Vec::new();
-        for unit in body.encode_utf16().chain(terminator.encode_utf16()) {
+        for unit in sequence.encode_utf16() {
             for key_down in [1, 0] {
                 let _ = write!(pressed, "\x1b[0;0;{unit};{key_down};0;1_");
             }

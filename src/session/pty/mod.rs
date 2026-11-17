@@ -27,6 +27,8 @@ const MAX_DIMENSION: usize = i16::MAX as usize;
 pub struct PtySize {
     pub rows: u16,
     pub cols: u16,
+    pub pixel_width: u16,
+    pub pixel_height: u16,
 }
 
 impl PtySize {
@@ -34,6 +36,16 @@ impl PtySize {
         Self {
             rows: rows.clamp(1, MAX_DIMENSION) as u16,
             cols: cols.clamp(1, MAX_DIMENSION) as u16,
+            pixel_width: 0,
+            pixel_height: 0,
+        }
+    }
+
+    pub fn with_pixels(self, width: usize, height: usize) -> Self {
+        Self {
+            pixel_width: width.min(usize::from(u16::MAX)) as u16,
+            pixel_height: height.min(usize::from(u16::MAX)) as u16,
+            ..self
         }
     }
 }
@@ -87,8 +99,9 @@ pub(crate) fn waiting_bytes(terminal: &File) -> usize {
     platform::waiting_bytes(terminal)
 }
 
-fn terminal_env() -> [(&'static str, &'static str); 3] {
+fn terminal_env() -> [(&'static str, &'static str); 4] {
     [
+        ("CLAUDE_CODE_FORCE_TERMINAL_IMAGES", "1"),
         ("COLORTERM", "truecolor"),
         ("TERM_PROGRAM", TERM_PROGRAM),
         ("TERM_PROGRAM_VERSION", env!("CARGO_PKG_VERSION")),

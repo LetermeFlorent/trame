@@ -29,6 +29,9 @@ pub fn fit(view: &TermView, width: i32, height: i32) {
         Some(session) => session.resize(rows, cols),
         None => *session = start(view, rows, cols),
     }
+    if let Some(session) = session.as_mut() {
+        session.set_cell_pixels(cell_width.round() as u16, cell_height.round() as u16);
+    }
 }
 
 fn start(view: &TermView, rows: usize, cols: usize) -> Option<Session> {

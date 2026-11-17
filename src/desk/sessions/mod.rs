@@ -97,9 +97,10 @@ impl Sessions {
         workspace.active_tab().and_then(|id| self.get(id))
     }
 
-    pub fn resize(&mut self, id: SessionId, size: (usize, usize)) {
+    pub fn resize(&mut self, id: SessionId, size: (usize, usize), cell_pixels: (u16, u16)) {
         if let Some(session) = self.map.get_mut(&id) {
             session.resize(size.0, size.1);
+            session.set_cell_pixels(cell_pixels.0, cell_pixels.1);
         }
     }
 

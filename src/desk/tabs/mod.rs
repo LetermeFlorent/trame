@@ -112,7 +112,7 @@ impl Desk {
 
     pub fn resize_shells(&mut self, grids: &Grids) {
         for (id, size) in grids.sizes() {
-            self.sessions.resize(id, size);
+            self.sessions.resize(id, size, grids.cell_pixels());
         }
     }
 }

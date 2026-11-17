@@ -141,7 +141,7 @@ fn window_size(size: PtySize) -> libc::winsize {
     libc::winsize {
         ws_row: size.rows,
         ws_col: size.cols,
-        ws_xpixel: 0,
-        ws_ypixel: 0,
+        ws_xpixel: size.pixel_width,
+        ws_ypixel: size.pixel_height,
     }
 }

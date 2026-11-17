@@ -6,6 +6,7 @@ impl Running {
     pub(in crate::app::running) fn grids(&self) -> Grids {
         let cell = self.text.cell_metrics();
         let mut grids = Grids::default();
+        grids.set_cell_pixels(cell.width.round() as u16, cell.height.round() as u16);
         for pane in &self.frame.panes {
             grids.add_pane(&pane.tabs, pane.active, pane.grid_size(&cell));
         }

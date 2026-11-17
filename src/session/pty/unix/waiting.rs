@@ -23,7 +23,12 @@ mod tests {
     use super::waiting_bytes;
     use crate::session::pty::PtySize;
 
-    const SIZE: PtySize = PtySize { rows: 24, cols: 80 };
+    const SIZE: PtySize = PtySize {
+        rows: 24,
+        cols: 80,
+        pixel_width: 0,
+        pixel_height: 0,
+    };
 
     fn raw_pty() -> (File, File) {
         let (master, slave) = open_pty(SIZE).expect("a pty");

@@ -3,11 +3,13 @@ mod codes;
 pub(crate) mod decode;
 mod erase;
 mod esc;
+mod graphics;
 mod osc;
 mod reports;
 mod set_mode;
 mod sgr;
 pub(crate) mod status;
+mod window;
 
 use crate::term::cursor::CursorShape;
 use crate::term::screen::Screen;

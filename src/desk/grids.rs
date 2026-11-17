@@ -8,6 +8,7 @@ pub const FALLBACK_GRID: (usize, usize) = (24, 80);
 pub struct Grids {
     sizes: HashMap<SessionId, (usize, usize)>,
     shown: Vec<SessionId>,
+    cell_pixels: (u16, u16),
 }
 
 impl Grids {
@@ -21,6 +22,14 @@ impl Grids {
             self.sizes.entry(*tab).or_insert(size);
         }
         self.shown.extend(active);
+    }
+
+    pub fn set_cell_pixels(&mut self, width: u16, height: u16) {
+        self.cell_pixels = (width, height);
+    }
+
+    pub fn cell_pixels(&self) -> (u16, u16) {
+        self.cell_pixels
     }
 
     pub fn size_of(&self, id: SessionId) -> (usize, usize) {

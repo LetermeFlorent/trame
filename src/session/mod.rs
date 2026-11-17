@@ -1,6 +1,7 @@
 #[cfg(any(test, feature = "dump"))]
 mod dump;
 pub mod pty;
+mod size;
 mod sync;
 mod threads;
 mod title;
@@ -13,7 +14,6 @@ use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::thread;
 
-use crate::log_error;
 use crate::term::{ReportedColors, Terminal};
 use pty::{Pty, PtyOptions, PtySize, ShellCommand};
 pub use title::starting_label;
@@ -67,6 +67,7 @@ pub struct Session {
     route: Route,
     pty: Option<Pty>,
     size: (usize, usize),
+    cell_pixels: (u16, u16),
     shell: String,
 }
 
@@ -81,7 +82,7 @@ impl Session {
         })?;
         let mut terminal = Terminal::new(rows, cols, options.history);
         terminal.screen_mut().set_reported_colors(options.colors);
-        terminal.feed(options.transcript);
+        terminal.replay(options.transcript);
         let terminal = Arc::new(Mutex::new(terminal));
         let (input, queue) = mpsc::channel();
         let pending = Arc::new(AtomicBool::new(false));
@@ -106,6 +107,7 @@ impl Session {
             route,
             pty: Some(spawned.pty),
             size: (rows, cols),
+            cell_pixels: (0, 0),
             shell: title::shell_name(&options.shell.program),
         })
     }
@@ -137,24 +139,6 @@ impl Session {
 
     pub fn take_output(&self) {
         self.pending.swap(false, Ordering::AcqRel);
-    }
-
-    pub fn size(&self) -> (usize, usize) {
-        self.size
-    }
-
-    pub fn resize(&mut self, rows: usize, cols: usize) {
-        let size = (rows.max(1), cols.max(1));
-        if size == self.size {
-            return;
-        }
-        self.size = size;
-        self.terminal().screen_mut().resize(size.0, size.1);
-        if let Some(pty) = &self.pty
-            && let Err(error) = pty.resize(PtySize::new(size.0, size.1))
-        {
-            log_error!("resizing the terminal failed: {error}");
-        }
     }
 
     pub fn shell_id(&self) -> Option<u32> {

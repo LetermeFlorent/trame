@@ -9,6 +9,10 @@ use crate::pty::{Opened, open_shell, pump_until, screen_text};
 const PRINT_DUMP: &[u8] = b"echo ('dump-[' + $env:TRAME_DUMP + ']')\r";
 #[cfg(unix)]
 const PRINT_DUMP: &[u8] = b"echo \"dump-[$TRAME_DUMP]\"\r";
+#[cfg(windows)]
+const PRINT_IMAGES: &[u8] = b"echo ('images-[' + $env:CLAUDE_CODE_FORCE_TERMINAL_IMAGES + ']')\r";
+#[cfg(unix)]
+const PRINT_IMAGES: &[u8] = b"echo \"images-[$CLAUDE_CODE_FORCE_TERMINAL_IMAGES]\"\r";
 
 #[test]
 fn the_shell_environment_has_no_dump_variable() {
@@ -31,4 +35,20 @@ fn the_shell_environment_has_no_dump_variable() {
         text.contains("dump-[]"),
         "the shell saw the variable:\n{text}"
     );
+}
+
+#[test]
+fn the_shell_is_told_that_images_work() {
+    let Opened {
+        pty: _pty,
+        child: _child,
+        mut writer,
+        chunks,
+        mut terminal,
+    } = open_shell(&default_shell(), Path::new(env!("CARGO_MANIFEST_DIR")));
+    writer.write_all(PRINT_IMAGES).unwrap();
+    let told = pump_until(&mut terminal, &chunks, &mut writer, |terminal| {
+        screen_text(terminal).contains("images-[1]")
+    });
+    assert!(told, "no image variable:\n{}", screen_text(&terminal));
 }

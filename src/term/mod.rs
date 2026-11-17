@@ -42,6 +42,11 @@ impl Terminal {
         self.generation = self.generation.wrapping_add(1);
     }
 
+    pub fn replay(&mut self, bytes: &[u8]) {
+        self.feed(bytes);
+        self.screen.take_responses();
+    }
+
     pub fn generation(&self) -> u64 {
         self.generation
     }

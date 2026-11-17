@@ -5,6 +5,7 @@ mod find_in_path;
 #[cfg(unix)]
 mod mouse;
 mod pty;
+mod pty_size;
 mod roundtrip;
 #[path = "../support/sandbox.rs"]
 mod sandbox;
