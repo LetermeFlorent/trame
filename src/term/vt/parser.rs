@@ -1,5 +1,6 @@
+use super::apc::ApcBuffer;
 use super::osc::OscBuffer;
-use super::utf8::{Decoded, Utf8Decoder};
+use super::utf8::Utf8Decoder;
 use super::{Params, Perform};
 
 pub(super) const MAX_INTERMEDIATES: usize = 2;
@@ -11,10 +12,7 @@ pub(super) const C0_FIRST: u8 = 0x00;
 pub(super) const C0_LAST: u8 = 0x1F;
 pub(super) const INTERMEDIATE_FIRST: u8 = 0x20;
 pub(super) const INTERMEDIATE_LAST: u8 = 0x2F;
-const PRINTABLE_FIRST: u8 = 0x20;
-const PRINTABLE_LAST: u8 = 0x7E;
 const NON_ASCII_FIRST: u8 = 0x80;
-const REPLACEMENT: char = '\u{FFFD}';
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub(super) enum State {
@@ -27,12 +25,16 @@ pub(super) enum State {
     CsiIntermediate,
     CsiIgnore,
     OscString,
+    ApcString,
     IgnoreString,
 }
 
 impl State {
     fn breaks_on_text(self) -> bool {
-        !matches!(self, Self::Ground | Self::OscString | Self::IgnoreString)
+        !matches!(
+            self,
+            Self::Ground | Self::OscString | Self::ApcString | Self::IgnoreString
+        )
     }
 }
 
@@ -47,7 +49,8 @@ pub struct Parser {
     pub(super) intermediate_len: usize,
     pub(super) ignoring: bool,
     pub(super) osc: OscBuffer,
-    utf8: Utf8Decoder,
+    pub(super) apc: ApcBuffer,
+    pub(super) utf8: Utf8Decoder,
 }
 
 impl Parser {
@@ -64,6 +67,8 @@ impl Parser {
                     performer.print_ascii(&rest[..run]);
                 }
                 run
+            } else if self.state == State::ApcString {
+                self.apc_run(rest)
             } else {
                 self.csi_run(performer, rest)
             };
@@ -76,7 +81,7 @@ impl Parser {
         }
     }
 
-    fn advance_byte<P: Perform>(&mut self, performer: &mut P, byte: u8) {
+    pub(super) fn advance_byte<P: Perform>(&mut self, performer: &mut P, byte: u8) {
         if byte >= NON_ASCII_FIRST && self.state.breaks_on_text() {
             self.state = State::Ground;
         }
@@ -87,6 +92,7 @@ impl Parser {
         match byte {
             CAN | SUB => {
                 performer.execute(byte);
+                self.apc.clear();
                 self.state = State::Ground;
             }
             ESC => self.enter_escape(performer),
@@ -103,46 +109,19 @@ impl Parser {
                 self.csi(performer, byte)
             }
             State::OscString => self.osc_byte(performer, byte),
+            State::ApcString => self.apc_byte(byte),
             State::IgnoreString => {}
         }
     }
 
-    fn ground<P: Perform>(&mut self, performer: &mut P, byte: u8) {
-        match byte {
-            C0_FIRST..=C0_LAST => performer.execute(byte),
-            DEL => {}
-            _ => performer.print(char::from(byte)),
-        }
-    }
-
-    fn decode_utf8<P: Perform>(&mut self, performer: &mut P, byte: u8) {
-        match self.utf8.feed(byte) {
-            Decoded::Char(c) => performer.print(c),
-            Decoded::Pending => {}
-            Decoded::Replaced => performer.print(REPLACEMENT),
-            Decoded::ReplacedAndRetry => {
-                performer.print(REPLACEMENT);
-                self.advance_byte(performer, byte);
-            }
-        }
-    }
-
     fn enter_escape<P: Perform>(&mut self, performer: &mut P) {
-        if self.state == State::OscString {
-            self.osc.dispatch(performer, false);
+        match self.state {
+            State::OscString => self.osc.dispatch(performer, false),
+            State::ApcString => self.apc_dispatch(performer),
+            _ => {}
         }
         self.intermediate_len = 0;
         self.ignoring = false;
         self.state = State::Escape;
-    }
-
-    fn ascii_run(&self, bytes: &[u8]) -> usize {
-        if self.state != State::Ground || self.utf8.is_pending() {
-            return 0;
-        }
-        bytes
-            .iter()
-            .position(|byte| !(PRINTABLE_FIRST..=PRINTABLE_LAST).contains(byte))
-            .unwrap_or(bytes.len())
     }
 }

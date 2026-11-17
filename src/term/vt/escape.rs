@@ -29,7 +29,11 @@ impl Parser {
                 self.osc.clear();
                 self.state = State::OscString;
             }
-            b'P' | b'X' | b'^' | b'_' => self.state = State::IgnoreString,
+            b'_' => {
+                self.apc.clear();
+                self.state = State::ApcString;
+            }
+            b'P' | b'X' | b'^' => self.state = State::IgnoreString,
             DEL => {}
             _ => {
                 performer.esc_dispatch(self.intermediates(), byte);

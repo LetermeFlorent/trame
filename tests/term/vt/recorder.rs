@@ -7,6 +7,7 @@ pub enum Event {
     Csi(Vec<Vec<u16>>, Vec<u8>, u8),
     Esc(Vec<u8>, u8),
     Osc(Vec<Vec<u8>>, bool),
+    Apc(Vec<u8>),
 }
 
 #[derive(Default)]
@@ -36,5 +37,9 @@ impl Perform for Recorder {
     fn osc_dispatch(&mut self, params: &[&[u8]], bell_terminated: bool) {
         let params = params.iter().map(|param| param.to_vec()).collect();
         self.events.push(Event::Osc(params, bell_terminated));
+    }
+
+    fn apc_dispatch(&mut self, data: &[u8]) {
+        self.events.push(Event::Apc(data.to_vec()));
     }
 }

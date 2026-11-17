@@ -16,4 +16,6 @@ pub trait Perform {
     fn esc_dispatch(&mut self, intermediates: &[u8], byte: u8);
 
     fn osc_dispatch(&mut self, params: &[&[u8]], bell_terminated: bool);
+
+    fn apc_dispatch(&mut self, _data: &[u8]) {}
 }

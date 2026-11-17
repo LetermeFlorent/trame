@@ -1,3 +1,4 @@
+mod apc;
 mod ascii_runs;
 mod control_strings;
 mod random_input;

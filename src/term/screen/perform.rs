@@ -25,4 +25,8 @@ impl Perform for Screen {
     fn osc_dispatch(&mut self, params: &[&[u8]], bell_terminated: bool) {
         self.osc(params, bell_terminated);
     }
+
+    fn apc_dispatch(&mut self, data: &[u8]) {
+        self.apc(data);
+    }
 }
