@@ -1,7 +1,7 @@
 use trame::geometry::{Point, Rect};
-use trame::term::{CursorShape, Terminal};
+use trame::term::{CursorShape, SelectionKind, Terminal};
 use trame::text::CellMetrics;
-use trame::ui::terminal::CursorPlace;
+use trame::ui::terminal::{CursorPlace, ScreenCopy};
 
 use crate::{frame, text_system, workspace};
 
@@ -43,6 +43,23 @@ fn covers_spans_every_column_of_the_cursor() {
     assert!(!place.covers(0, 0));
     assert!(!place.covers(0, 3));
     assert!(!place.covers(1, 1));
+}
+
+#[test]
+fn a_copy_selects_what_the_scrolled_screen_selects() {
+    let mut term = typed("1\r\n2\r\n3\r\n4\r\n5 five\r\n6 six");
+    let screen = term.screen_mut();
+    screen.scroll_display(1);
+    screen.start_selection(SelectionKind::Simple, 1, 3);
+    screen.extend_selection(3, 1);
+    let copy = ScreenCopy::of(screen, 0.5);
+    let grid = screen.grid();
+    for row in -1..=ROWS as isize {
+        for col in 0..COLS {
+            let shown = grid.is_selected_in_view(row, col);
+            assert_eq!(copy.is_selected(row, col), shown, "row {row} col {col}");
+        }
+    }
 }
 
 #[test]

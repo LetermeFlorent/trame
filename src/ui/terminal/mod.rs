@@ -1,4 +1,5 @@
 mod boxes;
+mod copy;
 mod cursor;
 pub mod links;
 mod row;
@@ -13,12 +14,13 @@ use crate::text::{CellMetrics, TextSystem};
 use crate::theme::Rgba;
 use crate::theme::Theme;
 
+pub use copy::ScreenCopy;
 pub use cursor::CursorPlace;
 use links::LinkSpan;
 use row::{RowPaint, draw_backgrounds, draw_glyphs};
 
 pub struct TerminalPaint<'a> {
-    pub screen: &'a Screen,
+    pub screen: &'a ScreenCopy,
     pub origin: Point,
     pub focused: bool,
     pub scroll: f32,
@@ -50,7 +52,7 @@ pub fn draw_terminal(
         theme,
         paint,
         metrics: text.cell_metrics(),
-        cursor: CursorPlace::locate(paint.screen),
+        cursor: paint.screen.cursor,
     };
     let metrics = grid.metrics;
     let origin = Point::new(
@@ -80,19 +82,15 @@ fn visible_rows<'a>(
     origin: Point,
     metrics: &CellMetrics,
 ) -> Vec<RowPaint<'a>> {
-    let grid = paint.screen.grid();
-    let cols = grid.cols();
-    drawn_rows(paint.screen, paint.scroll)
-        .filter_map(|row| {
-            let line = grid.view_row(row)?;
-            Some(RowPaint {
-                cells: &line.cells()[..cols.min(line.len())],
-                line,
-                row,
-                y: origin.y + row as f32 * metrics.height,
-            })
-        })
-        .collect()
+    let cols = paint.screen.cols;
+    let rows = paint.screen.rows.iter();
+    rows.map(|(row, line)| RowPaint {
+        cells: &line.cells()[..cols.min(line.len())],
+        line,
+        row: *row,
+        y: origin.y + *row as f32 * metrics.height,
+    })
+    .collect()
 }
 
 pub fn drawn_rows(screen: &Screen, scroll: f32) -> Range<isize> {

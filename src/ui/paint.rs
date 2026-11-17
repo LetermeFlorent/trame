@@ -13,7 +13,7 @@ use crate::ui::frame::{FrameLayout, PaneFrame};
 use crate::ui::hit::Hit;
 use crate::ui::motion::Motion;
 use crate::ui::terminal::links::LinkCache;
-use crate::ui::terminal::{TerminalPaint, draw_terminal, drawn_rows};
+use crate::ui::terminal::{ScreenCopy, TerminalPaint, draw_terminal, drawn_rows};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct FrameView {
@@ -88,24 +88,22 @@ fn draw_body(scene: &mut Scene, text: &mut TextSystem, pane: &PaneFrame, sources
     let Some(session) = pane.active.and_then(|id| sources.sessions.get(&id)) else {
         return;
     };
-    let terminal = session.terminal();
-    let grid = terminal.screen().grid();
-    let selected = |row: isize, col: usize| grid.is_selected_in_view(row, col);
     let scroll = sources.motion.scroll_offset(session.id());
     let mut cache = sources.links.map(RefCell::borrow_mut);
-    let links = cache.as_mut().map_or(&[][..], |cache| {
-        cache.spans(
-            session.id(),
-            &terminal,
-            drawn_rows(terminal.screen(), scroll),
-        )
-    });
+    let (screen, links) = {
+        let terminal = session.terminal();
+        let shown = drawn_rows(terminal.screen(), scroll);
+        let links = cache
+            .as_mut()
+            .map_or(&[][..], |cache| cache.spans(session.id(), &terminal, shown));
+        (ScreenCopy::of(terminal.screen(), scroll), links)
+    };
     let paint = TerminalPaint {
-        screen: terminal.screen(),
+        screen: &screen,
         origin: Point::new(pane.terminal.x, pane.terminal.y),
         focused: pane.focused && sources.view.window_focused,
         scroll,
-        selected: &selected,
+        selected: &|row, col| screen.is_selected(row, col),
         links,
     };
     scene.push_clip(pane.body);

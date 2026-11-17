@@ -3,7 +3,7 @@ use trame::render::Scene;
 use trame::term::{Marks, Terminal};
 use trame::text::{CellText, TextSystem};
 use trame::theme::{Appearance, Rgba, Theme};
-use trame::ui::terminal::{TerminalPaint, draw_terminal};
+use trame::ui::terminal::{ScreenCopy, TerminalPaint, draw_terminal};
 
 use crate::{plain, system};
 
@@ -35,7 +35,7 @@ fn painted(text: &mut TextSystem, input: &str) -> usize {
     terminal.feed(input.as_bytes());
     let mut scene = Scene::new(400.0, 200.0);
     let paint = TerminalPaint {
-        screen: terminal.screen(),
+        screen: &ScreenCopy::of(terminal.screen(), 0.0),
         origin: Point::new(0.0, 0.0),
         focused: false,
         scroll: 0.0,
