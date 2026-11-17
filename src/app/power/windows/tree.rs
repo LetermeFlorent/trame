@@ -5,6 +5,7 @@ use windows_sys::Win32::Foundation::{FILETIME, HANDLE, INVALID_HANDLE_VALUE};
 use windows_sys::Win32::System::Diagnostics::ToolHelp::{
     CreateToolhelp32Snapshot, PROCESSENTRY32W, Process32FirstW, Process32NextW, TH32CS_SNAPPROCESS,
 };
+use windows_sys::Win32::System::SystemInformation::GetSystemTimePreciseAsFileTime;
 use windows_sys::Win32::System::Threading::{
     GetCurrentProcess, GetCurrentProcessId, GetProcessTimes, OpenProcess,
     PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SET_INFORMATION,
@@ -17,14 +18,18 @@ pub struct Member {
     pub handle: OwnedHandle,
 }
 
-pub fn descendants() -> Vec<Member> {
+pub fn descendants(saved: impl IntoIterator<Item = (u32, u64)>) -> (u64, Vec<Member>) {
+    let taken = now();
     let pairs = snapshot();
     let own = unsafe { GetCurrentProcessId() };
     let Some(own_born) = born_of(unsafe { GetCurrentProcess() }) else {
-        return Vec::new();
+        return (taken, Vec::new());
     };
-    let mut born = HashMap::from([(own, own_born)]);
-    let mut queue = VecDeque::from([own]);
+    let exited = saved
+        .into_iter()
+        .filter(|(id, _)| pairs.iter().all(|(alive, _)| alive != id));
+    let mut born: HashMap<u32, u64> = exited.chain([(own, own_born)]).collect();
+    let mut queue: VecDeque<u32> = born.keys().copied().collect();
     let mut members = Vec::new();
     while let Some(parent) = queue.pop_front() {
         let parent_born = born[&parent];
@@ -35,7 +40,8 @@ pub fn descendants() -> Vec<Member> {
             let Some(handle) = open(id) else {
                 continue;
             };
-            let Some(child_born) = born_of(handle.as_raw_handle()).filter(|at| *at >= parent_born)
+            let Some(child_born) =
+                born_of(handle.as_raw_handle()).filter(|at| (parent_born..=taken).contains(at))
             else {
                 continue;
             };
@@ -49,10 +55,16 @@ pub fn descendants() -> Vec<Member> {
             });
         }
     }
-    members
+    (taken, members)
 }
 
-pub fn time_of(time: FILETIME) -> u64 {
+fn now() -> u64 {
+    let mut time = FILETIME::default();
+    unsafe { GetSystemTimePreciseAsFileTime(&mut time) };
+    time_of(time)
+}
+
+fn time_of(time: FILETIME) -> u64 {
     (u64::from(time.dwHighDateTime) << 32) | u64::from(time.dwLowDateTime)
 }
 

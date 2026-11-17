@@ -1,5 +1,5 @@
 use trame::preferences::Preferences;
-use trame::session::Session;
+use trame::session::{Session, SessionId};
 use trame::term::ReportedColors;
 
 use super::Sessions;
@@ -9,6 +9,11 @@ impl Sessions {
         let mut terminal = session.terminal();
         let screen = terminal.screen_mut();
         screen.set_clipboard_writes(self.program_clipboard);
+    }
+
+    pub fn resting(&self, id: SessionId) -> bool {
+        self.get(id)
+            .is_some_and(|session| session.terminal().screen().program_resting())
     }
 
     pub fn follow_preferences(&mut self, preferences: &Preferences) {

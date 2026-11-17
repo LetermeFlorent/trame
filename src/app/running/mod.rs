@@ -87,7 +87,7 @@ impl Running {
     pub fn session_event(&mut self, event_loop: &ActiveEventLoop, event: SessionEvent) {
         match event {
             SessionEvent::Output(id) => {
-                self.power.output(id);
+                self.power.output(id, self.sessions.resting(id));
                 self.output(id);
             }
             SessionEvent::Exited(id) => self.shell_exited(event_loop, id),

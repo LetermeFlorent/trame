@@ -1,103 +1,102 @@
 use std::collections::{HashMap, HashSet};
-use std::os::windows::io::AsRawHandle;
+use std::os::windows::io::{AsRawHandle, OwnedHandle};
 use std::time::Instant;
 
-use windows_sys::Win32::Foundation::FILETIME;
-use windows_sys::Win32::System::SystemInformation::GetSystemTimeAsFileTime;
 use windows_sys::Win32::System::Threading::{
     BELOW_NORMAL_PRIORITY_CLASS, GetPriorityClass, IDLE_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS,
+    PROCESS_POWER_THROTTLING_STATE,
 };
 
-use super::throttle;
-use super::tree::{Member, descendants, time_of};
+use super::tree::{Member, descendants};
+use super::{LEFT_TO_WINDOWS, eco, speed_of, throttle};
 
-#[derive(Clone, Copy)]
 struct Saved {
-    born: u64,
+    handle: OwnedHandle,
+    since: u64,
     class: u32,
+    speed: PROCESS_POWER_THROTTLING_STATE,
 }
 
 #[derive(Default)]
 pub struct Family {
-    since: u64,
     saved: HashMap<u32, Saved>,
 }
 
 impl Family {
     pub fn apply(&mut self, everyone: bool, shells: &[(u32, bool)]) {
-        let resting: HashSet<u32> = shells
+        let wanted: HashSet<u32> = shells
             .iter()
-            .filter(|(_, resting)| *resting)
+            .filter(|&&(_, resting)| everyone || resting)
             .map(|&(shell, _)| shell)
             .collect();
-        if !everyone && resting.is_empty() && self.saved.is_empty() {
+        if wanted.is_empty() && self.saved.is_empty() {
             return;
         }
-        let restoring = !self.saved.is_empty();
-        if !restoring {
-            self.since = now();
-        }
-        let members = descendants();
-        let originals = self.originals(&members);
-        let mut kept = HashMap::new();
-        for member in &members {
-            let original = originals[&member.id];
-            let handle = member.handle.as_raw_handle();
-            let slowed =
-                everyone || resting.contains(&member.id) || kept.contains_key(&member.parent);
-            if slowed {
-                throttle(handle, true, IDLE_PRIORITY_CLASS);
-                kept.insert(member.id, original);
-            } else if restoring {
-                throttle(handle, false, original.class);
+        let roots = self.saved.iter().map(|(&id, saved)| (id, saved.since));
+        let (taken, members) = descendants(roots);
+        let mut left = std::mem::take(&mut self.saved);
+        let mut restored = HashMap::new();
+        for member in members {
+            let id = member.id;
+            let slow = wanted.contains(&id) || self.saved.contains_key(&member.parent);
+            let kept = left.remove(&id);
+            let parent = [&self.saved, &restored, &left]
+                .into_iter()
+                .find_map(|saved| saved.get(&member.parent));
+            let Some(saved) = kept.or_else(|| Saved::first(member, slow, parent, taken)) else {
+                continue;
+            };
+            if slow {
+                throttle(saved.handle.as_raw_handle(), eco(true), IDLE_PRIORITY_CLASS);
+                self.saved.insert(id, saved);
+            } else {
+                saved.restore();
+                restored.insert(id, saved);
             }
         }
-        self.saved = kept;
+        left.values().for_each(Saved::restore);
     }
 
     pub fn retry_at(&self) -> Option<Instant> {
         None
     }
+}
 
-    fn originals(&self, members: &[Member]) -> HashMap<u32, Saved> {
-        let mut found = HashMap::new();
-        for member in members {
-            let kept = self
-                .saved
-                .get(&member.id)
-                .filter(|saved| saved.born == member.born);
-            let class = kept.map_or_else(|| self.class_of(member, &found), |saved| saved.class);
-            found.insert(
-                member.id,
-                Saved {
-                    born: member.born,
-                    class,
-                },
-            );
+impl Saved {
+    fn first(member: Member, slow: bool, parent: Option<&Saved>, taken: u64) -> Option<Self> {
+        let heir = parent.filter(|parent| member.born >= parent.since);
+        if !slow && heir.is_none() {
+            return None;
         }
-        found
-    }
-
-    fn class_of(&self, member: &Member, found: &HashMap<u32, Saved>) -> u32 {
-        let current = match unsafe { GetPriorityClass(member.handle.as_raw_handle()) } {
+        let handle = member.handle.as_raw_handle();
+        let current = match unsafe { GetPriorityClass(handle) } {
             0 => NORMAL_PRIORITY_CLASS,
             class => class,
         };
-        if current != IDLE_PRIORITY_CLASS || member.born < self.since {
-            return current;
+        let inherited = heir.filter(|_| current == IDLE_PRIORITY_CLASS);
+        if !slow && inherited.is_none() {
+            return None;
         }
-        let parent = found
-            .get(&member.parent)
-            .map_or(NORMAL_PRIORITY_CLASS, |saved| saved.class);
-        match parent {
-            IDLE_PRIORITY_CLASS | BELOW_NORMAL_PRIORITY_CLASS => parent,
-            _ => NORMAL_PRIORITY_CLASS,
-        }
+        let (since, class) = match inherited {
+            Some(parent) => (member.born, passed_down(parent.class)),
+            None => (taken, current),
+        };
+        Some(Self {
+            since,
+            class,
+            speed: speed_of(handle).unwrap_or(LEFT_TO_WINDOWS),
+            handle: member.handle,
+        })
+    }
+
+    fn restore(&self) {
+        throttle(self.handle.as_raw_handle(), self.speed, self.class);
     }
 }
 
-fn now() -> u64 {
-    let mut time = FILETIME::default();
-    unsafe { GetSystemTimeAsFileTime(&mut time) };
-    time_of(time)
+fn passed_down(class: u32) -> u32 {
+    match class {
+        IDLE_PRIORITY_CLASS | BELOW_NORMAL_PRIORITY_CLASS => class,
+        _ => NORMAL_PRIORITY_CLASS,
+    }
 }

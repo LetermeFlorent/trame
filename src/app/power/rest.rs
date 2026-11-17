@@ -3,7 +3,10 @@ use std::time::{Duration, Instant};
 
 use trame::session::SessionId;
 
+use super::FAMILY_RECHECK;
+
 pub const REST_AFTER: Duration = Duration::from_secs(30);
+pub const RECHECKS_RESTING_SHELLS: bool = cfg!(windows);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Shown {
@@ -84,10 +87,17 @@ impl Rest {
         }
     }
 
-    pub fn deadline(&self) -> Option<Instant> {
-        let waiting = self.tabs.values().filter(|tab| !tab.shown && !tab.resting);
-        let due = waiting.map(|tab| tab.quiet_since + REST_AFTER).min();
-        due.filter(|_| self.enabled)
+    pub fn deadline(&self, walked: Instant) -> Option<Instant> {
+        let hidden = self.tabs.values().filter(|tab| !tab.shown);
+        let due = hidden.filter_map(|tab| match tab.resting {
+            true => RECHECKS_RESTING_SHELLS.then_some(walked + FAMILY_RECHECK),
+            false => Some(tab.quiet_since + REST_AFTER),
+        });
+        due.min().filter(|_| self.enabled)
+    }
+
+    pub fn rechecks(&self) -> bool {
+        RECHECKS_RESTING_SHELLS && self.tabs.values().any(|tab| tab.resting)
     }
 
     pub fn shells(&self) -> Vec<(u32, bool)> {

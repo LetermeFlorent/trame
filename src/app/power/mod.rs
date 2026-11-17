@@ -1,4 +1,5 @@
 mod mode;
+mod process;
 mod rest;
 #[cfg(test)]
 mod tests;
@@ -12,8 +13,9 @@ use std::time::{Duration, Instant};
 use trame::session::SessionId;
 
 use mode::Mode;
-use rest::Rest;
+pub use process::Process;
 pub use rest::Shown;
+use rest::{REST_AFTER, Rest};
 
 #[cfg(unix)]
 use unix::{Family, set_own};
@@ -27,6 +29,7 @@ pub struct Power {
     enabled: bool,
     background: bool,
     last: Instant,
+    heard: Instant,
     walked: Instant,
     mode: Mode,
     rest: Rest,
@@ -42,6 +45,7 @@ impl Power {
             enabled,
             background: false,
             last: now,
+            heard: now,
             walked: now,
             mode: Mode::Normal,
             rest,
@@ -68,9 +72,12 @@ impl Power {
         self.apply(now);
     }
 
-    pub fn output(&mut self, id: SessionId) {
-        self.rest.output(id, Instant::now());
-        self.touch();
+    pub fn output(&mut self, id: SessionId, program_resting: bool) {
+        if !program_resting {
+            self.heard = Instant::now();
+            self.rest.output(id, self.heard);
+            self.touch();
+        }
     }
 
     pub fn touch(&mut self) {
@@ -84,11 +91,12 @@ impl Power {
 
     pub fn deadline(&self) -> Option<Instant> {
         let mode = match self.mode {
+            Mode::Normal if self.background => self.enabled.then(|| self.heard + REST_AFTER),
             Mode::Normal => self.enabled.then(|| self.last + IDLE_AFTER),
             Mode::Own => None,
             Mode::Family => Some(self.walked + FAMILY_RECHECK),
         };
-        let others = [self.rest.deadline(), self.family.retry_at()];
+        let others = [self.rest.deadline(self.walked), self.family.retry_at()];
         mode.into_iter().chain(others.into_iter().flatten()).min()
     }
 
@@ -98,11 +106,12 @@ impl Power {
 
     fn apply(&mut self, now: Instant) {
         let idle = now.saturating_duration_since(self.last) >= IDLE_AFTER;
-        let next = Mode::wanted(self.enabled, self.background, idle);
+        let quiet = now.saturating_duration_since(self.heard) >= REST_AFTER;
+        let next = Mode::wanted(self.enabled, self.background && quiet, idle);
         let everyone = next == Mode::Family;
         self.rest.tick(now);
         let toggled = everyone != (self.mode == Mode::Family);
-        let stale = everyone && now.saturating_duration_since(self.walked) >= FAMILY_RECHECK;
+        let stale = (everyone || self.rest.rechecks()) && now >= self.walked + FAMILY_RECHECK;
         let retry = self.family.retry_at().is_some_and(|at| now >= at);
         if self.rest.take_changed() || toggled || stale || retry {
             self.family.apply(everyone, &self.rest.shells());
@@ -116,22 +125,7 @@ impl Power {
     }
 
     pub fn hidden(&self) -> bool {
-        self.mode == Mode::Family
-    }
-}
-
-#[derive(Default)]
-pub struct Process {
-    state: (bool, bool),
-}
-
-impl Process {
-    pub fn follow(&mut self, resting: bool, hidden: bool) {
-        let state = (resting, resting && hidden);
-        if self.state != state {
-            self.state = state;
-            set_own(state.0, state.1);
-        }
+        self.enabled && self.background
     }
 }
 
