@@ -10,6 +10,7 @@ use crate::support::desk_with;
 const TIMEOUT: Duration = Duration::from_secs(40);
 const COPY: &[u8] = b"printf '\\033]52;c;aGVsbG8=\\007'\r";
 const CALL: &[u8] = b"printf '\\033]9;done\\007'\r";
+const DROPPED: &[u8] = b"printf '\\033]133;C\\007\\033]133;D;255\\007'\r";
 const UNSEEN: Seen = Seen {
     focused: false,
     showing: false,
@@ -71,4 +72,16 @@ fn an_unseen_tab_calls_for_attention_without_copying() {
     assert!(effects.iter().any(called));
     let copied = |effect: &Effect| matches!(effect, Effect::Clipboard(_));
     assert!(!effects.iter().any(copied));
+}
+
+#[test]
+fn a_dropped_remote_link_relayouts() {
+    let (mut desk, id, events) = started();
+    desk.sessions.watch_remote(id, "127.0.0.1".into(), 9);
+    desk.sessions.watch_remote(id, "127.0.0.1".into(), 9);
+    desk.sessions.get(id).expect("the shell").write(DROPPED);
+    let relayout = |effect: &Effect| *effect == Effect::Relayout;
+    let effects = effects_until(&mut desk, &events, UNSEEN, relayout);
+    assert!(effects.iter().any(relayout));
+    assert!(desk.sessions.offline(id));
 }

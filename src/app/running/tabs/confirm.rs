@@ -20,8 +20,7 @@ impl Running {
     }
 
     pub(in crate::app::running) fn place_message(&mut self) {
-        let Some(question) = self.desk.question() else {
-            self.desk.closing = None;
+        let Some(question) = self.desk.pending_question() else {
             return;
         };
         let lines: Vec<&str> = question.body.lines().collect();

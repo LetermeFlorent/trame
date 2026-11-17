@@ -73,7 +73,8 @@ impl Running {
         self.apply(next.effects);
         let loader = self.loader_wake(now);
         let work = self.work_wake(now);
-        [next.value, retry, loader, work]
+        let power = self.desk.power.deadline();
+        [next.value, retry, loader, work, power]
             .into_iter()
             .flatten()
             .min()

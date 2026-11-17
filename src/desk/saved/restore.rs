@@ -12,6 +12,9 @@ type SavedTabs = HashMap<SessionId, TabSnapshot>;
 
 impl Desk {
     pub fn restore(&mut self, saved: Option<&Snapshot>) -> bool {
+        if !self.saver.owns() {
+            return false;
+        }
         let Some(saved) = saved.and_then(Snapshot::recalled) else {
             return false;
         };

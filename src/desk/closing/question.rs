@@ -19,6 +19,14 @@ pub struct Question {
 }
 
 impl Desk {
+    pub fn pending_question(&mut self) -> Option<Question> {
+        let question = self.question();
+        if question.is_none() {
+            self.closing = None;
+        }
+        question
+    }
+
     pub fn question(&self) -> Option<Question> {
         let strings = self.strings;
         let closing = self.closing.as_ref()?;

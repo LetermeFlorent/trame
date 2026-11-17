@@ -1,4 +1,4 @@
-use trame::desk::{Closing, Confirm, Effect};
+use trame::desk::{Closing, Confirm, Effect, Grids, Placement};
 use trame::locale::COUNT_SLOT;
 
 use crate::tabs::opened;
@@ -36,4 +36,24 @@ fn a_paste_without_confirmation_types_at_once() {
     let effects = desk.paste(LINES.to_owned());
     assert_eq!(effects.as_slice(), [Effect::Typed(id)]);
     assert!(desk.closing.is_none());
+}
+
+#[test]
+fn a_confirmed_paste_skips_a_tab_that_lost_focus() {
+    let (mut desk, _) = opened();
+    desk.preferences.confirm_paste = true;
+    let _ = desk.paste(LINES.to_owned());
+    let _ = desk.open(Placement::Tab);
+    desk.start_queued(&Grids::default());
+    let effects = desk.settle_closing(true);
+    assert_eq!(effects.as_slice(), [Effect::Changed]);
+}
+
+#[test]
+fn a_second_paste_waits_for_the_first_question() {
+    let (mut desk, _) = opened();
+    desk.preferences.confirm_paste = true;
+    desk.closing = Some(Closing::Window);
+    assert!(desk.paste(LINES.to_owned()).is_empty());
+    assert!(matches!(desk.closing, Some(Closing::Window)));
 }

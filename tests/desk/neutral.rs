@@ -2,16 +2,19 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 const DESK: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/src/desk");
-const RUNNING: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/src/app/running");
-const FOREIGN: [&str; 8] = [
-    "winit",
-    "wgpu",
-    "arboard",
+const APP: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/src/app");
+const GNOME: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/src/gnome");
+const FOREIGN: [&str; 10] = [
+    "winit::",
+    "wgpu::",
+    "arboard::",
     "crate::ui",
     "crate::render",
     "crate::text",
-    "gtk",
-    "adw",
+    "gtk::",
+    "adw::",
+    "gdk::",
+    "glib::",
 ];
 const MAX_LINES: usize = 150;
 
@@ -48,8 +51,8 @@ fn the_desk_names_no_front_end() {
 }
 
 #[test]
-fn desk_and_running_files_stay_short() {
-    let all = [DESK, RUNNING].map(|dir| sources(Path::new(dir)));
+fn desk_and_front_end_files_stay_short() {
+    let all = [DESK, APP, GNOME].map(|dir| sources(Path::new(dir)));
     for path in all.iter().flatten() {
         let lines = text(path).lines().count();
         assert!(lines <= MAX_LINES, "{} has {lines} lines", path.display());

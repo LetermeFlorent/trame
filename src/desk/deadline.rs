@@ -23,7 +23,6 @@ impl Desk {
             .chain(text)
             .chain(secret)
             .chain(remote.value)
-            .chain(self.power.deadline())
             .min();
         Outcome { value, effects }
     }

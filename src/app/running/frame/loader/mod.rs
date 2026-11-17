@@ -51,8 +51,7 @@ impl Running {
                 Some(FULL),
             ),
             UpdateStatus::Failed => {
-                self.desk.update.failed = true;
-                self.changed();
+                self.update_failed();
                 return self.close_loader();
             }
             UpdateStatus::Done

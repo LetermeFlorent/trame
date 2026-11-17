@@ -1,16 +1,18 @@
 use winit::dpi::{LogicalSize, PhysicalPosition};
-use winit::window::{CursorIcon, ResizeDirection, Theme, Window, WindowAttributes};
+use winit::window::{Window, WindowAttributes};
 
-use trame::theme::{Appearance, system};
-use trame::ui::ResizeEdge;
 use trame::ui::chrome::logo;
 use trame::workspace::WindowSnapshot;
 
 #[cfg(windows)]
 pub mod dwm;
 mod frame;
+mod look;
+mod resize;
 
 pub use frame::{frame_border, round_corners};
+pub use look::{appearance, appearance_of};
+pub use resize::{resize_cursor, resize_direction};
 
 const APP_NAME: &str = "trame";
 const INITIAL_SIZE: LogicalSize<f64> = LogicalSize::new(1180.0, 740.0);
@@ -119,41 +121,4 @@ pub fn owner(window: &Window) -> Option<isize> {
 #[cfg(windows)]
 pub fn hwnd(window: &Window) -> Option<windows_sys::Win32::Foundation::HWND> {
     owner(window).map(|handle| handle as _)
-}
-
-pub fn appearance(window: &Window) -> Appearance {
-    window
-        .theme()
-        .map(appearance_of)
-        .or_else(system::detect)
-        .unwrap_or_default()
-}
-
-pub fn appearance_of(theme: Theme) -> Appearance {
-    match theme {
-        Theme::Light => Appearance::Light,
-        Theme::Dark => Appearance::Dark,
-    }
-}
-
-pub fn resize_direction(edge: ResizeEdge) -> ResizeDirection {
-    match edge {
-        ResizeEdge::North => ResizeDirection::North,
-        ResizeEdge::South => ResizeDirection::South,
-        ResizeEdge::East => ResizeDirection::East,
-        ResizeEdge::West => ResizeDirection::West,
-        ResizeEdge::NorthEast => ResizeDirection::NorthEast,
-        ResizeEdge::NorthWest => ResizeDirection::NorthWest,
-        ResizeEdge::SouthEast => ResizeDirection::SouthEast,
-        ResizeEdge::SouthWest => ResizeDirection::SouthWest,
-    }
-}
-
-pub fn resize_cursor(edge: ResizeEdge) -> CursorIcon {
-    match edge {
-        ResizeEdge::North | ResizeEdge::South => CursorIcon::NsResize,
-        ResizeEdge::East | ResizeEdge::West => CursorIcon::EwResize,
-        ResizeEdge::NorthEast | ResizeEdge::SouthWest => CursorIcon::NeswResize,
-        ResizeEdge::NorthWest | ResizeEdge::SouthEast => CursorIcon::NwseResize,
-    }
 }

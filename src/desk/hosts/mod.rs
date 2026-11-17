@@ -3,7 +3,7 @@ mod config;
 use crate::host::persist;
 use crate::preferences::{ConnectForm, HostEntry, SshHost, vault};
 
-use super::{Desk, Effects, Outcome};
+use super::{Closing, Desk, Effect, Effects, Outcome};
 use config::{changed_in_config, kept_in_config, save_secret};
 
 pub use config::written_by_hand;
@@ -70,6 +70,16 @@ impl Desk {
             value: Some(host),
             effects,
         }
+    }
+
+    pub fn ask_forget(&mut self, host: SshHost) -> Effects {
+        if written_by_hand(&host) {
+            self.closing = Some(Closing::Forget(host));
+            return Effect::Changed.into();
+        }
+        let mut effects = self.forget_host(&host);
+        effects.push(Effect::HostsChanged);
+        effects
     }
 
     pub fn forget_host(&mut self, host: &SshHost) -> Effects {

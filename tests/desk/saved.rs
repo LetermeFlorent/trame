@@ -1,21 +1,8 @@
-use std::sync::Arc;
-
-use trame::desk::{Desk, DeskSetup, Grids, Placement};
-use trame::host::persist::{Role, Slot, load_from};
-use trame::preferences::Preferences;
-use trame::theme::Appearance;
+use trame::desk::{Grids, Placement};
+use trame::host::persist::{Role, load_from};
 
 use crate::sandbox::Sandbox;
-
-fn desk_in(sandbox: &Sandbox) -> Desk {
-    Desk::new(DeskSetup {
-        preferences: Preferences::default(),
-        slot: Slot::new(Some(sandbox.root.as_path()), 0),
-        notifier: Arc::new(|_| {}),
-        appearance: Appearance::Dark,
-        icon_dir: None,
-    })
-}
+use crate::support::{desk, desk_in};
 
 #[test]
 fn a_saved_session_comes_back() {
@@ -47,4 +34,33 @@ fn nothing_to_restore() {
     let sandbox = Sandbox::new("desk-unsaved");
     let mut desk = desk_in(&sandbox);
     assert!(!desk.restore(None));
+}
+
+#[test]
+fn a_desk_that_owns_no_slot_restores_nothing() {
+    let sandbox = Sandbox::new("desk-guest");
+    let mut first = desk_in(&sandbox);
+    let _ = first.open(Placement::Tab);
+    let _ = first.save_session(false, None);
+    let path = first.saver.slot().session_path().expect("a session file");
+    let snapshot = load_from(&path, &mut Role::Guest).expect("a saved session");
+    let mut guest = desk();
+    assert!(!guest.restore(Some(&snapshot)));
+    assert!(guest.workspace.is_empty());
+}
+
+#[test]
+fn a_restored_desk_opens_nothing_more() {
+    let mut desk = desk();
+    assert!(desk.open_first(true, None).is_empty());
+    assert!(!desk.settle_start());
+}
+
+#[test]
+fn a_fresh_start_opens_a_first_instance() {
+    let mut desk = desk();
+    assert!(!desk.open_first(false, None).is_empty());
+    desk.start_queued(&Grids::default());
+    assert_eq!(desk.workspace.instances.len(), 1);
+    assert!(desk.settle_start());
 }

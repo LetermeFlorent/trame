@@ -1,5 +1,3 @@
-use trame::desk::{Closing, written_by_hand};
-
 use crate::app::running::Running;
 
 impl Running {
@@ -10,12 +8,7 @@ impl Running {
         else {
             return;
         };
-        if host.alias().is_some() && written_by_hand(&host) {
-            self.desk.closing = Some(Closing::Forget(host));
-            return;
-        }
-        let effects = self.desk.forget_host(&host);
+        let effects = self.desk.ask_forget(host);
         self.apply(effects);
-        self.reload_hosts();
     }
 }

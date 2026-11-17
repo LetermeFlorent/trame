@@ -5,6 +5,7 @@ mod desk;
 mod edits;
 mod effects;
 mod folders;
+mod forget;
 mod grids;
 mod neutral;
 #[cfg(unix)]
@@ -15,6 +16,7 @@ mod restarts;
 #[path = "../support/sandbox.rs"]
 mod sandbox;
 mod saved;
+mod saving;
 mod sessions;
 mod settings;
 mod support;

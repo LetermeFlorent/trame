@@ -1,4 +1,5 @@
 mod restore;
+mod start;
 mod text;
 
 use std::time::Instant;

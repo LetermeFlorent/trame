@@ -1,16 +1,18 @@
 # GTK4 : état d'avancement et reste à faire
 
-Branche : `feat/gtk4`. Le plan complet, avec l'architecture, la correspondance des widgets et les jalons, est dans [`GTK4-PLAN.md`](GTK4-PLAN.md). Ce fichier dit où en est le travail et ce qu'il reste.
+Branche : `feat/gtk4-next`, partie de `origin/master`. Le plan complet, avec l'architecture, la correspondance des widgets et les jalons, est dans [`GTK4-PLAN.md`](GTK4-PLAN.md). Ce fichier dit où en est le travail et ce qu'il reste.
 
-**Rien n'est encore livré aux utilisateurs.** Les paquets de release restent en interface classique (winit/wgpu) jusqu'au jalon M9.
+**La fenêtre GTK n'est pas encore livrée.** Les paquets Linux restent en interface classique (winit/wgpu) jusqu'au jalon M9. En revanche, le refactor `Desk` de M1 à M3 (étapes 1 à 7) est déjà dans `master` et livré dans les versions 0.3.34 à 0.3.36 : l'interface winit de Windows, macOS et Linux tourne déjà sur `Desk`.
 
 ## Fait
 
 | Jalon | État | Commits |
 |---|---|---|
-| **M1** : fenêtre GTK4/libadwaita avec un terminal | Fait. CI verte sur les 3 OS | `f3e2cc7` |
-| **M2** : coutures neutres | Fait. Relu, CI verte | `765c605` → `f1e5b09` |
-| **M3** : extraction de `Desk` | 8 étapes sur 8 faites, relecture à faire, voir ci-dessous | `c48aac8` → `62f61a7` |
+| **M1** : fenêtre GTK4/libadwaita avec un terminal | Fait. CI verte sur les 3 OS | `895ac40` (dans `master`) |
+| **M2** : coutures neutres | Fait. Relu, CI verte | `895ac40` (dans `master`) |
+| **M3** : extraction de `Desk` | 8 étapes sur 8 faites et relues | `895ac40` (étapes 1 à 7, dans `master`), `77cba67` (étape 8), puis les corrections de relecture |
+
+M1, M2 et les étapes 1 à 7 de M3 ont été écrits sur `feat/gtk4`, puis fusionnés en un seul commit `895ac40` dans `master`. La règle « un sujet par PR » n'a donc pas été tenue pour ces étapes. Les commits suivants sont sur `feat/gtk4-next`, un sujet par commit.
 
 ### Détail de M1
 
@@ -39,26 +41,27 @@ Le contrôleur par fenêtre `trame::desk::Desk` (`src/desk/`) est neutre : ni wi
 4. ✅ Onglets : ouvrir, démarrer, fermer, fin du shell, shells différés, dossier, SSH.
 5. ✅ Commandes clavier, écriture dans l'onglet actif, transfert d'onglets et d'instances entre fenêtres.
 6. ✅ Validation des éditions : nom, couleur, emblème, icône, couleurs perso, dossier, hôte.
-7. ✅ Sauvegarde et restauration, fermeture avec confirmation (`Closing`, `Question`), confirmation de collage (`62f61a7`).
-   - ⚠️ Cette étape compile, passe clippy sur les 3 OS, passe les 1106 tests et le smoke test, mais **elle n'a pas encore été relue**.
+7. ✅ Sauvegarde et restauration, fermeture avec confirmation (`Closing`, `Question`), confirmation de collage. Relue après coup, alors qu'elle était déjà livrée sous Windows et macOS.
 8. ✅ Partie système de `Desk` :
    - `src/desk/system.rs` : `tick`, `sync_rest`, `set_appearance`, `rests`, `hidden`. `load_icons` est dans `src/desk/edit/look.rs`.
    - `src/desk/output.rs` : `output(id, Seen)`, avec les réponses aux mots de passe SSH, plus `Effect::Clipboard(String)` pour OSC 52 et `Effect::Notify { title, body }` pour OSC 9/777.
-   - `src/desk/deadline.rs` : `next_deadline`, le minimum de save, transcripts, secrets, redial et power, évalués dans cet ordre. `Running::about_to_wait` n'ajoute que ses réveils de vue (visibilité, chargement, travail).
-   - Test garde-fou `tests/desk/neutral.rs` : aucun import winit, wgpu, arboard, ui, render, text, gtk ou adw dans `src/desk`, et 150 lignes au plus par fichier dans `src/desk` et `src/app/running`.
-   - ⚠️ Comme l'étape 7, cette étape n'a pas encore été relue.
+   - `src/desk/deadline.rs` : `next_deadline`, le minimum de save, transcripts, secrets et redial, évalués dans cet ordre. Le front-end applique les effets rendus, ajoute ses réveils de vue, puis lit `desk.power.deadline()` en dernier, comme avant l'extraction.
+   - Test garde-fou `tests/desk/neutral.rs` : aucun chemin `winit::`, `wgpu::`, `arboard::`, `gtk::`, `adw::`, `gdk::`, `glib::`, ni `crate::ui`, `crate::render` ou `crate::text` dans `src/desk`, et 150 lignes au plus par fichier dans `src/desk`, `src/app` et `src/gnome`.
 
-**Avant de passer à M4** : relire tout M3 (`git diff f1e5b09..HEAD`). Points à vérifier :
-- comportement identique sur Windows et macOS ;
-- ordre des effets ;
-- fichiers de 150 lignes au plus ;
-- pas de logique neutre restée dans `Running`.
+### Relecture de M3 (faite)
+
+Corrections apportées après la relecture :
+- `Desk::ask_forget` décide seul s'il faut confirmer l'oubli d'un hôte SSH ; `Running` ne touche plus `desk.closing`.
+- `Desk::pending_question` abandonne une fermeture qui ne peut plus poser de question.
+- Démarrage : `Desk::restore` vérifie que la fenêtre possède son dossier, `Desk::open_first` ouvre la première instance, `Desk::settle_start` vérifie qu'un onglet existe et efface les transcripts si on ne les garde pas. `Running` ne garde que la mise en page, le dessin et l'affichage.
+- Le chargeur appelle `update_failed` au lieu d'écrire le champ.
+- `src/app/window/mod.rs` découpé, sous 150 lignes.
+- Tests ajoutés : oubli d'hôte, collage sur un onglet qui a perdu le focus, second collage, sauvegarde à la sortie et au redémarrage, échéance de sauvegarde et de transcripts, repos des onglets cachés, relayout après la perte d'une connexion SSH.
 
 ## Reste à faire
 
 | Jalon | Contenu | Terminé quand |
 |---|---|---|
-| **M3** | Relecture de M3 (étapes 7 et 8 surtout) | UI winit inchangée sur les 3 OS, fichiers de 150 lignes max, clippy propre |
 | **M4** | Onglets, splits et actions sous GTK : `TabView`/`TabBar` par pane, `Paned` depuis `Node`, registre `SessionId` → vue, `GAction` par `Command` + accélérateurs depuis `Keymap`, taille de police | Ouvrir, fermer, splitter, changer de pane et tous les raccourcis fonctionnent |
 | **M5** | Barre latérale (`OverlaySplitView` + `ListBox`), `Stack` par instance, `claim`/`load`/saver sur l'horloge glib, transcripts, `door` et `fleet`, page de chargement. **C'est à partir d'ici que GTK écrit le dossier d'état** | Quitter et relancer restaure tout ; un 2e lancement ouvre une fenêtre dans le processus existant |
 | **M6** | Parité du terminal : sélection et copie (Ctrl+Shift+C), souris, molette, barre de défilement, liens, boîtes et soulignés, caractères larges, dépôt de fichiers, confirmation de collage, OSC 52, `gio::Notification`, `CellPainter` partagé | tmux, nvim, mc et Powerline s'affichent correctement |
@@ -70,14 +73,14 @@ Le contrôleur par fenêtre `trame::desk::Desk` (`src/desk/`) est neutre : ni wi
 
 ## Points à ne pas oublier
 
-- **`release.yml` casse si on fusionne tel quel.** Les jobs Linux tournent sur ubuntu-22.04, dont GTK 4.6 et libadwaita 1.1 sont trop vieux. Avant toute fusion dans `master`, il faut soit compiler ces jobs avec `--no-default-features` (interface classique), soit faire M9.
+- **Release Linux en interface classique.** Les jobs Linux de `release.yml` tournent sur ubuntu-22.04 (GTK 4.6 et libadwaita 1.1, trop vieux) et compilent donc avec `--no-default-features` depuis `8947294` et `d08e879`. M9 changera ça.
 - **API publique élargie en M2.** Beaucoup d'éléments internes de `trame::host::update` sont devenus `pub` (marqués `#[doc(hidden)]`) pour que les tests de `tests/host/` les atteignent.
-- **Fichiers encore trop longs.** `src/app/fleet.rs` et quelques autres dépassaient déjà 150 lignes avant le refactor.
+- **Fichiers encore trop longs** hors de `src/desk`, `src/app` et `src/gnome`, par exemple `src/session/mod.rs`, `src/ui/chrome/painter.rs` et `src/ui/motion/mod.rs`. Ils dépassaient déjà 150 lignes avant le refactor.
 - **Ctrl+Shift+C** n'existe pas encore sous GTK, faute de sélection. Il arrive en M6.
 - **CI.** Elle ne se déclenche que sur `master` ou sur une PR. Pour la lancer sur la branche :
 
 ```bash
-gh workflow run ci.yml --ref feat/gtk4
+gh workflow run ci.yml --ref feat/gtk4-next
 ```
 
 ## Compiler en local (Fedora)

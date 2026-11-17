@@ -3,9 +3,8 @@ use std::path::PathBuf;
 
 use winit::dpi::PhysicalPosition;
 
-use trame::desk::{Placement, TornTab};
+use trame::desk::TornTab;
 use trame::host::update::UpdateStatus;
-use trame::preferences::Recall;
 use trame::workspace::Snapshot;
 
 use super::super::Running;
@@ -30,16 +29,11 @@ impl Opened {
             running.draw();
             running.window.set_visible(true);
         }
-        let restored = running.desk.saver.owns() && running.restore_session(saved.as_ref());
-        if !restored || folder.is_some() {
-            let effects = running.desk.open_at(Placement::Instance, folder);
-            running.apply(effects);
-            if running.desk.workspace.is_empty() {
-                return Err("the first shell could not start".into());
-            }
-        }
-        if !running.desk.preferences.recalls(Recall::Text) {
-            running.desk.transcripts.clear();
+        let restored = running.restore_session(saved.as_ref());
+        let effects = running.desk.open_first(restored, folder);
+        running.apply(effects);
+        if !running.desk.settle_start() {
+            return Err("the first shell could not start".into());
         }
         running.draw();
         running.window.set_visible(true);
