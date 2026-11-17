@@ -1,6 +1,7 @@
 pub mod cell;
 pub mod cursor;
 mod dispatch;
+pub mod graphics;
 pub mod grid;
 pub mod modes;
 pub mod screen;

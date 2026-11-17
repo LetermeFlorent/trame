@@ -1,6 +1,6 @@
 mod apc;
 mod codes;
-mod decode;
+pub(crate) mod decode;
 mod erase;
 mod esc;
 mod osc;

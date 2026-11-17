@@ -2759,6 +2759,7 @@ dependencies = [
  "gtk4",
  "libadwaita",
  "libc",
+ "miniz_oxide 0.8.9",
  "png",
  "pollster",
  "serde",
