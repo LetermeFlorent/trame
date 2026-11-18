@@ -44,6 +44,14 @@ The everyday things are a drag or a double click away:
 
 The theme follows your system and switches the moment it does. Above is the same window in light mode.
 
+## Inline images
+
+Programs can draw pictures right in the terminal. trame speaks the Kitty graphics protocol, with direct placement and Unicode placeholders, and iTerm2 inline PNG files, so `kitten icat`, chafa, timg, yazi and AI agents show real images.
+
+- opencode shows the images it reads or you attach once `session.image_preview: true` is set in its TUI config.
+- Claude Code: trame sets `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1`, so the `Image` elements of mods and plugins render. Previews of the built-in Read tool depend on Claude Code itself.
+- Images are not kept in the tab text that comes back at launch.
+
 ## Small, native and quick
 
 trame is a single program of under 7 MB, written in Rust from the escape sequence parser up. It draws through the graphics card with Vulkan, Metal or DirectX 12, opens in a blink and starts the shell your system already uses: PowerShell 7 or Windows PowerShell on Windows, your `$SHELL` everywhere else.

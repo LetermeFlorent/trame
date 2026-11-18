@@ -45,6 +45,14 @@ The startup command, empty by default, is typed and run in every new shell. A ta
 
 Files dropped on a pane from the Explorer or another app are typed at its prompt as their full paths, in drop order, each followed by a space and never quoted, so an AI CLI reads them as plain text. A drop outside the terminals goes to the active pane, and nothing is typed while the settings, a menu or a dialog is open.
 
+## Inline images
+
+trame draws images sent by the programs it runs. It understands the Kitty graphics protocol, both direct placement and Unicode placeholders, and iTerm2 inline images (`OSC 1337 File=`, also in several parts), in PNG. Tools such as `kitten icat`, chafa, timg, yazi and imgcat work as they do in those terminals.
+
+- opencode draws the images it reads and the ones you attach when its TUI config has `session.image_preview: true`.
+- Claude Code: trame sets `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1` in every shell, so the `Image` elements of mods and plugins render. Whether the built-in Read tool shows a preview depends on Claude Code itself.
+- Images are not saved with the tab text, so a tab restored at launch shows only its text.
+
 ## What comes back at launch
 
 At launch, trame reopens the last layout with each shell in the folder it was in, and each tab shows again the text it held when trame closed. Only the text comes back. A program that was running in the tab is not started again, except an SSH connection, which asks for its password again.

@@ -28,7 +28,11 @@ impl Screen {
         }
     }
 
-    fn anchor_at_cursor(&mut self, anchor: Anchor, cursor_stays: bool) {
+    pub(in crate::term::dispatch) fn anchor_at_cursor(
+        &mut self,
+        anchor: Anchor,
+        cursor_stays: bool,
+    ) {
         let (row, col) = (self.cursor.row, self.cursor.col);
         let (cols, rows) = (usize::from(anchor.cols), anchor.rows);
         self.graphics.note_rows(rows);

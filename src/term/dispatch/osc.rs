@@ -42,6 +42,7 @@ impl Screen {
                 self.report_color(kind, bell_terminated);
             }
             b"8" => self.set_link(params.get(2..).unwrap_or_default()),
+            b"1337" => self.iterm(&params[1..], bell_terminated),
             b"52" => self.store_clipboard(params.get(2).copied().unwrap_or_default()),
             _ => {}
         }

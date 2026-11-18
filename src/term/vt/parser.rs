@@ -69,6 +69,8 @@ impl Parser {
                 run
             } else if self.state == State::ApcString {
                 self.apc_run(rest)
+            } else if self.state == State::OscString {
+                self.osc_run(rest)
             } else {
                 self.csi_run(performer, rest)
             };
@@ -93,6 +95,7 @@ impl Parser {
             CAN | SUB => {
                 performer.execute(byte);
                 self.apc.clear();
+                self.osc.clear();
                 self.state = State::Ground;
             }
             ESC => self.enter_escape(performer),

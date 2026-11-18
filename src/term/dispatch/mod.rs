@@ -4,6 +4,7 @@ pub(crate) mod decode;
 mod erase;
 mod esc;
 mod graphics;
+pub(crate) mod iterm;
 mod osc;
 mod reports;
 mod set_mode;

@@ -10,6 +10,7 @@ mod view;
 use super::cell::Links;
 use super::cursor::charset::CharsetState;
 use super::cursor::{Cursor, CursorShape, SavedCursor};
+use super::dispatch::iterm::FileArgs;
 use super::dispatch::status::ProgramStatus;
 use super::graphics::ImageStore;
 use super::grid::Grid;
@@ -44,6 +45,7 @@ pub struct Screen {
     pub(crate) links: Links,
     pub(crate) graphics: ImageStore,
     pub(crate) cell_pixels: (u16, u16),
+    pub(crate) multipart: Option<(FileArgs, Vec<u8>)>,
 }
 
 impl Screen {
@@ -74,6 +76,7 @@ impl Screen {
             links: Links::default(),
             graphics: ImageStore::default(),
             cell_pixels: (0, 0),
+            multipart: None,
         }
     }
 
