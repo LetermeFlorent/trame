@@ -79,7 +79,9 @@ fn snapshot() -> Vec<(u32, u32)> {
     let mut pairs = Vec::new();
     let mut found = unsafe { Process32FirstW(snapshot.as_raw_handle(), &mut entry) } != 0;
     while found {
-        pairs.push((entry.th32ProcessID, entry.th32ParentProcessID));
+        if entry.cntThreads > 0 {
+            pairs.push((entry.th32ProcessID, entry.th32ParentProcessID));
+        }
         found = unsafe { Process32NextW(snapshot.as_raw_handle(), &mut entry) } != 0;
     }
     pairs
