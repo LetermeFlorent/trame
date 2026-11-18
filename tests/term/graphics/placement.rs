@@ -24,19 +24,23 @@ fn a_transmit_and_place_anchors_at_the_cursor_and_moves_past_the_image() {
         },
         offset: (0, 0),
         z: -1,
+        skipped: 0,
     };
     assert_eq!(anchor, &expected);
     assert_eq!(cursor(&term), (3, 6));
 }
 
 #[test]
-fn the_cursor_stays_with_c_1_and_stops_at_the_right_edge() {
+fn the_cursor_stays_with_c_1_and_wraps_past_the_right_edge() {
     let mut term = Terminal::new(10, 8, 0);
     put(&mut term, "i=1,c=4,r=3,C=1");
     assert_eq!(cursor(&term), (0, 0));
     term.feed(b"\x1b[1;6H");
     put(&mut term, "i=1,c=4,r=1");
-    assert_eq!(cursor(&term), (0, 7));
+    assert_eq!(cursor(&term), (1, 0));
+    term.feed(b"\x1b[3;1H");
+    put(&mut term, "i=1,c=8,r=2");
+    assert_eq!(cursor(&term), (4, 0));
 }
 
 #[test]
@@ -71,6 +75,17 @@ fn unnamed_placements_add_up() {
 }
 
 #[test]
+fn a_row_keeps_only_its_newest_placements() {
+    let mut term = Terminal::new(6, 10, 0);
+    put(&mut term, "i=1,c=1,r=1,C=1");
+    for _ in 0..1000 {
+        send(&mut term, "a=p,i=1,c=1,r=1,C=1,q=2");
+    }
+    assert_eq!(placed(&term, 0).len(), 32);
+    assert_eq!(term.screen().image_tiles().len(), 32);
+}
+
+#[test]
 fn placing_a_missing_image_fails() {
     let mut term = Terminal::new(6, 10, 0);
     send(&mut term, "a=p,i=5");
@@ -85,9 +100,16 @@ fn placing_a_missing_image_fails() {
 fn a_virtual_placement_is_recorded_without_an_anchor() {
     let mut term = Terminal::new(6, 10, 0);
     put(&mut term, "i=3,U=1,c=5,r=2");
-    assert_eq!(term.screen().graphics().virtuals.get(&3), Some(&(5, 2)));
+    assert_eq!(
+        term.screen().graphics().virtuals.get(&(3, 0)),
+        Some(&(5, 2))
+    );
     assert!(all_placed(&term).is_empty());
     assert_eq!(cursor(&term), (0, 0));
+    send(&mut term, "a=p,i=3,p=4,U=1,c=2,r=1,q=2");
+    let virtuals = &term.screen().graphics().virtuals;
+    assert_eq!(virtuals.get(&(3, 0)), Some(&(5, 2)));
+    assert_eq!(virtuals.get(&(3, 4)), Some(&(2, 1)));
 }
 
 #[test]

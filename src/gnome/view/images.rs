@@ -40,6 +40,14 @@ pub fn draw_tiles(paint: &Paint, tiles: &[ImageTile], layer: Layer) {
     }
 }
 
+pub fn covered(paint: &Paint, tiles: &[ImageTile], area: &graphene::Rect) -> bool {
+    tiles
+        .iter()
+        .filter(|tile| tile.layer == Layer::OverText)
+        .filter_map(|tile| tile_rect(paint, tile).intersection(area))
+        .any(|overlap| overlap.width() > 0.0 && overlap.height() > 0.0)
+}
+
 fn draw_tile(paint: &Paint, tile: &ImageTile) {
     let dst = tile_rect(paint, tile);
     let bounds = (dst.x(), dst.y(), dst.width(), dst.height());

@@ -79,11 +79,6 @@ fn texel(point: vec2<f32>, rect: vec4<f32>, uv: vec4<f32>) -> vec2<i32> {
     return vec2<i32>(floor(uv.xy + point - rect.xy));
 }
 
-fn image_texel(point: vec2<f32>, rect: vec4<f32>, uv: vec4<f32>) -> vec4<f32> {
-    let local = clamp((point - rect.xy) / max(rect.zw, vec2<f32>(1.0)), vec2<f32>(0.0), vec2<f32>(1.0));
-    return textureSampleLevel(image_texture, image_sampler, mix(uv.xy, uv.zw, local), 0.0);
-}
-
 fn text_alpha(alpha: f32, color: vec3<f32>) -> f32 {
     let luminance = dot(color, vec3<f32>(0.2126, 0.7152, 0.0722));
     return pow(alpha, mix(0.92, 0.72, luminance));
@@ -132,7 +127,8 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
             return output(sample.rgb, sample.a * in.color.a);
         }
         case KIND_IMAGE: {
-            let sample = image_texel(point, in.rect, in.uv);
+            let local = clamp((point - in.rect.xy) / max(in.rect.zw, vec2<f32>(1.0)), vec2<f32>(0.0), vec2<f32>(1.0));
+            let sample = textureSampleLevel(image_texture, image_sampler, mix(in.uv.xy, in.uv.zw, local), 0.0);
             return output(sample.rgb, sample.a * in.color.a);
         }
         case KIND_LINE: {

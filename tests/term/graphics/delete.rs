@@ -52,6 +52,16 @@ fn deleting_by_id_reaches_the_history_and_virtual_placements() {
 }
 
 #[test]
+fn deleting_one_virtual_placement_keeps_the_others() {
+    let mut term = Terminal::new(6, 10, 0);
+    put(&mut term, "i=1,p=1,U=1,c=1,r=1");
+    send(&mut term, "a=p,i=1,p=2,U=1,c=2,r=1,q=2");
+    send(&mut term, "a=d,d=i,i=1,p=1");
+    let virtuals = &term.screen().graphics().virtuals;
+    assert_eq!(virtuals.keys().copied().collect::<Vec<_>>(), vec![(1, 2)]);
+}
+
+#[test]
 fn deleting_at_the_cursor_cell() {
     let mut term = three_images();
     term.feed(b"\x1b[2;2H");

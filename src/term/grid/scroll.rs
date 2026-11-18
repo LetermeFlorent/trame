@@ -41,6 +41,11 @@ impl Grid {
             let Some(mut row) = self.lines.remove(removed) else {
                 return;
             };
+            if removed < inserted
+                && let Some(below) = self.lines.get_mut(removed)
+            {
+                row.hand_anchors_down(below);
+            }
             row.reset(self.cols, template);
             self.lines.insert(inserted, row);
         }

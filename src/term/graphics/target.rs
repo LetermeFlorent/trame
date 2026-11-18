@@ -39,13 +39,17 @@ impl Target {
         }
     }
 
+    pub fn names_placement(&self, image: u32, placement: u32) -> bool {
+        match *self {
+            Self::Image(id, wanted) => id == image && (wanted == 0 || wanted == placement),
+            _ => self.names(image),
+        }
+    }
+
     pub fn hits(&self, at: isize, anchor: &Anchor) -> bool {
         match *self {
             Self::Visible => true,
-            Self::Image(id, placement) => {
-                anchor.image == id && (placement == 0 || anchor.placement == placement)
-            }
-            Self::Ids(first, last) => (first..=last).contains(&anchor.image),
+            Self::Image(..) | Self::Ids(..) => self.names_placement(anchor.image, anchor.placement),
             Self::Cell(row, col) => anchor.covers(at, row, col),
             Self::Column(col) => anchor.covers(at, at, col),
             Self::Row(row) => anchor.covers(at, row, usize::from(anchor.col)),

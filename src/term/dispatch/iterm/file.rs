@@ -44,6 +44,7 @@ impl Screen {
             },
             offset: (0, 0),
             z: 0,
+            skipped: 0,
         };
         self.anchor_at_cursor(anchor, true);
         self.graphics

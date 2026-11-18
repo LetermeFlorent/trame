@@ -25,7 +25,7 @@ impl Screen {
         let doomed = |at, anchor: &_| target.hits(at, anchor);
         self.graphics
             .virtuals
-            .retain(|&image, _| !target.names(image));
+            .retain(|&(image, placement), _| !target.names_placement(image, placement));
         if !target.reaches_history() {
             return self.grid_mut().remove_anchors(false, doomed);
         }

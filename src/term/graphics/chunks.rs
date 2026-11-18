@@ -21,6 +21,10 @@ impl Chunks {
         &self.first
     }
 
+    pub fn set_quiet(&mut self, quiet: u8) {
+        self.first.quiet = quiet;
+    }
+
     pub fn push(&mut self, more: bool, b64: &[u8]) -> Result<Option<(Command, Vec<u8>)>, Error> {
         if self.data.len() + b64.len() > MAX_ENCODED {
             self.data = Vec::new();

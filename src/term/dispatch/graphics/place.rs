@@ -9,7 +9,8 @@ impl Screen {
         let crop = crop(command, image.width, image.height);
         let (cols, rows) = span(command, crop, self.cell_pixels);
         if command.virtual_ {
-            self.graphics.virtuals.insert(id, (cols, rows));
+            let key = (id, command.placement);
+            self.graphics.virtuals.insert(key, (cols, rows));
         } else {
             let anchor = Anchor {
                 col: u16::try_from(self.cursor.col).unwrap_or(u16::MAX),
@@ -20,6 +21,7 @@ impl Screen {
                 crop,
                 offset: command.offset,
                 z: command.z,
+                skipped: 0,
             };
             self.anchor_at_cursor(anchor, command.cursor_stays);
         }
@@ -45,6 +47,11 @@ impl Screen {
         for _ in 1..rows {
             self.index();
         }
-        self.goto_col(col + cols);
+        if col + cols >= self.cols() {
+            self.index();
+            self.carriage_return();
+        } else {
+            self.goto_col(col + cols);
+        }
     }
 }

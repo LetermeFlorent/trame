@@ -29,6 +29,6 @@ pub use png::decode_png;
 pub use reply::{reply, wanted};
 pub use span::{crop, span};
 pub use split::split;
-pub use store::ImageStore;
+pub use store::{ImageStore, Virtuals};
 pub use target::Target;
 pub use tiles::{ImageTile, Layer};

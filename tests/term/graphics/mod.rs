@@ -9,5 +9,6 @@ mod lifecycle;
 mod placeholders;
 mod placement;
 mod reply;
+mod scrolling;
 mod span;
 mod store;

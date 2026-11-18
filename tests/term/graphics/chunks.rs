@@ -1,3 +1,4 @@
+use trame::term::Terminal;
 use trame::term::graphics::{Chunks, Error, Format, MAX_ENCODED, parse, split};
 
 fn chunk(apc: &[u8]) -> (trame::term::graphics::Command, &[u8]) {
@@ -39,4 +40,20 @@ fn rejects_payloads_over_the_cap() {
 fn rejects_invalid_base64() {
     let mut chunks = Chunks::start(parse(b"i=1"));
     assert_eq!(chunks.push(false, b"A*B"), Err(Error::Inval));
+}
+
+#[test]
+fn a_quiet_key_on_a_later_chunk_silences_the_reply() {
+    let mut term = Terminal::new(4, 10, 0);
+    term.feed(b"\x1b_Ga=t,i=6,f=24,s=1,v=1,m=1;AA\x1b\\\x1b_Gm=0,q=2;AA\x1b\\");
+    assert!(term.screen_mut().take_responses().is_empty());
+    assert!(term.screen().graphics().get(6).is_some());
+}
+
+#[test]
+fn later_chunks_may_repeat_the_action() {
+    let mut term = Terminal::new(4, 10, 0);
+    term.feed(b"\x1b_Ga=T,i=2,f=24,s=1,v=1,m=1;AA\x1b\\\x1b_Ga=T,m=0;AA\x1b\\");
+    assert_eq!(term.screen_mut().take_responses(), b"\x1b_Gi=2;OK\x1b\\");
+    assert!(term.screen().graphics().get(2).is_some());
 }

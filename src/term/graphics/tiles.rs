@@ -39,19 +39,24 @@ impl ImageTile {
     fn new(image: &Image, anchor: &Anchor, row: isize) -> Self {
         let (width, height) = (image.width.max(1) as f32, image.height.max(1) as f32);
         let crop = anchor.crop;
+        let cut = f32::from(anchor.skipped) / f32::from(anchor.rows.max(1));
+        let top = crop.y as f32 + crop.h as f32 * cut;
         Self {
             image: image.clone(),
             uv: [
                 crop.x as f32 / width,
-                crop.y as f32 / height,
+                top / height,
                 (crop.x + crop.w) as f32 / width,
                 (crop.y + crop.h) as f32 / height,
             ],
             row,
             col: usize::from(anchor.col),
             cols: f32::from(anchor.cols),
-            rows: f32::from(anchor.rows),
-            offset: anchor.offset,
+            rows: f32::from(anchor.shown_rows()),
+            offset: match anchor.skipped {
+                0 => anchor.offset,
+                _ => (anchor.offset.0, 0),
+            },
             layer: Layer::of(anchor.z),
         }
     }
@@ -76,7 +81,7 @@ impl Screen {
             };
             let at = line as isize - first_line as isize;
             for anchor in row.anchors() {
-                let shown = at + anchor.rows as isize > 0;
+                let shown = at + anchor.shown_rows() as isize > 0;
                 if let Some(image) = self.graphics.get(anchor.image).filter(|_| shown) {
                     found.push((anchor.z, ImageTile::new(image, anchor, at)));
                 }

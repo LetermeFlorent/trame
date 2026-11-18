@@ -101,7 +101,8 @@ fn quota_eviction_prefers_unreferenced_images() {
     send(&mut term, "a=t,f=24,s=1,v=1,i=2,q=2;AAAA");
     let screen = term.screen();
     let mut store: ImageStore = screen.graphics().clone();
-    store.evict_unreferenced(4, [screen.grid(), screen.grid()]);
+    let one = 4 + ImageStore::OVERHEAD;
+    store.evict_unreferenced(one, [screen.grid(), screen.grid()]);
     assert!(store.get(1).is_some());
     assert!(store.get(2).is_none());
 }

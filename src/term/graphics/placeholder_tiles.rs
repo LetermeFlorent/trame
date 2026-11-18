@@ -71,7 +71,7 @@ impl Screen {
             };
             let at = (line - first_line) as isize;
             for run in resolve_row(row, grid.cols()) {
-                let Some(&span) = self.graphics.virtuals.get(&run.id) else {
+                let Some(span) = self.graphics.virtual_span(run.id) else {
                     continue;
                 };
                 if let Some(image) = self.graphics.get(run.id) {

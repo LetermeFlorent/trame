@@ -6,7 +6,7 @@ use trame::term::{Cell, Screen};
 use trame::theme::{Rgba, Theme};
 use trame::ui::terminal::{CursorPlace, colors};
 
-use super::images::{draw_tiles, prune};
+use super::images::{covered, draw_tiles, prune};
 use super::metrics::{self, Metrics};
 use super::theme::fill;
 use super::{TermView, cursor, text};
@@ -64,15 +64,18 @@ fn screen(paint: &Paint, screen: &Screen) {
     for (row, cells) in rows.iter().enumerate() {
         backgrounds(paint, row, cells);
     }
-    if let Some(place) = block {
-        let area = paint.cell(place.row, place.col, place.columns);
+    draw_tiles(paint, &tiles, Layer::UnderText);
+    let block_area = block.map(|place| paint.cell(place.row, place.col, place.columns));
+    if let Some(area) = block_area {
         fill(paint.snapshot, paint.theme.accent, area);
     }
-    draw_tiles(paint, &tiles, Layer::UnderText);
     for (row, cells) in rows.iter().enumerate() {
         text::draw_row(paint, row, cells, grid.view_row(row as isize), block);
     }
     draw_tiles(paint, &tiles, Layer::OverText);
+    if let Some(area) = block_area.filter(|area| covered(paint, &tiles, area)) {
+        fill(paint.snapshot, paint.theme.accent, area);
+    }
     if let Some(place) = place.filter(|_| block.is_none()) {
         cursor::outline(paint, place, focused);
     }

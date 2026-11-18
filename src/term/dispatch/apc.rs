@@ -1,7 +1,7 @@
-use crate::term::graphics::{Action, Error, parse, split};
+use crate::term::graphics::{Action, Command, Error, parse, split};
 use crate::term::screen::Screen;
 
-const ACTION_KEY: &[u8] = b"a=";
+const QUIET_KEY: &[u8] = b"q=";
 
 impl Screen {
     pub(crate) fn apc(&mut self, data: &[u8]) {
@@ -9,9 +9,12 @@ impl Screen {
             return;
         };
         let command = parse(control);
-        if let Some(pending) = self.graphics.pending.take()
-            && !names_action(control)
+        if let Some(mut pending) = self.graphics.pending.take()
+            && continues(&command, pending.first())
         {
+            if names_key(control, QUIET_KEY) {
+                pending.set_quiet(command.quiet);
+            }
             self.continue_stream(pending, command.more, payload);
             return;
         }
@@ -29,8 +32,17 @@ impl Screen {
     }
 }
 
-fn names_action(control: &[u8]) -> bool {
+fn continues(command: &Command, first: &Command) -> bool {
+    let same = |key: u32, pending: u32| key == 0 || key == pending;
+    matches!(
+        command.action,
+        Action::Transmit | Action::TransmitPlace | Action::Query
+    ) && same(command.id, first.id)
+        && same(command.number, first.number)
+}
+
+fn names_key(control: &[u8], key: &[u8]) -> bool {
     control
         .split(|&byte| byte == b',')
-        .any(|pair| pair.starts_with(ACTION_KEY))
+        .any(|pair| pair.starts_with(key))
 }

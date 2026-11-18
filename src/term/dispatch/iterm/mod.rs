@@ -19,7 +19,11 @@ impl Screen {
         let Some(&first) = params.first() else {
             return;
         };
-        let body = |prefix: &[u8]| params.join(&b';').split_off(prefix.len());
+        let body = |prefix: &[u8]| {
+            let mut joined = params.join(&b';');
+            joined.drain(..prefix.len());
+            joined
+        };
         if first.starts_with(FILE) {
             self.iterm_file(&body(FILE));
         } else if first.starts_with(MULTIPART) {
