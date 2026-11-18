@@ -74,7 +74,12 @@ fn a_recheck_restores_what_a_resting_shell_started_before_exiting() {
     let late = Orphan(first_child_of(shell.id()));
     let class = || class_of(late.0.handle.as_raw_handle());
     assert_eq!(class(), IDLE_PRIORITY_CLASS);
+    eprintln!(
+        "DBG shell={} late={} late_born={}",
+        own[0].0, late.0.id, late.0.born
+    );
     drop(shell);
+    eprintln!("DBG ---- second apply");
     window.apply(false, &own);
     assert_eq!(class(), BELOW_NORMAL_PRIORITY_CLASS);
 }

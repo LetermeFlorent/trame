@@ -34,6 +34,17 @@ impl Family {
         }
         let roots = self.saved.iter().map(|(&id, saved)| (id, saved.since));
         let (taken, members) = descendants(roots);
+        eprintln!(
+            "DBG apply everyone={everyone} wanted={wanted:?} saved={:?} members={:?}",
+            self.saved
+                .iter()
+                .map(|(k, v)| (*k, v.since, v.class))
+                .collect::<Vec<_>>(),
+            members
+                .iter()
+                .map(|m| (m.id, m.parent, m.born))
+                .collect::<Vec<_>>()
+        );
         let mut left = std::mem::take(&mut self.saved);
         let mut restored = HashMap::new();
         for member in members {
@@ -43,9 +54,20 @@ impl Family {
             let parent = [&self.saved, &restored, &left]
                 .into_iter()
                 .find_map(|saved| saved.get(&member.parent));
+            eprintln!(
+                "DBG member {id} parent={} slow={slow} kept={} parent_saved={:?}",
+                member.parent,
+                kept.is_some(),
+                parent.map(|p| (p.since, p.class))
+            );
             let Some(saved) = kept.or_else(|| Saved::first(member, slow, parent, taken)) else {
+                eprintln!("DBG   skipped {id}");
                 continue;
             };
+            eprintln!(
+                "DBG   saved {id} since={} class={}",
+                saved.since, saved.class
+            );
             if slow {
                 throttle(saved.handle.as_raw_handle(), eco(true), IDLE_PRIORITY_CLASS);
                 self.saved.insert(id, saved);
