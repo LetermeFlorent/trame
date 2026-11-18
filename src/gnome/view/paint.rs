@@ -1,10 +1,12 @@
 use gtk::graphene;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
+use trame::term::graphics::Layer;
 use trame::term::{Cell, Screen};
 use trame::theme::{Rgba, Theme};
 use trame::ui::terminal::{CursorPlace, colors};
 
+use super::images::{draw_tiles, prune};
 use super::metrics::{self, Metrics};
 use super::theme::fill;
 use super::{TermView, cursor, text};
@@ -57,6 +59,8 @@ fn screen(paint: &Paint, screen: &Screen) {
     let focused = paint.view.has_focus();
     let place = CursorPlace::locate(screen);
     let block = place.filter(|place| place.fills_cell(focused));
+    let tiles = screen.image_tiles();
+    draw_tiles(paint, &tiles, Layer::UnderBackground);
     for (row, cells) in rows.iter().enumerate() {
         backgrounds(paint, row, cells);
     }
@@ -64,12 +68,15 @@ fn screen(paint: &Paint, screen: &Screen) {
         let area = paint.cell(place.row, place.col, place.columns);
         fill(paint.snapshot, paint.theme.accent, area);
     }
+    draw_tiles(paint, &tiles, Layer::UnderText);
     for (row, cells) in rows.iter().enumerate() {
         text::draw_row(paint, row, cells, grid.view_row(row as isize), block);
     }
+    draw_tiles(paint, &tiles, Layer::OverText);
     if let Some(place) = place.filter(|_| block.is_none()) {
         cursor::outline(paint, place, focused);
     }
+    prune(paint.view, &tiles);
 }
 
 fn backgrounds(paint: &Paint, row: usize, cells: &[Cell]) {

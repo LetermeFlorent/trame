@@ -1,5 +1,6 @@
 use gtk::prelude::*;
 use gtk::{graphene, pango};
+use trame::term::graphics::PLACEHOLDER;
 use trame::term::grid::Row;
 use trame::term::{Cell, Flags};
 use trame::theme::Rgba;
@@ -33,6 +34,10 @@ pub fn draw_row(
     let mut run: Option<Run> = None;
     for (col, cell) in cells.iter().enumerate() {
         if cell.flags.contains(Flags::WIDE_SPACER) {
+            continue;
+        }
+        if cell.ch == PLACEHOLDER {
+            flush(paint, row, run.take());
             continue;
         }
         let style = style(

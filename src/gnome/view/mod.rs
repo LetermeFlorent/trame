@@ -1,4 +1,5 @@
 mod cursor;
+mod images;
 mod imp;
 mod input;
 mod keys;

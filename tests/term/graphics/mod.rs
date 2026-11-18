@@ -2,6 +2,7 @@ mod chunks;
 mod command;
 mod decode;
 mod delete;
+mod fit;
 mod fixture;
 mod lifecycle;
 mod placeholders;

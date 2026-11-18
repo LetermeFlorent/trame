@@ -1,8 +1,9 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 
-use gtk::glib;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
+use gtk::{gdk, glib};
 use trame::session::Session;
 use trame::theme::{Appearance, Theme};
 
@@ -14,6 +15,7 @@ pub struct TermView {
     pub(super) metrics: RefCell<Option<Metrics>>,
     pub(super) theme: RefCell<Theme>,
     pub(super) exit: RefCell<Option<Box<dyn Fn()>>>,
+    pub(super) textures: RefCell<HashMap<u64, gdk::Texture>>,
 }
 
 impl Default for TermView {
@@ -23,6 +25,7 @@ impl Default for TermView {
             metrics: RefCell::default(),
             theme: RefCell::new(Theme::new(Appearance::Dark)),
             exit: RefCell::default(),
+            textures: RefCell::default(),
         }
     }
 }
