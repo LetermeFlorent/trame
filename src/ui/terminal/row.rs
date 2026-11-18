@@ -2,6 +2,7 @@ use super::links::LinkSpan;
 use super::{GridPaint, Ink, boxes, style};
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
+use crate::term::graphics::PLACEHOLDER;
 use crate::term::grid::Row;
 use crate::term::{Cell, Flags};
 use crate::text::{CellText, TextSystem};
@@ -68,7 +69,7 @@ pub(super) fn draw_glyphs(
         let linked = links.iter().any(|link| link.covers(col));
         decorate(scene, grid, cell.flags, linked, ink);
         let marks = row.line.marks(col);
-        let blank = matches!(cell.ch, ' ' | '\0') && marks.is_empty();
+        let blank = (matches!(cell.ch, ' ' | '\0') && marks.is_empty()) || cell.ch == PLACEHOLDER;
         if blank || cell.flags.contains(Flags::HIDDEN) {
             continue;
         }

@@ -1,6 +1,7 @@
 mod boxes;
 mod copy;
 mod cursor;
+mod images;
 pub mod links;
 mod row;
 mod style;
@@ -10,12 +11,14 @@ use std::ops::Range;
 use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::term::Screen;
+use crate::term::graphics::Layer;
 use crate::text::{CellMetrics, TextSystem};
 use crate::theme::Rgba;
 use crate::theme::Theme;
 
 pub use copy::ScreenCopy;
 pub use cursor::CursorPlace;
+pub use images::{draw_tiles, tile_rect};
 use links::LinkSpan;
 use row::{RowPaint, draw_backgrounds, draw_glyphs};
 pub use style::colors;
@@ -61,20 +64,29 @@ pub fn draw_terminal(
         paint.origin.y + (paint.scroll * metrics.height).round(),
     );
     let rows = visible_rows(paint, origin, &metrics);
+    let tiles = &paint.screen.tiles;
+    draw_tiles(scene, &metrics, origin, tiles, Layer::UnderBackground);
     for row in &rows {
         draw_backgrounds(scene, &grid, row);
     }
-    if let Some(cursor) = grid
-        .cursor
-        .filter(|cursor| cursor.fills_cell(paint.focused))
-    {
-        cursor.draw_fill(scene, theme, cursor.rect(origin, &metrics));
-    }
+    draw_tiles(scene, &metrics, origin, tiles, Layer::UnderText);
+    draw_cursor_fill(scene, &grid, origin);
     for row in &rows {
         draw_glyphs(scene, text, &grid, row);
     }
+    draw_tiles(scene, &metrics, origin, tiles, Layer::OverText);
+    if !tiles.is_empty() {
+        images::cover_tiles(scene, &grid, &rows, origin);
+    }
     if let Some(cursor) = grid.cursor {
         cursor.draw_outline(scene, &grid, cursor.rect(origin, &metrics));
+    }
+}
+
+fn draw_cursor_fill(scene: &mut Scene, grid: &GridPaint, origin: Point) {
+    let focused = grid.paint.focused;
+    if let Some(cursor) = grid.cursor.filter(|cursor| cursor.fills_cell(focused)) {
+        cursor.draw_fill(scene, grid.theme, cursor.rect(origin, &grid.metrics));
     }
 }
 

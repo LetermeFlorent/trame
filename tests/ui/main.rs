@@ -1,6 +1,7 @@
 mod bars;
 mod drop;
 mod editor;
+mod images;
 mod logo;
 mod motion;
 mod overlay;

@@ -1,11 +1,14 @@
 mod draw;
+mod images;
 mod shape;
 
 use bytemuck::{Pod, Zeroable};
 
+pub use self::images::ImageDraw;
 use self::shape::Shape;
 use super::slack::Slack;
 use crate::geometry::Rect;
+use crate::term::graphics::Image;
 use crate::theme::Rgba;
 
 pub(super) const INITIAL_QUAD_CAPACITY: usize = 4096;
@@ -25,6 +28,8 @@ pub struct Scene {
     quads: Vec<Quad>,
     clips: Vec<Rect>,
     opacities: Vec<f32>,
+    images: Vec<ImageDraw>,
+    uploads: Vec<Image>,
     slack: Slack,
     width: f32,
     height: f32,
@@ -50,6 +55,8 @@ impl Scene {
         }
         self.clips.clear();
         self.opacities.clear();
+        self.images.clear();
+        self.uploads.clear();
         self.width = width;
         self.height = height;
     }
@@ -95,15 +102,15 @@ impl Scene {
         self.opacities.pop();
     }
 
-    fn push(&mut self, shape: Shape, color: Rgba) {
-        self.push_within(shape, shape.rect, color);
+    fn push(&mut self, shape: Shape, color: Rgba) -> bool {
+        self.push_within(shape, shape.rect, color)
     }
 
-    fn push_within(&mut self, shape: Shape, reach: Rect, color: Rgba) {
+    fn push_within(&mut self, shape: Shape, reach: Rect, color: Rgba) -> bool {
         let clip = self.clip();
         let color = color.faded(self.opacity());
         if color.a <= 0.0 || shape.rect.is_empty() || reach.intersect(clip).is_empty() {
-            return;
+            return false;
         }
         let rect = shape.rect;
         self.quads.push(Quad {
@@ -113,5 +120,6 @@ impl Scene {
             params: [shape.kind as u32 as f32, shape.radius, shape.extent, 0.0],
             clip: [clip.x, clip.y, clip.right(), clip.bottom()],
         });
+        true
     }
 }

@@ -19,7 +19,7 @@ const QUAD_LAYOUT: wgpu::VertexBufferLayout<'static> = wgpu::VertexBufferLayout 
 
 pub(super) fn render_pipeline(
     device: &wgpu::Device,
-    layout: &wgpu::BindGroupLayout,
+    layouts: [&wgpu::BindGroupLayout; 2],
     format: wgpu::TextureFormat,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -28,7 +28,7 @@ pub(super) fn render_pipeline(
     });
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some(SCENE_LABEL),
-        bind_group_layouts: &[Some(layout)],
+        bind_group_layouts: &[Some(layouts[0]), Some(layouts[1])],
         immediate_size: 0,
     });
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -58,5 +58,14 @@ pub(super) fn render_pipeline(
         }),
         multiview_mask: None,
         cache: None,
+    })
+}
+
+pub(super) fn create_quad_buffer(device: &wgpu::Device, capacity: usize) -> wgpu::Buffer {
+    device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("quads"),
+        size: (capacity * size_of::<Quad>()) as wgpu::BufferAddress,
+        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
     })
 }

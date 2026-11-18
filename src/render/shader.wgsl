@@ -7,6 +7,8 @@ struct Globals {
 @group(0) @binding(0) var<uniform> globals: Globals;
 @group(0) @binding(1) var mask_atlas: texture_2d<f32>;
 @group(0) @binding(2) var color_atlas: texture_2d<f32>;
+@group(1) @binding(0) var image_texture: texture_2d<f32>;
+@group(1) @binding(1) var image_sampler: sampler;
 
 const KIND_FILL: u32 = 0u;
 const KIND_BORDER: u32 = 1u;
@@ -14,6 +16,7 @@ const KIND_MASK: u32 = 2u;
 const KIND_COLOR: u32 = 3u;
 const KIND_LINE: u32 = 4u;
 const KIND_SHADOW: u32 = 5u;
+const KIND_IMAGE: u32 = 6u;
 
 struct QuadInput {
     @location(0) rect: vec4<f32>,
@@ -76,6 +79,11 @@ fn texel(point: vec2<f32>, rect: vec4<f32>, uv: vec4<f32>) -> vec2<i32> {
     return vec2<i32>(floor(uv.xy + point - rect.xy));
 }
 
+fn image_texel(point: vec2<f32>, rect: vec4<f32>, uv: vec4<f32>) -> vec4<f32> {
+    let local = clamp((point - rect.xy) / max(rect.zw, vec2<f32>(1.0)), vec2<f32>(0.0), vec2<f32>(1.0));
+    return textureSampleLevel(image_texture, image_sampler, mix(uv.xy, uv.zw, local), 0.0);
+}
+
 fn text_alpha(alpha: f32, color: vec3<f32>) -> f32 {
     let luminance = dot(color, vec3<f32>(0.2126, 0.7152, 0.0722));
     return pow(alpha, mix(0.92, 0.72, luminance));
@@ -121,6 +129,10 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
         }
         case KIND_COLOR: {
             let sample = textureLoad(color_atlas, texel(point, in.rect, in.uv), 0);
+            return output(sample.rgb, sample.a * in.color.a);
+        }
+        case KIND_IMAGE: {
+            let sample = image_texel(point, in.rect, in.uv);
             return output(sample.rgb, sample.a * in.color.a);
         }
         case KIND_LINE: {

@@ -1,6 +1,9 @@
 mod atlas;
+mod batches;
+mod downscale;
 mod formats;
 mod geometry;
+mod images;
 
 use std::sync::Arc;
 

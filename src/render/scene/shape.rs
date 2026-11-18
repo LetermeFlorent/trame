@@ -9,6 +9,7 @@ pub(super) enum QuadKind {
     Color = 3,
     Line = 4,
     Shadow = 5,
+    Image = 6,
 }
 
 #[derive(Clone, Copy)]
