@@ -1,9 +1,6 @@
-mod attention;
-mod clipboard;
 mod erase;
-mod folder;
 mod modes;
+mod osc;
 mod reports;
 mod status;
 mod style;
-mod title;

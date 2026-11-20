@@ -1,4 +1,4 @@
-use crate::term::Modes;
+use crate::term::{Modes, Screen};
 
 use super::{Desk, Effect, Effects};
 
@@ -11,20 +11,27 @@ impl Desk {
         if self.sessions.offline(id) {
             return Effects::default();
         }
-        let bytes = {
+        let (bytes, redraw) = {
             let mut terminal = session.terminal();
             let bytes = bytes_for(terminal.screen().modes());
-            if !bytes.is_empty() {
-                let screen = terminal.screen_mut();
-                screen.reset_display();
-                screen.clear_selection();
-            }
-            bytes
+            let redraw = !bytes.is_empty() && show_live(terminal.screen_mut());
+            (bytes, redraw)
         };
         if bytes.is_empty() {
             return Effects::default();
         }
         session.write(bytes);
-        Effect::Typed(id).into()
+        let mut effects = Effects::from(Effect::Typed(id));
+        if redraw {
+            effects.push(Effect::Redraw);
+        }
+        effects
     }
+}
+
+fn show_live(screen: &mut Screen) -> bool {
+    let changed = screen.grid().display_offset() > 0 || screen.selection().is_some();
+    screen.reset_display();
+    screen.clear_selection();
+    changed
 }

@@ -41,7 +41,7 @@ function Start-Zed($dir) {
   New-Item -ItemType Directory "$Bench\zed-data\config" | Out-Null
   Copy-Item "$Bench\zed-seed\db" "$Bench\zed-data\db" -Recurse
   (Get-Content "$env:APPDATA\Zed\settings.json" -Raw).Replace('"shell": "system"', $shell) | Set-Content "$Bench\zed-data\config\settings.json"
-  Start-Hidden $Binary "--user-data-dir `"$Bench\zed-data`" `"$dir`"" $false
+  Start-Hidden $Binary ('--user-data-dir "' + "$Bench\zed-data" + '" "' + $dir + '"') $false
 }
 
 function Start-Target($dir) {
@@ -58,28 +58,39 @@ function Start-Target($dir) {
     $env:APPDATA = "$Bench\appdata"
     $env:PATH = "$Bench\shim;" + $saved.PATH
     $env:TRAME_NO_UPDATE = '1'
-    Start-Hidden $Binary "`"$dir`"" $true
+    Start-Hidden $Binary ('"' + $dir + '"') $true
   } finally {
     foreach ($n in $names) { [Environment]::SetEnvironmentVariable($n, $saved[$n]) }
   }
 }
 
-function Add-Sample($samples, $proc, $phase, $seen) {
-  if ($proc.HasExited) { throw "target exited during the run, phase $phase" }
-  if (-not $samples.Count -or $samples[$samples.Count - 1].phase -ne $phase) { Add-Tree $proc $seen }
-  [void]$samples.Add((Get-Sample $proc $phase $seen))
+function Reset-BenchWork {
+  $left = Remove-Retry @("$Bench\phase.txt", "$Bench\res.json", "$Bench\go.txt", "$Bench\appdata", "$Bench\work", "$Bench\zed-data")
+  if ($left) {
+    $holders = @(Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like "*$Bench*" -and $_.ProcessId -ne $PID } | ForEach-Object { "$($_.Name)/$($_.ProcessId)" }) -join ', '
+    throw ('run files still locked: ' + ($left -join ', ') + ', held by: ' + $holders)
+  }
+  New-Item -ItemType Directory "$Bench\appdata", "$Bench\work" | Out-Null
+  Copy-Item "$PSScriptRoot\modele\*", "$PSScriptRoot\inner.ps1" "$Bench\work"
 }
 
-function Wait-Quiet($samples, $proc, $phase, $seen, $seconds) {
-  for ($i = 0; $i -lt $seconds; $i++) { Add-Sample $samples $proc $phase $seen; Start-Sleep -Seconds 1 }
+function Enter-BenchDesktop($proc, $sw, $windowLog) {
+  $hwnd = [Win]::Claim($proc.Id, $WindowTimeoutS * 1000)
+  $windowMs = [int]$sw.ElapsedMilliseconds
+  Add-WindowLog $windowLog $sw 'claimed clipped' $hwnd
+  [void][Win]::ShowWindow($hwnd, 7)
+  Add-WindowLog $windowLog $sw 'minimized' $hwnd
+  Move-ToDesktop $hwnd $Desktop
+  Add-WindowLog $windowLog $sw 'moved' $hwnd
+  [Win]::Reveal($hwnd)
+  if ([Win]::Exposed) { throw "bench window was visible on the user's desktop ($([Win]::Exposed) samples)" }
+  Add-WindowLog $windowLog $sw 'shown no activate' $hwnd
+  [pscustomobject]@{ hwnd = $hwnd; window_ms = $windowMs }
 }
 
 function Invoke-Run {
   Assert-BenchDesktopFree
-  $left = Remove-Retry @("$Bench\phase.txt", "$Bench\res.json", "$Bench\go.txt", "$Bench\appdata", "$Bench\work", "$Bench\zed-data")
-  if ($left) { throw ('run files still locked: ' + ($left -join ', ') + ', held by: ' + (@(Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like "*$Bench*" -and $_.ProcessId -ne $PID } | ForEach-Object { "$($_.Name)/$($_.ProcessId)" }) -join ', ')) }
-  New-Item -ItemType Directory "$Bench\appdata", "$Bench\work" | Out-Null
-  Copy-Item "$PSScriptRoot\modele\*", "$PSScriptRoot\inner.ps1" "$Bench\work"
+  Reset-BenchWork
   $r = [ordered]@{}
   $samples = New-Object System.Collections.ArrayList
   $seen = @{}
@@ -91,50 +102,19 @@ function Invoke-Run {
     $launch = Get-Date
     $sw = [Diagnostics.Stopwatch]::StartNew()
     $p = Start-Target "$Bench\work"
-    $hwnd = [Win]::Claim($p.Id, $WindowTimeoutS * 1000)
-    $r.window_ms = [int]$sw.ElapsedMilliseconds
-    Add-WindowLog $windowLog $sw 'claimed clipped' $hwnd
-    [void][Win]::ShowWindow($hwnd, 7)
-    Add-WindowLog $windowLog $sw 'minimized' $hwnd
-    Move-ToDesktop $hwnd $Desktop
-    Add-WindowLog $windowLog $sw 'moved' $hwnd
-    [Win]::Reveal($hwnd)
-    if ([Win]::Exposed) { throw "bench window was visible on the user's desktop ($([Win]::Exposed) samples)" }
-    Add-WindowLog $windowLog $sw 'shown no activate' $hwnd
-    $r.shell_ms = Wait-Shell $p $seen $known $sw $WindowTimeoutS $launch
+    $claimed = Enter-BenchDesktop $p $sw $windowLog
+    $r.window_ms = $claimed.window_ms
+    $r.shell_ms = Wait-Shell $p $seen $known $launch $WindowTimeoutS
     Wait-Quiet $samples $p 'settle' $seen $SettleS
-    Add-WindowLog $windowLog $sw 'settled' $hwnd
-    if ([Win]::IsIconic($hwnd)) { Write-Warning 'bench window is minimized' }
-    if ([Win]::GetForegroundWindow() -eq $hwnd) { Write-Warning 'bench window took the focus' }
+    Add-WindowLog $windowLog $sw 'settled' $claimed.hwnd
+    if ([Win]::IsIconic($claimed.hwnd)) { Write-Warning 'bench window is minimized' }
+    if ([Win]::GetForegroundWindow() -eq $claimed.hwnd) { Write-Warning 'bench window took the focus' }
     Wait-Quiet $samples $p 'idle-before' $seen $IdleSamples
-    Set-Content "$Bench\go.txt" 'go'
-    $run = [Diagnostics.Stopwatch]::StartNew()
-    $phase = 'start'
-    while ($run.Elapsed.TotalSeconds -lt $RunTimeoutS -and $phase -ne 'fin') {
-      if (Test-Path "$Bench\phase.txt") {
-        try { $v = [IO.File]::ReadAllText("$Bench\phase.txt").Trim(); if ($v) { $phase = $v } } catch { }
-      }
-      if ($phase -eq 'start' -and $run.Elapsed.TotalSeconds -gt $PhaseStartTimeoutS) { throw 'inner script never started in the terminal' }
-      if ($phase -ne 'fin') { Add-Sample $samples $p $phase $seen; Start-Sleep -Milliseconds $SampleMs }
-    }
-    if ($phase -ne 'fin') { throw "run did not finish, last phase $phase" }
+    Wait-BenchPhases $p $samples $seen @{ bench = $Bench; runTimeoutS = $RunTimeoutS; phaseStartTimeoutS = $PhaseStartTimeoutS; sampleMs = $SampleMs }
     Wait-Quiet $samples $p 'settle' $seen $SettleS
     Wait-Quiet $samples $p 'idle-after' $seen $IdleSamples
     $res = Get-Content "$Bench\res.json" -Raw | ConvertFrom-Json
-    $idle = Get-PhaseStat $samples @('idle-before')
-    $r.idle_priv_mb = $idle.priv
-    $r.idle_ws_mb = $idle.ws
-    $r.flood_peak_priv_mb = (Get-PhaseStat $samples @('flood_plain', 'flood_color')).priv
-    $r.idle_cpu_before_pct = $idle.cpu
-    $r.idle_cpu_after_pct = (Get-PhaseStat $samples @('idle-after')).cpu
-    $r.flood_plain_ms = $res.flood_plain_ms
-    $r.flood_color_ms = $res.flood_color_ms
-    $r.flood_plain_cpu_pct = (Get-PhaseStat $samples @('flood_plain')).cpu
-    $r.flood_color_cpu_pct = (Get-PhaseStat $samples @('flood_color')).cpu
-    $r.clm_version_ms = $res.clm_version_ms
-    $r.clm_list_ms = $res.clm_list_ms
-    if ($FloodBoth) { $r.flood_plain_fn_ms = $res.flood_plain_fn_ms }
-    if ($CodeTask) { $r.code_task_ms = $res.code_task_ms; $r.code_task_ok = $res.code_task_ok }
+    Set-RunMetrics $r $samples $res $FloodBoth $CodeTask
   } finally {
     if ($p) { $script:Leftover += Stop-Seen $p $seen }
   }
@@ -155,21 +135,4 @@ try {
 }
 
 if ($Leftover) { Write-Error "bench processes still running after the stop: $Leftover, run failed"; exit 1 }
-$medians = [ordered]@{}
-foreach ($m in $Metrics) {
-  $medians[$m] = Get-Median ($raw | ForEach-Object { $_[$m] })
-  $missing = @($raw | Where-Object { $null -eq $_[$m] }).Count
-  if ($missing) { Write-Warning "$m has no value in $missing of $Runs runs" }
-}
-if ($Json) {
-  [ordered]@{ target = $Target; binary = $Binary; desktop = $Desktop; runs = $Runs; medians = $medians; raw = $raw } | ConvertTo-Json -Depth 5
-} else {
-  Write-Host "$Target window on virtual desktop $Desktop of $(Get-DesktopCount)"
-  for ($i = 0; $i -lt $Runs; $i++) { Write-Host "window log run $($i + 1)"; $raw[$i].window_log | Format-Table -AutoSize | Out-String | Write-Host }
-  $Metrics | ForEach-Object {
-    $row = [ordered]@{ metric = $_ }
-    for ($i = 0; $i -lt $Runs; $i++) { $row["run$($i + 1)"] = $raw[$i][$_] }
-    $row.median = $medians[$_]
-    [pscustomobject]$row
-  } | Format-Table -AutoSize
-}
+Write-BenchReport $raw $Metrics @{ target = $Target; binary = $Binary; desktop = $Desktop; json = [bool]$Json }

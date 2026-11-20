@@ -7,10 +7,11 @@ using System.Text;
 public static class Win {
   [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
   struct SI { public int cb; public string reserved, desktop, title; public int x, y, w, h, cw, ch, fill, flags; public short show, cb2; public IntPtr res2, hin, hout, herr; }
-  [StructLayout(LayoutKind.Sequential)]
-  struct PI { public IntPtr hp, ht; public int pid, tid; }
-  [StructLayout(LayoutKind.Sequential)]
-  struct SIX { public SI si; public IntPtr attrs; }
+  [StructLayout(LayoutKind.Sequential)] struct PI { public IntPtr hp, ht; public int pid, tid; }
+  [StructLayout(LayoutKind.Sequential)] struct SIX { public SI si; public IntPtr attrs; }
+  [StructLayout(LayoutKind.Sequential)] struct RC { public int l, t, r, b; }
+  [StructLayout(LayoutKind.Sequential)] struct PT { public int x, y; }
+  [StructLayout(LayoutKind.Sequential)] struct WP { public int length, flags, showCmd; public PT min, max; public RC normal; }
   [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
   static extern bool CreateProcessW(string app, StringBuilder cmd, IntPtr pa, IntPtr ta, bool inherit, uint flags, IntPtr env, string cwd, ref SIX si, out PI pi);
   [DllImport("kernel32.dll", SetLastError = true)] static extern bool InitializeProcThreadAttributeList(IntPtr list, int count, int flags, ref IntPtr size);
@@ -30,12 +31,6 @@ public static class Win {
   [DllImport("user32.dll")] static extern int SetWindowRgn(IntPtr h, IntPtr rgn, bool redraw);
   [DllImport("user32.dll")] static extern int GetWindowRgn(IntPtr h, IntPtr rgn);
   [DllImport("gdi32.dll")] static extern IntPtr CreateRectRgn(int l, int t, int r, int b);
-  [StructLayout(LayoutKind.Sequential)]
-  struct RC { public int l, t, r, b; }
-  [StructLayout(LayoutKind.Sequential)]
-  struct PT { public int x, y; }
-  [StructLayout(LayoutKind.Sequential)]
-  struct WP { public int length, flags, showCmd; public PT min, max; public RC normal; }
   [DllImport("user32.dll")] static extern bool GetWindowPlacement(IntPtr h, ref WP p);
   [DllImport("user32.dll")] static extern bool SetWindowPlacement(IntPtr h, ref WP p);
   delegate bool EnumProc(IntPtr h, IntPtr p);
@@ -55,14 +50,13 @@ public static class Win {
     }, IntPtr.Zero);
     return best;
   }
-  const int ExStyle = -20, ExNoActivate = 0x08000000;
+  const int ExStyle = -20, ExNoActivate = 0x08000000, NullRegion = 1, AwayPx = 20000, RevealPx = 100;
   static volatile bool watching;
   static System.Threading.Thread watcher;
   public static volatile int Exposed;
   public static int ForegroundPid() { uint pid; GetWindowThreadProcessId(GetForegroundWindow(), out pid); return (int)pid; }
   static IntPtr probeRgn = CreateRectRgn(0, 0, 1, 1);
   public static bool Clipped(IntPtr h) { return GetWindowRgn(h, probeRgn) == NullRegion; }
-  const int NullRegion = 1, AwayPx = 20000, RevealPx = 100;
   public static IntPtr Claim(int pid, int timeoutMs) {
     var clock = System.Diagnostics.Stopwatch.StartNew();
     IntPtr h = IntPtr.Zero;
@@ -92,8 +86,7 @@ public static class Win {
     watching = false;
     watcher.Join();
     SetWindowRgn(h, IntPtr.Zero, true);
-    var wp = new WP();
-    wp.length = Marshal.SizeOf(typeof(WP));
+    var wp = new WP { length = Marshal.SizeOf(typeof(WP)) };
     if (GetWindowPlacement(h, ref wp) && wp.normal.l >= AwayPx / 2) {
       wp.normal.r += RevealPx - wp.normal.l;
       wp.normal.l = RevealPx;
@@ -102,6 +95,12 @@ public static class Win {
       SetWindowPlacement(h, ref wp);
     }
     ShowWindow(h, 4);
+  }
+  static IntPtr BuildEnvBlock() {
+    var env = new StringBuilder();
+    var vars = Environment.GetEnvironmentVariables();
+    foreach (string k in vars.Keys) env.Append(k).Append('=').Append((string)vars[k]).Append((char)0);
+    return Marshal.StringToHGlobalUni(env.Append((char)0).ToString());
   }
   public static Process Launch(string exe, string args, int parentPid, bool offScreen) {
     var six = new SIX();
@@ -117,11 +116,7 @@ public static class Win {
     if (parent == IntPtr.Zero) throw new Win32Exception();
     IntPtr slot = Marshal.AllocHGlobal(IntPtr.Size);
     Marshal.WriteIntPtr(slot, parent);
-    var env = new StringBuilder();
-    var vars = Environment.GetEnvironmentVariables();
-    foreach (string k in vars.Keys) env.Append(k).Append('=').Append((string)vars[k]).Append((char)0);
-    env.Append((char)0);
-    IntPtr block = Marshal.StringToHGlobalUni(env.ToString());
+    IntPtr block = BuildEnvBlock();
     PI pi;
     try {
       if (!InitializeProcThreadAttributeList(six.attrs, 1, 0, ref size)) throw new Win32Exception();
@@ -133,16 +128,15 @@ public static class Win {
       Marshal.FreeHGlobal(block);
       Marshal.FreeHGlobal(six.attrs);
     }
-    Process proc;
     try {
-      proc = Process.GetProcessById(pi.pid);
+      var proc = Process.GetProcessById(pi.pid);
       if (proc.Handle == IntPtr.Zero) throw new Win32Exception();
       if (proc.HasExited) throw new InvalidOperationException("target exited at launch");
+      return proc;
     } finally {
       CloseHandle(pi.hp);
       CloseHandle(pi.ht);
     }
-    return proc;
   }
 }
 '@

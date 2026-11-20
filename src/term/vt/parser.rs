@@ -64,8 +64,10 @@ impl Parser {
                     performer.print_ascii(&rest[..run]);
                 }
                 run
-            } else {
+            } else if matches!(self.state, State::CsiEntry | State::CsiParam) {
                 self.csi_run(performer, rest)
+            } else {
+                0
             };
             if taken == 0 {
                 self.advance_byte(performer, byte);

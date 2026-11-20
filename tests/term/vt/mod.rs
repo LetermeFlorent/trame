@@ -3,6 +3,7 @@ mod control_strings;
 mod random_input;
 mod recorder;
 
+use Event::{Csi, Execute, Print};
 use recorder::{Event, Recorder};
 
 fn parse(bytes: &[u8]) -> Vec<Event> {
@@ -14,14 +15,9 @@ fn parse(bytes: &[u8]) -> Vec<Event> {
 
 #[test]
 fn prints_ascii_and_executes_controls() {
-    let events = parse(b"a\r\n");
     assert_eq!(
-        events,
-        vec![
-            Event::Print('a'),
-            Event::Execute(b'\r'),
-            Event::Execute(b'\n')
-        ]
+        parse(b"a\r\n"),
+        [Print('a'), Execute(b'\r'), Execute(b'\n')]
     );
 }
 
@@ -33,20 +29,13 @@ fn decodes_utf8_across_chunks() {
     parser.advance(&mut recorder, &bytes[..1]);
     parser.advance(&mut recorder, &bytes[1..4]);
     parser.advance(&mut recorder, &bytes[4..]);
-    assert_eq!(recorder.events, vec![Event::Print('é'), Event::Print('漢')]);
+    assert_eq!(recorder.events, [Print('é'), Print('漢')]);
 }
 
 #[test]
 fn replaces_invalid_utf8_and_keeps_following_ascii() {
     let events = parse(b"\xC3A\xFF");
-    assert_eq!(
-        events,
-        vec![
-            Event::Print('\u{FFFD}'),
-            Event::Print('A'),
-            Event::Print('\u{FFFD}')
-        ]
-    );
+    assert_eq!(events, [Print('\u{FFFD}'), Print('A'), Print('\u{FFFD}')]);
 }
 
 #[test]
@@ -109,15 +98,35 @@ fn ignores_sequences_with_too_many_params() {
 
 #[test]
 fn csi_cut_anywhere_dispatches_the_same() {
-    let bytes = b"\x1b[38;2;249;38;114ma\x1b[?25l\x1b[2 q\x1b[48:2::9:8:7m\x1b[70000;m\x1b[1\x18b";
+    let bytes = concat!(
+        "\x1b[38;2;249;38;114ma\x1b[?25l\x1b[2 q\x1b[48:2::9:8:7m",
+        "\x1b[70000;m\x1b[1\x18b\x1b[12\x1b[3m\x1b[1\x7f;\x072m\x1b[ 1m",
+    )
+    .as_bytes();
+    let sgr = vec![vec![38], vec![2], vec![249], vec![38], vec![114]];
     let whole = parse(bytes);
-    assert_eq!(whole.len(), 8);
+    assert_eq!(
+        whole,
+        [
+            Csi(sgr, vec![], b'm'),
+            Print('a'),
+            Csi(vec![vec![25]], vec![b'?'], b'l'),
+            Csi(vec![vec![2]], vec![b' '], b'q'),
+            Csi(vec![vec![48, 2, 0, 9, 8, 7]], vec![], b'm'),
+            Csi(vec![vec![u16::MAX], vec![0]], vec![], b'm'),
+            Execute(0x18),
+            Print('b'),
+            Csi(vec![vec![3]], vec![], b'm'),
+            Execute(0x07),
+            Csi(vec![vec![1], vec![2]], vec![], b'm'),
+        ]
+    );
     for size in 1..bytes.len() {
         let mut parser = trame::term::vt::Parser::new();
         let mut recorder = Recorder::default();
-        for chunk in bytes.chunks(size) {
-            parser.advance(&mut recorder, chunk);
-        }
+        bytes
+            .chunks(size)
+            .for_each(|c| parser.advance(&mut recorder, c));
         assert_eq!(recorder.events, whole, "chunks of {size} bytes");
     }
 }

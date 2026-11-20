@@ -19,6 +19,7 @@ impl Row {
         self.empty_with_room_for(source.cells.len());
         self.cells.extend_from_slice(&source.cells);
         self.marks = source.marks.take();
+        debug_assert!(self.marks_in_order());
         self.wrapped = source.wrapped;
     }
 

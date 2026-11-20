@@ -97,54 +97,6 @@ function Stop-Seen($proc, $seen) {
   return $left.Count
 }
 
-function Wait-Shell($proc, $seen, $known, $sw, $limitS, $launch) {
-  while ($sw.Elapsed.TotalSeconds -lt $limitS) {
-    if (@(Get-Process powershell -ErrorAction SilentlyContinue | Where-Object { $known -notcontains $_.Id })) {
-      Add-Tree $proc $seen
-      $shell = @($seen.Values | Where-Object { $_.Name -eq 'powershell.exe' } | Sort-Object CreationDate)
-      if ($shell.Count) { return [int]($shell[0].CreationDate - $launch).TotalMilliseconds }
-    }
-    Start-Sleep -Milliseconds 10
-  }
-  throw 'shell timeout'
-}
-
-function Get-Sample($proc, $phase, $seen) {
-  $direct = @($seen.Values | Where-Object { $_.ParentProcessId -eq $proc.Id -and $_.Name -notmatch '^(pwsh|powershell|cmd)\.exe$' })
-  $ids = @($proc.Id) + @($direct | ForEach-Object { $_.ProcessId })
-  $cpu = 0.0; $ws = 0.0; $priv = 0.0
-  foreach ($p in @(Get-Process -Id $ids -ErrorAction SilentlyContinue)) {
-    try {
-      if (-not (Test-Born $p.StartTime $seen[$p.Id].CreationDate)) { continue }
-      $cpu += $p.TotalProcessorTime.TotalSeconds; $ws += $p.WorkingSet64 / 1MB; $priv += $p.PrivateMemorySize64 / 1MB
-    } catch { }
-  }
-  [pscustomobject]@{
-    t = [Diagnostics.Stopwatch]::GetTimestamp() / [Diagnostics.Stopwatch]::Frequency
-    phase = $phase; cpu = $cpu; ws = $ws; priv = $priv
-  }
-}
-
-function Get-PhaseStat($samples, $phases) {
-  $idx = @(0..($samples.Count - 1) | Where-Object { $phases -contains $samples[$_].phase })
-  if (-not $idx.Count) { return [pscustomobject]@{ cpu = $null; ws = $null; priv = $null } }
-  $g = @($idx | ForEach-Object { $samples[$_] })
-  $from = if ($phases[0] -like 'idle*') { $g[0] } else { $samples[[math]::Max($idx[0] - 1, 0)] }
-  $dt = $g[-1].t - $from.t
-  [pscustomobject]@{
-    cpu = if ($dt -gt 0.2) { [math]::Round(100 * ($g[-1].cpu - $from.cpu) / $dt, 1) } else { $null }
-    ws = [int]($g | Measure-Object ws -Maximum).Maximum
-    priv = [int]($g | Measure-Object priv -Maximum).Maximum
-  }
-}
-
-function Get-Median($values) {
-  $v = @($values | Where-Object { $null -ne $_ } | Sort-Object)
-  if ($v.Count -eq 0) { return $null }
-  $mid = [int][math]::Floor($v.Count / 2)
-  if ($v.Count % 2) { $v[$mid] } else { [math]::Round(($v[$mid - 1] + $v[$mid]) / 2, 1) }
-}
-
 function Get-WindowDesktop($hwnd) {
   try { Get-DesktopIndex (Get-DesktopFromWindow $hwnd) } catch { -1 }
 }
@@ -173,3 +125,5 @@ function Remove-Retry($paths) {
   }
   @($paths | Where-Object { Test-Path $_ })
 }
+
+if ($PSScriptRoot -and (Test-Path "$PSScriptRoot\metrics.ps1")) { . "$PSScriptRoot\metrics.ps1" }
