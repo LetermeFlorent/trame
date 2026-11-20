@@ -26,7 +26,7 @@ fn each_language_has_its_own_update_and_menu_texts() {
 
 #[test]
 fn each_language_has_its_own_settings_texts() {
-    let picks: [fn(&Strings) -> &'static str; 28] = [
+    let picks: [fn(&Strings) -> &'static str; 29] = [
         |s| s.settings,
         |s| s.smooth_scroll,
         |s| s.at_launch,
@@ -53,6 +53,7 @@ fn each_language_has_its_own_settings_texts() {
         |s| s.pick_folder,
         |s| s.connections,
         |s| s.no_connections,
+        |s| s.keep_remote_tasks,
         |s| s.system_section,
         |s| s.rest_hidden_tabs,
     ];
@@ -132,7 +133,11 @@ fn each_language_has_its_own_custom_color_texts() {
 
 #[test]
 fn each_language_has_its_own_custom_icon_texts() {
-    let picks: [fn(&Strings) -> &'static str; 2] = [|s| s.letters_or_image, |s| s.pick_image];
+    let picks: [fn(&Strings) -> &'static str; 3] = [
+        |s| s.letters_or_image,
+        |s| s.pick_image,
+        |s| s.open_in_viewer,
+    ];
     picks.into_iter().for_each(differ);
 }
 

@@ -107,7 +107,9 @@ fn settings_page(column: &mut Column, request: &SettingsRequest, height: f32) ->
         }
         SettingsTab::Connections => {
             let view = request.hosts.unwrap_or(NO_HOSTS);
-            SettingsPage::Connections(Box::new(connections_page(column, strings, view, height)))
+            let keep = preferences.keep_remote_tasks;
+            let page = connections_page(column, strings, view, keep, height);
+            SettingsPage::Connections(Box::new(page))
         }
         SettingsTab::Shortcuts => {
             SettingsPage::Shortcuts(Box::new(shortcuts_page(column, request, height)))

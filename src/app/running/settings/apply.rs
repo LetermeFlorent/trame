@@ -86,6 +86,7 @@ fn flip(next: &mut Preferences, control: SettingControl) {
         SettingControl::NotifyWaiting => &mut next.notify_waiting,
         SettingControl::ProgramClipboard => &mut next.program_clipboard,
         SettingControl::UpdateOnStart => &mut next.update_on_start,
+        SettingControl::KeepRemoteTasks => &mut next.keep_remote_tasks,
         _ => return,
     };
     *switch = !*switch;

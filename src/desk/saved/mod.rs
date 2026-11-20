@@ -33,12 +33,14 @@ impl Desk {
         self.transcripts.assign(&self.workspace.tabs());
         let sessions = &self.sessions;
         let transcripts = &self.transcripts;
+        let workspace = &self.workspace;
         let keeps_text = resume || self.preferences.recalls(Recall::Text);
+        let keeps_remote = self.preferences.keep_remote_tasks;
         let describe = |id: SessionId| TabSnapshot {
             cwd: sessions.cwd(id),
             transcript: transcripts
                 .key(id)
-                .filter(|_| keeps_text)
+                .filter(|_| keeps_text || (keeps_remote && workspace.tab_host(id).is_some()))
                 .map(str::to_owned),
             ..TabSnapshot::default()
         };

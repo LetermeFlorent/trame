@@ -1,5 +1,7 @@
 use trame::desk::{Desk, Effect, Grids, Placement};
 use trame::host::quit::Quit;
+use trame::preferences::Preferences;
+use trame::preferences::SshHost;
 use trame::session::SessionId;
 
 use crate::support::desk;
@@ -73,4 +75,42 @@ fn disconnecting_asks_for_a_new_layout() {
     let (mut desk, id) = opened();
     let effects = desk.disconnect(id);
     assert_eq!(effects.as_slice(), [Effect::Relayout, Effect::Redraw]);
+}
+
+#[test]
+fn dial_command_uses_plain_ssh_when_keep_remote_tasks_is_off() {
+    let mut desk = desk();
+    let host = SshHost::parse("me@box:2222").expect("valid host");
+    let fresh = desk.sessions.reserve();
+    assert_eq!(desk.dial_command(fresh, &host), host.command());
+    assert_eq!(desk.transcripts.key(fresh), None);
+    let adopted = desk.sessions.reserve();
+    desk.transcripts.adopt(adopted, Some("saved-1"));
+    assert_eq!(desk.dial_command(adopted, &host), host.command());
+}
+
+#[test]
+fn dial_command_assigns_and_reuses_key_when_keep_remote_tasks_is_on() {
+    let mut desk = desk();
+    let next = Preferences {
+        keep_remote_tasks: true,
+        ..Preferences::default()
+    };
+    let _ = desk.store_preferences(next);
+    let host = SshHost::parse("me@box:2222").expect("valid host");
+    let fresh = desk.sessions.reserve();
+    let first = desk.dial_command(fresh, &host);
+    let key = desk
+        .transcripts
+        .key(fresh)
+        .expect("assigned key")
+        .to_owned();
+    assert_eq!(first, host.kept_command(&format!("trame-{key}")));
+    assert_eq!(desk.dial_command(fresh, &host), first);
+    let adopted = desk.sessions.reserve();
+    desk.transcripts.adopt(adopted, Some("saved-7"));
+    let expected = host.kept_command("trame-saved-7");
+    assert_eq!(desk.dial_command(adopted, &host), expected);
+    assert_eq!(desk.dial_command(adopted, &host), expected);
+    assert_eq!(desk.transcripts.key(adopted), Some("saved-7"));
 }

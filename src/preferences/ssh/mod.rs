@@ -1,5 +1,6 @@
 mod config;
 mod form;
+mod kept;
 mod prompt;
 pub mod vault;
 
@@ -136,11 +137,8 @@ impl Preferences {
 
 pub(super) fn sanitized_hosts(hosts: Vec<SshHost>) -> Vec<SshHost> {
     let mut kept: Vec<SshHost> = Vec::new();
-    for host in hosts {
-        let host = SshHost {
-            port: custom_port(host.port),
-            ..host
-        };
+    for mut host in hosts {
+        host.port = custom_port(host.port);
         if host.is_valid() && !kept.contains(&host) {
             kept.push(host);
         }

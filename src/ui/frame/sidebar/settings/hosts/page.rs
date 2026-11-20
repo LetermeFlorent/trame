@@ -5,7 +5,9 @@ use crate::ui::frame::editor::{
     FormAction, FormFrame, FormSpec, form_height, form_title, place_form,
 };
 use crate::ui::frame::sidebar::settings::column::{Column, LINE_HEIGHT};
-use crate::ui::frame::sidebar::settings::{ChoiceRow, SettingControl, SettingLine, control_under};
+use crate::ui::frame::sidebar::settings::{
+    ChoiceRow, SettingControl, SettingLine, ToggleRow, control_under,
+};
 
 use super::{HostList, HostsView, ListSpec, host_labels};
 
@@ -14,6 +16,7 @@ const FORM_ACTIONS: [FormAction; 2] = [FormAction::Cancel, FormAction::Save];
 #[derive(Clone, Debug)]
 pub struct ConnectionsPage {
     pub header: ChoiceRow,
+    pub toggle: Option<ToggleRow>,
     pub list: Option<HostList>,
     pub hint: Option<SettingLine>,
     pub form: Option<FormFrame>,
@@ -21,7 +24,12 @@ pub struct ConnectionsPage {
 
 impl ConnectionsPage {
     pub fn control_at(&self, point: Point) -> Option<SettingControl> {
-        control_under(point, self.header.controls())
+        let toggle = self
+            .toggle
+            .as_ref()
+            .filter(|toggle| toggle.enabled && toggle.line.rect.contains(point))
+            .map(|toggle| toggle.control);
+        toggle.or_else(|| control_under(point, self.header.controls()))
     }
 }
 
@@ -29,12 +37,13 @@ pub(in crate::ui::frame::sidebar::settings) fn connections_page(
     column: &mut Column,
     strings: &'static Strings,
     view: HostsView,
+    keep_remote: bool,
     height: f32,
 ) -> ConnectionsPage {
     let bottom = column.y + height;
     match view.form {
         Some(form) => form_page(column, strings, form, view.changing),
-        None => list_page(column, strings, view, bottom),
+        None => list_page(column, strings, view, keep_remote, bottom),
     }
 }
 
@@ -58,6 +67,7 @@ fn form_page(
     column.y = area.bottom();
     ConnectionsPage {
         header,
+        toggle: None,
         list: None,
         hint: None,
         form: Some(form),
@@ -68,13 +78,20 @@ fn list_page(
     column: &mut Column,
     strings: &'static Strings,
     view: HostsView,
+    keep_remote: bool,
     bottom: f32,
 ) -> ConnectionsPage {
     let caption = column.caption(strings.connections);
     let add = (strings.add, SettingControl::AddHost, false);
     let header = column.choices_on(caption, &[add], None);
+    let toggle = column.toggle_row(
+        strings.keep_remote_tasks,
+        [keep_remote, true],
+        SettingControl::KeepRemoteTasks,
+    );
     let mut page = ConnectionsPage {
         header,
+        toggle: Some(toggle),
         list: None,
         hint: None,
         form: None,

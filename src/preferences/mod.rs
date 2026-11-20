@@ -1,5 +1,6 @@
 mod closing;
 mod colors;
+mod defaults;
 mod history;
 mod launch;
 mod sizes;
@@ -80,43 +81,12 @@ pub struct Preferences {
     pub update_on_start: bool,
     #[serde(skip)]
     pub explorer_menu: bool,
+    #[serde(default)]
+    pub keep_remote_tasks: bool,
     #[serde(default, skip_serializing_if = "Overrides::is_empty")]
     pub shortcuts: Overrides,
     #[serde(flatten)]
     pub numbering: Numbering,
-}
-
-impl Default for Preferences {
-    fn default() -> Self {
-        Self {
-            font_size: TERMINAL_FONT_SIZE,
-            restore_text: true,
-            restore_instances: true,
-            restore_tabs: true,
-            instance_tabs: MIN_INSTANCE_TABS,
-            history_lines: DEFAULT_HISTORY_LINES,
-            startup_command: None,
-            interface_size: interface_size(),
-            language: LanguageChoice::Auto,
-            default_folder: None,
-            ssh_hosts: Vec::new(),
-            confirm_close: true,
-            confirm_paste: true,
-            detect_links: true,
-            smooth_scroll: true,
-            custom_colors: Vec::new(),
-            panel_side: PanelSide::Left,
-            density: Density::Compact,
-            efficiency: true,
-            rest_hidden_tabs: true,
-            notify_waiting: true,
-            program_clipboard: true,
-            update_on_start: true,
-            explorer_menu: false,
-            shortcuts: Overrides::default(),
-            numbering: Numbering::default(),
-        }
-    }
 }
 
 impl Preferences {

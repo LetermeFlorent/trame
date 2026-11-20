@@ -35,6 +35,8 @@ The form takes an address, a user, a port and a password, all optional but the a
 
 When a connection that held for a while drops, `ssh` ending on a network error, trame does not leave you on the local prompt. The pane turns grey with "Waiting for the connection" and a Disconnect button, and the keyboard waits too. trame knocks on the server every few seconds and, once it answers, types `ssh` again with the saved password, so the session comes back on its own. Disconnect stops trying and gives you the local prompt. This works in PowerShell; trame checks the address and port of the host itself, so a host reached only through a jump host keeps waiting until you press Disconnect.
 
+The switch "Keep remote tasks running after disconnecting" in Settings under Connections, off by default, starts the remote shell inside a named `tmux` session (`trame-<key>`) and attaches to it again when trame reconnects or restores the tab. When `tmux` is not installed on the server, the tab prints the error and falls back to a login shell (`exec $SHELL -l`). Leave the switch off for remote Windows servers (`cmd` and PowerShell do not understand that command), when running trame under local `cmd.exe`, or when you do not want `tmux` scrollback and `Ctrl+B`; closing a tab or running without tab restore while the switch is on leaves its `tmux` session running on the server (`tmux ls`, `tmux kill-session`).
+
 ### Shells and themes
 
 Every new tab opens the default shell of the system: PowerShell 7 when it is installed, Windows PowerShell otherwise, and `$SHELL` on Linux and macOS. The light or dark theme follows the system and changes when the system does.

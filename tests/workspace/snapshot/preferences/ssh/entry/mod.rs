@@ -50,6 +50,62 @@ fn the_command_names_the_port_only_when_it_is_not_the_usual_one() {
 }
 
 #[test]
+fn the_kept_command_attaches_a_named_tmux_session_or_falls_back_to_the_shell() {
+    let custom = host("me@box", Some(2222));
+    assert_eq!(
+        custom.kept_command("trame-ab-1"),
+        "ssh -p 2222 me@box -t 'tmux new-session -A -s trame-ab-1 || exec $SHELL -l'\r"
+    );
+    assert!(
+        custom
+            .kept_command("trame-ab-1")
+            .starts_with(custom.command().trim_end())
+    );
+    let plain = host("me@box", None);
+    assert_eq!(
+        plain.kept_command("trame-ab-1"),
+        "ssh me@box -t 'tmux new-session -A -s trame-ab-1 || exec $SHELL -l'\r"
+    );
+    assert!(
+        plain
+            .kept_command("trame-ab-1")
+            .starts_with(plain.command().trim_end())
+    );
+}
+
+#[test]
+fn invalid_kept_command_sessions_fall_back_to_plain_ssh() {
+    let custom = host("me@box", Some(2222));
+    let plain = host("me@box", None);
+    let refused = [
+        "",
+        "-",
+        "-bad",
+        "bad'name",
+        "bad name",
+        "bad\tname",
+        "bad\nname",
+        "bad;calc",
+        "$(id)",
+        "bad_name",
+        "bad.name",
+        "hôte",
+    ];
+    for session in refused {
+        assert_eq!(
+            custom.kept_command(session),
+            custom.command(),
+            "{session:?}"
+        );
+        assert_eq!(plain.kept_command(session), plain.command(), "{session:?}");
+    }
+    assert_eq!(
+        plain.kept_command("Trame-1a"),
+        "ssh me@box -t 'tmux new-session -A -s Trame-1a || exec $SHELL -l'\r"
+    );
+}
+
+#[test]
 fn only_a_bare_name_can_be_a_config_alias() {
     assert_eq!(host("prod", None).alias(), Some("prod"));
     assert_eq!(host("me@prod", None).alias(), None);

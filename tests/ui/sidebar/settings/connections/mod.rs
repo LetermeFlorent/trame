@@ -1,3 +1,5 @@
+mod remote;
+
 use trame::geometry::Point;
 use trame::locale::Language;
 use trame::preferences::{ConnectForm, Preferences, SshHost};
@@ -35,7 +37,7 @@ pub fn opened(hosts: &[SshHost], first: usize, form: Option<&ConnectForm>) -> Fr
     placed(&mut text_system(), &request)
 }
 
-fn page(layout: &FrameLayout) -> &ConnectionsPage {
+pub(super) fn page(layout: &FrameLayout) -> &ConnectionsPage {
     panel(layout).connections().expect("the connections page")
 }
 

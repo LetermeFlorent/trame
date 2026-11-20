@@ -74,6 +74,7 @@ pub enum SettingControl {
     DefaultFolder,
     ClearFolder,
     AddHost,
+    KeepRemoteTasks,
     ConfirmClose,
     ConfirmPaste,
     DetectLinks,

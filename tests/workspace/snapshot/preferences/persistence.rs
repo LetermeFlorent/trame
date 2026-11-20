@@ -34,6 +34,7 @@ fn every_preference_changed() -> Preferences {
         program_clipboard: false,
         update_on_start: false,
         explorer_menu: false,
+        keep_remote_tasks: true,
         numbering: Numbering {
             shown: false,
             on_close: false,
@@ -60,4 +61,11 @@ fn preferences_and_text_keys_survive_json() {
     assert_eq!(parsed, snapshot);
     let (_, seen) = restore(&parsed);
     assert_eq!(seen[0].transcript.as_deref(), Some("abc-1"));
+}
+
+#[test]
+fn keep_remote_tasks_is_off_by_default_and_when_missing_from_json() {
+    assert!(!Preferences::default().keep_remote_tasks);
+    let old: Preferences = serde_json::from_str(r#"{"font_size":14.0}"#).expect("parses old json");
+    assert!(!old.keep_remote_tasks);
 }

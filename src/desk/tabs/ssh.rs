@@ -46,8 +46,9 @@ impl Desk {
     }
 
     fn dial(&mut self, id: SessionId, host: &SshHost) {
+        let line = self.dial_command(id, host);
         if let Some(session) = self.sessions.get(id) {
-            session.write(host.command());
+            session.write(line);
         }
         let entry = persist::ssh_entry(host.split().1);
         if let Some(secret) = vault::SSH.load(host) {
@@ -57,6 +58,17 @@ impl Desk {
         let entry = entry.unwrap_or_else(|| HostEntry::of(host));
         let port = host.port.or(entry.port).unwrap_or(SSH_PORT);
         self.sessions.watch_remote(id, entry.address, port);
+    }
+
+    pub fn dial_command(&mut self, id: SessionId, host: &SshHost) -> String {
+        if !self.preferences.keep_remote_tasks {
+            return host.command();
+        }
+        self.transcripts.assign(&[id]);
+        match self.transcripts.key(id) {
+            Some(key) => host.kept_command(&format!("trame-{key}")),
+            None => host.command(),
+        }
     }
 
     pub fn redial(&mut self, now: Instant) -> Outcome<Option<Instant>> {

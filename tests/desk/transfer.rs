@@ -54,22 +54,47 @@ fn a_torn_tab_keeps_its_shell_in_another_desk() {
     let (mut source, first, second) = with_two_tabs();
     let _ = source.close_tab(false, first);
     assert!(!source.can_tear(second));
-    let (mut source, _, second) = with_two_tabs();
-    assert!(source.can_tear(second));
-    let torn = source.tear_tab(second);
+    let (mut source, first, _) = with_two_tabs();
+    assert!(source.can_tear(first));
+    source.transcripts.adopt(first, Some("torn-tab"));
+    let torn = source.tear_tab(first);
     assert_eq!(torn.effects.as_slice(), [Effect::Animate, Effect::Changed]);
-    assert!(source.sessions.get(second).is_none());
-    assert!(source.workspace.locate(second).is_none());
+    assert!(source.sessions.get(first).is_none());
+    assert!(source.workspace.locate(first).is_none());
     let (mut target, events) = listening();
     let id = target.receive_tab(torn.value.expect("a torn tab"), None);
+    assert_ne!(id, first);
+    assert_eq!(target.transcripts.key(id), Some("torn-tab"));
     assert!(target.workspace.locate(id).is_some());
     target.sessions.get(id).expect("the shell").write(PRINT);
     assert!(wakes(&events, id));
 }
 
 #[test]
+fn an_adopted_torn_tab_keeps_its_transcript_key() {
+    let (mut source, _, second) = with_two_tabs();
+    source.transcripts.adopt(second, Some("adopted-tab"));
+    let torn = source.tear_tab(second).value.expect("a torn tab");
+    let mut target = crate::support::desk();
+    let effects = target.adopt_torn(torn);
+    assert_eq!(
+        effects.as_slice(),
+        [Effect::Relayout, Effect::StartShown, Effect::Changed]
+    );
+    let adopted = target.workspace.tabs()[0];
+    assert_ne!(adopted, second);
+    assert_eq!(target.transcripts.key(adopted), Some("adopted-tab"));
+    let host = trame::preferences::SshHost::parse("me@box").expect("valid host");
+    target.preferences.keep_remote_tasks = true;
+    let expected = host.kept_command("trame-adopted-tab");
+    assert_eq!(target.dial_command(adopted, &host), expected);
+}
+
+#[test]
 fn a_given_instance_moves_all_its_tabs() {
     let (mut source, first, second) = with_two_tabs();
+    source.transcripts.adopt(first, Some("first-tab"));
+    source.transcripts.adopt(second, Some("second-tab"));
     let _ = source.open(Placement::Instance);
     source.start_queued(&Grids::default());
     let instance = source.workspace.instances[0].id;
@@ -84,4 +109,6 @@ fn a_given_instance_moves_all_its_tabs() {
     let tabs = target.workspace.instances[1].tabs();
     assert_eq!(tabs.len(), 2);
     assert!(tabs.iter().all(|tab| target.sessions.get(*tab).is_some()));
+    assert_eq!(target.transcripts.key(tabs[0]), Some("first-tab"));
+    assert_eq!(target.transcripts.key(tabs[1]), Some("second-tab"));
 }
