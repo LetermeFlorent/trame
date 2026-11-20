@@ -20,8 +20,10 @@ impl Running {
                     self.start_shown();
                 }
                 Effect::Typed(id) => {
+                    if self.motion.scroll_offset(id) != 0.0 {
+                        self.window.request_redraw();
+                    }
                     self.motion.stop_scroll(id);
-                    self.window.request_redraw();
                 }
                 Effect::HostsChanged => self.reload_hosts(),
             }

@@ -1,4 +1,6 @@
+use std::ffi::{OsStr, OsString};
 use std::fmt::Display;
+use std::path::PathBuf;
 use std::thread;
 
 use super::is_web;
@@ -11,20 +13,29 @@ fn log_open_failure(detail: impl Display) {
 }
 
 pub fn open_link(url: String) {
+    spawn_open(move || {
+        if is_web(&url) {
+            launch(OsStr::new(&url));
+        }
+    });
+}
+
+pub(in crate::files) fn launch_path(path: PathBuf) {
+    let target: OsString = path.into_os_string();
+    spawn_open(move || launch(&target));
+}
+
+fn spawn_open(run: impl FnOnce() + Send + 'static) {
     let spawned = thread::Builder::new()
         .name("open-link".to_owned())
-        .spawn(move || {
-            if is_web(&url) {
-                launch(&url);
-            }
-        });
+        .spawn(run);
     if let Err(error) = spawned {
         log_open_failure(error);
     }
 }
 
 #[cfg(windows)]
-fn launch(url: &str) {
+fn launch(target: &OsStr) {
     use windows_sys::Win32::UI::Shell::ShellExecuteW;
     use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
@@ -33,7 +44,7 @@ fn launch(url: &str) {
 
     const LOWEST_SUCCESS: isize = 33;
     let verb = wide("open".as_ref());
-    let file = wide(url.as_ref());
+    let file = wide(target);
     let apartment = Apartment::enter();
     let result = unsafe {
         let null = std::ptr::null();
@@ -53,7 +64,7 @@ fn launch(url: &str) {
 }
 
 #[cfg(not(windows))]
-fn launch(url: &str) {
+fn launch(target: &OsStr) {
     use std::process::{Command, Stdio};
 
     let program = if cfg!(target_os = "macos") {
@@ -63,7 +74,7 @@ fn launch(url: &str) {
     };
     let mut command = Command::new(program);
     let started = command
-        .arg(url)
+        .arg(target)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())

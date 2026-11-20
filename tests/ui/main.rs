@@ -5,6 +5,7 @@ mod logo;
 mod motion;
 mod overlay;
 mod paint;
+mod picture;
 mod sidebar;
 mod terminal;
 

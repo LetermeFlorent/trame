@@ -5,12 +5,12 @@ use swash::shape::ShapeContext;
 
 use super::cells::CellCache;
 use super::font::{self, Family, FontId, FontLibrary, MissingFont};
-use super::images::ImageKey;
+use super::images::ImageCache;
 use super::layout::{Shaping, TextLayout, TextStyle};
 use super::metrics::CellMetrics;
 use super::raster::{GlyphCache, GlyphKey};
 use crate::geometry::Point;
-use crate::render::{Atlas, AtlasRegion, Scene};
+use crate::render::{Atlas, Scene};
 use crate::theme::Rgba;
 
 type LayoutCache = HashMap<String, Vec<Arc<TextLayout>>>;
@@ -22,7 +22,7 @@ pub struct TextSystem {
     pub(super) atlas: Atlas,
     pub(super) glyphs: GlyphCache,
     pub(super) cells: CellCache,
-    pub(super) images: HashMap<ImageKey, Option<AtlasRegion>>,
+    pub(super) images: ImageCache,
     pub(super) shaper: ShapeContext,
     layouts: LayoutCache,
     previous_layouts: LayoutCache,
@@ -52,7 +52,7 @@ impl TextSystem {
             atlas: Atlas::new(),
             glyphs: GlyphCache::default(),
             cells: CellCache::new(primary, metrics),
-            images: HashMap::new(),
+            images: ImageCache::default(),
             shaper: ShapeContext::new(),
             layouts: LayoutCache::new(),
             previous_layouts: LayoutCache::new(),
@@ -132,7 +132,7 @@ impl TextSystem {
         self.atlas.clear();
         self.glyphs.clear();
         self.cells.clear();
-        self.images.clear();
+        self.images.clear_regions();
     }
 }
 

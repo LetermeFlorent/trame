@@ -33,6 +33,7 @@ use super::{AppEvent, window};
 use editing::{Editing, Menu};
 use frame::Loader;
 use keys::Memo;
+use pointer::selection::PictureView;
 use pointer::{Drag, Pointer, Selecting};
 use settings::{SettingField, SettingsState};
 pub use tabs::Lifted;
@@ -58,6 +59,7 @@ pub struct Running {
     setting_field: Option<SettingField>,
     menu: Option<Menu>,
     settings: Option<SettingsState>,
+    picture: Option<PictureView>,
     selecting: Selecting,
     modifiers: ModifiersState,
     visibility: Visibility,

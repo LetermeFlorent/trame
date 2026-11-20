@@ -1,7 +1,8 @@
 use super::links::LinkSpan;
 use super::{GridPaint, Ink, boxes, style};
+use crate::files::pictures::fit_size;
 use crate::geometry::{Point, Rect};
-use crate::render::Scene;
+use crate::render::{MAX_COLOR_ATLAS_SIZE, Scene};
 use crate::term::grid::Row;
 use crate::term::{Cell, Flags};
 use crate::text::{CellText, TextSystem};
@@ -15,12 +16,7 @@ pub(super) struct RowPaint<'a> {
 }
 
 pub(super) fn draw_backgrounds(scene: &mut Scene, grid: &GridPaint, row: &RowPaint) {
-    let GridPaint {
-        theme,
-        paint,
-        metrics,
-        ..
-    } = grid;
+    let (theme, paint, metrics) = (grid.theme, grid.paint, &grid.metrics);
     let mut run: Option<(usize, usize, Rgba)> = None;
     let flush = |scene: &mut Scene, run: Option<(usize, usize, Rgba)>| {
         if let Some((start, end, color)) = run {
@@ -58,7 +54,7 @@ pub(super) fn draw_glyphs(
     let light = grid.metrics.underline_thickness.round().max(1.0);
     let links = row_links(grid.paint.links, row.row);
     for (col, cell) in row.cells.iter().enumerate() {
-        if cell.flags.contains(Flags::WIDE_SPACER) {
+        if cell.flags.contains(Flags::WIDE_SPACER) || cell.flags.contains(Flags::IMAGE) {
             continue;
         }
         let columns = cell.columns();
@@ -122,4 +118,23 @@ fn glyph_color(grid: &GridPaint, row: &RowPaint, col: usize, cell: &Cell) -> Rgb
     } else {
         style::colors(grid.theme, cell).0
     }
+}
+
+pub(super) fn preview_fit(box_rect: Rect, src_w: u32, src_h: u32, limit: u32) -> (Rect, u32, u32) {
+    let cap = limit.clamp(1, MAX_COLOR_ATLAS_SIZE - 1);
+    let max_w = (box_rect.width.round().max(1.0) as u32).min(cap);
+    let max_h = (box_rect.height.round().max(1.0) as u32).min(cap);
+    let (width, height) = fit_size(src_w, src_h, max_w, max_h);
+    let (w, h) = (width as f32, height as f32);
+    let rect = Rect::new(
+        box_rect.centered_x(w).round(),
+        box_rect.centered_y(h).round(),
+        w,
+        h,
+    );
+    (rect, max_w, max_h)
+}
+
+pub fn preview_rect(box_rect: Rect, src_w: u32, src_h: u32) -> Rect {
+    preview_fit(box_rect, src_w, src_h, MAX_COLOR_ATLAS_SIZE - 1).0
 }

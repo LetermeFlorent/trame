@@ -11,6 +11,7 @@ use super::cursor::charset::CharsetState;
 use super::cursor::{Cursor, CursorShape, SavedCursor};
 use super::dispatch::status::ProgramStatus;
 use super::grid::Grid;
+use super::images::ImageStore;
 use super::modes::Modes;
 
 pub use view::{CursorView, ReportedColors};
@@ -40,6 +41,7 @@ pub struct Screen {
     pub(crate) colors: ReportedColors,
     pub(crate) link: u16,
     pub(crate) links: Links,
+    pub(crate) images: ImageStore,
 }
 
 impl Screen {
@@ -68,6 +70,7 @@ impl Screen {
             colors: ReportedColors::default(),
             link: 0,
             links: Links::default(),
+            images: ImageStore::default(),
         }
     }
 
@@ -96,6 +99,7 @@ impl Screen {
         fresh.title = self.title.take();
         fresh.cwd = self.cwd.take();
         fresh.status = self.status.keep_across_reset();
+        fresh.images = self.images.keep_across_reset();
         fresh.colors = self.colors;
         fresh.links = std::mem::take(&mut self.links);
         fresh.clipboard_writes = self.clipboard_writes;

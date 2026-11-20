@@ -61,3 +61,25 @@ fn a_store_without_a_folder_has_no_icons() {
     store.load(7);
     assert!(store.dir().is_none() && store.pixels(7).is_none());
 }
+
+#[test]
+fn an_oversized_png_is_refused_without_allocating() {
+    let sandbox = Sandbox::new("oversized");
+    let wide = sandbox.picture("wide.png", 8193, 1, &solid(8193, 1, [10, 20, 30, 255]));
+    assert!(import_icon(&wide, &sandbox.icons()).is_err());
+
+    let header_path = sandbox.root.join("huge.png");
+    let mut bytes = trame::files::encode_png(1, 1, &[0, 0, 0, 255]).expect("base png");
+    bytes[16..20].copy_from_slice(&100_000u32.to_be_bytes());
+    bytes[20..24].copy_from_slice(&100_000u32.to_be_bytes());
+    let mut crc = 0xFFFF_FFFFu32;
+    for &byte in &bytes[12..29] {
+        crc ^= u32::from(byte);
+        for _ in 0..8 {
+            crc = (crc >> 1) ^ (0xEDB8_8320 & (0u32.wrapping_sub(crc & 1)));
+        }
+    }
+    bytes[29..33].copy_from_slice(&(!crc).to_be_bytes());
+    fs::write(&header_path, bytes).expect("header png");
+    assert!(import_icon(&header_path, &sandbox.icons()).is_err());
+}

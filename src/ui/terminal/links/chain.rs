@@ -1,7 +1,9 @@
 use std::ops::Range;
+use std::path::Path;
 
-use super::{Found, LinkSpan, find_links};
-use crate::files::is_web;
+use super::paths::find_image_paths;
+use super::resolve::resolve_cell_link;
+use super::{Found, LinkKind, LinkSpan, find_links};
 use crate::term::grid::Grid;
 use crate::term::{Cell, Flags, Screen};
 
@@ -20,6 +22,7 @@ struct Chain {
     text: Vec<char>,
     places: Vec<Place>,
     spans: Vec<LinkSpan>,
+    last_link: Option<(u16, Option<(LinkKind, String)>)>,
 }
 
 pub(super) fn chain_start(grid: &Grid, row: isize) -> isize {
@@ -30,14 +33,27 @@ pub(super) fn chain_start(grid: &Grid, row: isize) -> isize {
     start
 }
 
-pub(super) fn chain_links(screen: &Screen, start: isize) -> (isize, Vec<LinkSpan>) {
+pub(super) fn chain_links(
+    screen: &Screen,
+    start: isize,
+    cwd: Option<&Path>,
+) -> (isize, Vec<LinkSpan>) {
+    chain_links_with(screen, start, cwd, &mut Path::is_file)
+}
+
+pub(super) fn chain_links_with(
+    screen: &Screen,
+    start: isize,
+    cwd: Option<&Path>,
+    is_file: &mut impl FnMut(&Path) -> bool,
+) -> (isize, Vec<LinkSpan>) {
     let grid = screen.grid();
     let cols = grid.cols();
     let mut chain = Chain::default();
     let mut row = start;
     while let Some(line) = grid.view_row(row) {
         let cells = &line.cells()[..cols.min(line.len())];
-        chain.add_row(screen, row, cells);
+        chain.add_row(screen, row, cells, is_file);
         if line.wrapped {
             chain.pad(row, cells.len()..cols);
         }
@@ -46,17 +62,38 @@ pub(super) fn chain_links(screen: &Screen, start: isize) -> (isize, Vec<LinkSpan
             break;
         }
     }
+    let mut claimed = Vec::new();
     for found in find_links(&chain.text) {
-        chain.split(&found);
+        claimed.push((found.start, found.end));
+        chain.split(&found, LinkKind::Web);
     }
+    for found in find_image_paths(&chain.text, &mut claimed, cwd) {
+        chain.split(&found, LinkKind::Image);
+    }
+    chain.spans.sort_by_key(|s| (s.row, s.start));
     (row, chain.spans)
 }
 
 impl Chain {
-    fn add_row(&mut self, screen: &Screen, row: isize, cells: &[Cell]) {
+    fn add_row(
+        &mut self,
+        screen: &Screen,
+        row: isize,
+        cells: &[Cell],
+        is_file: &mut impl FnMut(&Path) -> bool,
+    ) {
         for (col, cell) in cells.iter().enumerate() {
-            if let Some(url) = screen.link(cell.link).filter(|url| is_web(url)) {
-                self.mark(row, col, url);
+            if cell.link != 0 {
+                let id = cell.link;
+                if self.last_link.as_ref().is_none_or(|(k, _)| *k != id) {
+                    let found = screen
+                        .link(id)
+                        .and_then(|u| resolve_cell_link(u, &mut *is_file));
+                    self.last_link = Some((id, found));
+                }
+                if let Some((_, Some((kind, target)))) = &self.last_link {
+                    mark_span(&mut self.spans, row, col, target, *kind);
+                }
             }
             if cell.flags.contains(Flags::WIDE_SPACER) {
                 continue;
@@ -68,30 +105,6 @@ impl Chain {
         }
     }
 
-    fn mark(&mut self, row: isize, col: usize, uri: &str) {
-        if let Some(LinkSpan {
-            row: last_row,
-            end,
-            target: known,
-            ..
-        }) = self.spans.last_mut()
-            && *last_row == row
-            && *end == col
-            && known == uri
-        {
-            *end = col + 1;
-            return;
-        }
-        let target = uri.to_owned();
-        let (start, end) = (col, col + 1);
-        self.spans.push(LinkSpan {
-            row,
-            start,
-            end,
-            target,
-        });
-    }
-
     fn pad(&mut self, row: isize, cols: Range<usize>) {
         for col in cols {
             self.text.push(' ');
@@ -99,7 +112,7 @@ impl Chain {
         }
     }
 
-    fn split(&mut self, found: &Found) {
+    fn split(&mut self, found: &Found, kind: LinkKind) {
         let first = self.spans.len();
         for place in &self.places[found.start..found.end] {
             match self.spans[first..].last_mut() {
@@ -109,8 +122,28 @@ impl Chain {
                     start: place.col,
                     end: place.col + place.width,
                     target: found.target.clone(),
+                    kind,
                 }),
             }
         }
     }
+}
+
+fn mark_span(spans: &mut Vec<LinkSpan>, row: isize, col: usize, target: &str, kind: LinkKind) {
+    if let Some(last) = spans.last_mut()
+        && last.row == row
+        && last.end == col
+        && last.kind == kind
+        && last.target == target
+    {
+        last.end = col + 1;
+        return;
+    }
+    spans.push(LinkSpan {
+        row,
+        start: col,
+        end: col + 1,
+        target: target.to_owned(),
+        kind,
+    });
 }

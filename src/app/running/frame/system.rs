@@ -1,15 +1,39 @@
+#[cfg(test)]
+#[path = "system_tests.rs"]
+mod tests;
+
 use std::collections::HashSet;
 use std::time::Instant;
 
 use trame::host::power::Shown;
 use trame::session::SessionId;
+use trame::text::TextSystem;
 use trame::theme::Rgba;
 
 use crate::app::running::Running;
+use crate::app::running::pointer::selection::PictureView;
 
 impl Running {
+    pub(in crate::app::running) fn sync_fresh(
+        fresh: bool,
+        text: &mut TextSystem,
+        picture: Option<&mut PictureView>,
+    ) -> bool {
+        if fresh {
+            text.forget_glyphs();
+            if let Some(picture) = picture {
+                picture.uploaded = None;
+            }
+        }
+        fresh
+    }
+
     pub(in crate::app::running) fn sync_graphics(&mut self) {
-        if self.graphics.take_fresh() {
+        if Self::sync_fresh(
+            self.graphics.take_fresh(),
+            &mut self.text,
+            self.picture.as_mut(),
+        ) {
             self.changed();
         }
         self.desk.power.tick(Instant::now());

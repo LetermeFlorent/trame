@@ -1,5 +1,6 @@
 mod launch;
 
+pub(super) use launch::launch_path;
 pub use launch::open_link;
 
 pub fn is_web(url: &str) -> bool {

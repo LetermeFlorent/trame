@@ -139,5 +139,6 @@ impl Screen {
         self.primary.compact();
         self.alternate.compact();
         self.responses.shrink_to_fit();
+        self.collect_images();
     }
 }

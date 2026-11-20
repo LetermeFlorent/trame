@@ -7,6 +7,7 @@ struct Globals {
 @group(0) @binding(0) var<uniform> globals: Globals;
 @group(0) @binding(1) var mask_atlas: texture_2d<f32>;
 @group(0) @binding(2) var color_atlas: texture_2d<f32>;
+@group(0) @binding(3) var picture_texture: texture_2d<f32>;
 
 const KIND_FILL: u32 = 0u;
 const KIND_BORDER: u32 = 1u;
@@ -14,6 +15,7 @@ const KIND_MASK: u32 = 2u;
 const KIND_COLOR: u32 = 3u;
 const KIND_LINE: u32 = 4u;
 const KIND_SHADOW: u32 = 5u;
+const KIND_PICTURE: u32 = 6u;
 
 struct QuadInput {
     @location(0) rect: vec4<f32>,
@@ -130,6 +132,10 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
         case KIND_SHADOW: {
             let distance = rounded_rect_distance(point, in.rect, radius);
             alpha = 1.0 - smoothstep(-width, width, distance);
+        }
+        case KIND_PICTURE: {
+            let sample = textureLoad(picture_texture, texel(point, in.rect, in.uv), 0);
+            return output(sample.rgb, sample.a * in.color.a);
         }
         default: {
             alpha = 0.0;

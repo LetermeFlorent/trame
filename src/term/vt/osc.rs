@@ -3,6 +3,7 @@ use super::parser::{C0_FIRST, C0_LAST, Parser, State};
 
 const BEL: u8 = 0x07;
 const MAX_OSC_LEN: usize = 1 << 20;
+const MAX_IMAGE_OSC_LEN: usize = 16 << 20;
 const MAX_OSC_PARAMS: usize = 16;
 const KEPT_CAPACITY: usize = 4096;
 
@@ -22,7 +23,12 @@ impl OscBuffer {
     }
 
     pub(super) fn push(&mut self, byte: u8) {
-        if self.data.len() >= MAX_OSC_LEN {
+        let limit = if self.is_image() {
+            MAX_IMAGE_OSC_LEN
+        } else {
+            MAX_OSC_LEN
+        };
+        if self.data.len() >= limit {
             self.overflow = true;
             return;
         }
@@ -31,6 +37,10 @@ impl OscBuffer {
             return;
         }
         self.data.push(byte);
+    }
+
+    fn is_image(&self) -> bool {
+        self.bounds.first() == Some(&4) && self.data.starts_with(b"1337")
     }
 
     pub(super) fn dispatch<P: Perform>(&mut self, performer: &mut P, bell_terminated: bool) {

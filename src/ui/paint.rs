@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::files::IconStore;
 use crate::geometry::Point;
@@ -7,7 +8,7 @@ use crate::render::Scene;
 use crate::session::{Session, SessionId};
 use crate::text::TextSystem;
 use crate::theme::Theme;
-use crate::ui::chrome::{self, ChromeInput, LoaderView};
+use crate::ui::chrome::{self, ChromeInput, HoverPreviewFrame, LoaderView, PictureFrame};
 use crate::ui::drop::{DragView, draw_drag};
 use crate::ui::frame::{FrameLayout, PaneFrame};
 use crate::ui::hit::Hit;
@@ -41,16 +42,16 @@ pub struct FrameSources<'a> {
     pub loader: Option<&'a LoaderView<'a>>,
     pub icons: &'a IconStore,
     pub links: Option<&'a RefCell<LinkCache>>,
+    pub cwd: Option<&'a dyn Fn(SessionId) -> Option<PathBuf>>,
+    pub picture: Option<PictureFrame>,
+    pub preview: Option<HoverPreviewFrame<'a>>,
 }
 
 pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSources) {
-    let FrameSources {
-        theme, frame, view, ..
-    } = *sources;
     let input = ChromeInput {
-        theme,
-        frame,
-        view,
+        theme: sources.theme,
+        frame: sources.frame,
+        view: sources.view,
         motion: sources.motion,
         icons: sources.icons,
     };
@@ -58,22 +59,54 @@ pub fn draw_frame(scene: &mut Scene, text: &mut TextSystem, sources: &FrameSourc
     if let Some(links) = sources.links {
         links.borrow_mut().keep(sources.sessions);
     }
-    for pane in &frame.panes {
+    for pane in &sources.frame.panes {
         draw_body(scene, text, pane, sources);
     }
     chrome::draw_offline(scene, text, &input);
-    chrome::draw_dividers(scene, theme, frame, view);
-    chrome::draw_editor(scene, text, &input);
-    chrome::draw_settings(scene, text, &input);
-    chrome::draw_menu(scene, text, &input);
-    chrome::draw_message(scene, text, &input);
-    match sources.drag {
-        Some(drag) => draw_drag(scene, text, &input, drag),
-        None if frame.menu.is_none() => chrome::draw_tooltip(scene, text, &input),
-        None => {}
-    }
+    chrome::draw_dividers(scene, sources.theme, sources.frame, sources.view);
+    draw_overlays(scene, text, &input, sources);
     if let Some(loader) = sources.loader {
         chrome::draw_loader(scene, text, &input, loader);
+    }
+}
+
+impl FrameSources<'_> {
+    fn session_cwd(&self, session: &Session) -> Option<PathBuf> {
+        match self.cwd {
+            Some(cwd) => cwd(session.id()),
+            None => session.cwd(),
+        }
+    }
+}
+
+fn draw_overlays(
+    scene: &mut Scene,
+    text: &mut TextSystem,
+    input: &ChromeInput,
+    sources: &FrameSources,
+) {
+    let frame = sources.frame;
+    chrome::draw_editor(scene, text, input);
+    chrome::draw_settings(scene, text, input);
+    chrome::draw_menu(scene, text, input);
+    if !frame.blocked
+        && sources.picture.is_none()
+        && sources.drag.is_none()
+        && frame.menu.is_none()
+        && frame.editor.is_none()
+        && frame.settings.is_none()
+        && frame.message.is_none()
+    {
+        chrome::draw_hover_preview(scene, text, input, sources.preview);
+    }
+    chrome::draw_picture(scene, text, input, sources.picture);
+    chrome::draw_message(scene, text, input);
+    match sources.drag {
+        Some(drag) => draw_drag(scene, text, input, drag),
+        None if frame.menu.is_none() && sources.picture.is_none() => {
+            chrome::draw_tooltip(scene, text, input)
+        }
+        None => {}
     }
 }
 
@@ -89,14 +122,18 @@ fn draw_body(scene: &mut Scene, text: &mut TextSystem, pane: &PaneFrame, sources
         return;
     };
     let scroll = sources.motion.scroll_offset(session.id());
+    let cwd = sources.links.and_then(|_| sources.session_cwd(session));
     let mut cache = sources.links.map(RefCell::borrow_mut);
     let (screen, links) = {
         let terminal = session.terminal();
         let shown = drawn_rows(terminal.screen(), scroll);
-        let links = cache
-            .as_mut()
-            .map_or(&[][..], |cache| cache.spans(session.id(), &terminal, shown));
-        (ScreenCopy::of(terminal.screen(), scroll), links)
+        let links = cache.as_mut().map_or(&[][..], |cache| {
+            cache.spans(session.id(), &terminal, shown, cwd.as_deref())
+        });
+        (
+            ScreenCopy::of(terminal.screen(), scroll).with_session(session.id().0),
+            links,
+        )
     };
     let paint = TerminalPaint {
         screen: &screen,

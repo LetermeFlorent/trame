@@ -26,11 +26,12 @@ pub fn render_in_format(
     clear: Rgba,
     format: wgpu::TextureFormat,
 ) -> Result<Vec<u8>, ReadbackError> {
-    let width = scene.width().max(1.0) as u32;
-    let height = scene.height().max(1.0) as u32;
+    if gpu.is_lost() {
+        return Err(ReadbackError::Lost);
+    }
     let size = wgpu::Extent3d {
-        width,
-        height,
+        width: scene.width().max(1.0) as u32,
+        height: scene.height().max(1.0) as u32,
         depth_or_array_layers: 1,
     };
     let texture = gpu.device.create_texture(&wgpu::TextureDescriptor {
@@ -43,7 +44,7 @@ pub fn render_in_format(
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
         view_formats: &[],
     });
-    let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+    let view = texture.create_view(&Default::default());
     renderer.render(gpu, &view, scene, clear);
     read_rgba(gpu, &texture)
 }
@@ -68,6 +69,9 @@ fn into_rgba(pixels: &mut [u8], format: wgpu::TextureFormat) {
 }
 
 pub fn read_texture(gpu: &Gpu, texture: &wgpu::Texture) -> Result<Vec<u8>, ReadbackError> {
+    if gpu.is_lost() {
+        return Err(ReadbackError::Lost);
+    }
     let (width, height) = (texture.width(), texture.height());
     let row = width * BYTES_PER_PIXEL;
     let padded = row.next_multiple_of(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT);
@@ -80,12 +84,11 @@ pub fn read_texture(gpu: &Gpu, texture: &wgpu::Texture) -> Result<Vec<u8>, Readb
     let slice = buffer.slice(..);
     map_and_wait(gpu, &slice)?;
     let mut pixels = Vec::with_capacity((row * height) as usize);
-    {
-        let mapped = slice.get_mapped_range().map_err(ReadbackError::Range)?;
-        for line in mapped.chunks(padded as usize) {
-            pixels.extend_from_slice(&line[..row as usize]);
-        }
+    let mapped = slice.get_mapped_range().map_err(ReadbackError::Range)?;
+    for line in mapped.chunks(padded as usize) {
+        pixels.extend_from_slice(&line[..row as usize]);
     }
+    drop(mapped);
     buffer.unmap();
     Ok(pixels)
 }
@@ -130,9 +133,17 @@ fn map_and_wait(gpu: &Gpu, slice: &wgpu::BufferSlice) -> Result<(), ReadbackErro
     });
     gpu.device
         .poll(wgpu::PollType::wait_indefinitely())
-        .map_err(ReadbackError::Poll)?;
+        .map_err(|error| lost_or(gpu, ReadbackError::Poll(error)))?;
     receiver
         .try_recv()
         .unwrap_or(Err(wgpu::BufferAsyncError))
-        .map_err(ReadbackError::Map)
+        .map_err(|error| lost_or(gpu, ReadbackError::Map(error)))
+}
+
+fn lost_or(gpu: &Gpu, fallback: ReadbackError) -> ReadbackError {
+    if gpu.is_lost() {
+        ReadbackError::Lost
+    } else {
+        fallback
+    }
 }

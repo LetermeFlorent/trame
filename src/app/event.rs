@@ -12,5 +12,6 @@ pub enum UserEvent<K> {
     Update(UpdateStatus),
     Folder(K, FolderTarget, PathBuf),
     Icon(K, InstanceId, u64),
+    Picture(K),
     Open(Option<PathBuf>),
 }

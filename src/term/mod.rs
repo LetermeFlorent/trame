@@ -2,6 +2,7 @@ pub mod cell;
 pub mod cursor;
 mod dispatch;
 pub mod grid;
+pub mod images;
 pub mod modes;
 pub mod screen;
 pub mod vt;
@@ -13,6 +14,7 @@ use vt::Parser;
 pub use cell::{Cell, Color, Flags, MAX_LINKS, Marks};
 pub use cursor::CursorShape;
 pub use grid::SelectionKind;
+pub use images::StoredImage;
 pub use modes::Modes;
 pub use screen::{ReportedColors, Screen};
 

@@ -45,7 +45,12 @@ impl Running {
 
     pub(in crate::app::running) fn wheel(&mut self, delta: MouseScrollDelta) {
         let list = self.list_under_pointer(ListKind::Hosts);
-        if list.is_none() && (self.frame.blocked || self.settings.is_some()) {
+        if wheel_blocked(
+            self.picture.is_some(),
+            self.frame.blocked,
+            self.settings.is_some(),
+            list.is_some(),
+        ) {
             return;
         }
         let lines = match delta {
@@ -104,6 +109,10 @@ impl Running {
             WheelAction::Ignore => {}
         }
     }
+}
+
+pub(super) fn wheel_blocked(picture: bool, blocked: bool, settings: bool, on_hosts: bool) -> bool {
+    picture || (!on_hosts && (blocked || settings))
 }
 
 fn scroll_history(

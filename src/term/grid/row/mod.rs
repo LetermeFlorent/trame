@@ -119,7 +119,11 @@ pub(in crate::term::grid) fn printable(row: &Row, cols: impl Iterator<Item = usi
     cols.map(|col| (col, row.cell(col)))
         .filter(|(_, cell)| !cell.flags.contains(Flags::WIDE_SPACER))
         .flat_map(|(col, cell)| {
-            let ch = if cell.ch == '\0' { ' ' } else { cell.ch };
+            let ch = if cell.ch == '\0' || cell.flags.contains(Flags::IMAGE) {
+                ' '
+            } else {
+                cell.ch
+            };
             std::iter::once(ch).chain(row.marks(col).chars())
         })
         .collect()

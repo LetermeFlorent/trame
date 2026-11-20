@@ -50,7 +50,12 @@ fn encode_row(row: &Row, cols: usize, last: bool, out: &mut Vec<u8>) {
             style = next;
         }
         let mut buffer = [0; 4];
-        for ch in std::iter::once(printable(cell.ch)).chain(row.marks(col).chars()) {
+        let ch = if cell.flags.contains(Flags::IMAGE) {
+            ' '
+        } else {
+            printable(cell.ch)
+        };
+        for ch in std::iter::once(ch).chain(row.marks(col).chars()) {
             out.extend_from_slice(ch.encode_utf8(&mut buffer).as_bytes());
         }
     }

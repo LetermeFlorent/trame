@@ -1,8 +1,9 @@
+mod cursor;
 mod drag;
 mod files;
 mod press;
-mod scroll;
-mod selection;
+pub(super) mod scroll;
+pub(in crate::app::running) mod selection;
 
 use std::time::{Duration, Instant};
 
@@ -11,15 +12,15 @@ use winit::event_loop::ActiveEventLoop;
 use winit::window::{Cursor, CursorIcon};
 
 use trame::geometry::Point;
-use trame::ui::frame::PickerPart;
-use trame::ui::{FrameLayout, Hit};
-use trame::workspace::Axis;
+use trame::ui::Hit;
 
 use super::Running;
-use crate::app::window;
+pub(super) use cursor::divider_cursor;
+use cursor::hover_cursor_for;
 pub(super) use drag::{Drag, Ghost};
 pub(super) use scroll::Scroll;
-pub(super) use selection::Selecting;
+use selection::LinkHover;
+pub(super) use selection::{HoverPreview, Selecting};
 const MULTI_CLICK: Duration = Duration::from_millis(500);
 
 #[derive(Default)]
@@ -29,6 +30,7 @@ pub(super) struct Pointer {
     pub last_click: Option<(Instant, Hit)>,
     pub cursor: Cursor,
     pub ghost: Ghost,
+    pub preview: Option<HoverPreview>,
     pub wheel: f32,
 }
 
@@ -54,6 +56,10 @@ impl Running {
     }
 
     pub(super) fn refresh_hover(&mut self) {
+        if self.picture_active() {
+            self.clear_hover_preview();
+            return self.refresh_picture_hover();
+        }
         let resizable = self.resizable();
         let hover = self
             .pointer
@@ -64,9 +70,15 @@ impl Running {
             self.view.hover = hover;
             self.window.request_redraw();
         }
-        let cursor = self
-            .drag_cursor()
-            .unwrap_or_else(|| Cursor::Icon(self.hover_cursor(hover)));
+        let drag = self.drag_cursor();
+        let link = drag.is_none().then(|| self.hovered_link(hover)).flatten();
+        let has_link = link.is_some();
+        let image = match link {
+            Some(LinkHover::Image(path, anchor)) => Some((path, anchor)),
+            _ => None,
+        };
+        self.refresh_hover_preview(image);
+        let cursor = drag.unwrap_or_else(|| Cursor::Icon(self.hover_cursor(hover, has_link)));
         if cursor != self.pointer.cursor {
             self.pointer.cursor = cursor.clone();
             self.window.set_cursor(cursor);
@@ -75,6 +87,7 @@ impl Running {
 
     pub(super) fn mouse_button(&mut self, exiting: bool, state: ElementState, button: MouseButton) {
         if self.closing_button(state)
+            || self.picture_button(state, button)
             || self.menu_button(exiting, state, button)
             || self.editing_button(state)
             || self.terminal_button(state, button)
@@ -97,48 +110,11 @@ impl Running {
         self.metrics.platform.draws_window_controls() && !self.window.is_maximized()
     }
 
-    fn hover_cursor(&self, hover: Option<Hit>) -> CursorIcon {
-        let on_link = match (hover, self.pointer.position) {
-            (Some(Hit::Terminal(pane)), Some(point)) => self.link_under(pane, point),
+    fn hover_cursor(&self, hover: Option<Hit>, link: bool) -> CursorIcon {
+        let clickable = match (hover, self.pointer.position) {
+            (Some(Hit::Terminal(pane)), Some(point)) => link || self.picture_under(pane, point),
             _ => false,
         };
-        if on_link {
-            CursorIcon::Pointer
-        } else {
-            cursor_for(hover, &self.frame)
-        }
-    }
-}
-
-fn cursor_for(hit: Option<Hit>, frame: &FrameLayout) -> CursorIcon {
-    match hit {
-        Some(Hit::Resize(edge)) => window::resize_cursor(edge),
-        Some(Hit::Divider(index)) => frame
-            .dividers
-            .get(index)
-            .map_or(CursorIcon::Default, |divider| divider_cursor(divider.axis)),
-        Some(Hit::SidebarEdge) => CursorIcon::ColResize,
-        Some(
-            Hit::Terminal(_) | Hit::EditField | Hit::FormField(_) | Hit::Picker(PickerPart::Field),
-        ) => CursorIcon::Text,
-        None
-        | Some(
-            Hit::TitleBar
-            | Hit::Sidebar
-            | Hit::TabBar(_)
-            | Hit::EditStrip
-            | Hit::SettingsPanel
-            | Hit::Menu
-            | Hit::Dialog
-            | Hit::Backdrop,
-        ) => CursorIcon::Default,
-        Some(_) => CursorIcon::Pointer,
-    }
-}
-
-fn divider_cursor(axis: Axis) -> CursorIcon {
-    match axis {
-        Axis::Row => CursorIcon::ColResize,
-        Axis::Column => CursorIcon::RowResize,
+        hover_cursor_for(hover, &self.frame.dividers, clickable)
     }
 }

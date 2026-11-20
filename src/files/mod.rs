@@ -4,6 +4,7 @@ mod log;
 mod modes;
 mod open;
 mod picker;
+pub mod pictures;
 mod places;
 mod quoting;
 

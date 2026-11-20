@@ -56,4 +56,8 @@ impl Scene {
         shape.uv = [region.x as f32, region.y as f32, 0.0, 0.0];
         self.push(shape, color);
     }
+
+    pub fn picture(&mut self, rect: Rect) {
+        self.push(Shape::new(QuadKind::Picture, rect), Rgba::WHITE);
+    }
 }

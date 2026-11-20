@@ -3,7 +3,11 @@ mod clicks;
 mod clipboard;
 mod drag;
 mod links;
+mod pictures;
 mod report;
+
+pub(super) use links::LinkHover;
+pub(in crate::app::running) use pictures::{HoverPreview, PictureView};
 
 use std::time::Instant;
 
@@ -26,12 +30,26 @@ pub(in crate::app::running) struct Selecting {
     clicks: Option<(Instant, Cell, usize)>,
 }
 
+impl Selecting {
+    pub(super) fn clear(&mut self) {
+        *self = Self::default();
+    }
+
+    #[cfg(test)]
+    pub(super) fn is_clear(&self) -> bool {
+        self.drag.is_none() && self.held.is_none() && self.cell.is_none() && self.clicks.is_none()
+    }
+}
+
 impl Running {
     pub(in crate::app::running) fn terminal_button(
         &mut self,
         state: ElementState,
         button: Button,
     ) -> bool {
+        if self.picture_active() {
+            return true;
+        }
         let button = match button {
             Button::Left => MouseButton::Left,
             Button::Middle => MouseButton::Middle,
@@ -45,6 +63,9 @@ impl Running {
     }
 
     pub(in crate::app::running) fn terminal_motion(&mut self, point: Point) {
+        if self.picture_active() {
+            return;
+        }
         if let Some(id) = self.selecting.drag {
             self.drag_selection(id, point);
             return;
@@ -80,6 +101,12 @@ impl Running {
             return false;
         }
         self.desk.focus_pane(pane_id);
+        if pictures::picture_action(false, button, reports, self.primary_held())
+            == pictures::PictureAction::Open
+            && self.open_picture_at(id, cell)
+        {
+            return true;
+        }
         if !reports && self.open_link_at(id, cell) {
             self.changed();
             return true;

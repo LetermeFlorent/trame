@@ -28,6 +28,7 @@ impl Flags {
     pub const STRIKE: Self = Self(1 << 8);
     pub const WIDE: Self = Self(1 << 9);
     pub const WIDE_SPACER: Self = Self(1 << 10);
+    pub const IMAGE: Self = Self(1 << 11);
     pub const ANY_UNDERLINE: Self =
         Self(Self::UNDERLINE.0 | Self::DOUBLE_UNDERLINE.0 | Self::CURLY_UNDERLINE.0);
     pub const WIDTH_MARKS: Self = Self(Self::WIDE.0 | Self::WIDE_SPACER.0);
@@ -84,5 +85,23 @@ impl Cell {
             && self.bg == Color::Background
             && !self.flags.intersects(Flags::INVERSE)
             && !self.flags.intersects(Flags::ANY_UNDERLINE)
+    }
+
+    pub fn image_id(&self) -> Option<u32> {
+        if !self.flags.contains(Flags::IMAGE) {
+            return None;
+        }
+        let Color::Rgb(r, g, b) = self.fg else {
+            return None;
+        };
+        Some((u32::from(r) << 16) | (u32::from(g) << 8) | u32::from(b))
+    }
+
+    pub fn image_tile(&self) -> Option<(u16, u16)> {
+        if !self.flags.contains(Flags::IMAGE) {
+            return None;
+        }
+        let offset = u32::from(self.ch).checked_sub(0x10_0000)?;
+        Some(((offset >> 8) as u16, (offset & 0xFF) as u16))
     }
 }

@@ -17,6 +17,7 @@ impl Running {
         if self.frame.blocked
             || event.state != ElementState::Pressed
             || self.closing_key(event)
+            || self.picture_key(is_escape(event))
             || self.drag_key(&event.logical_key)
             || self.menu_key(event)
             || self.editing_key(event)

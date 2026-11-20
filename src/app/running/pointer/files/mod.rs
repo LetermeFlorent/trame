@@ -39,6 +39,7 @@ impl Running {
 
     fn modal_open(&self) -> bool {
         self.frame.blocked
+            || self.picture.is_some()
             || self.desk.closing.is_some()
             || self.menu.is_some()
             || self.editing.is_some()

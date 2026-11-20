@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use super::Grid;
 
 impl Grid {
@@ -7,6 +9,13 @@ impl Grid {
             if let Some(slot) = used.get_mut(usize::from(cell.link)) {
                 *slot = true;
             }
+        }
+    }
+
+    pub(crate) fn mark_images(&self, used: &mut HashSet<u32>) {
+        let cells = self.lines.iter().flat_map(|row| row.cells());
+        for id in cells.filter_map(|cell| cell.image_id()) {
+            used.insert(id);
         }
     }
 

@@ -85,3 +85,24 @@ fn old_addresses_make_room_once_the_table_is_full() {
     let wanted = format!("https://example.com/{last}");
     assert_eq!(term.screen().link(id), Some(wanted.as_str()));
 }
+
+#[test]
+fn an_osc_8_file_image_link_is_detected_only_when_file_exists() {
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("time")
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!("trame-osc-img-{stamp}"));
+    std::fs::create_dir_all(&dir).expect("dir");
+    let img = dir.join("shot.png");
+    std::fs::write(&img, b"png").expect("write");
+    let slash = img.to_string_lossy().replace('\\', "/");
+    let rel = slash.strip_prefix('/').unwrap_or(&slash);
+    let term = feed(1, 40, &format!("\x1b]8;;file:///{rel}\x07pic\x1b]8;;\x07"));
+    let spans = view_links(term.screen(), 0..1);
+    assert_eq!(spans.len(), 1);
+    assert_eq!(std::path::Path::new(&spans[0].target), img);
+    std::fs::remove_file(&img).expect("remove");
+    assert!(view_links(term.screen(), 0..1).is_empty());
+    let _ = std::fs::remove_dir_all(&dir);
+}

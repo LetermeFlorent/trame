@@ -55,7 +55,9 @@ impl Running {
             appearance: window::appearance(&surface.window),
             icon_dir: persist::icon_dir(),
         });
-        let mut running = Self::with_surface(surface, proxy, desk);
+        let mut running = Self::with_surface(surface, proxy.clone(), desk);
+        let waker = relay::picture_waker(proxy, running.window.id());
+        running.text.set_image_waker(waker);
         running.desk.saver.remember_window(window);
         Ok(Opened { running, saved })
     }
@@ -108,6 +110,7 @@ impl Running {
             setting_field: None,
             menu: None,
             settings: None,
+            picture: None,
             selecting: Selecting::default(),
             modifiers: ModifiersState::empty(),
             visibility: Visibility::default(),

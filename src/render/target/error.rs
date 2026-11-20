@@ -5,6 +5,7 @@ pub enum ReadbackError {
     Poll(wgpu::PollError),
     Map(wgpu::BufferAsyncError),
     Range(wgpu::MapRangeError),
+    Lost,
 }
 
 impl fmt::Display for ReadbackError {
@@ -17,6 +18,7 @@ impl fmt::Display for ReadbackError {
             ReadbackError::Range(error) => {
                 write!(formatter, "the pixels could not be read: {error}")
             }
+            ReadbackError::Lost => write!(formatter, "the graphics device was lost"),
         }
     }
 }

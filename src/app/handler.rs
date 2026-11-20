@@ -30,6 +30,9 @@ impl ApplicationHandler<AppEvent> for App {
             UserEvent::Icon(id, tab, image) => {
                 self.on(event_loop, id, |running| running.icon_picked(tab, image));
             }
+            UserEvent::Picture(id) => {
+                self.on(event_loop, id, Running::picture_ready);
+            }
         }
     }
 

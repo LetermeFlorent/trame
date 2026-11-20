@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 mod packer;
 mod texture;
 
@@ -7,7 +10,7 @@ use packer::ShelfPacker;
 
 pub const INITIAL_ATLAS_SIZE: u32 = 512;
 const MAX_MASK_ATLAS_SIZE: u32 = 4096;
-const MAX_COLOR_ATLAS_SIZE: u32 = 2048;
+pub const MAX_COLOR_ATLAS_SIZE: u32 = 2048;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum AtlasKind {
@@ -17,10 +20,7 @@ pub enum AtlasKind {
 
 impl AtlasKind {
     pub fn bytes_per_pixel(self) -> u32 {
-        match self {
-            AtlasKind::Mask => 1,
-            AtlasKind::Color => 4,
-        }
+        [1, 4][self as usize]
     }
 }
 
@@ -47,6 +47,7 @@ pub struct Atlas {
     largest_side: u32,
     overflowed: bool,
     holds_older_frames: bool,
+    must_reset: bool,
 }
 
 impl Default for Atlas {
@@ -61,7 +62,9 @@ impl Atlas {
     }
 
     pub fn limit_to(&mut self, largest_side: u32) {
+        let must_reset = self.must_reset || self.holds_older_frames;
         *self = Self::within(largest_side);
+        self.must_reset = must_reset;
     }
 
     fn within(largest_side: u32) -> Self {
@@ -72,11 +75,22 @@ impl Atlas {
             largest_side,
             overflowed: false,
             holds_older_frames: false,
+            must_reset: false,
         }
     }
 
     pub fn size(&self, kind: AtlasKind) -> u32 {
-        self.packer(kind).size()
+        match kind {
+            AtlasKind::Mask => self.mask.size(),
+            AtlasKind::Color => self.color.size(),
+        }
+    }
+
+    pub fn max_image_side(&self) -> u32 {
+        MAX_COLOR_ATLAS_SIZE
+            .min(self.largest_side)
+            .saturating_sub(1)
+            .max(1)
     }
 
     pub fn insert(
@@ -106,7 +120,8 @@ impl Atlas {
     }
 
     pub fn finish_frame(&mut self) -> bool {
-        let evict = self.overflowed && self.holds_older_frames;
+        let evict = self.must_reset || (self.overflowed && self.holds_older_frames);
+        self.must_reset = false;
         self.overflowed = false;
         self.holds_older_frames = true;
         evict
@@ -116,19 +131,16 @@ impl Atlas {
         self.overflowed = true;
     }
 
+    pub fn invalidate(&mut self) {
+        self.must_reset = true;
+    }
+
     pub fn clear(&mut self) {
         *self = Self::within(self.largest_side);
     }
 
     pub fn take_uploads(&mut self) -> Vec<Upload> {
         std::mem::take(&mut self.uploads)
-    }
-
-    fn packer(&self, kind: AtlasKind) -> &ShelfPacker {
-        match kind {
-            AtlasKind::Mask => &self.mask,
-            AtlasKind::Color => &self.color,
-        }
     }
 }
 

@@ -2,7 +2,9 @@ mod boxes;
 mod copy;
 mod cursor;
 pub mod links;
+mod pictures;
 mod row;
+mod strips;
 mod style;
 
 use std::ops::Range;
@@ -11,12 +13,13 @@ use crate::geometry::{Point, Rect};
 use crate::render::Scene;
 use crate::term::Screen;
 use crate::text::{CellMetrics, TextSystem};
-use crate::theme::Rgba;
-use crate::theme::Theme;
+use crate::theme::{Rgba, Theme};
 
 pub use copy::ScreenCopy;
 pub use cursor::CursorPlace;
 use links::LinkSpan;
+use pictures::draw_images;
+pub use row::preview_rect;
 use row::{RowPaint, draw_backgrounds, draw_glyphs};
 pub use style::colors;
 
@@ -73,6 +76,7 @@ pub fn draw_terminal(
     for row in &rows {
         draw_glyphs(scene, text, &grid, row);
     }
+    draw_images(scene, text, &grid, &rows);
     if let Some(cursor) = grid.cursor {
         cursor.draw_outline(scene, &grid, cursor.rect(origin, &metrics));
     }

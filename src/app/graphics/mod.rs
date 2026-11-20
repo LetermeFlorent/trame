@@ -1,29 +1,30 @@
-#[cfg(feature = "capture")]
 mod capture;
 mod connect;
+mod plan;
+mod recovery;
+#[cfg(test)]
+#[path = "tests/mod.rs"]
+mod render_tests;
+mod session;
 
 use std::error::Error;
 use std::sync::Arc;
 
-use winit::event_loop::ActiveEventLoop;
+use winit::event_loop::{ActiveEventLoop, OwnedDisplayHandle};
 use winit::window::Window;
 
-use connect::{PREFERRED_BACKENDS, connect};
-use trame::render::{
-    Atlas, Frame, Gpu, ReadbackError, Renderer, Scene, WindowSurface, render_in_format,
-};
+use capture::Capture;
+use connect::open_session;
+use recovery::GraphicsState;
+use session::RenderFrame;
+use trame::log_error;
+use trame::render::{Atlas, ReadbackError, Scene, WindowSurface};
 use trame::theme::Rgba;
 
-#[cfg(feature = "capture")]
-use capture::Capture;
-
 pub struct Graphics {
-    gpu: Gpu,
-    surface: WindowSurface,
-    format: wgpu::TextureFormat,
-    renderer: Renderer,
-    fresh: bool,
-    #[cfg(feature = "capture")]
+    window: Arc<Window>,
+    display: OwnedDisplayHandle,
+    state: GraphicsState<WindowSurface>,
     capture: Option<Capture>,
 }
 
@@ -33,33 +34,19 @@ impl Graphics {
         window: Arc<Window>,
         atlas: &mut Atlas,
     ) -> Result<Self, Box<dyn Error>> {
-        let size = window.inner_size();
-        let (gpu, surface) = connect(event_loop, &window, PREFERRED_BACKENDS)
-            .or_else(|_| connect(event_loop, &window, wgpu::Backends::all()))?;
-        #[cfg_attr(not(feature = "capture"), expect(unused_mut))]
-        let mut surface = WindowSurface::new(&gpu, surface, size.width, size.height)
-            .ok_or("the graphics card cannot draw into this window")?;
-        #[cfg(feature = "capture")]
+        let display = event_loop.owned_display_handle();
         let capture = Capture::from_env();
-        #[cfg(feature = "capture")]
-        if capture.is_some() {
-            surface.allow_copy(&gpu);
-        }
-        let format = surface.format();
-        let renderer = Renderer::new(&gpu, format, atlas);
+        let session = open_session(&display, &window, atlas, capture.is_some(), false)?;
         Ok(Self {
-            gpu,
-            surface,
-            format,
-            renderer,
-            fresh: true,
-            #[cfg(feature = "capture")]
+            window,
+            display,
+            state: GraphicsState::new(session),
             capture,
         })
     }
 
     pub fn take_fresh(&mut self) -> bool {
-        std::mem::take(&mut self.fresh)
+        std::mem::take(&mut self.state.fresh)
     }
 
     pub fn render_image(
@@ -67,40 +54,78 @@ impl Graphics {
         scene: &Scene,
         atlas: &mut Atlas,
     ) -> Result<Vec<u8>, ReadbackError> {
-        self.renderer.sync_atlas(&self.gpu, atlas);
-        let clear = Rgba::new(0.0, 0.0, 0.0, 0.0);
-        render_in_format(&self.gpu, &mut self.renderer, scene, clear, self.format)
+        let allow_copy = self.capture.is_some();
+        let display = &self.display;
+        let window = &self.window;
+        let result = self.state.render_image_with(
+            atlas,
+            |active, atlas| active.render_offscreen(scene, atlas),
+            |atlas, prefer_software| {
+                open_session(display, window, atlas, allow_copy, prefer_software)
+            },
+            &mut |line| log_error!("{line}"),
+        );
+        if std::mem::take(&mut self.state.redraw) {
+            self.window.request_redraw();
+        }
+        result
     }
 
     pub fn is_lost(&self) -> bool {
-        self.gpu.is_lost()
+        self.state.failed
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
-        self.surface.resize(width, height);
+        if let Some(active) = &mut self.state.active {
+            active.surface.resize(width, height);
+        }
+    }
+
+    pub fn max_texture_size(&self) -> u32 {
+        self.state
+            .active
+            .as_ref()
+            .map_or(u32::MAX, |s| s.gpu.device.limits().max_texture_dimension_2d)
+    }
+
+    pub fn set_picture(&mut self, image: Option<(u32, u32, &[u8])>) {
+        if let Some(active) = &mut self.state.active {
+            active.renderer.set_picture(&active.gpu, image);
+        }
     }
 
     pub fn present(
         &mut self,
-        window: &Window,
+        _window: &Window,
         scene: &Scene,
         atlas: &mut Atlas,
         clear: Rgba,
     ) -> bool {
-        self.renderer.sync_atlas(&self.gpu, atlas);
-        let Frame::Ready(texture) = self.surface.acquire(&self.gpu) else {
-            return false;
-        };
-        let view = texture
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
-        self.renderer.render(&self.gpu, &view, scene, clear);
-        #[cfg(feature = "capture")]
-        if let Some(capture) = &self.capture {
-            capture.save(&self.gpu, &texture.texture);
+        let allow_copy = self.capture.is_some();
+        let display = &self.display;
+        let window = &self.window;
+        let capture = self.capture.as_ref();
+        let presented = self.state.present_with(
+            atlas,
+            |active, atlas| {
+                active.acquire_and_present(
+                    window,
+                    RenderFrame {
+                        scene,
+                        atlas,
+                        clear,
+                    },
+                    capture,
+                )
+            },
+            |atlas, prefer_software| {
+                open_session(display, window, atlas, allow_copy, prefer_software)
+            },
+            &mut |line| log_error!("{line}"),
+        );
+        if std::mem::take(&mut self.state.redraw) {
+            self.window.request_redraw();
         }
-        window.pre_present_notify();
-        self.gpu.queue.present(texture);
-        true
+        presented
     }
 }

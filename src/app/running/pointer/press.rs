@@ -108,6 +108,9 @@ impl Running {
     }
 
     pub(super) fn middle_click(&mut self, exiting: bool, hit: Option<Hit>) {
+        if self.picture.is_some() {
+            return;
+        }
         if let Some(Hit::Tab(_, id) | Hit::Row(SidebarItem::Tab(id))) = hit {
             let effects = self.desk.close_tab(exiting, id);
             self.apply(effects);

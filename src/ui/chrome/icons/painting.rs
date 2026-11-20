@@ -57,7 +57,11 @@ impl Painter<'_> {
             return false;
         };
         let size = rect.width.min(rect.height).round().max(1.0) as u32;
-        let key = ImageKey { id, size };
+        let key = ImageKey {
+            id,
+            width: size,
+            height: size,
+        };
         let Some(region) = self
             .text
             .image(key, || fit(pixels, ICON_SIZE, ICON_SIZE, size))

@@ -15,8 +15,8 @@ const SRGB_GAMMA: f64 = 2.4;
 
 pub struct Renderer {
     pipeline: wgpu::RenderPipeline,
-    bindings: Bindings,
-    bind_group: wgpu::BindGroup,
+    pub(super) bindings: Bindings,
+    pub(super) bind_group: wgpu::BindGroup,
     quads: wgpu::Buffer,
     quad_capacity: usize,
     slack: Slack,

@@ -3,11 +3,13 @@ use std::mem::size_of;
 use bytemuck::{Pod, Zeroable};
 
 use super::atlas::{Atlas, AtlasKind, AtlasTexture};
+use super::picture::PictureTexture;
 
 pub(super) const SCENE_LABEL: &str = "scene";
 const GLOBALS_BINDING: u32 = 0;
 const MASK_BINDING: u32 = 1;
 const COLOR_BINDING: u32 = 2;
+const PICTURE_BINDING: u32 = 3;
 
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -22,6 +24,7 @@ pub(super) struct Bindings {
     pub(super) globals: wgpu::Buffer,
     pub(super) mask: AtlasTexture,
     pub(super) color: AtlasTexture,
+    pub(super) picture: PictureTexture,
 }
 
 impl Bindings {
@@ -36,6 +39,7 @@ impl Bindings {
             }),
             mask: AtlasTexture::new(device, AtlasKind::Mask, atlas.size(AtlasKind::Mask)),
             color: AtlasTexture::new(device, AtlasKind::Color, atlas.size(AtlasKind::Color)),
+            picture: PictureTexture::empty(device),
         }
     }
 
@@ -59,6 +63,10 @@ impl Bindings {
                 wgpu::BindGroupEntry {
                     binding: COLOR_BINDING,
                     resource: wgpu::BindingResource::TextureView(self.color.view()),
+                },
+                wgpu::BindGroupEntry {
+                    binding: PICTURE_BINDING,
+                    resource: wgpu::BindingResource::TextureView(self.picture.view()),
                 },
             ],
         })
@@ -91,6 +99,7 @@ fn bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
             },
             texture(MASK_BINDING),
             texture(COLOR_BINDING),
+            texture(PICTURE_BINDING),
         ],
     })
 }
