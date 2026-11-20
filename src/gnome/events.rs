@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use async_channel::Receiver;
+use async_channel::{Receiver, Sender};
 use gtk::glib;
 use trame::session::{Notifier, SessionEvent};
 
@@ -23,4 +23,16 @@ pub fn listen(
             }
         }
     });
+}
+
+pub fn unbounded_listen<T: 'static>(mut handle: impl FnMut(T) -> bool + 'static) -> Sender<T> {
+    let (sender, receiver) = async_channel::unbounded();
+    glib::spawn_future_local(async move {
+        while let Ok(item) = receiver.recv().await {
+            if !handle(item) {
+                break;
+            }
+        }
+    });
+    sender
 }

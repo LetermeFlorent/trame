@@ -25,18 +25,22 @@ pub fn write_mask(slot: Option<&mut SurfaceSlot>, upload: &Upload) {
     let r = upload.region;
     let width = r.width as usize;
     let stride = slot.surface.stride().max(0) as usize;
-    let _ = slot.surface.with_data(|dest| {
+    slot.surface.flush();
+    if let Ok(mut dest) = slot.surface.data() {
         for row in 0..r.height as usize {
             let src_at = row * width;
             let dst_at = (r.y as usize + row) * stride + r.x as usize;
-            copy_slice(&upload.data, src_at, dest, dst_at, width);
+            copy_slice(&upload.data, src_at, &mut dest, dst_at, width);
         }
-    });
+    }
+    slot.surface.mark_dirty();
 }
 
 fn copy_slice(src: &[u8], src_at: usize, dst: &mut [u8], dst_at: usize, len: usize) {
-    if let (Some(s), Some(d)) = (src.get(src_at..src_at + len), dst.get_mut(dst_at..dst_at + len))
-    {
+    if let (Some(s), Some(d)) = (
+        src.get(src_at..src_at + len),
+        dst.get_mut(dst_at..dst_at + len),
+    ) {
         d.copy_from_slice(s);
     }
 }
@@ -46,21 +50,28 @@ pub fn write_color(slot: Option<&mut SurfaceSlot>, upload: &Upload) {
     let r = upload.region;
     let row_bytes = r.width as usize * BYTES_RGBA;
     let stride = slot.surface.stride().max(0) as usize;
-    let _ = slot.surface.with_data(|dest| {
+    slot.surface.flush();
+    if let Ok(mut dest) = slot.surface.data() {
         for row in 0..r.height as usize {
             let src_at = row * row_bytes;
             let dst_at = (r.y as usize + row) * stride + r.x as usize * BYTES_RGBA;
-            write_color_row(&upload.data, src_at, dest, dst_at, row_bytes);
+            write_color_row(&upload.data, src_at, &mut dest, dst_at, row_bytes);
         }
-    });
+    }
+    slot.surface.mark_dirty();
 }
 
 fn write_color_row(src: &[u8], src_at: usize, dst: &mut [u8], dst_at: usize, len: usize) {
-    let (Some(s), Some(d)) = (src.get(src_at..src_at + len), dst.get_mut(dst_at..dst_at + len))
-    else {
+    let (Some(s), Some(d)) = (
+        src.get(src_at..src_at + len),
+        dst.get_mut(dst_at..dst_at + len),
+    ) else {
         return;
     };
-    for (rgba, out) in s.chunks_exact(BYTES_RGBA).zip(d.chunks_exact_mut(BYTES_RGBA)) {
+    for (rgba, out) in s
+        .chunks_exact(BYTES_RGBA)
+        .zip(d.chunks_exact_mut(BYTES_RGBA))
+    {
         out.copy_from_slice(&premultiply(rgba));
     }
 }

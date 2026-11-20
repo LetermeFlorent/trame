@@ -34,10 +34,7 @@ fn typing_mode(state: &WindowState) -> Option<bool> {
     let editing = state.editing.as_ref()?;
     Some(matches!(
         editing.mode,
-        EditMode::Text { .. }
-            | EditMode::Form(..)
-            | EditMode::Picker(..)
-            | EditMode::Emblem { .. }
+        EditMode::Text { .. } | EditMode::Form(..) | EditMode::Picker(..) | EditMode::Emblem { .. }
     ))
 }
 

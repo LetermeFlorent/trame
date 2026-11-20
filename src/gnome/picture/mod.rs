@@ -1,3 +1,4 @@
+mod inner;
 pub mod rules;
 mod style;
 #[cfg(test)]
@@ -10,43 +11,27 @@ use std::rc::Rc;
 
 use gtk::prelude::*;
 use gtk::{gdk, glib};
-use trame::locale::system_language;
 use trame::log_error;
 use trame::text::ImageSource;
-use trame::theme::{Rgba, Theme};
+use trame::theme::Theme;
 
 use super::view::TermView;
-use super::worker::{ImageWorker, ReadyPixels, WorkerJob, memory_texture};
-use rules::{KeyOutcome, MAX_OVERLAY_SIDE, overlay_key};
+use super::worker::{ReadyPixels, WorkerJob, memory_texture};
+use inner::Inner;
+use rules::MAX_OVERLAY_SIDE;
 
 #[derive(Clone)]
 pub struct PictureOverlay {
     inner: Rc<Inner>,
 }
 
-struct Inner {
-    root: gtk::Overlay,
-    picture: gtk::Picture,
-    open_button: gtk::Button,
-    close_glyph: gtk::DrawingArea,
-    ink: Rc<Cell<Rgba>>,
-    provider: gtk::CssProvider,
-    active_job: Cell<Option<u64>>,
-    next_job: Cell<u64>,
-    path: RefCell<Option<PathBuf>>,
-    view: glib::WeakRef<TermView>,
-}
-
 impl PictureOverlay {
-    pub fn new(view: &TermView) -> Self {
-        let theme = view.current_theme();
+    pub fn shared(theme: &Theme) -> Self {
         let ink = Rc::new(Cell::new(theme.text));
         let close_glyph = style::close_icon(Rc::clone(&ink));
         let (root, picture) = widgets::build_scrim();
         let (actions, open_button, close_button) = widgets::build_buttons(&close_glyph);
         root.add_overlay(&actions);
-        let watched = glib::WeakRef::new();
-        watched.set(Some(view));
         let overlay = Self {
             inner: Rc::new(Inner {
                 root,
@@ -58,12 +43,21 @@ impl PictureOverlay {
                 active_job: Cell::new(None),
                 next_job: Cell::new(0),
                 path: RefCell::new(None),
-                view: watched,
+                view: RefCell::new(glib::WeakRef::new()),
+                on_state: RefCell::new(None),
             }),
         };
         widgets::attach_interactions(&overlay, &close_button);
-        overlay.apply_theme(&theme);
+        overlay.apply_theme(theme);
         overlay
+    }
+
+    pub fn set_view(&self, view: &TermView) {
+        self.inner.view.borrow().set(Some(view));
+    }
+
+    pub fn on_state(&self, cb: impl Fn(bool) + 'static) {
+        self.inner.on_state.replace(Some(Box::new(cb)));
     }
 
     pub fn widget(&self) -> &gtk::Overlay {
@@ -82,21 +76,34 @@ impl PictureOverlay {
         self.inner.root.is_visible()
     }
 
-    pub fn open(&self, source: ImageSource, path: Option<PathBuf>, worker: &ImageWorker) {
+    pub fn open_from(
+        &self,
+        view: &TermView,
+        source: ImageSource,
+        path: Option<PathBuf>,
+        label: &str,
+    ) {
+        self.set_view(view);
+        let worker = view.worker();
         let job = self.inner.next_job.get().wrapping_add(1);
         self.inner.next_job.set(job);
         self.inner.active_job.set(Some(job));
-        let label = system_language().strings().open_in_viewer;
         self.inner.open_button.set_label(label);
         self.inner.open_button.set_visible(path.is_some());
         *self.inner.path.borrow_mut() = path;
         self.inner.picture.set_paintable(gdk::Paintable::NONE);
         self.inner.root.set_visible(true);
-        if let Some(view) = self.inner.view.upgrade() {
-            view.set_picture_open(true);
+        if let Some(v) = self.inner.view.borrow().upgrade() {
+            v.set_picture_open(true);
         }
-        let limit = (MAX_OVERLAY_SIDE, MAX_OVERLAY_SIDE);
-        worker.send(WorkerJob::Overlay(job, limit, source));
+        if let Some(cb) = self.inner.on_state.borrow().as_ref() {
+            cb(true);
+        }
+        worker.send(WorkerJob::Overlay(
+            job,
+            (MAX_OVERLAY_SIDE, MAX_OVERLAY_SIDE),
+            source,
+        ));
     }
 
     pub fn finish_decode(&self, job: u64, image: Option<ReadyPixels>) {
@@ -121,20 +128,12 @@ impl PictureOverlay {
         self.inner.picture.set_paintable(gdk::Paintable::NONE);
         self.inner.open_button.set_visible(false);
         self.inner.root.set_visible(false);
-        if let Some(view) = self.inner.view.upgrade() {
+        if let Some(view) = self.inner.view.borrow().upgrade() {
             view.set_picture_open(false);
             view.grab_focus();
         }
-    }
-
-    pub fn handle_key(&self, keyval: gdk::Key) -> bool {
-        match overlay_key(self.is_open(), keyval == gdk::Key::Escape) {
-            KeyOutcome::Pass => false,
-            KeyOutcome::Consume => true,
-            KeyOutcome::Close => {
-                self.close();
-                true
-            }
+        if let Some(cb) = self.inner.on_state.borrow().as_ref() {
+            cb(false);
         }
     }
 

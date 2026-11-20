@@ -6,9 +6,7 @@ use trame::term::{Cell, Color, Flags, Modes};
 use trame::text::ImageSource;
 use trame::ui::terminal::links::{LinkKind, LinkSpan};
 
-use super::rules::{
-    KeyOutcome, grid_cell, inline_click_opens, link_active, overlay_key, reports_mouse, span_anchor,
-};
+use super::rules::{grid_cell, inline_click_opens, link_active, reports_mouse, span_anchor};
 use crate::gnome::view::paint::strips::{RowCells, image_strips, strips_bounds};
 use crate::gnome::worker::{PreviewKey, WorkerAnswer, WorkerJob, decode_job};
 
@@ -42,9 +40,6 @@ fn inline_and_overlay_rules_match_classic_behavior() {
     assert!(link_active(false, false, true));
     assert!(!link_active(true, false, true));
     assert!(!link_active(false, true, true));
-    assert_eq!(overlay_key(false, true), KeyOutcome::Pass);
-    assert_eq!(overlay_key(true, true), KeyOutcome::Close);
-    assert_eq!(overlay_key(true, false), KeyOutcome::Consume);
 }
 
 #[test]

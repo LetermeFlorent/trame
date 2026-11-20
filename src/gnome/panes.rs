@@ -17,6 +17,7 @@ struct PaneSlot {
     id: SessionId,
     rect: Rect,
     scale: f32,
+    tint: Option<trame::theme::Swatch>,
 }
 
 pub struct PaneViews {
@@ -40,22 +41,8 @@ impl PaneViews {
         &self.fixed
     }
 
-    pub fn views(&self) -> &HashMap<SessionId, TermView> {
-        &self.views
-    }
-
-    pub fn active_view(&self, state: &WindowState) -> Option<&TermView> {
-        let id = state.desk.workspace.active_tab()?;
-        self.views.get(&id)
-    }
-
     pub fn sync_modals(&self, state: &WindowState, picture: &PictureOverlay) {
-        let blocked = picture.is_open()
-            || state.frame.blocked
-            || state.desk.closing.is_some()
-            || state.menu.is_some()
-            || state.editing.is_some()
-            || state.settings.is_some();
+        let blocked = picture.is_open() || state.modal_open();
         for view in self.views.values() {
             view.set_picture_open(blocked);
         }
@@ -68,7 +55,7 @@ impl PaneViews {
         scale: f32,
         configure: ConfigureViewFn,
     ) {
-        let live_ids: Vec<SessionId> = state_rc
+        let live: Vec<SessionId> = state_rc
             .borrow()
             .desk
             .sessions
@@ -76,18 +63,18 @@ impl PaneViews {
             .keys()
             .copied()
             .collect();
-        self.prune(&live_ids);
+        self.prune(&live);
         let panes = state_rc.borrow().frame.panes.clone();
         let mut shown = Vec::new();
-        for pane in &panes {
-            let Some(id) = pane.active.filter(|id| pane.offline.is_none() && live_ids.contains(id))
-            else {
+        for pane in panes.iter().filter(|p| p.offline.is_none()) {
+            let Some(id) = pane.active.filter(|id| live.contains(id)) else {
                 continue;
             };
             let slot = PaneSlot {
                 id,
                 rect: pane.terminal,
                 scale: scale.max(1.0),
+                tint: pane.tint,
             };
             self.place_one(slot, state_rc, picture, configure);
             shown.push(id);
@@ -96,6 +83,9 @@ impl PaneViews {
             if !shown.contains(&id) {
                 view.set_visible(false);
             }
+        }
+        if let Some(cell) = self.views.values().next().map(TermView::cell_size) {
+            state_rc.borrow_mut().cell_size = cell;
         }
     }
 
@@ -122,6 +112,13 @@ impl PaneViews {
             self.fixed.put(view, 0.0, 0.0);
             configure(slot.id, view, state_rc, picture);
         }
+        let state = state_rc.borrow();
+        view.set_theme(state.desk.theme.tinted(slot.tint));
+        view.set_font_size(state.desk.preferences.font_size);
+        view.set_detect_links(state.desk.preferences.detect_links);
+        view.set_cwd(state.desk.sessions.cwd(slot.id));
+        view.set_scroll(state.motion.scroll_offset(slot.id));
+        drop(state);
         let x = f64::from(slot.rect.x / slot.scale).round();
         let y = f64::from(slot.rect.y / slot.scale).round();
         let w = (slot.rect.width / slot.scale).round().max(1.0) as i32;

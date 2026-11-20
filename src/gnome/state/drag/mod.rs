@@ -2,8 +2,9 @@ mod finish;
 
 use trame::geometry::Point;
 use trame::session::SessionId;
+use trame::ui::frame::SidebarItem;
 use trame::ui::frame::{BarPart, ListControl, PickerPart, dragged_width};
-use trame::ui::{Hit, PanelSide, SidebarItem, SidebarMode};
+use trame::ui::{Hit, PanelSide, SidebarMode};
 use trame::workspace::{Axis, Divider, InstanceId, Node, resized};
 
 use super::WindowState;

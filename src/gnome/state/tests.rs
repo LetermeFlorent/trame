@@ -4,10 +4,10 @@ use trame::desk::DeskSetup;
 use trame::host::persist::Slot;
 use trame::preferences::{Preferences, SshHost};
 use trame::session::SessionId;
-use trame::term::Screen;
+use trame::term::Terminal;
 use trame::theme::Appearance;
-use trame::ui::frame::SettingControl;
-use trame::ui::{Hit, PaneFrame};
+use trame::ui::Hit;
+use trame::ui::frame::{PaneFrame, SettingControl};
 
 use super::WindowState;
 
@@ -26,19 +26,19 @@ fn test_state() -> WindowState {
 fn working_mark_stops_on_ai_idle_and_offline_marks_pane() {
     let mut state = test_state();
     let id = SessionId(1);
-    state.desk.workspace.open_instance_with(vec![id], None);
+    state.desk.workspace.add_instance(None, id);
     state.relayout();
-    let mut screen = Screen::new(24, 80, 100);
-    screen.osc(&[b"133", b"C"]);
-    assert!(screen.program_working());
-    let working_now = screen.program_working();
+    let mut term = Terminal::new(24, 80, 100);
+    term.feed(b"\x1b]133;C\x07");
+    assert!(term.screen().program_working());
+    let working_now = term.screen().program_working();
     state
         .frame
         .mark_working(&state.desk.workspace, |_| working_now);
     assert!(state.frame.shows_work());
-    screen.osc(&[b"0", "\u{2733} Claude Code".as_bytes()]);
-    assert!(!screen.program_working());
-    let idle_now = screen.program_working();
+    term.feed(b"\x1b]0;\xe2\x9c\xb3 Claude Code\x07");
+    assert!(!term.screen().program_working());
+    let idle_now = term.screen().program_working();
     state
         .frame
         .mark_working(&state.desk.workspace, |_| idle_now);

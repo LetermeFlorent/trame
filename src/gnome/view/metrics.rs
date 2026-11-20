@@ -6,7 +6,7 @@ use super::TermView;
 
 const INTERFACE_SCHEMA: &str = "org.gnome.desktop.interface";
 const MONOSPACE_KEY: &str = "monospace-font-name";
-const FALLBACK_FONT: &str = "Monospace 11";
+const FALLBACK_FONT: &str = "Monospace";
 const SAMPLE: &str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 #[derive(Clone)]
@@ -21,13 +21,23 @@ pub fn current(view: &TermView) -> Metrics {
     if let Some(metrics) = imp.metrics.borrow().as_ref() {
         return metrics.clone();
     }
-    let metrics = measure(view);
+    let metrics = measure(view, imp.font_size.get());
     imp.metrics.replace(Some(metrics.clone()));
     metrics
 }
 
-fn measure(view: &TermView) -> Metrics {
-    let font = pango::FontDescription::from_string(&font_name());
+pub fn set_font_size(view: &TermView, size: f32) {
+    let imp = view.imp();
+    if (imp.font_size.get() - size).abs() > 0.05 {
+        imp.font_size.set(size);
+        imp.metrics.replace(None);
+        view.queue_draw();
+    }
+}
+
+fn measure(view: &TermView, size: f32) -> Metrics {
+    let mut font = pango::FontDescription::from_string(&font_name());
+    font.set_absolute_size((size.max(6.0) * pango::SCALE as f32).round() as f64);
     let layout = view.create_pango_layout(Some(SAMPLE));
     layout.set_font_description(Some(&font));
     let (width, height) = layout.size();

@@ -7,10 +7,14 @@ use super::TermView;
 
 pub fn follow(view: &TermView) {
     let manager = adw::StyleManager::default();
-    apply(view, manager.is_dark());
+    let dark = !manager.system_supports_color_schemes() || manager.is_dark();
+    apply(view, dark);
     let watched = view.downgrade();
     manager.connect_dark_notify(move |manager| {
-        if let Some(view) = watched.upgrade() {
+        if let Some(view) = watched.upgrade()
+            && view.imp().bound.borrow().is_none()
+            && manager.system_supports_color_schemes()
+        {
             apply(&view, manager.is_dark());
         }
     });
@@ -22,9 +26,17 @@ fn apply(view: &TermView, dark: bool) {
     } else {
         Appearance::Light
     };
-    let theme = Theme::new(appearance);
+    apply_theme(view, Theme::new(appearance));
+}
+
+pub fn apply_theme(view: &TermView, theme: Theme) {
     let imp = view.imp();
-    if let Some(session) = imp.session.borrow().as_ref() {
+    if *imp.theme.borrow() == theme {
+        return;
+    }
+    if imp.bound.borrow().is_none()
+        && let Some(session) = imp.session.borrow().as_ref()
+    {
         let colors = theme.reported_colors();
         session.terminal().screen_mut().set_reported_colors(colors);
     }

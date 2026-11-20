@@ -2,6 +2,7 @@ pub mod clipboard;
 pub mod drop_scroll;
 mod keycodes;
 pub mod keys;
+pub mod scroll;
 #[cfg(test)]
 mod tests;
 pub mod typing;
@@ -10,9 +11,8 @@ use gtk::gdk;
 use trame::input::Command;
 
 use crate::gnome::state::WindowState;
-use drop_scroll::scroll_history;
 use keys::{DecodedKey, gdk_modifiers, takes_key};
-pub use typing::type_into_field;
+use scroll::scroll_history;
 use typing::editing_key;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

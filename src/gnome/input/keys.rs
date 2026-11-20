@@ -1,6 +1,6 @@
 use gtk::gdk;
-use trame::input::{Command, KeyInput, ShortcutInput, encode};
-use trame::term::{Modes, Terminal};
+use trame::input::{Command, ShortcutInput};
+use trame::term::Terminal;
 use winit::keyboard::{Key, ModifiersState, NamedKey, PhysicalKey, SmolStr};
 
 use super::keycodes::{named_key, physical_of};
@@ -39,16 +39,6 @@ impl DecodedKey {
             physical: self.physical,
             modifiers: self.modifiers,
         }
-    }
-
-    pub fn bytes(&self, modes: Modes) -> Option<Vec<u8>> {
-        let input = KeyInput {
-            key: &self.key,
-            base: &self.base,
-            text: self.text.as_deref(),
-            modifiers: self.modifiers,
-        };
-        encode(input, modes)
     }
 
     pub fn is_escape(&self) -> bool {

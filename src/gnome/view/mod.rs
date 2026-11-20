@@ -2,9 +2,10 @@ mod hover;
 mod images;
 mod imp;
 mod input;
-mod live;
+pub mod live;
 mod metrics;
 pub mod paint;
+mod spawn;
 mod theme;
 
 use std::path::PathBuf;
@@ -13,8 +14,10 @@ use gtk::glib;
 use gtk::glib::subclass::types::ObjectSubclassIsExt;
 use trame::text::ImageSource;
 use trame::theme::Theme;
+use trame::ui::terminal::links::LinkCache;
 
 use super::worker::{ImageWorker, ReadyPixels};
+pub use live::BoundSession;
 
 glib::wrapper! {
     pub struct TermView(ObjectSubclass<imp::TermView>)
@@ -25,6 +28,39 @@ glib::wrapper! {
 impl TermView {
     pub fn new() -> Self {
         glib::Object::new()
+    }
+
+    pub fn bind(&self, session: BoundSession) {
+        live::bind(self, session);
+    }
+
+    pub fn set_theme(&self, theme: Theme) {
+        theme::apply_theme(self, theme);
+    }
+
+    pub fn set_font_size(&self, size: f32) {
+        metrics::set_font_size(self, size);
+    }
+
+    pub fn set_detect_links(&self, detect: bool) {
+        self.imp().detect_links.set(detect);
+    }
+
+    pub fn set_cwd(&self, cwd: Option<PathBuf>) {
+        let mut slot = self.imp().origin.borrow_mut();
+        if *slot != cwd {
+            *slot = cwd;
+            *self.imp().links.borrow_mut() = LinkCache::default();
+        }
+    }
+
+    pub fn set_scroll(&self, scroll: f32) {
+        self.imp().scroll.set(scroll);
+    }
+
+    pub fn cell_size(&self) -> (f32, f32) {
+        let m = metrics::current(self);
+        (m.width, m.height)
     }
 
     pub fn on_exit(&self, exit: impl Fn() + 'static) {
@@ -41,6 +77,16 @@ impl TermView {
 
     pub fn on_theme(&self, changed: impl Fn(&Theme) + 'static) {
         self.imp().theme_changed.replace(Some(Box::new(changed)));
+    }
+
+    pub fn on_primary_selection(&self, selected: impl Fn(String) + 'static) {
+        self.imp()
+            .primary_selection
+            .replace(Some(Box::new(selected)));
+    }
+
+    pub fn on_middle_click(&self, paste: impl Fn() + 'static) {
+        self.imp().middle_click.replace(Some(Box::new(paste)));
     }
 
     pub fn current_theme(&self) -> Theme {

@@ -22,8 +22,8 @@ impl WindowState {
     }
 
     fn setting_field_button(&mut self, pressed: bool, hit: Option<Hit>) -> Option<bool> {
-        let (control, _) = self.setting_field?;
-        if hit == Some(Hit::Setting(control)) {
+        let (control, _) = self.setting_field.as_ref()?;
+        if hit == Some(Hit::Setting(*control)) {
             return Some(true);
         }
         if pressed {

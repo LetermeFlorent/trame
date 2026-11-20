@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use trame::desk::Closing;
 use trame::input::Command;
 use trame::session::{SessionEvent, SessionId};
-use trame::workspace::{Snapshot, WindowSnapshot};
+use trame::workspace::{PaneLayout, Snapshot, WindowSnapshot};
 
 use super::WindowState;
 
@@ -16,7 +16,10 @@ impl WindowState {
     }
 
     pub fn run_command(&mut self, exiting: bool, command: Command) {
-        let panes: Vec<_> = self.frame.panes.iter().map(|p| (p.id, p.rect)).collect();
+        let panes = PaneLayout {
+            panes: self.frame.panes.iter().map(|p| (p.id, p.rect)).collect(),
+            dividers: Vec::new(),
+        };
         if let Some(effects) = self.desk.command(exiting, command, &panes) {
             self.apply(effects);
         }
@@ -87,7 +90,9 @@ impl WindowState {
             }
         }
         let snap = self.snapshot();
-        let save = self.desk.save_deadline(now, || snap);
+        let save = self
+            .desk
+            .save_deadline(now + Duration::from_millis(10), || snap);
         self.apply(save.effects);
         let text = self.desk.transcript_deadline(now);
         let secret = self.desk.sessions.secret_deadline(now);

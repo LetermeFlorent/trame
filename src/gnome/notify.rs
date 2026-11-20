@@ -35,7 +35,7 @@ impl GnomeNotices {
             write_text(&text, display);
         }
         if let Some(msg) = attention {
-            self.send_attention(state, id, &label, &msg, app);
+            self.send_attention(state, id, (&label, &msg), app);
         }
     }
 
@@ -43,10 +43,10 @@ impl GnomeNotices {
         &mut self,
         state: &WindowState,
         id: SessionId,
-        label: &str,
-        message: &str,
+        info: (&str, &str),
         app: Option<&adw::Application>,
     ) {
+        let (label, message) = info;
         let visible =
             state.view.window_focused && state.frame.panes.iter().any(|p| p.active == Some(id));
         if visible || !state.desk.preferences.notify_waiting {

@@ -55,10 +55,8 @@ pub mod imp {
 
         fn contains(&self, x: f64, y: f64) -> bool {
             let obj = self.obj();
-            let inside = x >= 0.0
-                && y >= 0.0
-                && x < f64::from(obj.width())
-                && y < f64::from(obj.height());
+            let inside =
+                x >= 0.0 && y >= 0.0 && x < f64::from(obj.width()) && y < f64::from(obj.height());
             inside && self.pick.borrow().as_ref().is_none_or(|pick| pick(x, y))
         }
     }

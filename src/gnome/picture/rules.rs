@@ -5,13 +5,6 @@ use trame::ui::terminal::links::LinkSpan;
 pub const MAX_OVERLAY_SIDE: u32 = 2048;
 pub const MAX_PREVIEW_SIDE: u32 = 2047;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum KeyOutcome {
-    Pass,
-    Consume,
-    Close,
-}
-
 pub fn reports_mouse(modes: Modes, shift_held: bool) -> bool {
     modes.intersects(Modes::MOUSE_ANY) && !shift_held
 }
@@ -22,14 +15,6 @@ pub fn inline_click_opens(reports: bool, ctrl_held: bool) -> bool {
 
 pub fn link_active(overlay_open: bool, reports: bool, ctrl_held: bool) -> bool {
     !overlay_open && !reports && ctrl_held
-}
-
-pub fn overlay_key(open: bool, is_escape: bool) -> KeyOutcome {
-    match (open, is_escape) {
-        (false, _) => KeyOutcome::Pass,
-        (true, true) => KeyOutcome::Close,
-        (true, false) => KeyOutcome::Consume,
-    }
 }
 
 pub fn grid_cell(

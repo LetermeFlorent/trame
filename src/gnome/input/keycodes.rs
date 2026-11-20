@@ -1,5 +1,5 @@
 use gtk::gdk;
-use winit::keyboard::{KeyCode, NativeKeyCode, NamedKey, PhysicalKey};
+use winit::keyboard::{KeyCode, NamedKey, NativeKeyCode, PhysicalKey};
 
 const FIRST_EVDEV_DIGIT: u32 = 10;
 const LAST_EVDEV_DIGIT: u32 = 19;
@@ -86,10 +86,8 @@ pub fn physical_of(keyval: gdk::Key, keycode: u32) -> PhysicalKey {
         (gdk::Key::KP_Divide, KeyCode::NumpadDivide),
         (gdk::Key::KP_Decimal, KeyCode::NumpadDecimal),
     ];
-    NUMPAD
-        .iter()
-        .find(|(k, _)| *k == keyval)
-        .map_or(PhysicalKey::Unidentified(NativeKeyCode::Unidentified), |(_, c)| {
-            PhysicalKey::Code(*c)
-        })
+    NUMPAD.iter().find(|(k, _)| *k == keyval).map_or(
+        PhysicalKey::Unidentified(NativeKeyCode::Unidentified),
+        |(_, c)| PhysicalKey::Code(*c),
+    )
 }

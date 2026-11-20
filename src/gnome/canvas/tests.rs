@@ -28,7 +28,7 @@ fn pixel_at(surface: &mut cairo::ImageSurface, x: usize, y: usize) -> [u8; 4] {
 }
 
 fn base_frame(text: &mut TextSystem, workspace: &Workspace) -> FrameLayout {
-    let strings = LanguageChoice::English.strings();
+    let strings = LanguageChoice::English.resolve().strings();
     let title = |id| format!("tab-{id:?}");
     let input = FrameInput {
         workspace,
@@ -59,8 +59,18 @@ fn uploads_and_quads_paint_clipped_pixels() {
     let mut scene = Scene::new(80.0, 60.0);
     scene.push_clip(Rect::new(0.0, 0.0, 40.0, 50.0));
     scene.fill(Rect::new(10.0, 10.0, 50.0, 20.0), Rgba::hex(0xff0000), 2.0);
-    scene.border(Rect::new(2.0, 2.0, 10.0, 10.0), Rgba::hex(0x00ff00), 1.0, 2.0);
-    scene.line(Point::new(5.0, 35.0), Point::new(25.0, 35.0), 3.0, Rgba::WHITE);
+    scene.border(
+        Rect::new(2.0, 2.0, 10.0, 10.0),
+        Rgba::hex(0x00ff00),
+        1.0,
+        2.0,
+    );
+    scene.line(
+        Point::new(5.0, 35.0),
+        Point::new(25.0, 35.0),
+        3.0,
+        Rgba::WHITE,
+    );
     scene.glyph(mask, 12.0, 40.0, Rgba::hex(0x0000ff));
     scene.glyph(icon, 20.0, 40.0, Rgba::WHITE);
     scene.pop_clip();
@@ -79,9 +89,11 @@ fn connections_settings_renders_keep_remote_tasks_toggle() {
     let mut text = TextSystem::new(14.0, DEFAULT_LINE_HEIGHT).unwrap();
     let workspace = Workspace::default();
     let mut frame = base_frame(&mut text, &workspace);
-    let mut prefs = Preferences::default();
-    prefs.keep_remote_tasks = true;
-    let strings = LanguageChoice::English.strings();
+    let prefs = Preferences {
+        keep_remote_tasks: true,
+        ..Default::default()
+    };
+    let strings = LanguageChoice::English.resolve().strings();
     let req = SettingsRequest {
         preferences: &prefs,
         strings,

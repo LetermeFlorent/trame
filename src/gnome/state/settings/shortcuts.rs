@@ -23,28 +23,35 @@ impl WindowState {
         if let Some(k) = self.settings.as_mut().and_then(|s| s.keys.as_mut()) {
             k.notice = None;
         }
+        self.apply_key_control(control, action);
+        self.changed();
+    }
+
+    fn apply_key_control(&mut self, control: KeyControl, action: Option<usize>) {
         match (control, action) {
-            (KeyControl::Back, _) => {
-                if let Some(k) = self.settings.as_mut().and_then(|s| s.keys.as_mut()) {
-                    *k = ShortcutsView {
-                        first: k.first,
-                        ..ShortcutsView::default()
-                    };
-                }
-            }
-            (KeyControl::Add, Some(_)) => {
-                if let Some(k) = self.settings.as_mut().and_then(|s| s.keys.as_mut()) {
-                    k.capturing = true;
-                }
-            }
             (KeyControl::ResetAll, _) => self.set_shortcuts(Overrides::default()),
             (KeyControl::Reset, Some(act)) => {
                 self.set_shortcuts(self.desk.preferences.shortcuts.reset(act));
             }
             (KeyControl::Remove(idx), Some(act)) => self.remove_shortcut(act, idx),
+            (other, _) => self.apply_keys_view(other),
+        }
+    }
+
+    fn apply_keys_view(&mut self, control: KeyControl) {
+        let Some(k) = self.settings.as_mut().and_then(|s| s.keys.as_mut()) else {
+            return;
+        };
+        match control {
+            KeyControl::Back => {
+                *k = ShortcutsView {
+                    first: k.first,
+                    ..ShortcutsView::default()
+                }
+            }
+            KeyControl::Add => k.capturing = true,
             _ => {}
         }
-        self.changed();
     }
 
     fn remove_shortcut(&mut self, act: usize, idx: usize) {

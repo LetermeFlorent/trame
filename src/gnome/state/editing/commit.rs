@@ -98,15 +98,16 @@ impl WindowState {
     }
 
     pub fn pick_color(&mut self, color: Option<Swatch>) {
-        if let Some(editing) = self.editing.take() {
-            let effects = self.desk.commit(editing.target, Edit::Color(color));
-            self.apply(effects);
-        }
+        self.commit_taken(Edit::Color(color));
     }
 
     pub fn pick_emblem(&mut self, emblem: Emblem) {
+        self.commit_taken(Edit::Emblem(emblem));
+    }
+
+    fn commit_taken(&mut self, edit: Edit) {
         if let Some(editing) = self.editing.take() {
-            let effects = self.desk.commit(editing.target, Edit::Emblem(emblem));
+            let effects = self.desk.commit(editing.target, edit);
             self.apply(effects);
         }
     }

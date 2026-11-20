@@ -1,28 +1,61 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use trame::files::home_dir;
-use trame::log_error;
-use trame::preferences::DEFAULT_HISTORY_LINES;
-use trame::session::pty::default_shell;
-use trame::session::{Session, SessionEvent, SessionId, SessionOptions};
+use trame::session::{Session, SessionId};
+use trame::term::{Modes, Terminal};
+use trame::ui::terminal::links::LinkCache;
 
-use super::TermView;
-use super::input;
 use super::metrics::{self, Metrics};
-use crate::gnome::events;
+use super::{TermView, spawn};
 
-const FIRST_SESSION: SessionId = SessionId(1);
+pub struct BoundSession {
+    pub id: SessionId,
+    pub terminal: Arc<Mutex<Terminal>>,
+    pub cwd: Option<PathBuf>,
+    pub writer: Box<dyn Fn(Vec<u8>)>,
+    pub focus: Box<dyn Fn()>,
+}
+
+pub fn bind(view: &TermView, bound: BoundSession) {
+    let imp = view.imp();
+    *imp.session.borrow_mut() = None;
+    *imp.origin.borrow_mut() = bound.cwd.clone();
+    *imp.bound.borrow_mut() = Some(bound);
+    *imp.links.borrow_mut() = LinkCache::default();
+    view.queue_draw();
+}
+
+pub fn with_terminal<R>(
+    view: &TermView,
+    f: impl FnOnce(SessionId, &mut Terminal, Option<&Path>) -> R,
+) -> Option<R> {
+    let imp = view.imp();
+    let cwd = session_cwd(view);
+    if let Some(bound) = imp.bound.borrow().as_ref() {
+        let mut terminal = bound.terminal.lock().unwrap_or_else(|e| e.into_inner());
+        return Some(f(bound.id, &mut terminal, cwd.as_deref()));
+    }
+    let guard = imp.session.borrow();
+    let session = guard.as_ref()?;
+    let mut terminal = session.terminal();
+    Some(f(session.id(), &mut terminal, cwd.as_deref()))
+}
 
 pub fn fit(view: &TermView, width: i32, height: i32) {
+    if view.imp().bound.borrow().is_some() {
+        return;
+    }
     let Metrics {
-        width: cell_width,
-        height: cell_height,
+        width: cw,
+        height: ch,
         ..
     } = metrics::current(view);
-    let cols = (width as f32 / cell_width).floor() as usize;
-    let rows = (height as f32 / cell_height).floor() as usize;
+    let (cols, rows) = (
+        (width as f32 / cw).floor() as usize,
+        (height as f32 / ch).floor() as usize,
+    );
     if cols == 0 || rows == 0 {
         return;
     }
@@ -30,60 +63,50 @@ pub fn fit(view: &TermView, width: i32, height: i32) {
     let mut session = imp.session.borrow_mut();
     match session.as_mut() {
         Some(session) => session.resize(rows, cols),
-        None => *session = start(view, rows, cols),
+        None => *session = spawn::start(view, rows, cols),
     }
 }
 
 pub fn session_cwd(view: &TermView) -> Option<PathBuf> {
-    let known = view.imp().session.borrow().as_ref().and_then(Session::cwd);
-    known.or_else(|| view.imp().origin.borrow().clone())
+    let imp = view.imp();
+    if let Some(bound) = imp.bound.borrow().as_ref() {
+        return bound.cwd.clone().or_else(|| imp.origin.borrow().clone());
+    }
+    let known = imp.session.borrow().as_ref().and_then(Session::cwd);
+    known.or_else(|| imp.origin.borrow().clone())
 }
 
-fn start(view: &TermView, rows: usize, cols: usize) -> Option<Session> {
-    let (notify, receiver) = events::channel();
-    let shell = default_shell();
-    let home = home_dir();
-    *view.imp().origin.borrow_mut() = home.clone();
-    let options = SessionOptions {
-        shell: &shell,
-        cwd: home.as_deref(),
-        rows,
-        cols,
-        history: DEFAULT_HISTORY_LINES,
-        colors: view.imp().theme.borrow().reported_colors(),
-        transcript: &[],
-    };
-    let session = Session::spawn(FIRST_SESSION, &options, notify)
-        .inspect_err(|error| log_error!("the shell could not start: {error}"))
-        .ok()?;
-    let watched = view.downgrade();
-    events::listen(receiver, move |event| {
-        watched.upgrade().is_some_and(|view| handle(&view, event))
-    });
-    Some(session)
-}
-
-fn handle(view: &TermView, event: SessionEvent) -> bool {
-    match event {
-        SessionEvent::Output(_) => {
-            if let Some(session) = view.imp().session.borrow().as_ref() {
-                session.take_output();
-            }
-            input::refresh_hover(view);
-            view.queue_draw();
-            true
-        }
-        SessionEvent::Exited(_) => {
-            if let Some(exit) = view.imp().exit.borrow().as_ref() {
-                exit();
-            }
-            false
-        }
+pub fn notify_focus(view: &TermView, entered: bool) {
+    let imp = view.imp();
+    if entered && let Some(bound) = imp.bound.borrow().as_ref() {
+        (bound.focus)();
+    }
+    if with_terminal(view, |_, t, _| {
+        t.screen().modes().contains(Modes::FOCUS_EVENTS)
+    }) == Some(true)
+    {
+        write(
+            view,
+            if entered {
+                b"\x1b[I".to_vec()
+            } else {
+                b"\x1b[O".to_vec()
+            },
+        );
     }
 }
 
 pub fn write(view: &TermView, bytes: Vec<u8>) {
-    if let Some(session) = view.imp().session.borrow().as_ref() {
+    if bytes.is_empty() {
+        return;
+    }
+    let imp = view.imp();
+    if let Some(bound) = imp.bound.borrow().as_ref() {
+        (bound.writer)(bytes);
+        view.queue_draw();
+        return;
+    }
+    if let Some(session) = imp.session.borrow().as_ref() {
         session.terminal().screen_mut().reset_display();
         session.write(bytes);
         view.queue_draw();

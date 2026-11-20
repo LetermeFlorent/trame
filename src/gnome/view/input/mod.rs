@@ -1,8 +1,10 @@
 mod hits;
 mod keys;
+mod motion;
+mod mouse;
 mod pointer;
 
-pub use pointer::refresh_hover;
+pub use motion::refresh_hover;
 
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
@@ -35,32 +37,47 @@ fn key_controller(view: &TermView, im: &gtk::IMMulticontext) -> gtk::EventContro
     let keys = gtk::EventControllerKey::new();
     keys.set_im_context(Some(im));
     let pressed = view.downgrade();
-    keys.connect_key_pressed(move |_, keyval, _, state| {
+    keys.connect_key_pressed(move |ctrl, keyval, _, state| {
+        if ctrl
+            .current_event()
+            .is_none_or(|_| pressed.upgrade().is_none_or(|v| v.picture_open()))
+        {
+            return glib::Propagation::Stop;
+        }
         let handled = pressed
             .upgrade()
-            .is_some_and(|view| key_pressed(&view, keyval, state));
+            .is_some_and(|view| key_pressed(&view, keyval, state, ctrl.im_context().as_ref()));
         glib::Propagation::from(handled)
     });
     let released = view.downgrade();
     keys.connect_key_released(move |_, keyval, _, state| {
         if let Some(view) = released.upgrade() {
-            pointer::sync_key_mods(&view, keyval, state, false);
+            motion::sync_key_mods(&view, keyval, state, false);
         }
     });
     keys
 }
 
-fn key_pressed(view: &TermView, keyval: gdk::Key, state: gdk::ModifierType) -> bool {
-    pointer::sync_key_mods(view, keyval, state, true);
+fn key_pressed(
+    view: &TermView,
+    keyval: gdk::Key,
+    state: gdk::ModifierType,
+    im: Option<&gtk::IMContext>,
+) -> bool {
+    motion::sync_key_mods(view, keyval, state, true);
     if view.picture_open() {
         return true;
     }
-    let state = state & gtk::accelerator_get_default_mod_mask();
-    if state == PASTE_SHORTCUT && keyval.to_lower() == gdk::Key::v {
+    let mods = state & gtk::accelerator_get_default_mod_mask();
+    if view.imp().bound.borrow().is_none()
+        && mods == PASTE_SHORTCUT
+        && keyval.to_lower() == gdk::Key::v
+    {
         paste(view);
         return true;
     }
-    match keys::bytes(keyval, state, modes(view)) {
+    let _ = im;
+    match keys::bytes(keyval, mods, modes(view)) {
         Some(bytes) => {
             live::write(view, bytes);
             true
@@ -70,12 +87,7 @@ fn key_pressed(view: &TermView, keyval: gdk::Key, state: gdk::ModifierType) -> b
 }
 
 pub(super) fn modes(view: &TermView) -> Modes {
-    view.imp()
-        .session
-        .borrow()
-        .as_ref()
-        .map(|session| session.terminal().screen().modes())
-        .unwrap_or_default()
+    live::with_terminal(view, |_, terminal, _| terminal.screen().modes()).unwrap_or_default()
 }
 
 fn paste(view: &TermView) {
@@ -92,9 +104,13 @@ fn paste(view: &TermView) {
 
 fn focus_watch(view: &TermView, im: &gtk::IMMulticontext) -> gtk::EventControllerFocus {
     let focus = gtk::EventControllerFocus::new();
-    let entered = im.clone();
+    let entered_im = im.clone();
+    let entered_view = view.downgrade();
     focus.connect_enter(move |focus| {
-        entered.focus_in();
+        entered_im.focus_in();
+        if let Some(view) = entered_view.upgrade() {
+            live::notify_focus(&view, true);
+        }
         if let Some(widget) = focus.widget() {
             widget.queue_draw();
         }
@@ -104,8 +120,9 @@ fn focus_watch(view: &TermView, im: &gtk::IMMulticontext) -> gtk::EventControlle
     focus.connect_leave(move |focus| {
         left_im.focus_out();
         if let Some(view) = left_view.upgrade() {
-            pointer::clear_mods(&view);
+            motion::clear_mods(&view);
             hover::clear_hover(&view);
+            live::notify_focus(&view, false);
         }
         if let Some(widget) = focus.widget() {
             widget.queue_draw();

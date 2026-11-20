@@ -1,10 +1,12 @@
 use std::collections::HashSet;
 
-use trame::desk::Grids;
+use trame::desk::{Desk, Grids};
 use trame::geometry::Point;
 use trame::host::power::Shown;
 use trame::input::Keymap;
 use trame::session::SessionId;
+use trame::text::TextSystem;
+use trame::ui::{FrameInput, FrameLayout, Motion, UiMetrics};
 
 use super::{WindowAction, WindowState};
 
@@ -101,4 +103,31 @@ impl WindowState {
         });
         self.desk.power.set_tabs(tabs);
     }
+}
+
+pub(super) fn initial_frame(
+    text: &mut TextSystem,
+    desk: &Desk,
+    size: (f32, f32),
+    metrics: UiMetrics,
+    motion: &mut Motion,
+) -> FrameLayout {
+    let title = |_: SessionId| String::new();
+    let input = FrameInput {
+        workspace: &desk.workspace,
+        width: size.0,
+        height: size.1,
+        metrics,
+        maximized: false,
+        fullscreen: false,
+        title: &title,
+        folder: None,
+        update: None,
+        unsaved: !desk.saver.keeps_session(),
+        update_failed: false,
+        strings: desk.strings,
+    };
+    let frame = FrameLayout::compute_with(text, &input, motion);
+    motion.finish_layout();
+    frame
 }

@@ -20,14 +20,17 @@ pub struct ScenePainter {
 }
 
 impl ScenePainter {
-    pub fn reset(&mut self) {
-        self.mask = None;
-        self.color = None;
-    }
-
     pub fn sync_atlas(&mut self, atlas: &mut Atlas) {
-        ensure_slot(&mut self.mask, cairo::Format::A8, atlas.size(AtlasKind::Mask));
-        ensure_slot(&mut self.color, cairo::Format::ARgb32, atlas.size(AtlasKind::Color));
+        ensure_slot(
+            &mut self.mask,
+            cairo::Format::A8,
+            atlas.size(AtlasKind::Mask),
+        );
+        ensure_slot(
+            &mut self.color,
+            cairo::Format::ARgb32,
+            atlas.size(AtlasKind::Color),
+        );
         for upload in atlas.take_uploads() {
             match upload.region.kind {
                 AtlasKind::Mask => write_mask(self.mask.as_mut(), &upload),

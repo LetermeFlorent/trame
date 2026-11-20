@@ -9,9 +9,7 @@ pub mod settings;
 #[cfg(test)]
 mod tests;
 
-use std::collections::HashMap;
-use std::path::PathBuf;
-use std::time::Instant;
+use std::{collections::HashMap, path::PathBuf, time::Instant};
 
 use trame::desk::{Desk, DeskSetup, FolderTarget};
 use trame::geometry::Point;
@@ -19,8 +17,9 @@ use trame::input::{Keymap, Overrides, TextField};
 use trame::render::Scene;
 use trame::session::SessionId;
 use trame::text::{DEFAULT_LINE_HEIGHT, TextSystem};
-use trame::ui::frame::SettingControl;
-use trame::ui::{FrameInput, FrameLayout, FrameView, Hit, Motion, ResizeEdge, UiMetrics};
+use trame::ui::{
+    FrameLayout, FrameView, Hit, Motion, ResizeEdge, UiMetrics, frame::SettingControl,
+};
 use trame::workspace::InstanceId;
 use winit::keyboard::ModifiersState;
 
@@ -28,8 +27,8 @@ use drag::Drag;
 use editing::{Editing, Menu};
 use settings::SettingsState;
 
-const DEFAULT_CELL: (f32, f32) = (8.0, 17.0);
 type InitGeom = ((f32, f32), f32, UiMetrics);
+type InitParts = (Desk, TextSystem, FrameLayout, Motion);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WindowAction {
@@ -89,14 +88,17 @@ impl WindowState {
         let metrics = setup.preferences.ui_metrics(scale, 0.0);
         let desk = Desk::new(setup);
         let mut motion = Motion::default();
-        let frame = initial_frame(&mut text, &desk, size, metrics, &mut motion);
-        Ok(Self::build(desk, text, frame, motion, (size, scale, metrics)))
+        let frame = queries::initial_frame(&mut text, &desk, size, metrics, &mut motion);
+        Ok(Self::build(
+            (desk, text, frame, motion),
+            (size, scale, metrics),
+        ))
     }
 
-    fn build(desk: Desk, text: TextSystem, frame: FrameLayout, motion: Motion, g: InitGeom) -> Self {
+    fn build(d: InitParts, g: InitGeom) -> Self {
         Self {
-            desk,
-            text,
+            desk: d.0,
+            text: d.1,
             chrome_scene: Scene::new(g.0.0, g.0.1),
             overlay_scene: Scene::new(g.0.0, g.0.1),
             metrics: g.2,
@@ -105,11 +107,11 @@ impl WindowState {
             maximized: false,
             fullscreen: false,
             hidden: false,
-            cell_size: DEFAULT_CELL,
+            cell_size: (8.0, 17.0),
             keymap: None,
             labels: HashMap::new(),
-            frame,
-            motion,
+            frame: d.2,
+            motion: d.3,
             view: FrameView::focused(),
             pointer: None,
             pressed_hit: None,
@@ -129,31 +131,4 @@ impl WindowState {
             picker_req: None,
         }
     }
-}
-
-fn initial_frame(
-    text: &mut TextSystem,
-    desk: &Desk,
-    size: (f32, f32),
-    metrics: UiMetrics,
-    motion: &mut Motion,
-) -> FrameLayout {
-    let title = |_: SessionId| String::new();
-    let input = FrameInput {
-        workspace: &desk.workspace,
-        width: size.0,
-        height: size.1,
-        metrics,
-        maximized: false,
-        fullscreen: false,
-        title: &title,
-        folder: None,
-        update: None,
-        unsaved: !desk.saver.keeps_session(),
-        update_failed: false,
-        strings: desk.strings,
-    };
-    let frame = FrameLayout::compute_with(text, &input, motion);
-    motion.finish_layout();
-    frame
 }

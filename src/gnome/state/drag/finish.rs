@@ -1,7 +1,8 @@
 use trame::geometry::{Point, Rect};
 use trame::session::SessionId;
+use trame::ui::Hit;
 use trame::ui::drop::{DragView, DropSpot};
-use trame::ui::{Hit, SidebarItem};
+use trame::ui::frame::SidebarItem;
 
 use super::{Drag, Lifted};
 use crate::gnome::state::WindowState;
