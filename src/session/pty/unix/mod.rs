@@ -1,17 +1,18 @@
 mod cwd;
 mod foreground;
+mod open;
 mod waiting;
 
 pub(super) use foreground::shell_in_foreground;
+use open::open_pty;
 pub(super) use waiting::waiting_bytes;
 
 use std::fs::File;
 use std::io;
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
+use std::os::fd::{AsRawFd, OwnedFd};
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use std::ptr::null_mut;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -106,38 +107,7 @@ fn attach_controlling_terminal() -> io::Result<()> {
     Ok(())
 }
 
-fn open_pty(size: PtySize) -> io::Result<(OwnedFd, OwnedFd)> {
-    let mut master: RawFd = -1;
-    let mut slave: RawFd = -1;
-    let mut size = window_size(size);
-    let opened = unsafe {
-        libc::openpty(
-            &mut master,
-            &mut slave,
-            null_mut(),
-            null_mut(),
-            &raw mut size,
-        )
-    };
-    if opened == -1 {
-        return Err(io::Error::last_os_error());
-    }
-    let (master, slave) = unsafe { (OwnedFd::from_raw_fd(master), OwnedFd::from_raw_fd(slave)) };
-    set_close_on_exec(&master)?;
-    set_close_on_exec(&slave)?;
-    Ok((master, slave))
-}
-
-fn set_close_on_exec(fd: &OwnedFd) -> io::Result<()> {
-    let fd = fd.as_raw_fd();
-    let flags = unsafe { libc::fcntl(fd, libc::F_GETFD) };
-    if flags == -1 || unsafe { libc::fcntl(fd, libc::F_SETFD, flags | libc::FD_CLOEXEC) } == -1 {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(())
-}
-
-fn window_size(size: PtySize) -> libc::winsize {
+pub(super) fn window_size(size: PtySize) -> libc::winsize {
     libc::winsize {
         ws_row: size.rows,
         ws_col: size.cols,

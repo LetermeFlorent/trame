@@ -1,6 +1,9 @@
 mod command_line;
+mod job;
 mod pipes;
 mod process;
+#[cfg(test)]
+mod tests;
 
 pub(super) use pipes::waiting_bytes;
 
@@ -29,6 +32,7 @@ impl Drop for Console {
 }
 
 pub(super) struct Pty {
+    _job: OwnedHandle,
     console: Console,
     process_id: u32,
 }
@@ -83,8 +87,10 @@ pub(super) fn spawn(options: &PtyOptions) -> io::Result<Spawned> {
     let environment = command_line::environment_block(&child_env(options));
     let cwd = options.cwd.map(|path| wide(path.as_os_str()));
     let process = process::create_process(console.0, &mut line, &environment, cwd.as_deref())?;
+    let job = job::attach(&process.handle)?;
     Ok(Spawned {
         pty: super::Pty(Pty {
+            _job: job,
             console,
             process_id: process.id,
         }),
