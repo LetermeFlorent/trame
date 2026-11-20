@@ -2,8 +2,8 @@ use gtk::graphene;
 use trame::term::CursorShape;
 use trame::ui::terminal::CursorPlace;
 
-use super::paint::Paint;
-use super::theme::fill;
+use super::Paint;
+use crate::gnome::view::theme::fill;
 
 const BAR_RATIO: f32 = 1.0 / 7.0;
 const HOLLOW_STROKE: f32 = 1.0;

@@ -28,6 +28,9 @@ fn apply(view: &TermView, dark: bool) {
         let colors = theme.reported_colors();
         session.terminal().screen_mut().set_reported_colors(colors);
     }
+    if let Some(changed) = imp.theme_changed.borrow().as_ref() {
+        changed(&theme);
+    }
     imp.theme.replace(theme);
     view.queue_draw();
 }

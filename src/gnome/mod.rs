@@ -1,6 +1,8 @@
 mod events;
+mod picture;
 mod view;
 mod window;
+mod worker;
 
 use std::env;
 use std::error::Error;

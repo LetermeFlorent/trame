@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use trame::files::home_dir;
@@ -7,6 +9,7 @@ use trame::session::pty::default_shell;
 use trame::session::{Session, SessionEvent, SessionId, SessionOptions};
 
 use super::TermView;
+use super::input;
 use super::metrics::{self, Metrics};
 use crate::gnome::events;
 
@@ -31,10 +34,16 @@ pub fn fit(view: &TermView, width: i32, height: i32) {
     }
 }
 
+pub fn session_cwd(view: &TermView) -> Option<PathBuf> {
+    let known = view.imp().session.borrow().as_ref().and_then(Session::cwd);
+    known.or_else(|| view.imp().origin.borrow().clone())
+}
+
 fn start(view: &TermView, rows: usize, cols: usize) -> Option<Session> {
     let (notify, receiver) = events::channel();
     let shell = default_shell();
     let home = home_dir();
+    *view.imp().origin.borrow_mut() = home.clone();
     let options = SessionOptions {
         shell: &shell,
         cwd: home.as_deref(),
@@ -60,6 +69,7 @@ fn handle(view: &TermView, event: SessionEvent) -> bool {
             if let Some(session) = view.imp().session.borrow().as_ref() {
                 session.take_output();
             }
+            input::refresh_hover(view);
             view.queue_draw();
             true
         }
